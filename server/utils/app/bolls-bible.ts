@@ -47,13 +47,28 @@ export function isBollsBibleConfigured(bibleId: string | undefined): boolean {
   return !!bibleId
 }
 
-export async function fetchVerseText(params: FetchVerseParams): Promise<string> {
-  const { bibleId, bookId, chapter, verseStart, verseEnd } = params
+// Throttle: max ~240 requests/minute to stay under Bolls rate limit (256/min)
+let lastBollsCall = 0
+const BOLLS_MIN_INTERVAL = 250
 
-  const bookNumber = USFM_TO_BOOK_NUMBER[bookId]
-  if (!bookNumber) {
-    throw new Error(`Unknown USFM book code: "${bookId}"`)
+async function throttle() {
+  const now = Date.now()
+  const elapsed = now - lastBollsCall
+  if (elapsed < BOLLS_MIN_INTERVAL) {
+    await new Promise(r => setTimeout(r, BOLLS_MIN_INTERVAL - elapsed))
   }
+  lastBollsCall = Date.now()
+}
+
+// Cache full chapters to avoid re-fetching the same chapter for different verse ranges
+const chapterCache = new Map<string, BollsVerse[]>()
+
+async function fetchChapter(bibleId: string, bookNumber: number, chapter: number): Promise<BollsVerse[]> {
+  const cacheKey = `${bibleId}/${bookNumber}/${chapter}`
+  const cached = chapterCache.get(cacheKey)
+  if (cached) return cached
+
+  await throttle()
 
   const url = `https://bolls.life/get-text/${bibleId}/${bookNumber}/${chapter}/`
   const response = await fetch(url)
@@ -64,6 +79,19 @@ export async function fetchVerseText(params: FetchVerseParams): Promise<string> 
   }
 
   const verses: BollsVerse[] = await response.json()
+  chapterCache.set(cacheKey, verses)
+  return verses
+}
+
+export async function fetchVerseText(params: FetchVerseParams): Promise<string> {
+  const { bibleId, bookId, chapter, verseStart, verseEnd } = params
+
+  const bookNumber = USFM_TO_BOOK_NUMBER[bookId]
+  if (!bookNumber) {
+    throw new Error(`Unknown USFM book code: "${bookId}"`)
+  }
+
+  const verses = await fetchChapter(bibleId, bookNumber, chapter)
 
   // Filter by verse range if specified
   let filtered = verses
