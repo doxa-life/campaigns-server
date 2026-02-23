@@ -83,7 +83,6 @@
                     :items="peopleGroupOptions"
                     placeholder="Select a people group"
                     class="people-group-select"
-                    searchable
                     virtualize
                     value-key="value"
                     @update:model-value="loadPeopleGroupCount"

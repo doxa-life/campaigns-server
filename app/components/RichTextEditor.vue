@@ -504,7 +504,7 @@ const setHighlight = (color: string | null) => {
 }
 
 .editor-wrapper:hover {
-  border-color: var(--ui-border-hover);
+  border-color: var(--ui-border-accented);
 }
 
 .editor-wrapper:focus-within {
@@ -778,7 +778,7 @@ const setHighlight = (color: string | null) => {
 }
 
 :deep(.ProseMirror a:hover) {
-  color: var(--ui-primary-hover);
+  color: var(--ui-color-primary-600);
 }
 
 :deep(.ProseMirror [style*="text-align: left"]) {

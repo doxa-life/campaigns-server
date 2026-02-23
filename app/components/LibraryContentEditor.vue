@@ -32,8 +32,7 @@
             @click="navigateDay(1)"
             :disabled="navigating"
             variant="outline"
-            icon="i-lucide-chevron-right"
-            trailing
+            trailing-icon="i-lucide-chevron-right"
             size="sm"
           >
             Next Day

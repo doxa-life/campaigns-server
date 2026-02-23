@@ -199,8 +199,7 @@
                   :items="(getAvailableLibrariesForRow(rowIndex) as any[])"
                   placeholder="Add library..."
                   label-key="name"
-                  searchable
-                  searchable-placeholder="Search libraries..."
+                  :search-input="{ placeholder: 'Search libraries...' }"
                   class="library-select"
                   :ui="{ content: 'min-w-64' }"
                 >
@@ -732,7 +731,7 @@ onMounted(async () => {
 
 .people-group-chip {
   border-color: var(--ui-primary);
-  background-color: var(--ui-primary-50, rgba(var(--ui-primary-rgb), 0.1));
+  background-color: var(--ui-color-primary-50);
 }
 
 .people-group-chip .library-type-icon {
@@ -903,7 +902,7 @@ onMounted(async () => {
 
 .people-group-card {
   border-color: var(--ui-primary);
-  background-color: var(--ui-primary-50, rgba(var(--ui-primary-rgb), 0.05));
+  background-color: var(--ui-color-primary-50);
 }
 
 .people-group-card .library-type-icon {

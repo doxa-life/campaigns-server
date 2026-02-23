@@ -18,7 +18,6 @@
             :items="peopleGroupOptions"
             value-key="value"
             placeholder="All People Groups"
-            searchable
             virtualize
             class="filter-select"
           />

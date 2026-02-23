@@ -139,8 +139,7 @@
                   @update:model-value="setFieldValue(field.key, $event)"
                   :items="field.options"
                   value-key="value"
-                  searchable
-                  :searchable-placeholder="'Search...'"
+                  :search-input="{ placeholder: 'Search...' }"
                   :virtualize="field.options.length > 50"
                   class="w-full"
                 />

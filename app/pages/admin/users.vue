@@ -115,112 +115,94 @@
     </div>
 
     <!-- Manage People Groups Modal -->
-    <UModal v-model:open="showPeopleGroupModal">
-      <template #content>
-        <UCard>
-          <template #header>
-            <div class="flex justify-between items-center">
-              <h2 class="text-lg font-semibold">Manage People Group Access</h2>
-              <UButton @click="closePeopleGroupModal" variant="ghost" icon="i-lucide-x" size="sm" />
+    <UModal v-model:open="showPeopleGroupModal" title="Manage People Group Access">
+      <template #body>
+        <p class="mb-4">
+          Select which people groups <strong>{{ selectedUser?.display_name || selectedUser?.email }}</strong> can access:
+        </p>
+
+        <div v-if="peopleGroupModalLoading" class="flex items-center justify-center py-8">
+          <UIcon name="i-lucide-loader" class="w-5 h-5 animate-spin" />
+          <span class="ml-2">Loading people groups...</span>
+        </div>
+
+        <UAlert v-else-if="peopleGroupModalError" color="error" :title="peopleGroupModalError" class="mb-4" />
+
+        <div v-else class="max-h-96 overflow-y-auto space-y-2 p-2 border border-[var(--ui-border)] rounded-lg">
+          <label
+            v-for="pg in availablePeopleGroups"
+            :key="pg.id"
+            class="flex items-center gap-3 p-3 border border-[var(--ui-border)] rounded-lg cursor-pointer hover:bg-[var(--ui-bg-elevated)] transition-colors"
+          >
+            <UCheckbox
+              :model-value="pg.hasAccess"
+              @update:model-value="togglePeopleGroupAccess(pg.id)"
+            />
+            <div class="flex flex-col flex-1">
+              <strong>{{ pg.title }}</strong>
+              <span class="text-sm text-[var(--ui-text-muted)]">{{ pg.slug }}</span>
             </div>
-          </template>
+          </label>
 
-          <p class="mb-4">
-            Select which people groups <strong>{{ selectedUser?.display_name || selectedUser?.email }}</strong> can access:
-          </p>
-
-          <div v-if="peopleGroupModalLoading" class="flex items-center justify-center py-8">
-            <UIcon name="i-lucide-loader" class="w-5 h-5 animate-spin" />
-            <span class="ml-2">Loading people groups...</span>
+          <div v-if="availablePeopleGroups.length === 0" class="text-center py-4 text-[var(--ui-text-muted)]">
+            No people groups available
           </div>
+        </div>
 
-          <UAlert v-else-if="peopleGroupModalError" color="error" :title="peopleGroupModalError" class="mb-4" />
+        <UAlert v-if="peopleGroupModalSuccess" color="success" title="People group access updated successfully!" class="mt-4" />
+      </template>
 
-          <div v-else class="max-h-96 overflow-y-auto space-y-2 p-2 border border-[var(--ui-border)] rounded-lg">
-            <label
-              v-for="pg in availablePeopleGroups"
-              :key="pg.id"
-              class="flex items-center gap-3 p-3 border border-[var(--ui-border)] rounded-lg cursor-pointer hover:bg-[var(--ui-bg-elevated)] transition-colors"
-            >
-              <UCheckbox
-                :model-value="pg.hasAccess"
-                @update:model-value="togglePeopleGroupAccess(pg.id)"
-              />
-              <div class="flex flex-col flex-1">
-                <strong>{{ pg.title }}</strong>
-                <span class="text-sm text-[var(--ui-text-muted)]">{{ pg.slug }}</span>
-              </div>
-            </label>
-
-            <div v-if="availablePeopleGroups.length === 0" class="text-center py-4 text-[var(--ui-text-muted)]">
-              No people groups available
-            </div>
-          </div>
-
-          <UAlert v-if="peopleGroupModalSuccess" color="success" title="People group access updated successfully!" class="mt-4" />
-
-          <template #footer>
-            <div class="flex justify-end gap-2">
-              <UButton @click="closePeopleGroupModal" variant="outline">
-                Cancel
-              </UButton>
-              <UButton
-                @click="savePeopleGroupAccess"
-                :loading="peopleGroupModalSubmitting"
-              >
-                Save Changes
-              </UButton>
-            </div>
-          </template>
-        </UCard>
+      <template #footer="{ close }">
+        <div class="flex justify-end gap-2">
+          <UButton @click="close" variant="outline">
+            Cancel
+          </UButton>
+          <UButton
+            @click="savePeopleGroupAccess"
+            :loading="peopleGroupModalSubmitting"
+          >
+            Save Changes
+          </UButton>
+        </div>
       </template>
     </UModal>
 
     <!-- Invite User Modal -->
-    <UModal v-model:open="showInviteModal">
-      <template #content>
-        <UCard>
-          <template #header>
-            <div class="flex justify-between items-center">
-              <h2 class="text-lg font-semibold">Invite User</h2>
-              <UButton @click="showInviteModal = false" variant="ghost" icon="i-lucide-x" size="sm" />
-            </div>
-          </template>
+    <UModal v-model:open="showInviteModal" title="Invite User">
+      <template #body>
+        <form @submit.prevent="handleInvite" class="space-y-4">
+          <UFormField label="Email Address" required>
+            <UInput
+              v-model="inviteForm.email"
+              type="email"
+              required
+              placeholder="user@example.com"
+            />
+          </UFormField>
 
-          <form @submit.prevent="handleInvite" class="space-y-4">
-            <UFormField label="Email Address" required>
-              <UInput
-                v-model="inviteForm.email"
-                type="email"
-                required
-                placeholder="user@example.com"
-              />
-            </UFormField>
+          <UFormField label="Role">
+            <USelect
+              v-model="inviteForm.role"
+              :items="inviteRoleOptions"
+              placeholder="Select a role"
+            />
+            <template #hint>
+              Select the role for this user. Invitation will expire in 7 days.
+            </template>
+          </UFormField>
 
-            <UFormField label="Role">
-              <USelect
-                v-model="inviteForm.role"
-                :items="inviteRoleOptions"
-                placeholder="Select a role"
-              />
-              <template #hint>
-                Select the role for this user. Invitation will expire in 7 days.
-              </template>
-            </UFormField>
+          <UAlert v-if="inviteError" color="error" :title="inviteError" />
+          <UAlert v-if="inviteSuccess" color="success" title="Invitation sent successfully!" />
 
-            <UAlert v-if="inviteError" color="error" :title="inviteError" />
-            <UAlert v-if="inviteSuccess" color="success" title="Invitation sent successfully!" />
-
-            <div class="flex justify-end gap-2 pt-4">
-              <UButton @click="showInviteModal = false" variant="outline" type="button">
-                Cancel
-              </UButton>
-              <UButton type="submit" :loading="inviteSubmitting">
-                Send Invitation
-              </UButton>
-            </div>
-          </form>
-        </UCard>
+          <div class="flex justify-end gap-2 pt-4">
+            <UButton @click="showInviteModal = false" variant="outline" type="button">
+              Cancel
+            </UButton>
+            <UButton type="submit" :loading="inviteSubmitting">
+              Send Invitation
+            </UButton>
+          </div>
+        </form>
       </template>
     </UModal>
 

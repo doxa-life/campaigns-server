@@ -365,8 +365,7 @@
                   <USelectMenu
                     v-model="userTimezone"
                     :items="timezoneOptions"
-                    searchable
-                    :search-placeholder="$t('campaign.signup.form.timezone.searchPlaceholder')"
+                    :search-input="{ placeholder: $t('campaign.signup.form.timezone.searchPlaceholder') }"
                     class="w-full"
                   />
                 </div>

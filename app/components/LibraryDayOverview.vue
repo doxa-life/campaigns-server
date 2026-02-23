@@ -94,7 +94,7 @@
                 variant="link"
                 size="sm"
                 target="_blank"
-                trailing-icon="lucide:external-link"
+                trailing-icon="i-lucide-external-link"
               >
                 View
               </UButton>

@@ -85,7 +85,7 @@
         <UFormField label="Confirm Password">
           <UInput v-model="password.confirm" type="password" size="lg" class="w-full" />
         </UFormField>
-        <p v-if="password.confirm && password.confirm !== password.newPassword" class="text-sm text-[var(--ui-text-error)]">
+        <p v-if="password.confirm && password.confirm !== password.newPassword" class="text-sm text-[var(--ui-error)]">
           Passwords do not match
         </p>
         <UButton

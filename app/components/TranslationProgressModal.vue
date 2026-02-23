@@ -2,7 +2,7 @@
   <UModal
     v-model:open="isOpen"
     title="Translation Progress"
-    :closable="isComplete"
+    :close="isComplete"
   >
     <template #body>
       <div class="progress-body">
@@ -252,7 +252,7 @@ function handleClose() {
 }
 
 .progress-fill.has-errors {
-  background: linear-gradient(90deg, var(--ui-primary), var(--ui-color-warning));
+  background: linear-gradient(90deg, var(--ui-primary), var(--ui-warning));
 }
 
 .progress-text {
@@ -289,16 +289,16 @@ function handleClose() {
 }
 
 .status-dot.processing {
-  background: var(--ui-color-info);
+  background: var(--ui-info);
   animation: pulse 1s infinite;
 }
 
 .status-dot.completed {
-  background: var(--ui-color-success);
+  background: var(--ui-success);
 }
 
 .status-dot.failed {
-  background: var(--ui-color-error);
+  background: var(--ui-error);
 }
 
 @keyframes pulse {
@@ -315,11 +315,11 @@ function handleClose() {
 }
 
 .status-message .warning {
-  color: var(--ui-color-warning);
+  color: var(--ui-warning);
 }
 
 .status-message .success {
-  color: var(--ui-color-success);
+  color: var(--ui-success);
 }
 
 .status-message .info {
@@ -333,7 +333,7 @@ function handleClose() {
 .warnings-toggle {
   background: none;
   border: none;
-  color: var(--ui-color-warning);
+  color: var(--ui-warning);
   cursor: pointer;
   font-size: 0.875rem;
   text-decoration: underline;
