@@ -680,3 +680,11 @@ components:
           type: integer
           description: Number of people groups adopted by churches (always 0)
           example: 0
+        people_committed:
+          type: integer
+          description: Total number of active prayer commitments (subscriptions)
+          example: 1200
+        committed_duration:
+          type: integer
+          description: Total committed prayer minutes across all active subscriptions
+          example: 36000

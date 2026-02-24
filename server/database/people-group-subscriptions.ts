@@ -500,6 +500,24 @@ class PeopleGroupSubscriptionService {
   }
 
   /**
+   * Get global commitment stats across all people groups (active subscriptions).
+   */
+  async getGlobalCommitmentStats(): Promise<{ people_committed: number; committed_duration: number }> {
+    const stmt = this.db.prepare(`
+      SELECT
+        COUNT(*) as people_committed,
+        COALESCE(SUM(prayer_duration), 0) as committed_duration
+      FROM campaign_subscriptions
+      WHERE status = 'active'
+    `)
+    const result = await stmt.get() as { people_committed: number; committed_duration: number }
+    return {
+      people_committed: result.people_committed,
+      committed_duration: result.committed_duration
+    }
+  }
+
+  /**
    * Mark that a follow-up email was sent for a subscription.
    * Increments followup_reminder_count and sets last_followup_at.
    */
