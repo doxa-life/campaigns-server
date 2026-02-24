@@ -122,6 +122,27 @@ export function getTranslatedLabel(labelKey: string, locale: string): string {
   return parts[parts.length - 1] || labelKey
 }
 
+// Map field keys to their descriptions key in peopleGroups.options.
+// To add descriptions for a new field, add its translation key here and the
+// corresponding object in people-groups.json under options.
+const FIELD_DESCRIPTION_KEYS: Record<string, string> = {
+  imb_reg_of_religion: 'religionDescriptions',
+}
+
+/**
+ * Returns the long description for a field option when available.
+ * Looks up peopleGroups.options.<descriptionKey>[optionKey] from people-groups.json per locale.
+ */
+export function getFieldOptionDescription(fieldKey: string, optionKey: string, locale: string = 'en'): string | null {
+  const descKey = FIELD_DESCRIPTION_KEYS[fieldKey]
+  if (!descKey) return null
+  const translations = loadTranslations(locale)
+  const descriptions = translations?.peopleGroups?.options?.[descKey]
+  if (typeof descriptions?.[optionKey] === 'string') return descriptions[optionKey]
+  if (locale !== 'en') return getFieldOptionDescription(fieldKey, optionKey, 'en')
+  return null
+}
+
 export function getReligionLabel(code: string, locale: string = 'en'): string | null {
   return getFieldOptionLabel('imb_reg_of_religion_3', code, locale)
 }

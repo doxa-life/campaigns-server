@@ -1,4 +1,4 @@
-import { getFieldOptionLabel, getCountryLabel, allFields } from './field-options'
+import { getFieldOptionLabel, getFieldOptionDescription, getCountryLabel, allFields } from './field-options'
 import { generatePeopleGroupDescription } from './people-group-description'
 
 interface PeopleGroupRecord {
@@ -126,6 +126,21 @@ function parseMetadata(metadata: string | null): Record<string, unknown> {
 }
 
 /**
+ * Format a value-label pair and include description when the field has one.
+ */
+function formatValueLabelWithDescription(
+  fieldKey: string,
+  value: string | null | undefined,
+  lang: string
+): (ValueLabelPair & { description?: string }) | null {
+  const pair = formatValueLabel(fieldKey, value, lang)
+  if (!pair) return null
+  const description = getFieldOptionDescription(fieldKey, value!, lang)
+  if (description) return { ...pair, description }
+  return pair
+}
+
+/**
  * Format a people group for the list endpoint
  * Returns summary data with {value, label} formatting for select fields
  */
@@ -142,7 +157,7 @@ export function formatPeopleGroupForList(pg: PeopleGroupRecord, lang: string = '
     wagf_member: formatValueLabel('doxa_wagf_member', meta.doxa_wagf_member as string, lang),
     country: formatValueLabel('imb_isoalpha3', pg.country_code, lang),
     rop1: formatValueLabel('imb_reg_of_people_1', meta.imb_reg_of_people_1 as string, lang),
-    religion: formatValueLabel('imb_reg_of_religion_3', meta.imb_reg_of_religion_3 as string, lang),
+    religion: formatValueLabelWithDescription('imb_reg_of_religion', (pg.primary_religion || meta.imb_reg_of_religion) as string, lang),
     location_description: meta.imb_location_description || null,
     population: pg.population || null,
     has_photo: meta.imb_has_photo === 'yes' || meta.imb_has_photo === true || !!pg.image_url,
@@ -194,7 +209,7 @@ export function formatPeopleGroupForListWithFields(
         result.rop1 = formatValueLabel('imb_reg_of_people_1', meta.imb_reg_of_people_1 as string, lang)
         break
       case 'religion':
-        result.religion = formatValueLabel('imb_reg_of_religion_3', meta.imb_reg_of_religion_3 as string, lang)
+        result.religion = formatValueLabelWithDescription('imb_reg_of_religion', (pg.primary_religion || meta.imb_reg_of_religion) as string, lang)
         break
       case 'location_description':
         result.location_description = meta.imb_location_description || null
@@ -301,9 +316,9 @@ export function formatPeopleGroupForDetail(pg: PeopleGroupRecord, lang: string =
       value = meta[key] as string | null
     }
 
-    // Format with label if this is a select field
+    // Format with label (and description when available) if this is a select field
     if (FORMATTED_FIELDS.has(key) && value !== null && value !== undefined) {
-      result[key] = formatValueLabel(key, value, lang)
+      result[key] = formatValueLabelWithDescription(key, value, lang)
     } else {
       result[key] = value ?? null
     }
