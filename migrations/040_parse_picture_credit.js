@@ -78,6 +78,11 @@ export default class ParsePictureCredit extends BaseMigration {
     for (const row of rows) {
       const parsed = parseCreditHtml(row.credit_html)
 
+      if (!parsed) {
+        skipped++
+        continue
+      }
+
       await sql`
         UPDATE people_groups
         SET metadata = jsonb_set(
@@ -88,11 +93,7 @@ export default class ParsePictureCredit extends BaseMigration {
         WHERE id = ${row.id}
       `
 
-      if (parsed) {
-        updated++
-      } else {
-        skipped++
-      }
+      updated++
     }
 
     console.log(`  ✅ Parsed ${updated} picture credits, skipped ${skipped} (no photo / empty)`)
