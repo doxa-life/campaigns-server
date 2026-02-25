@@ -49,7 +49,7 @@
         <div v-if="filteredPeopleGroups.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <NuxtLink
             v-for="pg in paginatedPeopleGroups"
-            :key="pg.id"
+            :key="pg.slug"
             :to="`/${pg.slug}`"
             class="block group"
           >
@@ -59,7 +59,7 @@
                   <img
                     v-if="pg.image_url"
                     :src="pg.image_url"
-                    :alt="pg.title"
+                    :alt="pg.name"
                     class="w-full h-full object-contain"
                   />
                   <div v-else class="w-full h-full flex items-center justify-center">
@@ -68,10 +68,10 @@
                 </div>
               </template>
               <h3 class="text-lg font-semibold text-default mb-2">
-                {{ pg.title }}
+                {{ pg.name }}
               </h3>
               <p class="text-sm text-muted line-clamp-3">
-                {{ pg.description }}
+                {{ pg.imb_people_description }}
               </p>
             </UCard>
           </NuxtLink>
@@ -95,17 +95,22 @@ const searchQuery = ref('')
 const currentPage = ref(1)
 const pageSize = 9
 
-const { data, pending, error } = await useFetch('/api/people-groups')
+const { locale } = useI18n()
+
+const { data, pending, error } = await useFetch('/api/people-groups', {
+  query: { fields: 'name,slug,image_url,imb_people_description', lang: locale },
+  watch: [locale]
+})
 
 const filteredPeopleGroups = computed(() => {
-  if (!data.value?.peopleGroups) return []
+  if (!data.value?.posts) return []
 
   const query = searchQuery.value.toLowerCase().trim()
-  if (!query) return data.value.peopleGroups
+  if (!query) return data.value.posts
 
-  return data.value.peopleGroups.filter((pg: any) =>
-    pg.title.toLowerCase().includes(query) ||
-    pg.description?.toLowerCase().includes(query)
+  return data.value.posts.filter((pg: any) =>
+    pg.name.toLowerCase().includes(query) ||
+    pg.imb_people_description?.toLowerCase().includes(query)
   )
 })
 

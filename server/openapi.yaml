@@ -21,26 +21,6 @@ tags:
     description: Unreached people group data for WordPress themes and map widgets
 
 paths:
-  /api/people-groups:
-    get:
-      tags:
-        - Campaigns
-      summary: List all active campaigns
-      description: Returns a list of all active prayer campaigns available to the public
-      operationId: listCampaigns
-      responses:
-        '200':
-          description: Successfully retrieved campaigns
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  peopleGroups:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Campaign'
-
   /api/people-groups/{slug}/signup:
     post:
       tags:
@@ -416,7 +396,7 @@ paths:
                   total:
                     type: integer
 
-  /api/people-groups/all:
+  /api/people-groups:
     get:
       tags:
         - People Groups
@@ -424,7 +404,7 @@ paths:
       description: |
         Returns all people groups with raw field values (no label formatting). Useful for map widgets and data exports.
 
-        **Default fields:** imb_display_name, slug, imb_reg_of_people_1, doxa_wagf_region, doxa_wagf_block, imb_population, imb_reg_of_religion, imb_reg_of_religion_3, imb_isoalpha3, imb_has_photo, imb_picture_url, imb_picture_credit_html, imb_lat, imb_lng, imb_people_description
+        **Default fields:** name, slug, imb_reg_of_people_1, doxa_wagf_region, doxa_wagf_block, imb_population, imb_reg_of_religion, imb_reg_of_religion_3, imb_isoalpha3, imb_has_photo, image_url, imb_lat, imb_lng, imb_people_description
 
         **Available fields:**
         - **Basic:** name, imb_display_name, imb_alternate_name, imb_people_name, imb_people_description, imb_location_description
@@ -447,7 +427,15 @@ paths:
           description: Comma-separated field names, or "all" for everything
           schema:
             type: string
-          example: dt_id,imb_display_name,imb_lat,imb_lng,imb_engagement_status
+          example: name,slug,image_url,imb_lat,imb_lng,imb_engagement_status
+        - name: lang
+          in: query
+          required: false
+          description: Language code for locale-aware fields (e.g. imb_people_description)
+          schema:
+            type: string
+            enum: [en, es, fr, pt, de, it, zh, ar, ru, hi]
+            default: en
       responses:
         '200':
           description: Successfully retrieved people groups

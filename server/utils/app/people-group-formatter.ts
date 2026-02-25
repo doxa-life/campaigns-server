@@ -331,13 +331,19 @@ export function formatPeopleGroupForDetail(pg: PeopleGroupRecord, lang: string =
  * Format a people group for the /all endpoint (raw values, no formatting)
  * Returns only the requested fields
  */
-export function formatPeopleGroupRaw(pg: PeopleGroupRecord, fields: string[]): Record<string, unknown> {
+export function formatPeopleGroupRaw(pg: PeopleGroupRecord, fields: string[], lang: string = 'en'): Record<string, unknown> {
   const meta = parseMetadata(pg.metadata)
   const result: Record<string, unknown> = {}
 
   for (const field of fields) {
     // Handle special mapped fields
     switch (field) {
+      case 'name':
+        result.name = pg.name
+        break
+      case 'image_url':
+        result.image_url = pg.image_url
+        break
       case 'dt_id':
         result.dt_id = pg.dt_id
         break
@@ -374,7 +380,7 @@ export function formatPeopleGroupRaw(pg: PeopleGroupRecord, fields: string[]): R
           name: pg.name,
           descriptions: pg.descriptions,
           metadata: meta as any
-        }, 'en')
+        }, lang)
         break
       default:
         // Get from metadata
@@ -395,8 +401,8 @@ export const DEFAULT_LIST_FIELDS = [
 
 // Default fields for /all endpoint
 export const DEFAULT_ALL_FIELDS = [
-  'imb_display_name', 'slug', 'imb_reg_of_people_1', 'doxa_wagf_region', 'doxa_wagf_block',
+  'name', 'slug', 'imb_reg_of_people_1', 'doxa_wagf_region', 'doxa_wagf_block',
   'imb_population', 'imb_reg_of_religion', 'imb_reg_of_religion_3', 'imb_isoalpha3',
-  'imb_has_photo', 'imb_picture_url', 'imb_picture_credit_html', 'imb_lat', 'imb_lng',
+  'imb_has_photo', 'image_url', 'imb_lat', 'imb_lng',
   'imb_people_description'
 ]

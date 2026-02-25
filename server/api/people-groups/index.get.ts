@@ -1,47 +1,56 @@
 /**
  * GET /api/people-groups
- * List all people groups with images
+ * Get all people groups with customizable raw fields (no label formatting)
+ * Use ?fields=field1,field2 for custom fields or ?fields=all for everything
+ * Useful for map widgets and engagement data
  */
-import { peopleGroupService } from '#server/database/people-groups'
-import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
-import { generatePeopleGroupDescription } from '../../utils/app/people-group-description'
+import { getDatabase } from '../../database/db'
+import { formatPeopleGroupRaw, DEFAULT_ALL_FIELDS } from '../../utils/app/people-group-formatter'
+import { allFields } from '../../utils/app/field-options'
+import { setCorsHeaders, setCacheHeaders } from '../../utils/app/cors'
+import { LANGUAGE_CODES } from '../../../config/languages'
 
 export default defineEventHandler(async (event) => {
+  // Set CORS and cache headers
+  setCorsHeaders(event)
+  setCacheHeaders(event)
+
+  // Parse query params
   const query = getQuery(event)
-  const acceptLanguage = getHeader(event, 'accept-language')
-  const locale = (query.locale as string) || acceptLanguage?.split(',')[0]?.split('-')[0] || 'en'
+  const fieldsParam = query.fields as string | undefined
+  const rawLang = (query.lang as string) || 'en'
+  const lang = LANGUAGE_CODES.includes(rawLang) ? rawLang : 'en'
 
-  const peopleGroups = await peopleGroupService.getAllPeopleGroups()
+  // Determine which fields to return
+  let requestedFields: string[]
 
-  // Get commitment stats for all people groups
-  const ids = peopleGroups.map(pg => pg.id)
-  const commitmentStats = await peopleGroupSubscriptionService.getCommitmentStatsForPeopleGroups(ids)
+  if (fieldsParam === 'all') {
+    // Return all available fields
+    requestedFields = ['slug', ...allFields.map(f => f.key)]
+  } else if (fieldsParam) {
+    // Parse comma-separated field names
+    requestedFields = fieldsParam.split(',').map(f => f.trim()).filter(Boolean)
+  } else {
+    // Use default fields
+    requestedFields = DEFAULT_ALL_FIELDS
+  }
 
-  const enrichedPeopleGroups = peopleGroups.map((pg) => {
-    const stats = commitmentStats.get(pg.id) || { people_committed: 0, committed_duration: 0 }
-    const metadata = pg.metadata ? JSON.parse(pg.metadata) : {}
-    const descriptions = pg.descriptions ? (typeof pg.descriptions === 'string' ? JSON.parse(pg.descriptions) : pg.descriptions) : null
-    const description = generatePeopleGroupDescription({ name: pg.name, descriptions, metadata }, locale)
-    return {
-      id: pg.id,
-      slug: pg.slug,
-      title: pg.name,
-      dt_id: pg.dt_id,
-      people_praying: pg.people_praying,
-      daily_prayer_duration: pg.daily_prayer_duration,
-      image_url: pg.image_url,
-      people_committed: stats.people_committed,
-      committed_duration: stats.committed_duration,
-      description,
-      created_at: pg.created_at,
-      updated_at: pg.updated_at
-    }
-  })
+  const db = getDatabase()
 
-  // Cache for 1 hour at edge (Cloudflare)
-  setResponseHeader(event, 'Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=600')
+  // Query all people groups
+  const stmt = db.prepare(`
+    SELECT *
+    FROM people_groups
+    ORDER BY name
+  `)
+
+  const peopleGroups = await stmt.all() as any[]
+
+  // Format the response with raw values
+  const posts = peopleGroups.map(pg => formatPeopleGroupRaw(pg, requestedFields, lang))
 
   return {
-    peopleGroups: enrichedPeopleGroups
+    posts,
+    total: posts.length
   }
 })
