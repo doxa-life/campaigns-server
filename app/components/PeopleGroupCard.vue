@@ -48,12 +48,19 @@ const mapEmbedUrl = computed(() => {
               :alt="peopleGroup.name"
               class="people-group-image"
             />
-            <p v-if="peopleGroup.picture_credit" class="mt-1 text-xs text-muted text-center">
-              <template v-for="(seg, i) in peopleGroup.picture_credit" :key="i">
-                <a v-if="seg.link" :href="seg.link" target="_blank" rel="noopener noreferrer" class="underline">{{ seg.text }}</a>
-                <span v-else>{{ seg.text }}</span>
+            <UPopover v-if="peopleGroup.picture_credit" :popper="{ placement: 'bottom' }">
+              <button class="credit-icon" type="button" aria-label="Photo credit">
+                <UIcon name="i-lucide-info" class="w-3.5 h-3.5" />
+              </button>
+              <template #content>
+                <p class="p-2 text-xs text-muted max-w-48">
+                  <template v-for="(seg, i) in peopleGroup.picture_credit" :key="i">
+                    <a v-if="seg.link" :href="seg.link" target="_blank" rel="noopener noreferrer" class="underline">{{ seg.text }}</a>
+                    <span v-else>{{ seg.text }}</span>
+                  </template>
+                </p>
               </template>
-            </p>
+            </UPopover>
           </div>
 
           <div class="header-content">
@@ -146,6 +153,27 @@ const mapEmbedUrl = computed(() => {
 .image-container {
   flex-shrink: 0;
   width: 100px;
+  position: relative;
+}
+
+.credit-icon {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  border-radius: 9999px;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.credit-icon:hover {
+  background: rgba(0, 0, 0, 0.8);
 }
 
 .people-group-image {

@@ -31,18 +31,25 @@
           <!-- Header: Image, Name, Description -->
           <div class="flex flex-col sm:flex-row gap-6 items-start">
             <!-- Image -->
-            <div v-if="pg.image_url" class="shrink-0 w-50 mx-auto sm:mx-0">
+            <div v-if="pg.image_url" class="shrink-0 w-50 mx-auto sm:mx-0 relative">
               <img
                 :src="pg.image_url"
                 :alt="pg.name"
                 class="w-full aspect-square object-cover rounded-lg shadow-md"
               />
-              <p v-if="pg.picture_credit" class="mt-1 text-xs text-muted text-center">
-                <template v-for="(seg, i) in (pg.picture_credit as any[])" :key="i">
-                  <a v-if="seg.link" :href="seg.link" target="_blank" rel="noopener noreferrer" class="underline">{{ seg.text }}</a>
-                  <span v-else>{{ seg.text }}</span>
+              <UPopover v-if="pg.picture_credit" :popper="{ placement: 'bottom' }">
+                <button class="absolute bottom-2 right-2 bg-black/55 hover:bg-black/80 text-white rounded-full w-5 h-5 flex items-center justify-center transition-colors cursor-pointer" type="button" aria-label="Photo credit">
+                  <UIcon name="i-lucide-info" class="w-3.5 h-3.5" />
+                </button>
+                <template #content>
+                  <p class="p-2 text-xs text-muted max-w-48">
+                    <template v-for="(seg, i) in (pg.picture_credit as any[])" :key="i">
+                      <a v-if="seg.link" :href="seg.link" target="_blank" rel="noopener noreferrer" class="underline">{{ seg.text }}</a>
+                      <span v-else>{{ seg.text }}</span>
+                    </template>
+                  </p>
                 </template>
-              </p>
+              </UPopover>
             </div>
 
             <!-- Name & Description -->
