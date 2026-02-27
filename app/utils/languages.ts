@@ -32,3 +32,8 @@ export function getBibleId(code: string): string | undefined {
   const lang = getLanguageByCode(code)
   return lang?.bibleId
 }
+
+export function getGlossaryId(code: string): string | undefined {
+  const lang = getLanguageByCode(code)
+  return lang?.glossaryId
+}

@@ -5,7 +5,7 @@
  * Handles both plain text and Tiptap JSON content.
  */
 
-import { LANGUAGE_CODES, getDeeplTargetCode, getDeeplSourceCode, getBibleId } from '~/utils/languages'
+import { LANGUAGE_CODES, getDeeplTargetCode, getDeeplSourceCode, getBibleId, getGlossaryId } from '~/utils/languages'
 import { parseReference } from '../../config/bible-books'
 import { fetchVerseText, isBollsBibleConfigured } from './app/bolls-bible'
 
@@ -52,6 +52,11 @@ export async function translateText(
 
   if (sourceLang) {
     params.append('source_lang', sourceLang)
+  }
+
+  const glossaryId = getGlossaryId(targetLanguage)
+  if (glossaryId) {
+    params.append('glossary_id', glossaryId)
   }
 
   // Use quality_optimized model for best translation quality
@@ -113,6 +118,11 @@ export async function translateTexts(
 
   if (sourceLang) {
     params.append('source_lang', sourceLang)
+  }
+
+  const glossaryId = getGlossaryId(targetLanguage)
+  if (glossaryId) {
+    params.append('glossary_id', glossaryId)
   }
 
   // Use quality_optimized model for best translation quality
@@ -240,7 +250,8 @@ export async function translateTiptapContent(
 export async function batchTranslateTiptapContents(
   docs: TiptapNode[],
   targetLanguage: string,
-  sourceLanguage?: string
+  sourceLanguage?: string,
+  options?: { skipVerseTranslation?: boolean }
 ): Promise<{ docs: TiptapNode[]; verseWarnings: VerseWarning[] }> {
   const skipNodes = new Set(['verse'])
 
