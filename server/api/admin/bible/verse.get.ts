@@ -1,6 +1,6 @@
 import { parseReference } from '../../../../config/bible-books'
 import { fetchVerseText, isBollsBibleConfigured } from '#server/utils/app/bolls-bible'
-import { getBibleId } from '~/utils/languages'
+import { getBibleId, getBibleLabel } from '~/utils/languages'
 
 /**
  * Fetch verse text from Bolls Bible API
@@ -48,6 +48,7 @@ export default defineEventHandler(async (event) => {
   return {
     reference,
     text,
-    language
+    language,
+    translation: getBibleLabel(language)
   }
 })

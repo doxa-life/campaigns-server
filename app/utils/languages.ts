@@ -33,6 +33,11 @@ export function getBibleId(code: string): string | undefined {
   return lang?.bibleId
 }
 
+export function getBibleLabel(code: string): string {
+  const lang = getLanguageByCode(code)
+  return lang?.bibleLabel || lang?.bibleId || ''
+}
+
 export function getGlossaryId(code: string): string | undefined {
   const lang = getLanguageByCode(code)
   return lang?.glossaryId

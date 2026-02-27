@@ -1,13 +1,46 @@
 /**
  * Bible book name to USFM code mapping and reference parser.
  * Shared between client and server (isomorphic).
+ *
+ * Localized book names live in i18n/locales/{lang}/bible.json.
+ * When adding a new language, create a bible.json file for it.
  */
+
+import enBooks from '../i18n/locales/en/bible.json'
+import esBooks from '../i18n/locales/es/bible.json'
+import frBooks from '../i18n/locales/fr/bible.json'
+import ptBooks from '../i18n/locales/pt/bible.json'
+import deBooks from '../i18n/locales/de/bible.json'
+import itBooks from '../i18n/locales/it/bible.json'
+import zhBooks from '../i18n/locales/zh/bible.json'
+import arBooks from '../i18n/locales/ar/bible.json'
+import ruBooks from '../i18n/locales/ru/bible.json'
+import hiBooks from '../i18n/locales/hi/bible.json'
+import roBooks from '../i18n/locales/ro/bible.json'
 
 export interface ParsedReference {
   bookId: string
   chapter: number
   verseStart?: number
   verseEnd?: number
+}
+
+// Per-locale JSON files keyed by language code
+const localeBooks: Record<string, Record<string, string>> = {
+  en: enBooks, es: esBooks, fr: frBooks, pt: ptBooks, de: deBooks,
+  it: itBooks, zh: zhBooks, ar: arBooks, ru: ruBooks, hi: hiBooks, ro: roBooks,
+}
+
+/**
+ * Localized book names: USFM code → { langCode: bookName }
+ * Built from per-locale i18n/locales/{lang}/bible.json files.
+ */
+export const BOOK_NAMES: Record<string, Record<string, string>> = {}
+for (const [lang, books] of Object.entries(localeBooks)) {
+  for (const [usfm, name] of Object.entries(books)) {
+    if (!BOOK_NAMES[usfm]) BOOK_NAMES[usfm] = {}
+    BOOK_NAMES[usfm][lang] = name
+  }
 }
 
 // Maps lowercase book names/abbreviations to USFM book codes
@@ -148,9 +181,36 @@ const BOOK_LOOKUP: Record<string, string> = {
   revelation: 'REV', revelations: 'REV', rev: 'REV', re: 'REV',
 }
 
+// Populate BOOK_LOOKUP with all localized names so parseReference() works in any language
+for (const [usfmCode, names] of Object.entries(BOOK_NAMES)) {
+  for (const name of Object.values(names)) {
+    const key = name.toLowerCase()
+    if (!BOOK_LOOKUP[key]) {
+      BOOK_LOOKUP[key] = usfmCode
+    }
+  }
+}
+
+/**
+ * Reconstruct a reference string using the localized book name.
+ */
+export function localizeReference(parsed: ParsedReference, targetLanguage: string): string {
+  const bookName = BOOK_NAMES[parsed.bookId]?.[targetLanguage]
+    || BOOK_NAMES[parsed.bookId]?.en || parsed.bookId
+  let ref = `${bookName} ${parsed.chapter}`
+  if (parsed.verseStart !== undefined) {
+    ref += `:${parsed.verseStart}`
+    if (parsed.verseEnd !== undefined && parsed.verseEnd !== parsed.verseStart) {
+      ref += `-${parsed.verseEnd}`
+    }
+  }
+  return ref
+}
+
 /**
  * Parse a Bible reference string into structured components.
  * Handles formats like: "John 3:16", "1 Corinthians 13:4-7", "Psalm 23", "Gen 1:1-3"
+ * Supports localized book names (Unicode letters) in all configured languages.
  */
 export function parseReference(reference: string): ParsedReference | null {
   if (!reference || typeof reference !== 'string') return null
@@ -158,10 +218,10 @@ export function parseReference(reference: string): ParsedReference | null {
   const trimmed = reference.trim()
   if (!trimmed) return null
 
-  // Regex: optional numeric prefix + book name, then chapter, then optional :verse(-verse)
-  // Examples: "John 3:16", "1 Cor 13:4-7", "Psalm 23", "3 John 1:4"
+  // Regex: optional numeric prefix + book name (Unicode letters), then chapter, then optional :verse(-verse)
+  // Examples: "John 3:16", "1 Cor 13:4-7", "Psalm 23", "3 John 1:4", "Juan 3:16", "Иоанна 3:16"
   const match = trimmed.match(
-    /^(\d?\s*[a-zA-Z][a-zA-Z\s]*?)\s+(\d+)(?::(\d+)(?:\s*[-–—]\s*(\d+))?)?$/
+    /^(\d?\s*[\p{L}][\p{L}\s]*?)\s+(\d+)(?::(\d+)(?:\s*[-–—]\s*(\d+))?)?$/u
   )
 
   if (!match) return null

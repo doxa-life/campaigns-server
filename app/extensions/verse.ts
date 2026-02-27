@@ -44,6 +44,14 @@ export const Verse = Node.create<VerseOptions>({
           if (!attributes.reference) return {}
           return { 'data-reference': attributes.reference }
         }
+      },
+      translation: {
+        default: null,
+        parseHTML: element => element.getAttribute('data-translation'),
+        renderHTML: attributes => {
+          if (!attributes.translation) return {}
+          return { 'data-translation': attributes.translation }
+        }
       }
     }
   },

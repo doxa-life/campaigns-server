@@ -5,8 +5,8 @@
  * Handles both plain text and Tiptap JSON content.
  */
 
-import { LANGUAGE_CODES, getDeeplTargetCode, getDeeplSourceCode, getBibleId, getGlossaryId } from '~/utils/languages'
-import { parseReference } from '../../config/bible-books'
+import { LANGUAGE_CODES, getDeeplTargetCode, getDeeplSourceCode, getBibleId, getBibleLabel, getGlossaryId } from '~/utils/languages'
+import { parseReference, localizeReference } from '../../config/bible-books'
 import { fetchVerseText, isBollsBibleConfigured } from './app/bolls-bible'
 
 // Re-export for convenience
@@ -350,6 +350,8 @@ export async function translateVerseNodes(node: TiptapNode, targetLanguage: stri
           type: 'paragraph',
           content: [{ type: 'text', text }]
         }]
+        child.attrs!.reference = localizeReference(parsed, targetLanguage)
+        child.attrs!.translation = getBibleLabel(targetLanguage)
       } catch (e: any) {
         const reason = e?.message || 'Unknown error'
         console.warn(`[Bolls Bible] Failed to fetch verse "${reference}" for "${targetLanguage}": ${reason}`)

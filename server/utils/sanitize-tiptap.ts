@@ -56,7 +56,7 @@ const ALLOWED_NODE_ATTRS: Record<string, Set<string>> = {
   spacer: new Set(['height']),
   paragraph: new Set(['textAlign']),
   listItem: new Set([]),
-  verse: new Set(['reference'])
+  verse: new Set(['reference', 'translation'])
 }
 
 // Allowed attributes for marks
@@ -204,8 +204,13 @@ function sanitizeAttrs(
     } else if (key === 'reference') {
       // Bible reference string, max 100 chars, alphanumeric + spaces, colons, dashes
       const refValue = String(value).trim()
-      if (refValue.length > 0 && refValue.length <= 100 && /^[\w\s:,\-–—.]+$/.test(refValue)) {
+      if (refValue.length > 0 && refValue.length <= 100 && /^[\w\p{L}\s:,\-–—.]+$/u.test(refValue)) {
         sanitized[key] = refValue
+      }
+    } else if (key === 'translation') {
+      const val = String(value).trim()
+      if (val.length > 0 && val.length <= 20 && /^[\w\p{L}\d\s]+$/u.test(val)) {
+        sanitized[key] = val
       }
     } else if (key === 'style') {
       // For image style, only allow specific style properties
