@@ -55,12 +55,20 @@
         <p v-else class="mt-4 text-sm text-[var(--ui-text-muted)]">
           {{ $t('prayerFuel.thankYou') }}
         </p>
+
+        <div v-if="copyrightNotices.length" class="mt-8 border-l-2 border-[var(--ui-border)] pl-3 text-left">
+          <p v-for="item in copyrightNotices" :key="item.id" class="!text-[10px] italic text-[var(--ui-text-muted)] mt-1">
+            {{ item.notice }}
+          </p>
+        </div>
       </div>
     </footer>
   </div>
 </template>
 
 <script setup lang="ts">
+import { extractTranslations, getCopyrightNotices } from '~/utils/bible-attribution'
+
 interface PeopleGroupData {
   name: string
   image_url: string | null
@@ -81,7 +89,7 @@ interface ContentItem {
   content_json?: Record<string, any> | string | null
 }
 
-defineProps<{
+const props = defineProps<{
   content: ContentItem[]
   hasContent: boolean
   prayedMarked: boolean
@@ -91,6 +99,11 @@ defineProps<{
 defineEmits<{
   pray: []
 }>()
+
+const copyrightNotices = computed(() => {
+  const translations = extractTranslations(props.content)
+  return getCopyrightNotices(translations)
+})
 </script>
 
 <style scoped>
