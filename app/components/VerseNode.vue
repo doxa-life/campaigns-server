@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { NodeViewWrapper, NodeViewContent, type NodeViewProps } from '@tiptap/vue-3'
+import { parseReference, localizeReference } from '../../config/bible-books'
 
 const props = defineProps<NodeViewProps>()
 
@@ -11,6 +12,14 @@ const error = ref('')
 
 const savedReference = computed(() => props.node.attrs.reference || '')
 const savedTranslation = computed(() => props.node.attrs.translation || '')
+
+const displayReference = computed(() => {
+  const ref = savedReference.value
+  if (!ref) return ''
+  const parsed = parseReference(ref)
+  if (!parsed) return ref
+  return localizeReference(parsed, language.value)
+})
 
 function saveReference() {
   props.updateAttributes({ reference: reference.value || null })
@@ -33,7 +42,8 @@ async function fetchVerse() {
       const pos = props.getPos()
       if (typeof pos !== 'number') return
 
-      props.updateAttributes({ translation: data.translation })
+      reference.value = data.reference
+      props.updateAttributes({ reference: data.reference, translation: data.translation })
 
       // Replace all content inside the verse node with a single paragraph
       const { state } = props.editor
@@ -97,7 +107,7 @@ const isEditable = computed(() => props.editor.isEditable)
     </div>
     <NodeViewContent class="verse-content" />
     <div v-if="savedReference" class="verse-citation" contenteditable="false">
-      {{ savedReference }}<template v-if="savedTranslation">, {{ savedTranslation }}</template>
+      {{ displayReference }}<template v-if="savedTranslation">, {{ savedTranslation }}</template>
     </div>
   </NodeViewWrapper>
 </template>

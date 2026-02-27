@@ -350,7 +350,7 @@ export async function translateVerseNodes(node: TiptapNode, targetLanguage: stri
           type: 'paragraph',
           content: [{ type: 'text', text }]
         }]
-        child.attrs!.reference = localizeReference(parsed, targetLanguage)
+        child.attrs!.reference = localizeReference(parsed, 'en')
         child.attrs!.translation = getBibleLabel(targetLanguage)
       } catch (e: any) {
         const reason = e?.message || 'Unknown error'

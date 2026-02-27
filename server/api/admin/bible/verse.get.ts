@@ -1,4 +1,4 @@
-import { parseReference } from '../../../../config/bible-books'
+import { parseReference, localizeReference } from '../../../../config/bible-books'
 import { fetchVerseText, isBollsBibleConfigured } from '#server/utils/app/bolls-bible'
 import { getBibleId, getBibleLabel } from '~/utils/languages'
 
@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
   })
 
   return {
-    reference,
+    reference: localizeReference(parsed, 'en'),
     text,
     language,
     translation: getBibleLabel(language)
