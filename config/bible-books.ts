@@ -218,9 +218,15 @@ export function parseReference(reference: string): ParsedReference | null {
   const trimmed = reference.trim()
   if (!trimmed) return null
 
+  // Normalize Roman numeral prefixes: "I Timothy" → "1 Timothy", "II Cor" → "2 Cor"
+  const normalized = trimmed
+    .replace(/^III\s+/i, '3 ')
+    .replace(/^II\s+/i, '2 ')
+    .replace(/^I\s+/i, '1 ')
+
   // Regex: optional numeric prefix + book name (Unicode letters), then chapter, then optional :verse(-verse)
-  // Examples: "John 3:16", "1 Cor 13:4-7", "Psalm 23", "3 John 1:4", "Juan 3:16", "Иоанна 3:16"
-  const match = trimmed.match(
+  // Examples: "John 3:16", "1 Cor 13:4-7", "Psalm 23", "3 John 1:4"
+  const match = normalized.match(
     /^(\d?\s*[\p{L}][\p{L}\s]*?)\s+(\d+)(?::(\d+)(?:\s*[-–—]\s*(\d+))?)?$/u
   )
 

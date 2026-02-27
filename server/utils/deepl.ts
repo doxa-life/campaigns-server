@@ -60,7 +60,7 @@ export async function translateText(
   }
 
   // Use quality_optimized model for best translation quality
-  params.append('model', 'quality_optimized')
+  params.append('model_type', 'quality_optimized')
 
   const apiUrl = config.deeplApiUrl || 'https://api-free.deepl.com'
 
@@ -128,7 +128,7 @@ export async function translateTexts(
   }
 
   // Use quality_optimized model for best translation quality
-  params.append('model', 'quality_optimized')
+  params.append('model_type', 'quality_optimized')
 
   const apiUrl = config.deeplApiUrl || 'https://api-free.deepl.com'
 

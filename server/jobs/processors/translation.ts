@@ -47,6 +47,20 @@ async function preserveOrFetchVerses(
   }
 }
 
+/**
+ * Walk two trees in parallel and replace verse nodes in `target` with those from `source`.
+ */
+function graftVerseNodes(target: TiptapNode, source: TiptapNode): void {
+  if (!target.content || !source.content) return
+  for (let i = 0; i < target.content.length && i < source.content.length; i++) {
+    if (target.content[i]!.type === 'verse' && source.content[i]!.type === 'verse') {
+      target.content[i] = source.content[i]!
+    } else {
+      graftVerseNodes(target.content[i]!, source.content[i]!)
+    }
+  }
+}
+
 export async function processBatchTranslation(job: Job): Promise<ProcessorResult> {
   const payload = job.payload as TranslationBatchPayload
 
@@ -81,14 +95,21 @@ export async function processBatchTranslation(job: Job): Promise<ProcessorResult
   const verseWarnings: VerseWarning[] = []
 
   if (!payload.overwrite && retranslateVerses) {
+    const sourceByDay = new Map(sourceContent.map(c => [c.day_number, c]))
     const existingWithContent = existingTarget.filter(c => c.content_json)
     for (const existing of existingWithContent) {
-      const doc: TiptapNode = JSON.parse(JSON.stringify(existing.content_json))
+      const source = sourceByDay.get(existing.day_number)
+      if (!source?.content_json) continue
+      // Clone the source (English) doc so translateVerseNodes reads English references
+      const doc: TiptapNode = JSON.parse(JSON.stringify(source.content_json))
       await translateVerseNodes(doc, payload.target_language, verseWarnings)
+      // Graft the translated verse nodes into the existing target doc
+      const targetDoc: TiptapNode = JSON.parse(JSON.stringify(existing.content_json))
+      graftVerseNodes(targetDoc, doc)
       await libraryContentService.bulkUpsertContent(payload.library_id, [{
         day_number: existing.day_number,
         language_code: payload.target_language,
-        content_json: doc
+        content_json: targetDoc
       }])
       verseOnlyUpdated++
     }

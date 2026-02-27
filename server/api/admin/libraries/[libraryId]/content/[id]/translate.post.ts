@@ -1,6 +1,17 @@
 import { libraryContentService } from '#server/database/library-content'
-import { translateTiptapContent, isDeepLConfigured } from '#server/utils/deepl'
+import { translateTiptapContent, translateVerseNodes, isDeepLConfigured, type TiptapNode } from '#server/utils/deepl'
 import { getErrorMessage, getIntParam } from '#server/utils/api-helpers'
+
+function graftVerseNodes(target: TiptapNode, source: TiptapNode): void {
+  if (!target.content || !source.content) return
+  for (let i = 0; i < target.content.length && i < source.content.length; i++) {
+    if (target.content[i]!.type === 'verse' && source.content[i]!.type === 'verse') {
+      target.content[i] = source.content[i]!
+    } else {
+      graftVerseNodes(target.content[i]!, source.content[i]!)
+    }
+  }
+}
 
 /**
  * Translate library content to one or more target languages
@@ -45,7 +56,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { sourceLanguage, targetLanguages, overwrite = false } = body
+  const { sourceLanguage, targetLanguages, overwrite = false, retranslateVerses = true } = body
 
   // Get the source content
   const sourceContent = await libraryContentService.getLibraryContentById(contentId)
@@ -111,12 +122,37 @@ export default defineEventHandler(async (event) => {
       )
 
       if (existingContent && !overwrite) {
-        results.push({
-          language: targetLanguage,
-          success: true,
-          skipped: true,
-          content: existingContent
-        })
+        if (retranslateVerses && existingContent.content_json) {
+          // Verse-only update: use English source references, graft into existing target
+          const sourceDoc: TiptapNode = JSON.parse(JSON.stringify(sourceContent.content_json))
+          const verseWarnings: { reference: string; language: string; reason: string }[] = []
+          await translateVerseNodes(sourceDoc, targetLanguage, verseWarnings)
+
+          // Graft translated verse nodes into existing target
+          const targetDoc: TiptapNode = JSON.parse(JSON.stringify(existingContent.content_json))
+          graftVerseNodes(targetDoc, sourceDoc)
+
+          const updated = await libraryContentService.updateLibraryContent(existingContent.id, {
+            content_json: targetDoc
+          })
+
+          if (verseWarnings.length > 0) {
+            console.warn(`[Translate] ${verseWarnings.length} verse warning(s) for ${targetLanguage}:`, verseWarnings)
+          }
+
+          results.push({
+            language: targetLanguage,
+            success: true,
+            content: updated
+          })
+        } else {
+          results.push({
+            language: targetLanguage,
+            success: true,
+            skipped: true,
+            content: existingContent
+          })
+        }
         continue
       }
 

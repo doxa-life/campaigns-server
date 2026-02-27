@@ -1,12 +1,16 @@
 /**
  * Bolls.life Bible API client
- * Fetches verse text from the Bolls.life API (no API key required).
+ * Fetches verse text using a disk-cached full-translation download from Bolls.life.
  *
- * The `bibleId` stored in language config is a Bolls translation code (e.g., "NKJV", "RV1960").
- *
- * Some translations use different chapter/verse numbering than English (NKJV).
- * The remapping logic below adjusts references before querying the API.
+ * On first request for a translation, downloads the entire Bible JSON (~7-30MB)
+ * from https://bolls.life/static/translations/{bibleId}.json, strips unnecessary
+ * fields, saves to data/bibles/{bibleId}.json, and builds an in-memory index
+ * keyed by "book/chapter" for instant lookups.
  */
+
+import { existsSync } from 'node:fs'
+import { mkdir, readFile, writeFile, unlink } from 'node:fs/promises'
+import { join } from 'node:path'
 
 interface FetchVerseParams {
   bibleId: string
@@ -20,6 +24,16 @@ interface BollsVerse {
   pk: number
   verse: number
   text: string
+}
+
+interface BollsRawVerse {
+  pk: number
+  book: number
+  chapter: number
+  verse: number
+  text: string
+  comment?: string
+  translation?: string
 }
 
 /**
@@ -50,6 +64,7 @@ interface ChapterRemap {
   book: string
   fromChapter: number
   fromVerseStart?: number // If set, only applies when verse >= this
+  fromVerseEnd?: number   // If set, only applies when verse <= this
   toChapter: number
   verseOffset: number     // Added to verse numbers
 }
@@ -88,7 +103,7 @@ const TRANSLATION_MAPPINGS: Record<string, TranslationMapping> = {
       { book: 'JOL', fromChapter: 3, toChapter: 4, verseOffset: 0 },
       { book: 'MAL', fromChapter: 4, toChapter: 3, verseOffset: 18 },
     ]
-  }
+  },
 }
 
 interface RemappedRef {
@@ -132,6 +147,10 @@ function remapReference(
       if (remap.fromVerseStart !== undefined) {
         if (vs === undefined || vs < remap.fromVerseStart) continue
       }
+      // If remap has fromVerseEnd, only apply if our verse range starts at or before it
+      if (remap.fromVerseEnd !== undefined) {
+        if (vs === undefined || vs > remap.fromVerseEnd) continue
+      }
 
       const oldCh = ch
       ch = remap.toChapter
@@ -147,7 +166,117 @@ function remapReference(
 }
 
 // ---------------------------------------------------------------------------
-// Core API client
+// Disk cache + in-memory index
+// ---------------------------------------------------------------------------
+
+type ChapterIndex = Map<string, BollsVerse[]>
+
+const BIBLES_DIR = join(process.cwd(), 'data', 'bibles')
+
+const memoryIndex = new Map<string, ChapterIndex>()
+const pendingLoads = new Map<string, Promise<ChapterIndex>>()
+
+function buildIndex(verses: BollsRawVerse[]): ChapterIndex {
+  const index: ChapterIndex = new Map()
+  for (const v of verses) {
+    const key = `${v.book}/${v.chapter}`
+    let arr = index.get(key)
+    if (!arr) {
+      arr = []
+      index.set(key, arr)
+    }
+    arr.push({ pk: v.pk, verse: v.verse, text: v.text })
+  }
+  return index
+}
+
+async function loadTranslation(bibleId: string): Promise<ChapterIndex> {
+  await mkdir(BIBLES_DIR, { recursive: true })
+  const filePath = join(BIBLES_DIR, `${bibleId}.json`)
+
+  let rawVerses: BollsRawVerse[]
+
+  if (existsSync(filePath)) {
+    console.log(`[Bolls] Loading ${bibleId} from disk cache: ${filePath}`)
+    try {
+      const data = await readFile(filePath, 'utf-8')
+      rawVerses = JSON.parse(data)
+    } catch (err) {
+      console.warn(`[Bolls] Corrupt cache file for ${bibleId}, re-downloading...`, err)
+      await unlink(filePath).catch(() => {})
+      rawVerses = await downloadTranslation(bibleId, filePath)
+    }
+  } else {
+    rawVerses = await downloadTranslation(bibleId, filePath)
+  }
+
+  const index = buildIndex(rawVerses)
+  console.log(`[Bolls] ${bibleId} indexed: ${index.size} chapters, ${rawVerses.length} verses`)
+  return index
+}
+
+async function downloadTranslation(bibleId: string, filePath: string): Promise<BollsRawVerse[]> {
+  const url = `https://bolls.life/static/translations/${bibleId}.json`
+  console.log(`[Bolls] Downloading full translation: ${url}`)
+
+  const response = await fetch(url)
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`Failed to download ${bibleId} from Bolls: ${response.status} - ${errorText}`)
+  }
+
+  const fullVerses: BollsRawVerse[] = await response.json()
+
+  // Strip comment and translation fields to save disk space (~40%)
+  const stripped = fullVerses.map(v => ({
+    pk: v.pk,
+    book: v.book,
+    chapter: v.chapter,
+    verse: v.verse,
+    text: v.text,
+  }))
+
+  await writeFile(filePath, JSON.stringify(stripped))
+  console.log(`[Bolls] Saved ${bibleId} to disk: ${filePath} (${stripped.length} verses)`)
+
+  return stripped
+}
+
+function ensureTranslationLoaded(bibleId: string): Promise<ChapterIndex> {
+  const existing = memoryIndex.get(bibleId)
+  if (existing) return Promise.resolve(existing)
+
+  // Promise coalescing: if another request is already loading this translation, reuse it
+  const pending = pendingLoads.get(bibleId)
+  if (pending) return pending
+
+  const promise = loadTranslation(bibleId)
+    .then(index => {
+      memoryIndex.set(bibleId, index)
+      return index
+    })
+    .finally(() => {
+      pendingLoads.delete(bibleId)
+    })
+
+  pendingLoads.set(bibleId, promise)
+  return promise
+}
+
+async function fetchChapter(bibleId: string, bookNumber: number, chapter: number): Promise<BollsVerse[]> {
+  const index = await ensureTranslationLoaded(bibleId)
+  const key = `${bookNumber}/${chapter}`
+  const verses = index.get(key)
+
+  if (!verses || verses.length === 0) {
+    throw new Error(`No verses found for ${bibleId} book=${bookNumber} chapter=${chapter}`)
+  }
+
+  return verses
+}
+
+// ---------------------------------------------------------------------------
+// Public API
 // ---------------------------------------------------------------------------
 
 function cleanVerseText(text: string): string {
@@ -156,48 +285,6 @@ function cleanVerseText(text: string): string {
 
 export function isBollsBibleConfigured(bibleId: string | undefined): boolean {
   return !!bibleId
-}
-
-// Throttle: max ~240 requests/minute to stay under Bolls rate limit (256/min)
-let lastBollsCall = 0
-const BOLLS_MIN_INTERVAL = 250
-
-async function throttle() {
-  const now = Date.now()
-  const elapsed = now - lastBollsCall
-  if (elapsed < BOLLS_MIN_INTERVAL) {
-    await new Promise(r => setTimeout(r, BOLLS_MIN_INTERVAL - elapsed))
-  }
-  lastBollsCall = Date.now()
-}
-
-// Cache full chapters to avoid re-fetching the same chapter for different verse ranges
-const chapterCache = new Map<string, BollsVerse[]>()
-
-async function fetchChapter(bibleId: string, bookNumber: number, chapter: number): Promise<BollsVerse[]> {
-  const cacheKey = `${bibleId}/${bookNumber}/${chapter}`
-  const cached = chapterCache.get(cacheKey)
-  if (cached) {
-    console.log(`[Bolls] Cache hit: ${cacheKey}`)
-    return cached
-  }
-
-  await throttle()
-
-  const url = `https://bolls.life/get-text/${bibleId}/${bookNumber}/${chapter}/`
-  console.log(`[Bolls] Fetching: ${url}`)
-  const response = await fetch(url)
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    console.error(`[Bolls] API error ${response.status}: ${errorText}`)
-    throw new Error(`Bolls Bible API error: ${response.status} - ${errorText}`)
-  }
-
-  const verses: BollsVerse[] = await response.json()
-  console.log(`[Bolls] Got ${verses.length} verses for ${cacheKey}`)
-  chapterCache.set(cacheKey, verses)
-  return verses
 }
 
 export async function fetchVerseText(params: FetchVerseParams): Promise<string> {

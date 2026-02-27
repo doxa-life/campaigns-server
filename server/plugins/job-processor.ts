@@ -65,6 +65,7 @@ async function processJobQueue(): Promise<boolean> {
         throw new Error(result.data?.error || 'Job failed')
       }
     } catch (error: any) {
+      console.error(`Translation job ${job.id} failed:`, error.message || error)
       const canRetry = job.attempts < job.max_attempts
       await jobQueueService.markFailed(job.id, error.message || 'Unknown error')
       if (canRetry) {

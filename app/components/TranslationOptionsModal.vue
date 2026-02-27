@@ -61,7 +61,7 @@
         </div>
 
         <!-- Retranslate Verses Option -->
-        <div v-if="mode === 'all'" class="form-group">
+        <div class="form-group">
           <UCheckbox
             v-model="retranslateVerses"
             label="Retranslate verses"

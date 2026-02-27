@@ -333,7 +333,7 @@ function closeTranslateModal() {
   translateTargetLanguage.value = ''
 }
 
-async function handleTranslate(options: { sourceLanguage: string; targetLanguages: string[]; overwrite: boolean }) {
+async function handleTranslate(options: { sourceLanguage: string; targetLanguages: string[]; overwrite: boolean; retranslateVerses: boolean }) {
   // Find the source content ID
   const sourceTranslation = translations.value.find(t => t.language_code === options.sourceLanguage)
   if (!sourceTranslation) {
@@ -353,7 +353,8 @@ async function handleTranslate(options: { sourceLanguage: string; targetLanguage
       body: {
         sourceLanguage: options.sourceLanguage,
         targetLanguages: options.targetLanguages,
-        overwrite: options.overwrite
+        overwrite: options.overwrite,
+        retranslateVerses: options.retranslateVerses
       }
     })
 
