@@ -86,6 +86,15 @@
               <h3>{{ selectedLibrary.name }}</h3>
               <p v-if="selectedLibrary.description" class="library-description">{{ selectedLibrary.description }}</p>
             </div>
+            <UButton
+              @click="openTranslateAllModal"
+              variant="outline"
+              icon="i-lucide-languages"
+              size="sm"
+              :disabled="availableSourceLanguages.length === 0"
+            >
+              Translate All Content
+            </UButton>
           </div>
 
           <!-- Language Filter -->
@@ -224,6 +233,27 @@
       @cancel="cancelDelete"
     />
 
+    <!-- Translation Options Modal -->
+    <TranslationOptionsModal
+      v-if="selectedLibrary"
+      v-model:open="showTranslateModal"
+      mode="all"
+      :available-languages="availableSourceLanguages"
+      :existing-languages="availableSourceLanguages"
+      :loading="startingTranslation"
+      @translate="handleStartBulkTranslation"
+      @cancel="showTranslateModal = false"
+    />
+
+    <!-- Translation Progress Modal -->
+    <TranslationProgressModal
+      v-if="selectedLibrary"
+      v-model:open="showProgressModal"
+      :library-id="selectedLibrary.id"
+      @close="handleProgressClose"
+      @cancelled="handleProgressCancelled"
+    />
+
     <!-- Import Modal -->
     <LibraryImportModal
       v-model:open="showImportModal"
@@ -308,6 +338,11 @@ const form = ref({
 const showDeleteModal = ref(false)
 const libraryToDelete = ref<Library | null>(null)
 const deleting = ref(false)
+
+// Translation state
+const showTranslateModal = ref(false)
+const showProgressModal = ref(false)
+const startingTranslation = ref(false)
 
 // Calendar state
 const selectedLanguage = ref('all')
@@ -456,6 +491,78 @@ function previousPage() {
 
 function nextPage() {
   currentPage.value++
+}
+
+// Languages that have content in the selected library (can be used as source)
+const availableSourceLanguages = computed(() => {
+  const languages = new Set<string>()
+  dayContentMap.value.forEach(contents => {
+    contents.forEach(c => languages.add(c.language_code))
+  })
+  return Array.from(languages)
+})
+
+// Translation functions
+function openTranslateAllModal() {
+  showTranslateModal.value = true
+}
+
+async function handleStartBulkTranslation(options: { sourceLanguage: string; targetLanguages: string[]; overwrite: boolean; retranslateVerses: boolean }) {
+  if (!selectedLibrary.value) return
+  startingTranslation.value = true
+
+  try {
+    const response = await $fetch(`/api/admin/libraries/${selectedLibrary.value.id}/translate`, {
+      method: 'POST',
+      body: {
+        sourceLanguage: options.sourceLanguage,
+        overwrite: options.overwrite,
+        targetLanguages: options.targetLanguages,
+        retranslateVerses: options.retranslateVerses
+      }
+    })
+
+    if (response.totalJobs === 0) {
+      toast.add({
+        title: 'No translations needed',
+        description: response.message,
+        color: 'primary'
+      })
+      showTranslateModal.value = false
+      return
+    }
+
+    showTranslateModal.value = false
+    showProgressModal.value = true
+
+    toast.add({
+      title: 'Translation started',
+      description: `Queued ${response.totalJobs} translation job(s)`,
+      color: 'primary'
+    })
+  } catch (err: any) {
+    console.error('Failed to start translation:', err)
+    toast.add({
+      title: 'Failed to start translation',
+      description: err.data?.statusMessage || 'An error occurred',
+      color: 'error'
+    })
+  } finally {
+    startingTranslation.value = false
+  }
+}
+
+function handleProgressClose() {
+  showProgressModal.value = false
+  loadLibraryContent()
+}
+
+function handleProgressCancelled() {
+  toast.add({
+    title: 'Translation cancelled',
+    description: 'Remaining translation jobs have been cancelled',
+    color: 'warning'
+  })
 }
 
 // Library CRUD
@@ -755,6 +862,9 @@ watch(selectedLanguage, () => {
 }
 
 .calendar-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 1.5rem;
 }
 
