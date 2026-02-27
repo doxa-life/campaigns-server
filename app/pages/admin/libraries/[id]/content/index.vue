@@ -99,7 +99,7 @@
       v-model:open="showTranslateModal"
       mode="all"
       :available-languages="availableSourceLanguages"
-      :existing-languages="[]"
+      :existing-languages="availableSourceLanguages"
       :loading="startingTranslation"
       @translate="handleStartBulkTranslation"
       @cancel="showTranslateModal = false"
@@ -296,7 +296,7 @@ function openTranslateAllModal() {
   showTranslateModal.value = true
 }
 
-async function handleStartBulkTranslation(options: { sourceLanguage: string; targetLanguages: string[]; overwrite: boolean }) {
+async function handleStartBulkTranslation(options: { sourceLanguage: string; targetLanguages: string[]; overwrite: boolean; retranslateVerses: boolean }) {
   startingTranslation.value = true
 
   try {
@@ -304,7 +304,9 @@ async function handleStartBulkTranslation(options: { sourceLanguage: string; tar
       method: 'POST',
       body: {
         sourceLanguage: options.sourceLanguage,
-        overwrite: options.overwrite
+        overwrite: options.overwrite,
+        targetLanguages: options.targetLanguages,
+        retranslateVerses: options.retranslateVerses
       }
     })
 

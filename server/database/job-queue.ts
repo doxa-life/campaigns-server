@@ -50,6 +50,7 @@ export interface TranslationBatchPayload {
   source_language: string
   target_language: string
   overwrite: boolean
+  retranslate_verses: boolean
 }
 
 class JobQueueService {

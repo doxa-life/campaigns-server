@@ -64,6 +64,8 @@ export async function translateText(
 
   const apiUrl = config.deeplApiUrl || 'https://api-free.deepl.com'
 
+  console.log(`[DeepL] Translating 1 text → ${targetLang}${sourceLang ? ` from ${sourceLang}` : ''}${glossaryId ? ` (glossary: ${glossaryId})` : ''}`)
+
   const response = await fetch(`${apiUrl}/v2/translate`, {
     method: 'POST',
     headers: {
@@ -129,6 +131,8 @@ export async function translateTexts(
   params.append('model', 'quality_optimized')
 
   const apiUrl = config.deeplApiUrl || 'https://api-free.deepl.com'
+
+  console.log(`[DeepL] Translating ${texts.length} texts → ${targetLang}${sourceLang ? ` from ${sourceLang}` : ''}${glossaryId ? ` (glossary: ${glossaryId})` : ''}`)
 
   const response = await fetch(`${apiUrl}/v2/translate`, {
     method: 'POST',
@@ -295,8 +299,10 @@ export async function batchTranslateTiptapContents(
 
   // Handle verse nodes in each doc
   const verseWarnings: VerseWarning[] = []
-  for (const doc of clonedDocs) {
-    await translateVerseNodes(doc, targetLanguage, verseWarnings)
+  if (!options?.skipVerseTranslation) {
+    for (const doc of clonedDocs) {
+      await translateVerseNodes(doc, targetLanguage, verseWarnings)
+    }
   }
 
   return { docs: clonedDocs, verseWarnings }
@@ -307,7 +313,7 @@ export async function batchTranslateTiptapContents(
  * in the target language. If fetching fails or no bibleId is configured,
  * the verse content is left untouched.
  */
-async function translateVerseNodes(node: TiptapNode, targetLanguage: string, warnings: VerseWarning[]): Promise<void> {
+export async function translateVerseNodes(node: TiptapNode, targetLanguage: string, warnings: VerseWarning[]): Promise<void> {
   if (!node.content) return
 
   for (const child of node.content) {

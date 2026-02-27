@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { sourceLanguage, overwrite = false } = body
+  const { sourceLanguage, overwrite = false, targetLanguages: requestedTargetLanguages, retranslateVerses = true } = body
 
   // Verify there's source content
   const sourceContent = await libraryContentService.getLibraryContent(libraryId, {
@@ -48,8 +48,11 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Determine target languages (all except source)
-  const targetLanguages = SUPPORTED_LANGUAGES.filter(lang => lang !== sourceLanguage)
+  // Use requested target languages if provided, otherwise all except source
+  const allTargetLanguages = SUPPORTED_LANGUAGES.filter(lang => lang !== sourceLanguage)
+  const targetLanguages = requestedTargetLanguages
+    ? (requestedTargetLanguages as string[]).filter((lang: string) => allTargetLanguages.includes(lang))
+    : allTargetLanguages
 
   // Clean up old jobs from previous translation runs
   await jobQueueService.deleteCompletedJobs('library_translation', libraryId)
@@ -62,7 +65,8 @@ export default defineEventHandler(async (event) => {
       library_id: libraryId,
       source_language: sourceLanguage,
       target_language: targetLanguage,
-      overwrite
+      overwrite,
+      retranslate_verses: retranslateVerses
     }
 
     await jobQueueService.createJob('translation_batch', payload, {
