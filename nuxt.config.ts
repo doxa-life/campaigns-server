@@ -48,6 +48,10 @@ export default defineNuxtConfig({
     '#server': fileURLToPath(new URL('./server', import.meta.url))
   },
 
+  routeRules: {
+    '/en/**': { redirect: '/**' }
+  },
+
   nitro: {
     imports: {
       // Exclude server/utils/app from auto-imports to avoid conflicts with base layer
