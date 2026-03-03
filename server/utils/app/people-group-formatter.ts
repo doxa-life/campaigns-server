@@ -247,12 +247,18 @@ export function formatPeopleGroupForListWithFields(
           metadata: meta as any
         }, lang)
         break
-      default:
-        // Try to get from metadata
-        if (meta[field] !== undefined) {
+      default: {
+        // Try to get from metadata or table columns
+        const value = getFieldValue(pg, field)
+        if (value !== null) {
+          result[field] = FORMATTED_FIELDS.has(field)
+            ? formatValueLabelWithDescription(field, value, lang)
+            : value
+        } else if (meta[field] !== undefined) {
           result[field] = meta[field]
         }
         break
+      }
     }
   }
 
