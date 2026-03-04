@@ -1,0 +1,132 @@
+import { collectActivityStats } from '../utils/activity-email-stats'
+import { sendActivityEmail } from '../utils/activity-email'
+import { userService } from '#server/database/users'
+
+type Frequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
+
+interface PeriodRange {
+  start: Date
+  end: Date
+}
+
+function getPeriod(frequency: Frequency, now: Date): PeriodRange {
+  const y = now.getUTCFullYear()
+  const m = now.getUTCMonth()
+  const d = now.getUTCDate()
+
+  switch (frequency) {
+    case 'daily': {
+      const end = new Date(Date.UTC(y, m, d))
+      const start = new Date(end)
+      start.setUTCDate(start.getUTCDate() - 1)
+      return { start, end }
+    }
+    case 'weekly': {
+      // now is Monday, so previous Mon–Sun
+      const end = new Date(Date.UTC(y, m, d))
+      const start = new Date(end)
+      start.setUTCDate(start.getUTCDate() - 7)
+      return { start, end }
+    }
+    case 'monthly': {
+      const end = new Date(Date.UTC(y, m, 1))
+      const start = new Date(Date.UTC(y, m - 1, 1))
+      return { start, end }
+    }
+    case 'yearly': {
+      const end = new Date(Date.UTC(y, 0, 1))
+      const start = new Date(Date.UTC(y - 1, 0, 1))
+      return { start, end }
+    }
+  }
+}
+
+function getPreviousPeriod(frequency: Frequency, period: PeriodRange): PeriodRange {
+  const durationMs = period.end.getTime() - period.start.getTime()
+  return {
+    start: new Date(period.start.getTime() - durationMs),
+    end: new Date(period.start.getTime())
+  }
+}
+
+export default defineNitroPlugin((nitroApp) => {
+  if (process.env.VITEST) return
+
+  console.log('📊 Activity email scheduler initialized (daily at 7 AM UTC)')
+
+  const lastSentDate: Record<Frequency, string | null> = {
+    daily: null,
+    weekly: null,
+    monthly: null,
+    yearly: null
+  }
+
+  async function sendForFrequency(frequency: Frequency, now: Date) {
+    const dateKey = now.toISOString().split('T')[0]!
+    if (lastSentDate[frequency] === dateKey) return
+
+    try {
+      const period = getPeriod(frequency, now)
+      const previousPeriod = getPreviousPeriod(frequency, period)
+
+      const [stats, previousStats] = await Promise.all([
+        collectActivityStats(period.start, period.end),
+        collectActivityStats(previousPeriod.start, previousPeriod.end)
+      ])
+
+      const users = await userService.getAdminUsers()
+      const defaultPrefs = { daily: true, weekly: true, monthly: true, yearly: true }
+
+      const recipients = users.filter(user => {
+        const prefs = user.activity_email_preferences ?? defaultPrefs
+        return prefs[frequency] !== false
+      })
+
+      console.log(`📧 Sending ${frequency} activity email to ${recipients.length} users...`)
+
+      let sent = 0
+      for (const user of recipients) {
+        try {
+          await sendActivityEmail(user.email, frequency, stats, previousStats)
+          sent++
+        } catch (error: any) {
+          console.error(`❌ Failed to send ${frequency} activity email to ${user.email}:`, error.message)
+        }
+      }
+
+      lastSentDate[frequency] = dateKey
+      console.log(`✅ ${frequency} activity email sent to ${sent}/${recipients.length} users`)
+    } catch (error: any) {
+      console.error(`❌ Failed to process ${frequency} activity emails:`, error.message)
+    }
+  }
+
+  const interval = setInterval(async () => {
+    const now = new Date()
+    const hour = now.getUTCHours()
+
+    if (hour !== 7) return
+
+    await sendForFrequency('daily', now)
+
+    // Monday = 1
+    if (now.getUTCDay() === 1) {
+      await sendForFrequency('weekly', now)
+    }
+
+    // 1st of month
+    if (now.getUTCDate() === 1) {
+      await sendForFrequency('monthly', now)
+    }
+
+    // Jan 1
+    if (now.getUTCMonth() === 0 && now.getUTCDate() === 1) {
+      await sendForFrequency('yearly', now)
+    }
+  }, 60 * 60 * 1000)
+
+  nitroApp.hooks.hook('close', () => {
+    console.log('🛑 Stopping activity email scheduler...')
+    clearInterval(interval)
+  })
+})

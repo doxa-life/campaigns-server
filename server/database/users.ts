@@ -11,6 +11,7 @@ export interface User {
   token_key: string
   created: string
   updated: string
+  activity_email_preferences: { daily: boolean; weekly: boolean; monthly: boolean; yearly: boolean } | null
 }
 
 export interface CreateUserData {
@@ -54,7 +55,7 @@ export class UserService {
   // Get user by ID
   async getUserById(id: string): Promise<User | null> {
     const stmt = this.db.prepare(`
-      SELECT id, email, display_name, verified, superadmin, token_key, created, updated
+      SELECT id, email, display_name, verified, superadmin, token_key, created, updated, activity_email_preferences
       FROM users
       WHERE id = ?
     `)
@@ -65,7 +66,7 @@ export class UserService {
   // Get user by email
   async getUserByEmail(email: string): Promise<User | null> {
     const stmt = this.db.prepare(`
-      SELECT id, email, display_name, verified, superadmin, token_key, created, updated
+      SELECT id, email, display_name, verified, superadmin, token_key, created, updated, activity_email_preferences
       FROM users
       WHERE email = ?
     `)
@@ -76,8 +77,20 @@ export class UserService {
   // Get all users (for admin purposes)
   async getAllUsers(): Promise<User[]> {
     const stmt = this.db.prepare(`
-      SELECT id, email, display_name, verified, superadmin, token_key, created, updated
+      SELECT id, email, display_name, verified, superadmin, token_key, created, updated, activity_email_preferences
       FROM users
+      ORDER BY created DESC
+    `)
+
+    return await stmt.all() as User[]
+  }
+
+  // Get all admin users (users with 'admin' role or superadmin flag)
+  async getAdminUsers(): Promise<User[]> {
+    const stmt = this.db.prepare(`
+      SELECT id, email, display_name, verified, superadmin, token_key, created, updated, activity_email_preferences
+      FROM users
+      WHERE role = 'admin' OR superadmin = TRUE
       ORDER BY created DESC
     `)
 

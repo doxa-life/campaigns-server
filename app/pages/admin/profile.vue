@@ -145,6 +145,25 @@
       </UTable>
     </UCard>
 
+    <!-- Activity Email Preferences (admin only) -->
+    <UCard v-if="isAdmin" class="mb-6">
+      <template #header>
+        <h2 class="text-lg font-semibold">Activity Email Preferences</h2>
+      </template>
+      <p class="text-sm text-[var(--ui-text-muted)] mb-4">
+        Receive periodic summaries of prayer activity and key metrics.
+      </p>
+      <div class="space-y-3">
+        <div v-for="freq in activityEmailFrequencies" :key="freq.key" class="flex items-center justify-between">
+          <span>{{ freq.label }}</span>
+          <USwitch
+            :model-value="activityEmailPrefs[freq.key]"
+            @update:model-value="(val: boolean) => toggleActivityEmail(freq.key, val)"
+          />
+        </div>
+      </div>
+    </UCard>
+
     <!-- Sign Out -->
     <UCard>
       <UButton color="neutral" variant="outline" @click="handleLogout" icon="i-lucide-log-out">
@@ -410,6 +429,40 @@ async function handleRevokeKey() {
   }
 }
 
+// --- Activity Email Preferences ---
+const activityEmailFrequencies = [
+  { key: 'daily' as const, label: 'Daily summary' },
+  { key: 'weekly' as const, label: 'Weekly summary' },
+  { key: 'monthly' as const, label: 'Monthly summary' },
+  { key: 'yearly' as const, label: 'Yearly summary' }
+]
+
+const activityEmailPrefs = reactive({ daily: true, weekly: true, monthly: true, yearly: true })
+
+async function fetchActivityEmailPrefs() {
+  try {
+    const prefs = await $fetch<Record<string, boolean>>('/api/admin/profile/activity-emails')
+    activityEmailPrefs.daily = prefs.daily ?? true
+    activityEmailPrefs.weekly = prefs.weekly ?? true
+    activityEmailPrefs.monthly = prefs.monthly ?? true
+    activityEmailPrefs.yearly = prefs.yearly ?? true
+  } catch { /* use defaults */ }
+}
+
+async function toggleActivityEmail(key: 'daily' | 'weekly' | 'monthly' | 'yearly', value: boolean) {
+  activityEmailPrefs[key] = value
+  try {
+    await $fetch('/api/admin/profile/activity-emails', {
+      method: 'PATCH',
+      body: { [key]: value }
+    })
+    toast.add({ title: 'Preference updated', color: 'success' })
+  } catch {
+    activityEmailPrefs[key] = !value
+    toast.add({ title: 'Failed to update preference', color: 'error' })
+  }
+}
+
 // --- Logout ---
 async function handleLogout() {
   await logout()
@@ -419,6 +472,7 @@ async function handleLogout() {
 onMounted(() => {
   if (isAdmin.value) {
     fetchApiKeys()
+    fetchActivityEmailPrefs()
   }
 })
 </script>

@@ -1,0 +1,192 @@
+import type { ActivityStats } from './activity-email-stats'
+
+type Frequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
+
+interface StatRow {
+  label: string
+  value: string
+  change: number | null
+}
+
+function formatDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  const remaining = minutes % 60
+  if (remaining === 0) return `${hours}h`
+  return `${hours}h ${remaining}m`
+}
+
+function formatChange(current: number, previous: number): number | null {
+  return current - previous
+}
+
+function changeHtml(change: number | null | undefined): string {
+  if (change === null || change === undefined) return ''
+  if (change === 0) return '<span style="color: #666; font-size: 13px;">no change</span>'
+  const color = change > 0 ? '#16a34a' : '#dc2626'
+  const prefix = change > 0 ? '+' : ''
+  return `<span style="color: ${color}; font-size: 13px;">${prefix}${change}</span>`
+}
+
+function changeDurationHtml(change: number | null | undefined): string {
+  if (change === null || change === undefined) return ''
+  if (change === 0) return '<span style="color: #666; font-size: 13px;">no change</span>'
+  const color = change > 0 ? '#16a34a' : '#dc2626'
+  const prefix = change > 0 ? '+' : ''
+  return `<span style="color: ${color}; font-size: 13px;">${prefix}${formatDuration(Math.abs(change))}</span>`
+}
+
+function changeText(change: number | null | undefined): string {
+  if (change === null || change === undefined) return ''
+  if (change === 0) return '(no change)'
+  const prefix = change > 0 ? '+' : ''
+  return `(${prefix}${change})`
+}
+
+function changeDurationText(change: number | null | undefined): string {
+  if (change === null || change === undefined) return ''
+  if (change === 0) return '(no change)'
+  const prefix = change > 0 ? '+' : ''
+  return `(${prefix}${formatDuration(Math.abs(change))})`
+}
+
+function buildStatRows(stats: ActivityStats, previousStats: ActivityStats | null): StatRow[] {
+  return [
+    {
+      label: 'New subscribers',
+      value: String(stats.newSubscribers),
+      change: null
+    },
+    {
+      label: 'Prayer time committed',
+      value: formatDuration(stats.prayerCommitted),
+      change: previousStats ? formatChange(stats.prayerCommitted, previousStats.prayerCommitted) : null
+    },
+    {
+      label: 'Prayer time recorded',
+      value: formatDuration(stats.totalPrayerTime),
+      change: previousStats ? formatChange(stats.totalPrayerTime, previousStats.totalPrayerTime) : null
+    },
+    {
+      label: 'People groups with prayer',
+      value: String(stats.groupsWithPrayer),
+      change: null
+    },
+    {
+      label: 'People groups with 144 subscribers',
+      value: String(stats.groupsWith144),
+      change: null
+    },
+    {
+      label: 'People groups adopted',
+      value: String(stats.groupsAdopted),
+      change: null
+    },
+    {
+      label: 'People groups engaged',
+      value: String(stats.groupsEngaged),
+      change: null
+    }
+  ]
+}
+
+function capitalizeFirst(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+export async function sendActivityEmail(
+  to: string,
+  frequency: Frequency,
+  stats: ActivityStats,
+  previousStats: ActivityStats | null
+): Promise<boolean> {
+  const config = useRuntimeConfig()
+  const baseUrl = config.public.siteUrl || 'http://localhost:3000'
+  const appName = config.appName || 'DOXA Prayer'
+
+  const freqLabel = capitalizeFirst(frequency)
+  const subject = `${appName} ${freqLabel} Activity Summary`
+  const profileUrl = `${baseUrl}/admin/profile`
+  const rows = buildStatRows(stats, previousStats)
+
+  const tableRowsHtml = rows.map((row, i) => {
+    const isDuration = row.label.includes('prayer time') || row.label.includes('prayer committed')
+    const changeVal: number | null = row.change ?? null
+    const changeCell = changeVal !== null
+      ? (isDuration ? changeDurationHtml(changeVal) : changeHtml(changeVal))
+      : ''
+    const bgColor = i % 2 === 0 ? '#f9fafb' : '#ffffff'
+    return `
+      <tr style="background: ${bgColor};">
+        <td style="padding: 12px 16px; border-bottom: 1px solid #e5e7eb; font-size: 14px; color: #374151;">${row.label}</td>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #e5e7eb; font-size: 16px; font-weight: 600; color: #111827; text-align: right;">${row.value}</td>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #e5e7eb; text-align: right; min-width: 80px;">${changeCell}</td>
+      </tr>
+    `
+  }).join('')
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${subject}</title>
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #3B463D; background: #ffffff; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: #3B463D; color: #ffffff; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 500;">${freqLabel} Activity Summary</h1>
+        <p style="margin: 8px 0 0; font-size: 14px; opacity: 0.8;">${appName}</p>
+      </div>
+
+      <div style="background: #ffffff; border: 2px solid #3B463D; border-top: none; padding: 30px; border-radius: 0 0 10px 10px;">
+        <table style="width: 100%; border-collapse: collapse; margin: 0;">
+          <thead>
+            <tr>
+              <th style="padding: 10px 16px; text-align: left; font-size: 12px; text-transform: uppercase; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Metric</th>
+              <th style="padding: 10px 16px; text-align: right; font-size: 12px; text-transform: uppercase; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Value</th>
+              <th style="padding: 10px 16px; text-align: right; font-size: 12px; text-transform: uppercase; color: #6b7280; border-bottom: 2px solid #e5e7eb;">Change</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRowsHtml}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="text-align: center; margin-top: 20px; padding: 20px; color: #666666; font-size: 12px;">
+        <p style="margin: 0 0 10px;">This is an automated ${frequency} activity summary from ${appName}.</p>
+        <p style="margin: 0;">
+          <a href="${profileUrl}" style="color: #666666; text-decoration: underline;">Manage email preferences</a>
+        </p>
+      </div>
+    </body>
+    </html>
+  `
+
+  const textRows = rows.map(row => {
+    const isDuration = row.label.includes('prayer time') || row.label.includes('prayer committed')
+    const ch = row.change ?? null
+    const change = ch !== null
+      ? (isDuration ? changeDurationText(ch) : changeText(ch))
+      : ''
+    return `${row.label}: ${row.value} ${change}`.trim()
+  }).join('\n')
+
+  const text = `
+${subject}
+
+${textRows}
+
+---
+This is an automated ${frequency} activity summary from ${appName}.
+Manage email preferences: ${profileUrl}
+  `.trim()
+
+  return await sendEmail({
+    to,
+    subject,
+    html,
+    text
+  })
+}
