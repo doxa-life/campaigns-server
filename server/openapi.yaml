@@ -405,7 +405,7 @@ paths:
 
         **Available fields:**
         - **Basic:** name, imb_display_name, imb_alternate_name, imb_people_name, imb_people_description, imb_location_description
-        - **Identifiers:** dt_id, doxa_masteruid, doxa_wagf_uid, imb_uid, imb_pgid, imb_peid
+        - **Identifiers:** joshua_project_id, doxa_masteruid, doxa_wagf_uid, imb_uid, imb_pgid, imb_peid
         - **Geography:** imb_isoalpha3, imb_region, imb_subregion, imb_lat, imb_lng, imb_is_indigenous
         - **Population:** imb_population, imb_population_class, imb_evangelical_percentage, imb_evangelical_level, imb_engagement_status, imb_congregation_existing, imb_church_planting
         - **Strategic:** imb_gsec, imb_strategic_priority_index, imb_lostness_priority_index, imb_affinity_code
@@ -469,8 +469,8 @@ components:
       properties:
         id:
           type: string
-          description: Disciple Tools ID
-          example: "12345"
+          description: People group slug identifier
+          example: "shaikh-bangladesh"
         name:
           type: string
           description: People group name

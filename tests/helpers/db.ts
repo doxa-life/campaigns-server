@@ -83,11 +83,10 @@ export async function createTestPeopleGroup(
   const slugId = uuidv4().slice(0, 8)
   const title = options.title || `Test People Group ${slugId}`
   const slug = options.slug || `test-${slugId}`
-  const dt_id = `test-dt-${slugId}`
 
   const result = await sql`
-    INSERT INTO people_groups (dt_id, name, slug)
-    VALUES (${dt_id}, ${title}, ${slug})
+    INSERT INTO people_groups (name, slug)
+    VALUES (${title}, ${slug})
     RETURNING id, slug, name as title
   `
 

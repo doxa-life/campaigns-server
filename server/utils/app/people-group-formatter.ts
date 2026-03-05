@@ -3,7 +3,6 @@ import { generatePeopleGroupDescription } from './people-group-description'
 
 interface PeopleGroupRecord {
   id: number
-  dt_id: string
   name: string
   slug: string | null
   image_url: string | null
@@ -148,9 +147,9 @@ export function formatPeopleGroupForList(pg: PeopleGroupRecord, lang: string = '
   const meta = parseMetadata(pg.metadata)
 
   return {
-    id: pg.dt_id,
+    id: pg.slug,
     name: pg.name,
-    slug: pg.slug || pg.dt_id,
+    slug: pg.slug,
     display_name: meta.imb_display_name || pg.name,
     wagf_region: formatValueLabel('doxa_wagf_region', meta.doxa_wagf_region as string, lang),
     wagf_block: formatValueLabel('doxa_wagf_block', meta.doxa_wagf_block as string, lang),
@@ -183,13 +182,13 @@ export function formatPeopleGroupForListWithFields(
   for (const field of fields) {
     switch (field) {
       case 'id':
-        result.id = pg.dt_id
+        result.id = pg.slug
         break
       case 'name':
         result.name = pg.name
         break
       case 'slug':
-        result.slug = pg.slug || pg.dt_id
+        result.slug = pg.slug
         break
       case 'display_name':
         result.display_name = meta.imb_display_name || pg.name
@@ -273,9 +272,9 @@ export function formatPeopleGroupForDetail(pg: PeopleGroupRecord, lang: string =
   const meta = parseMetadata(pg.metadata)
 
   const result: Record<string, unknown> = {
-    id: pg.dt_id,
+    id: pg.slug,
     name: pg.name,
-    slug: pg.slug || pg.dt_id,
+    slug: pg.slug,
     display_name: meta.imb_display_name || pg.name,
     image_url: pg.image_url,
     picture_credit: meta.picture_credit || null,
@@ -289,7 +288,7 @@ export function formatPeopleGroupForDetail(pg: PeopleGroupRecord, lang: string =
     const key = fieldDef.key
 
     // Skip fields we've already handled or don't want in the response
-    if (['name', 'image_url', 'imb_picture_credit_html', 'descriptions', 'dt_id', 'doxa_masteruid'].includes(key)) continue
+    if (['name', 'image_url', 'imb_picture_credit_html', 'descriptions', 'joshua_project_id', 'doxa_masteruid'].includes(key)) continue
 
     // Handle special fields
     if (key === 'imb_people_description') {
@@ -350,11 +349,11 @@ export function formatPeopleGroupRaw(pg: PeopleGroupRecord, fields: string[], la
       case 'image_url':
         result.image_url = pg.image_url
         break
-      case 'dt_id':
-        result.dt_id = pg.dt_id
+      case 'joshua_project_id':
+        result.joshua_project_id = pg.joshua_project_id
         break
       case 'slug':
-        result.slug = pg.slug || pg.dt_id
+        result.slug = pg.slug
         break
       case 'imb_display_name':
         result.imb_display_name = meta.imb_display_name || pg.name

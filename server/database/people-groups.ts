@@ -4,7 +4,7 @@ import { peopleGroupAccessService } from './people-group-access'
 
 export interface PeopleGroup {
   id: number
-  dt_id: string
+  joshua_project_id: string | null
   name: string
   slug: string | null
   image_url: string | null
@@ -28,14 +28,13 @@ export interface PeopleGroup {
 }
 
 export interface CreatePeopleGroupData {
-  dt_id: string
   name: string
   image_url?: string | null
   metadata?: string | null
 }
 
 export interface UpdatePeopleGroupData {
-  dt_id?: string
+  joshua_project_id?: string | null
   name?: string
   slug?: string
   image_url?: string | null
@@ -59,21 +58,18 @@ export class PeopleGroupService {
   private db = getDatabase()
 
   async createPeopleGroup(data: CreatePeopleGroupData): Promise<PeopleGroup> {
-    const { dt_id, name, image_url = null, metadata = null } = data
+    const { name, image_url = null, metadata = null } = data
 
     const stmt = this.db.prepare(`
-      INSERT INTO people_groups (dt_id, name, image_url, metadata)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO people_groups (name, image_url, metadata)
+      VALUES (?, ?, ?)
     `)
 
     try {
-      const result = await stmt.run(dt_id, name, image_url, metadata)
+      const result = await stmt.run(name, image_url, metadata)
       const id = result.lastInsertRowid as number
       return (await this.getPeopleGroupById(id))!
     } catch (error: any) {
-      if (error.code === '23505') {
-        throw new Error('A people group with this dt_id already exists')
-      }
       throw error
     }
   }
@@ -83,14 +79,6 @@ export class PeopleGroupService {
       SELECT * FROM people_groups WHERE id = ?
     `)
     const peopleGroup = await stmt.get(id) as PeopleGroup | null
-    return peopleGroup
-  }
-
-  async getPeopleGroupByDtId(dtId: string): Promise<PeopleGroup | null> {
-    const stmt = this.db.prepare(`
-      SELECT * FROM people_groups WHERE dt_id = ?
-    `)
-    const peopleGroup = await stmt.get(dtId) as PeopleGroup | null
     return peopleGroup
   }
 
@@ -149,9 +137,9 @@ export class PeopleGroupService {
     const updates: string[] = []
     const values: any[] = []
 
-    if (data.dt_id !== undefined) {
-      updates.push('dt_id = ?')
-      values.push(data.dt_id)
+    if (data.joshua_project_id !== undefined) {
+      updates.push('joshua_project_id = ?')
+      values.push(data.joshua_project_id)
     }
 
     if (data.name !== undefined) {
@@ -255,7 +243,7 @@ export class PeopleGroupService {
       return this.getPeopleGroupById(id)
     } catch (error: any) {
       if (error.code === '23505') {
-        throw new Error('A people group with this dt_id already exists')
+        throw new Error('A people group with this slug already exists')
       }
       throw error
     }

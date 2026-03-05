@@ -67,7 +67,7 @@
             <div>
               <h2>{{ selectedGroup?.name }}</h2>
               <div class="header-meta">
-                <span>DT ID: {{ selectedGroup?.dt_id }}</span>
+                <span v-if="selectedGroup?.joshua_project_id">JP ID: {{ selectedGroup.joshua_project_id }}</span>
               </div>
             </div>
           </div>
@@ -184,7 +184,7 @@ definePageMeta({
 
 interface PeopleGroup {
   id: number
-  dt_id: string
+  joshua_project_id: string | null
   name: string
   slug: string | null
   image_url: string | null
@@ -310,7 +310,7 @@ function initializeForm(group: PeopleGroup) {
   formData.value = {
     name: group.name,
     image_url: group.image_url,
-    dt_id: group.dt_id,
+    joshua_project_id: group.joshua_project_id,
     descriptions: group.descriptions || {},
     ...group.metadata
   }
@@ -345,7 +345,7 @@ async function saveChanges() {
   try {
     saving.value = true
 
-    const { name, image_url, dt_id, descriptions, ...metadataFields } = formData.value
+    const { name, image_url, joshua_project_id, descriptions, ...metadataFields } = formData.value
 
     const response = await $fetch<{ success: boolean; peopleGroup: PeopleGroup }>(
       `/api/admin/people-groups/${selectedGroup.value.id}`,
@@ -354,6 +354,7 @@ async function saveChanges() {
         body: {
           name,
           image_url,
+          joshua_project_id,
           descriptions,
           metadata: metadataFields
         }

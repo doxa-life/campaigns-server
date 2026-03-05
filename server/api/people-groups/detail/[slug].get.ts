@@ -32,15 +32,12 @@ export default defineEventHandler(async (event) => {
 
   const db = getDatabase()
 
-  // Query the people group with aggregated people_praying
   const stmt = db.prepare(`
     SELECT
       pg.*,
-      COALESCE(SUM(c.people_praying), 0)::INTEGER as total_people_praying
+      pg.people_praying as total_people_praying
     FROM people_groups pg
-    LEFT JOIN campaigns c ON c.dt_id = pg.dt_id
     WHERE pg.slug = ?
-    GROUP BY pg.id
   `)
 
   const peopleGroup = await stmt.get(slug) as any

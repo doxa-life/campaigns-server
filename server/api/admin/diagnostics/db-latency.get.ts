@@ -22,17 +22,7 @@ export default defineEventHandler(async (event) => {
     results.push({ query: 'SELECT COUNT(*) FROM people_groups', ms: -1 })
   }
 
-  // Test 3: Indexed lookup
-  try {
-    const start = performance.now()
-    await sql`SELECT * FROM people_groups WHERE dt_id = 'nonexistent' LIMIT 1`
-    const elapsed = performance.now() - start
-    results.push({ query: 'SELECT by indexed dt_id (miss)', ms: Math.round(elapsed * 100) / 100 })
-  } catch (e) {
-    results.push({ query: 'SELECT by indexed dt_id', ms: -1 })
-  }
-
-  // Test 4: Multiple parallel queries
+  // Test 3: Multiple parallel queries
   const parallelStart = performance.now()
   await Promise.all([
     sql`SELECT 1`,

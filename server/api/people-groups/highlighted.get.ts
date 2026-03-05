@@ -27,18 +27,16 @@ export default defineEventHandler(async (event) => {
     WITH ranked AS (
       SELECT
         pg.*,
-        COALESCE(SUM(c.people_praying), 0)::INTEGER as total_people_praying,
+        pg.people_praying as total_people_praying,
         (pg.metadata::jsonb)->>'doxa_wagf_region' as wagf_region,
         ROW_NUMBER() OVER (
           PARTITION BY (pg.metadata::jsonb)->>'doxa_wagf_region'
           ORDER BY pg.population DESC NULLS LAST
         ) as rn
       FROM people_groups pg
-      LEFT JOIN campaigns c ON c.dt_id = pg.dt_id
       WHERE pg.image_url IS NOT NULL
         AND (pg.metadata::jsonb)->>'doxa_wagf_region' IS NOT NULL
         AND (pg.metadata::jsonb)->>'doxa_wagf_region' NOT IN ('na', 'oceania')
-      GROUP BY pg.id
     )
     SELECT * FROM ranked
     WHERE rn = 1

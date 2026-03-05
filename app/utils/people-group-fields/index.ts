@@ -12,7 +12,7 @@ import { field as imbPeopleDescription } from './fields/imb-people-description'
 import { field as imbLocationDescription } from './fields/imb-location-description'
 
 // Identifiers fields
-import { field as dtId } from './fields/dt-id'
+import { field as joshuaProjectId } from './fields/joshua-project-id'
 import { field as doxaMasteruid } from './fields/doxa-masteruid'
 import { field as doxaWagfUid } from './fields/doxa-wagf-uid'
 import { field as imbUid } from './fields/imb-uid'
@@ -92,7 +92,7 @@ export const allFields: FieldDefinition[] = [
   imbPeopleDescription,
   imbLocationDescription,
   // Identifiers
-  dtId,
+  joshuaProjectId,
   doxaMasteruid,
   doxaWagfUid,
   imbUid,

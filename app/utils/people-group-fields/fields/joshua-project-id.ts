@@ -1,10 +1,9 @@
 import type { FieldDefinition } from '../types'
 
 export const field: FieldDefinition = {
-  key: 'dt_id',
-  labelKey: 'peopleGroups.fields.dt_id',
+  key: 'joshua_project_id',
+  labelKey: 'peopleGroups.fields.joshua_project_id',
   type: 'text',
   category: 'identifiers',
-  tableColumn: true,
-  readOnly: true
+  tableColumn: true
 }
