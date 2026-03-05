@@ -9,7 +9,7 @@
     <template #list-header>
       <CrmListPanel
         v-model="searchQuery"
-        search-placeholder="Search by name, email, or phone..."
+        search-placeholder="Search by name, email, phone, contact ID, or tracking ID..."
         :total-count="filteredSubscribers.length"
       >
         <template #filters>
@@ -505,7 +505,9 @@ const filteredSubscribers = computed(() => {
     filtered = filtered.filter(s =>
       s.name.toLowerCase().includes(query) ||
       s.primary_email?.toLowerCase().includes(query) ||
-      s.primary_phone?.includes(query)
+      s.primary_phone?.includes(query) ||
+      String(s.id) === query ||
+      s.tracking_id.toLowerCase().includes(query)
     )
   }
 
