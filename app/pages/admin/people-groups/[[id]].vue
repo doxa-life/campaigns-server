@@ -102,7 +102,7 @@
                 :key="field.key"
                 :label="field.label"
                 :hint="field.description"
-                :class="{ 'full-width': field.type === 'textarea' || field.type === 'translatable' }"
+                :class="{ 'full-width': field.type === 'textarea' || field.type === 'translatable' || field.type === 'picture-credit' }"
               >
                 <!-- Read-only field -->
                 <div v-if="field.readOnly" class="readonly-field">
@@ -153,6 +153,13 @@
                   @update:model-value="setFieldValue(field.key, $event)"
                   @save="saveChanges"
                   :rows="3"
+                />
+
+                <!-- Picture credit -->
+                <PictureCreditEditor
+                  v-else-if="field.type === 'picture-credit'"
+                  :model-value="getFieldValue(field.key)"
+                  @update:model-value="setFieldValue(field.key, $event)"
                 />
 
                 <!-- Boolean -->

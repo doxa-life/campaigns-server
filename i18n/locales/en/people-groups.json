@@ -86,7 +86,7 @@
       "doxa_wagf_block": "WAGF Block",
       "doxa_wagf_member": "WAGF Member",
       "image_url": "Picture URL",
-      "imb_picture_credit_html": "Picture Credit",
+      "picture_credit": "Picture Credit",
       "imb_has_photo": "Has Photo",
       "imb_people_search_text": "People Search Text"
     },

@@ -77,7 +77,7 @@ import { field as doxaWagfMember } from './fields/doxa-wagf-member'
 
 // Media fields
 import { field as imageUrl } from './fields/image-url'
-import { field as imbPictureCreditHtml } from './fields/imb-picture-credit-html'
+import { field as pictureCredit } from './fields/picture-credit'
 import { field as imbHasPhoto } from './fields/imb-has-photo'
 import { field as imbPeopleSearchText } from './fields/imb-people-search-text'
 
@@ -148,7 +148,7 @@ export const allFields: FieldDefinition[] = [
   doxaWagfMember,
   // Media
   imageUrl,
-  imbPictureCreditHtml,
+  pictureCredit,
   imbHasPhoto,
   imbPeopleSearchText
 ]
