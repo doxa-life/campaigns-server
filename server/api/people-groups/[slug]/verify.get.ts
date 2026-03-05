@@ -78,6 +78,7 @@ export default defineEventHandler(async (event) => {
     message: 'Email verified successfully',
     people_group_name: peopleGroup.name,
     people_group_slug: slug,
-    tracking_id: subscriber?.tracking_id
+    tracking_id: subscriber?.tracking_id,
+    already_verified: result.error === 'Already verified'
   }
 })

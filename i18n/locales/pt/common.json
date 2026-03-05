@@ -191,6 +191,10 @@
         "title": "E-mail Verificado!",
         "message": "Seu e-mail foi verificado com sucesso. Voce agora recebera lembretes de oracao para {campaign}."
       },
+      "alreadyVerified": {
+        "title": "Ja Verificado",
+        "message": "Seu e-mail ja foi verificado. Voce esta pronto para receber lembretes de oracao para {campaign}."
+      },
       "error": {
         "title": "Falha na Verificacao",
         "generic": "Nao foi possivel verificar seu e-mail. Este link pode ja ter sido usado ou expirou."

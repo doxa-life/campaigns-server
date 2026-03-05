@@ -191,6 +191,10 @@
         "title": "Email verificat!",
         "message": "Emailul tău a fost verificat cu succes. Vei primi acum memento-uri de rugăciune pentru {campaign}."
       },
+      "alreadyVerified": {
+        "title": "Deja Verificat",
+        "message": "Emailul tău a fost deja verificat. Ești pregătit să primești memento-uri de rugăciune pentru {campaign}."
+      },
       "error": {
         "title": "Verificarea a eșuat",
         "generic": "Nu s-a putut verifica emailul. Acest link a fost deja folosit sau a expirat."

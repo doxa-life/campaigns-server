@@ -184,21 +184,19 @@ class ContactMethodService {
       return { success: false, error: 'Invalid verification token' }
     }
 
-    if (this.isTokenExpired(contactMethod)) {
-      return { success: false, error: 'Verification token has expired' }
-    }
-
     if (contactMethod.verified) {
       return { success: true, contactMethod, error: 'Already verified' }
     }
 
-    // Mark as verified and clear token
+    if (this.isTokenExpired(contactMethod)) {
+      return { success: false, error: 'Verification token has expired' }
+    }
+
+    // Mark as verified
     const stmt = this.db.prepare(`
       UPDATE contact_methods
       SET verified = true,
           verified_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
-          verification_token = NULL,
-          verification_token_expires_at = NULL,
           updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE id = ?
     `)

@@ -191,6 +191,10 @@
         "title": "E-Mail bestätigt!",
         "message": "Ihre E-Mail wurde erfolgreich bestätigt. Sie werden nun Gebetserinnerungen für {campaign} erhalten."
       },
+      "alreadyVerified": {
+        "title": "Bereits Bestätigt",
+        "message": "Ihre E-Mail wurde bereits bestätigt. Sie sind bereit, Gebetserinnerungen für {campaign} zu erhalten."
+      },
       "error": {
         "title": "Bestätigung fehlgeschlagen",
         "generic": "E-Mail konnte nicht bestätigt werden. Dieser Link wurde möglicherweise bereits verwendet oder ist abgelaufen."

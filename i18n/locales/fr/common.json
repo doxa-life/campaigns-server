@@ -191,6 +191,10 @@
         "title": "E-mail Vérifié !",
         "message": "Votre e-mail a été vérifié avec succès. Vous recevrez désormais des rappels de prière pour {campaign}."
       },
+      "alreadyVerified": {
+        "title": "Déjà Vérifié",
+        "message": "Votre e-mail a déjà été vérifié. Vous êtes prêt à recevoir des rappels de prière pour {campaign}."
+      },
       "error": {
         "title": "Échec de la Vérification",
         "generic": "Impossible de vérifier votre e-mail. Ce lien a peut-être déjà été utilisé ou a expiré."

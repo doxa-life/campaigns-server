@@ -191,6 +191,10 @@
         "title": "邮箱已验证！",
         "message": "您的邮箱已成功验证。您现在将收到{campaign}的祷告提醒。"
       },
+      "alreadyVerified": {
+        "title": "已验证",
+        "message": "您的邮箱已经验证过了。您已准备好接收{campaign}的祷告提醒。"
+      },
       "error": {
         "title": "验证失败",
         "generic": "无法验证您的邮箱。此链接可能已被使用或已过期。"

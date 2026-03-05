@@ -191,6 +191,10 @@
         "title": "Email Verificata!",
         "message": "La tua email e stata verificata con successo. Ora riceverai promemoria di preghiera per {campaign}."
       },
+      "alreadyVerified": {
+        "title": "Gia Verificata",
+        "message": "La tua email e gia stata verificata. Sei pronto a ricevere promemoria di preghiera per {campaign}."
+      },
       "error": {
         "title": "Verifica Fallita",
         "generic": "Impossibile verificare la tua email. Questo link potrebbe essere gia stato usato o e scaduto."

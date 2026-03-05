@@ -20,9 +20,9 @@
       <div v-else class="status-card success">
         <div class="status-header">
           <UIcon name="i-lucide-check-circle" class="status-icon" />
-          <h1>{{ $t('campaign.verify.success.title') }}</h1>
+          <h1>{{ data?.already_verified ? $t('campaign.verify.alreadyVerified.title') : $t('campaign.verify.success.title') }}</h1>
         </div>
-        <p class="message">{{ $t('campaign.verify.success.message', { campaign: peopleGroupTitle }) }}</p>
+        <p class="message">{{ data?.already_verified ? $t('campaign.verify.alreadyVerified.message', { campaign: peopleGroupTitle }) : $t('campaign.verify.success.message', { campaign: peopleGroupTitle }) }}</p>
         <NuxtLink :to="prayerLink" class="btn-grey">
           {{ $t('campaign.verify.startPraying') }}
         </NuxtLink>

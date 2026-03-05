@@ -191,6 +191,10 @@
         "title": "¡Correo Verificado!",
         "message": "Su correo electrónico ha sido verificado exitosamente. Ahora recibirá recordatorios de oración para {campaign}."
       },
+      "alreadyVerified": {
+        "title": "Ya Verificado",
+        "message": "Su correo electrónico ya ha sido verificado. Está listo para recibir recordatorios de oración para {campaign}."
+      },
       "error": {
         "title": "Verificación Fallida",
         "generic": "No se pudo verificar su correo electrónico. Este enlace puede haber sido usado o expirado."

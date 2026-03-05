@@ -191,6 +191,10 @@
         "title": "Email Verified!",
         "message": "Your email has been verified successfully. You will now receive prayer reminders for {campaign}."
       },
+      "alreadyVerified": {
+        "title": "Already Verified",
+        "message": "Your email has already been verified. You're all set to receive prayer reminders for {campaign}."
+      },
       "error": {
         "title": "Verification Failed",
         "generic": "Unable to verify your email. This link may have already been used or has expired."
