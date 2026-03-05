@@ -25,7 +25,7 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
     groupsEngagedRow
   ] = await Promise.all([
     db.prepare(`SELECT COUNT(*) as count FROM subscribers WHERE created_at >= ? AND created_at < ?`).get(startIso, endIso),
-    db.prepare(`SELECT COALESCE(SUM(duration), 0) as total FROM prayer_activity WHERE timestamp >= ? AND timestamp < ?`).get(startIso, endIso),
+    db.prepare(`SELECT COALESCE(ROUND(SUM(duration) / 60.0), 0) as total FROM prayer_activity WHERE timestamp >= ? AND timestamp < ?`).get(startIso, endIso),
     db.prepare(`
       SELECT COALESCE(SUM(
         prayer_duration * GREATEST(0,
