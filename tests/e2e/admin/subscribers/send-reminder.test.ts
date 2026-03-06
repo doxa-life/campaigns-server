@@ -16,7 +16,7 @@ import {
   createNoRoleUser
 } from '../../../helpers/auth'
 
-describe('POST /api/admin/subscribers/[id]/send-reminder', async () => {
+describe('POST /api/admin/subscriptions/[id]/send-reminder', async () => {
   const sql = getTestDatabase()
 
   let adminAuth: { headers: { cookie: string } }
@@ -73,7 +73,7 @@ describe('POST /api/admin/subscribers/[id]/send-reminder', async () => {
 
   describe('Authorization', () => {
     it('returns 401 for unauthenticated requests', async () => {
-      const error = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}/send-reminder`, {
+      const error = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}/send-reminder`, {
         method: 'POST'
       }).catch((e) => e)
 
@@ -81,7 +81,7 @@ describe('POST /api/admin/subscribers/[id]/send-reminder', async () => {
     })
 
     it('returns 403 for users with no role', async () => {
-      const error = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}/send-reminder`, {
+      const error = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}/send-reminder`, {
         method: 'POST',
         ...noRoleAuth
       }).catch((e) => e)
@@ -94,7 +94,7 @@ describe('POST /api/admin/subscribers/[id]/send-reminder', async () => {
     it('admin can send reminder for any subscriber', async () => {
       // Note: This may fail in test environment due to email configuration,
       // but we're testing authorization and access control
-      const response = await $fetch(`/api/admin/subscribers/${unassignedSubscription.id}/send-reminder`, {
+      const response = await $fetch(`/api/admin/subscriptions/${unassignedSubscription.id}/send-reminder`, {
         method: 'POST',
         ...adminAuth
       }).catch((e) => {
@@ -110,7 +110,7 @@ describe('POST /api/admin/subscribers/[id]/send-reminder', async () => {
     })
 
     it('people_group_editor can send reminder for subscriber from assigned people group', async () => {
-      const response = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}/send-reminder`, {
+      const response = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}/send-reminder`, {
         method: 'POST',
         ...editorAuth
       }).catch((e) => {
@@ -124,7 +124,7 @@ describe('POST /api/admin/subscribers/[id]/send-reminder', async () => {
     })
 
     it('people_group_editor cannot send reminder for subscriber from unassigned people group', async () => {
-      const error = await $fetch(`/api/admin/subscribers/${unassignedSubscription.id}/send-reminder`, {
+      const error = await $fetch(`/api/admin/subscriptions/${unassignedSubscription.id}/send-reminder`, {
         method: 'POST',
         ...editorAuth
       }).catch((e) => e)
@@ -135,7 +135,7 @@ describe('POST /api/admin/subscribers/[id]/send-reminder', async () => {
 
   describe('Validation', () => {
     it('returns 404 for non-existent subscription', async () => {
-      const error = await $fetch('/api/admin/subscribers/999999/send-reminder', {
+      const error = await $fetch('/api/admin/subscriptions/999999/send-reminder', {
         method: 'POST',
         ...adminAuth
       }).catch((e) => e)
@@ -144,7 +144,7 @@ describe('POST /api/admin/subscribers/[id]/send-reminder', async () => {
     })
 
     it('returns 400 for invalid ID', async () => {
-      const error = await $fetch('/api/admin/subscribers/invalid/send-reminder', {
+      const error = await $fetch('/api/admin/subscriptions/invalid/send-reminder', {
         method: 'POST',
         ...adminAuth
       }).catch((e) => e)
