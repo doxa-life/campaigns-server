@@ -20,10 +20,20 @@ export default defineEventHandler(async (event) => {
     role?: string | null
   }>(event)
 
+  const changes: Record<string, { from: any; to: any }> = {}
+
   const subscriberUpdates: { name?: string; preferred_language?: string; role?: string | null } = {}
-  if (body.name !== undefined) subscriberUpdates.name = body.name
-  if (body.preferred_language !== undefined) subscriberUpdates.preferred_language = body.preferred_language
-  if (body.role !== undefined) subscriberUpdates.role = body.role
+  if (body.name !== undefined && body.name !== subscriber.name) {
+    subscriberUpdates.name = body.name
+    changes.name = { from: subscriber.name, to: body.name }
+  }
+  if (body.preferred_language !== undefined && body.preferred_language !== subscriber.preferred_language) {
+    subscriberUpdates.preferred_language = body.preferred_language
+    changes.preferred_language = { from: subscriber.preferred_language, to: body.preferred_language }
+  }
+  if (body.role !== undefined) {
+    subscriberUpdates.role = body.role
+  }
 
   if (Object.keys(subscriberUpdates).length > 0) {
     await subscriberService.updateSubscriber(subscriber.id, subscriberUpdates)
@@ -37,6 +47,7 @@ export default defineEventHandler(async (event) => {
     const newEmail = body.email?.trim()?.toLowerCase() || ''
     const oldEmail = currentEmail?.value?.toLowerCase() || ''
     if (newEmail !== oldEmail) {
+      changes.email = { from: oldEmail, to: newEmail }
       if (newEmail && currentEmail) {
         await contactMethodService.updateContactMethod(currentEmail.id, { value: newEmail })
       } else if (newEmail && !currentEmail) {
@@ -51,6 +62,7 @@ export default defineEventHandler(async (event) => {
     const newPhone = body.phone?.trim() || ''
     const oldPhone = currentPhone?.value || ''
     if (newPhone !== oldPhone) {
+      changes.phone = { from: oldPhone, to: newPhone }
       if (newPhone && currentPhone) {
         await contactMethodService.updateContactMethod(currentPhone.id, { value: newPhone })
       } else if (newPhone && !currentPhone) {
@@ -59,6 +71,10 @@ export default defineEventHandler(async (event) => {
         await contactMethodService.removeContactMethod(currentPhone.id)
       }
     }
+  }
+
+  if (Object.keys(changes).length > 0) {
+    logUpdate('subscribers', String(id), event, { changes })
   }
 
   return { success: true }

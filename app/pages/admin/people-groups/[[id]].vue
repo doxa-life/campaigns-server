@@ -97,7 +97,7 @@
             </UButton>
           </template>
 
-          <div v-if="adoptions.length === 0" class="empty-section">
+          <div v-if="adoptions.length === 0" class="p-4 text-center text-muted text-sm">
             Not adopted by any groups
           </div>
           <div v-else class="adoptions-list">
@@ -107,7 +107,6 @@
               :adoption="adoption"
               :label="adoption.group_name"
               @open="openAdoptionSlideover(adoption)"
-              @delete="removeAdoption(adoption)"
             />
           </div>
         </CrmFormSection>
@@ -205,7 +204,7 @@
   <!-- Add Adoption Modal -->
   <UModal v-model:open="showAddAdoptionModal" title="Adopt by Group">
     <template #body>
-      <form @submit.prevent="addAdoption" class="modal-form">
+      <form @submit.prevent="addAdoption" class="flex flex-col gap-3">
         <UFormField label="Group">
           <USelectMenu
             v-model="addAdoptionGroupId"
@@ -215,7 +214,7 @@
             class="w-full"
           />
         </UFormField>
-        <div class="modal-actions">
+        <div class="flex justify-end gap-2 mt-2">
           <UButton variant="outline" @click="showAddAdoptionModal = false">Cancel</UButton>
           <UButton type="submit" :disabled="!addAdoptionGroupId">Add</UButton>
         </div>
@@ -235,6 +234,7 @@
 
 <script setup lang="ts">
 import { allFields, fieldsByCategory, categories, type FieldDefinition } from '~/utils/people-group-fields'
+import type { Adoption } from '~/types/adoption'
 
 definePageMeta({
   layout: 'admin',
@@ -269,20 +269,6 @@ const menuItems = [[
     }
   }
 ]]
-
-interface Adoption {
-  id: number
-  people_group_id: number
-  group_id: number
-  status: 'pending' | 'active' | 'inactive'
-  update_token: string
-  show_publicly: boolean
-  adopted_at: string | null
-  people_group_name: string
-  people_group_slug: string | null
-  group_name: string
-  report_count: number
-}
 
 interface GroupOption {
   id: number
@@ -532,8 +518,6 @@ async function removeAdoption(adoption: Adoption) {
   }
 }
 
-function formatDate(d: string) { return new Date(d).toLocaleDateString() }
-
 function navigateToSubscribers(peopleGroupId: number) {
   navigateTo(`/admin/subscribers?peopleGroup=${peopleGroupId}`)
 }
@@ -666,29 +650,9 @@ onMounted(async () => {
   }
 }
 
-.empty-section {
-  padding: 1rem;
-  text-align: center;
-  color: var(--ui-text-muted);
-  font-size: 0.875rem;
-}
-
 .adoptions-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-.modal-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
 }
 </style>

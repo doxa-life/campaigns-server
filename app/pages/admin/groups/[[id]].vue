@@ -126,7 +126,6 @@
                 :adoption="adoption"
                 :label="adoption.people_group_name"
                 @open="openAdoptionSlideover(adoption)"
-                @delete="deleteAdoption(adoption)"
               />
             </div>
           </CrmFormSection>
@@ -153,11 +152,11 @@
   <!-- Create Group Modal -->
   <UModal v-model:open="showCreateModal" title="New Group">
     <template #body>
-      <form @submit.prevent="createGroup" class="modal-form">
+      <form @submit.prevent="createGroup" class="flex flex-col gap-3">
         <UFormField label="Name" required>
           <UInput v-model="createGroupForm.name" type="text" class="w-full" />
         </UFormField>
-        <div class="modal-actions">
+        <div class="flex justify-end gap-2 mt-2">
           <UButton variant="outline" @click="showCreateModal = false">Cancel</UButton>
           <UButton type="submit" :loading="creating">Create</UButton>
         </div>
@@ -168,7 +167,7 @@
   <!-- Add Contact Modal -->
   <UModal v-model:open="showAddSubscriberModal" title="Add Contact to Group">
     <template #body>
-      <form @submit.prevent="addSubscriberToGroup" class="modal-form">
+      <form @submit.prevent="addSubscriberToGroup" class="flex flex-col gap-3">
         <UFormField label="Contact">
           <USelectMenu
             v-model="addSubscriberId"
@@ -178,7 +177,7 @@
             class="w-full"
           />
         </UFormField>
-        <div class="modal-actions">
+        <div class="flex justify-end gap-2 mt-2">
           <UButton variant="outline" @click="showAddSubscriberModal = false">Cancel</UButton>
           <UButton type="submit" :disabled="!addSubscriberId">Add</UButton>
         </div>
@@ -189,7 +188,7 @@
   <!-- Add Adoption Modal -->
   <UModal v-model:open="showAddAdoptionModal" title="Add Adoption">
     <template #body>
-      <form @submit.prevent="addAdoption" class="modal-form">
+      <form @submit.prevent="addAdoption" class="flex flex-col gap-3">
         <UFormField label="People Group">
           <USelectMenu
             v-model="addAdoptionPeopleGroupId"
@@ -200,7 +199,7 @@
             class="w-full"
           />
         </UFormField>
-        <div class="modal-actions">
+        <div class="flex justify-end gap-2 mt-2">
           <UButton variant="outline" @click="showAddAdoptionModal = false">Cancel</UButton>
           <UButton type="submit" :disabled="!addAdoptionPeopleGroupId">Add</UButton>
         </div>
@@ -215,7 +214,7 @@
     :message="selectedGroup ? `Are you sure you want to delete &quot;${selectedGroup.name}&quot;?` : ''"
     warning="This will remove all connections and adoptions for this group. This action cannot be undone."
     confirm-text="Delete"
-    confirm-color="primary"
+    confirm-color="error"
     :loading="deleting"
     @confirm="confirmDeleteGroup"
     @cancel="showDeleteModal = false"
@@ -232,6 +231,8 @@
 </template>
 
 <script setup lang="ts">
+import type { Adoption } from '~/types/adoption'
+
 definePageMeta({
   layout: 'admin',
   middleware: 'auth'
@@ -257,21 +258,6 @@ interface GroupSubscriber {
   phone: string | null
   role: string | null
   connection_type: string | null
-}
-
-interface Adoption {
-  id: number
-  people_group_id: number
-  group_id: number
-  status: 'pending' | 'active' | 'inactive'
-  update_token: string
-  show_publicly: boolean
-  adopted_at: string | null
-  people_group_name: string
-  people_group_slug: string | null
-  group_name: string
-  report_count: number
-  created_at: string
 }
 
 interface SubscriberOption {
@@ -529,9 +515,6 @@ async function refreshGroup() {
   if (updated) await selectGroup(updated, false)
 }
 
-function formatDate(d: string) { return new Date(d).toLocaleDateString() }
-function formatDateTime(d: string) { return new Date(d).toLocaleString() }
-
 function handleUrlSelection() {
   const idParam = route.params.id as string | undefined
   if (!idParam) return
@@ -613,7 +596,7 @@ onMounted(async () => {
 .adoptions-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .info-row {
@@ -627,17 +610,4 @@ onMounted(async () => {
 .info-row .label { font-weight: 500; }
 .info-row .value { color: var(--ui-text-muted); }
 .monospace { font-family: monospace; }
-
-.modal-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
 </style>

@@ -118,29 +118,7 @@
 </template>
 
 <script setup lang="ts">
-interface Adoption {
-  id: number
-  people_group_id: number
-  group_id: number
-  status: 'pending' | 'active' | 'inactive'
-  update_token: string
-  show_publicly: boolean
-  adopted_at: string | null
-  people_group_name: string
-  people_group_slug: string | null
-  group_name: string
-  report_count: number
-}
-
-interface AdoptionReport {
-  id: number
-  adoption_id: number
-  praying_count: number | null
-  stories: string | null
-  comments: string | null
-  status: 'submitted' | 'approved' | 'rejected'
-  submitted_at: string
-}
+import type { Adoption, AdoptionReport } from '~/types/adoption'
 
 const props = defineProps<{
   adoption: Adoption | null
@@ -265,8 +243,6 @@ async function makeInactive() {
   await updateStatus('inactive')
 }
 
-function formatDate(d: string) { return new Date(d).toLocaleDateString() }
-function formatDateTime(d: string) { return new Date(d).toLocaleString() }
 </script>
 
 <style scoped>

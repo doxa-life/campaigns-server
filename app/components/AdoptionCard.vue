@@ -1,6 +1,6 @@
 <template>
-  <div class="adoption-row">
-    <div class="adoption-info" @click="$emit('open')">
+  <div class="adoption-row" @click="$emit('open')">
+    <div class="adoption-info">
       <span class="adoption-name">{{ label }}</span>
       <UBadge
         :label="adoption.status"
@@ -9,13 +9,6 @@
         size="xs"
       />
     </div>
-    <UButton
-      size="xs"
-      variant="ghost"
-      color="error"
-      icon="i-lucide-x"
-      @click="$emit('delete', adoption.id)"
-    />
   </div>
 </template>
 
@@ -27,7 +20,6 @@ defineProps<{
 
 defineEmits<{
   open: []
-  delete: [id: number]
 }>()
 </script>
 
@@ -40,18 +32,18 @@ defineEmits<{
   border: 1px solid var(--ui-border);
   border-radius: 6px;
   background-color: var(--ui-bg);
+  cursor: pointer;
+}
+
+.adoption-row:hover .adoption-name {
+  text-decoration: underline;
 }
 
 .adoption-info {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  cursor: pointer;
   min-width: 0;
-}
-
-.adoption-info:hover .adoption-name {
-  text-decoration: underline;
 }
 
 .adoption-name {

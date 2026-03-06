@@ -1,5 +1,6 @@
 import { subscriberService } from '#server/database/subscribers'
 import { contactMethodService } from '#server/database/contact-methods'
+import { connectionService } from '../../../database/connections'
 import { getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
@@ -12,7 +13,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Person not found' })
   }
 
-  // Remove contact methods first
+  // Remove connections (group memberships, etc.)
+  await connectionService.deleteForEntity('subscriber', id)
+
+  // Remove contact methods
   const contacts = await contactMethodService.getSubscriberContactMethods(id)
   for (const contact of contacts) {
     await contactMethodService.removeContactMethod(contact.id)

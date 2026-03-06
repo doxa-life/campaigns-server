@@ -102,7 +102,7 @@
               </UButton>
             </template>
 
-            <div v-if="subscriberGroups.length === 0" class="empty-section">
+            <div v-if="subscriberGroups.length === 0" class="p-4 text-center text-muted text-sm">
               Not in any groups
             </div>
             <div v-else class="groups-list">
@@ -372,7 +372,7 @@
   <!-- Add to Group Modal -->
   <UModal v-model:open="showAddGroupModal" title="Add to Group">
     <template #body>
-      <form @submit.prevent="addToGroup" class="modal-form">
+      <form @submit.prevent="addToGroup" class="flex flex-col gap-3">
         <UFormField label="Group">
           <USelectMenu
             v-model="addGroupId"
@@ -382,7 +382,7 @@
             class="w-full"
           />
         </UFormField>
-        <div class="modal-actions">
+        <div class="flex justify-end gap-2 mt-2">
           <UButton variant="outline" @click="showAddGroupModal = false">Cancel</UButton>
           <UButton type="submit" :disabled="!addGroupId">Add</UButton>
         </div>
@@ -393,7 +393,7 @@
   <!-- Create Person Modal -->
   <UModal v-model:open="showCreatePersonModal" title="New Contact">
     <template #body>
-      <form @submit.prevent="createPerson" class="modal-form">
+      <form @submit.prevent="createPerson" class="flex flex-col gap-3">
         <UFormField label="Name" required>
           <UInput v-model="createPersonForm.name" type="text" class="w-full" />
         </UFormField>
@@ -403,7 +403,7 @@
         <UFormField label="Phone">
           <UInput v-model="createPersonForm.phone" type="tel" class="w-full" />
         </UFormField>
-        <div class="modal-actions">
+        <div class="flex justify-end gap-2 mt-2">
           <UButton variant="outline" @click="showCreatePersonModal = false">Cancel</UButton>
           <UButton type="submit" :loading="creatingPerson">Create</UButton>
         </div>
@@ -576,18 +576,10 @@ const frequencyOptions = [
   { label: 'Weekly', value: 'weekly' }
 ]
 
-const languageOptions = [
-  { label: 'English', value: 'en' },
-  { label: 'Spanish', value: 'es' },
-  { label: 'French', value: 'fr' },
-  { label: 'Portuguese', value: 'pt' },
-  { label: 'German', value: 'de' },
-  { label: 'Italian', value: 'it' },
-  { label: 'Chinese', value: 'zh' },
-  { label: 'Arabic', value: 'ar' },
-  { label: 'Russian', value: 'ru' },
-  { label: 'Hindi', value: 'hi' }
-]
+const languageOptions = LANGUAGES.map(lang => ({
+  label: lang.name,
+  value: lang.code
+}))
 
 const peopleGroupOptions = computed(() => {
   return [
@@ -986,14 +978,6 @@ function filterByPeopleGroup(subscription: Subscription) {
   router.push({ query: { peopleGroup: subscription.people_group_id } })
 }
 
-// Formatting functions
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString()
-}
-
-function formatDateTime(dateString: string) {
-  return new Date(dateString).toLocaleString()
-}
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -1440,30 +1424,10 @@ onMounted(async () => {
   border-radius: 6px;
 }
 
-.empty-section {
-  padding: 1rem;
-  text-align: center;
-  color: var(--ui-text-muted);
-  font-size: 0.875rem;
-}
-
 .group-link {
   font-weight: 500;
   color: var(--ui-text);
   text-decoration: underline;
   text-underline-offset: 2px;
-}
-
-.modal-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
 }
 </style>

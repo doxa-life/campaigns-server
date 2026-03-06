@@ -86,6 +86,15 @@ class ConnectionService {
     const result = await stmt.run(fromType, fromId, toType, toId)
     return result.changes > 0
   }
+
+  async deleteForEntity(type: string, id: number): Promise<number> {
+    const stmt = this.db.prepare(`
+      DELETE FROM connections
+      WHERE (from_type = ? AND from_id = ?) OR (to_type = ? AND to_id = ?)
+    `)
+    const result = await stmt.run(type, id, type, id)
+    return result.changes
+  }
 }
 
 export const connectionService = new ConnectionService()

@@ -37,7 +37,6 @@ class PeopleGroupAdoptionService {
 
   async create(data: CreateAdoptionData): Promise<PeopleGroupAdoption> {
     const status = data.status || 'active'
-    const adoptedAt = status === 'active' ? 'CURRENT_TIMESTAMP' : null
 
     const stmt = this.db.prepare(`
       INSERT INTO people_group_adoptions (people_group_id, group_id, status, show_publicly, adopted_at)
