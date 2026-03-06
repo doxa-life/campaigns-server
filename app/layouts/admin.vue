@@ -19,37 +19,37 @@
       <ul class="nav-menu" v-if="hasRole">
         <li v-if="isAdmin">
           <NuxtLink to="/admin" class="nav-link" :class="{ 'router-link-active': route.path === '/admin' }">
-            Dashboard
+            <UIcon name="i-lucide-layout-dashboard" /> Dashboard
           </NuxtLink>
         </li>
         <li v-if="isAdmin">
           <NuxtLink to="/admin/people-groups" class="nav-link">
-            People Groups
+            <UIcon name="i-lucide-globe" /> People Groups
           </NuxtLink>
         </li>
         <li>
           <NuxtLink to="/admin/subscribers" class="nav-link">
-            Contacts
+            <UIcon name="i-lucide-user" /> Contacts
           </NuxtLink>
         </li>
         <li v-if="isAdmin">
           <NuxtLink to="/admin/groups" class="nav-link">
-            Groups
+            <UIcon name="i-lucide-users" /> Groups
           </NuxtLink>
         </li>
         <li v-if="isAdmin">
           <NuxtLink to="/admin/libraries" class="nav-link">
-            Libraries
+            <UIcon name="i-lucide-book-open" /> Libraries
           </NuxtLink>
         </li>
         <li v-if="isAdmin">
           <NuxtLink to="/admin/users" class="nav-link">
-            Users
+            <UIcon name="i-lucide-user-cog" /> Users
           </NuxtLink>
         </li>
         <li v-if="isSuperAdmin">
           <NuxtLink to="/superadmin" class="nav-link">
-            Superadmin
+            <UIcon name="i-lucide-shield" /> Superadmin
           </NuxtLink>
         </li>
       </ul>
@@ -149,7 +149,9 @@ onMounted(async () => {
 }
 
 .nav-link {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.75rem 1rem;
   color: var(--ui-text);
   text-decoration: none;
