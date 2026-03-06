@@ -13,7 +13,8 @@ export default class GroupsMigration extends BaseMigration {
       CREATE TABLE IF NOT EXISTS groups (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
-        primary_contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
+        primary_subscriber_id INTEGER REFERENCES subscribers(id) ON DELETE SET NULL,
+        country TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )

@@ -1,13 +1,14 @@
 import { peopleGroupAdoptionService } from '../database/people-group-adoptions'
 import { groupService } from '../database/groups'
-import { contactService } from '../database/contacts'
+import { subscriberService } from '../database/subscribers'
+import { contactMethodService } from '../database/contact-methods'
 import { sendAdoptionReminderEmail } from '../utils/adoption-reminder-email'
 
 /**
  * Nitro plugin to send monthly adoption reminder emails
  *
  * Runs on the 1st of every month. For each group with active adoptions,
- * sends one email to the primary contact listing all their adopted people groups
+ * sends one email to the primary subscriber listing all their adopted people groups
  * with individual magic links.
  */
 export default defineNitroPlugin((nitroApp) => {
@@ -60,20 +61,26 @@ export default defineNitroPlugin((nitroApp) => {
 
       for (const [groupId, adoptions] of adoptionsByGroup) {
         const group = await groupService.getById(groupId)
-        if (!group || !group.primary_contact_id) {
+        if (!group || !group.primary_subscriber_id) {
           skipped++
           continue
         }
 
-        const contact = await contactService.getById(group.primary_contact_id)
-        if (!contact || !contact.email_address) {
+        const subscriber = await subscriberService.getSubscriberById(group.primary_subscriber_id)
+        if (!subscriber) {
+          skipped++
+          continue
+        }
+
+        const primaryEmail = await contactMethodService.getPrimaryEmail(subscriber.id)
+        if (!primaryEmail) {
           skipped++
           continue
         }
 
         const success = await sendAdoptionReminderEmail({
-          to: contact.email_address,
-          contactName: contact.name,
+          to: primaryEmail.value,
+          contactName: subscriber.name,
           groupName: group.name,
           adoptions: adoptions.map(a => ({
             peopleGroupName: a.people_group_name,

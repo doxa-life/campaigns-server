@@ -28,11 +28,11 @@
       >
         <div class="group-name">{{ group.name }}</div>
         <div class="group-info">
-          {{ group.primary_contact_name || 'No primary contact' }}
+          {{ group.primary_subscriber_name || 'No primary contact' }}
         </div>
         <div class="group-meta">
           <UBadge v-if="group.adoption_count > 0" :label="`${group.adoption_count} adoption${group.adoption_count > 1 ? 's' : ''}`" variant="subtle" color="success" size="xs" />
-          <UBadge v-if="group.contact_count > 0" :label="`${group.contact_count} contact${group.contact_count > 1 ? 's' : ''}`" variant="subtle" size="xs" />
+          <UBadge v-if="group.subscriber_count > 0" :label="`${group.subscriber_count} contact${group.subscriber_count > 1 ? 's' : ''}`" variant="subtle" size="xs" />
           <span class="date">{{ formatDate(group.created_at) }}</span>
         </div>
       </CrmListItem>
@@ -59,8 +59,8 @@
             </UFormField>
             <UFormField label="Primary Contact">
               <USelectMenu
-                v-model="groupForm.primary_contact_id"
-                :items="primaryContactOptions"
+                v-model="groupForm.primary_subscriber_id"
+                :items="primarySubscriberOptions"
                 value-key="value"
                 placeholder="Select primary contact..."
                 class="w-full"
@@ -81,28 +81,28 @@
           <!-- Contacts Section -->
           <CrmFormSection title="Contacts">
             <template #header-extra>
-              <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="showAddContactModal = true">
+              <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="showAddSubscriberModal = true">
                 Add
               </UButton>
             </template>
 
-            <div v-if="groupContacts.length === 0" class="empty-section">
+            <div v-if="groupSubscribers.length === 0" class="empty-section">
               No contacts linked
             </div>
-            <div v-else class="contacts-list">
-              <div v-for="c in groupContacts" :key="c.contact_id" class="contact-row">
-                <div class="contact-row-info">
-                  <NuxtLink :to="`/admin/contacts/${c.contact_id}`" class="contact-link">
-                    {{ c.name }}
+            <div v-else class="subscribers-list">
+              <div v-for="s in groupSubscribers" :key="s.subscriber_id" class="subscriber-row">
+                <div class="subscriber-row-info">
+                  <NuxtLink :to="`/admin/subscribers/${s.subscriber_id}`" class="subscriber-link">
+                    {{ s.name }}
                   </NuxtLink>
-                  <span v-if="c.email_address" class="contact-email">{{ c.email_address }}</span>
+                  <span v-if="s.email" class="subscriber-email">{{ s.email }}</span>
                 </div>
                 <UButton
                   size="xs"
                   variant="ghost"
                   color="error"
                   icon="i-lucide-x"
-                  @click="removeContact(c.contact_id)"
+                  @click="removeSubscriber(s.subscriber_id)"
                 />
               </div>
             </div>
@@ -166,21 +166,21 @@
   </UModal>
 
   <!-- Add Contact Modal -->
-  <UModal v-model:open="showAddContactModal" title="Add Contact to Group">
+  <UModal v-model:open="showAddSubscriberModal" title="Add Contact to Group">
     <template #body>
-      <form @submit.prevent="addContactToGroup" class="modal-form">
+      <form @submit.prevent="addSubscriberToGroup" class="modal-form">
         <UFormField label="Contact">
           <USelectMenu
-            v-model="addContactId"
-            :items="allContactOptions"
+            v-model="addSubscriberId"
+            :items="allSubscriberOptions"
             value-key="value"
             placeholder="Select a contact..."
             class="w-full"
           />
         </UFormField>
         <div class="modal-actions">
-          <UButton variant="outline" @click="showAddContactModal = false">Cancel</UButton>
-          <UButton type="submit" :disabled="!addContactId">Add</UButton>
+          <UButton variant="outline" @click="showAddSubscriberModal = false">Cancel</UButton>
+          <UButton type="submit" :disabled="!addSubscriberId">Add</UButton>
         </div>
       </form>
     </template>
@@ -231,21 +231,22 @@ definePageMeta({
 interface GroupWithDetails {
   id: number
   name: string
-  primary_contact_id: number | null
+  primary_subscriber_id: number | null
   country: string | null
-  primary_contact_name: string | null
-  primary_contact_email: string | null
-  contact_count: number
+  primary_subscriber_name: string | null
+  primary_subscriber_email: string | null
+  subscriber_count: number
   adoption_count: number
   created_at: string
   updated_at: string
 }
 
-interface GroupContact {
-  contact_id: number
+interface GroupSubscriber {
+  subscriber_id: number
   name: string
-  email_address: string | null
+  email: string | null
   phone: string | null
+  role: string | null
   connection_type: string | null
 }
 
@@ -264,10 +265,10 @@ interface Adoption {
   created_at: string
 }
 
-interface ContactOption {
+interface SubscriberOption {
   id: number
   name: string
-  email_address: string | null
+  primary_email: string | null
 }
 
 interface PeopleGroupOption {
@@ -281,9 +282,9 @@ const { countryOptions } = useLocalizedOptions()
 
 const groups = ref<GroupWithDetails[]>([])
 const selectedGroup = ref<GroupWithDetails | null>(null)
-const groupContacts = ref<GroupContact[]>([])
+const groupSubscribers = ref<GroupSubscriber[]>([])
 const groupAdoptions = ref<Adoption[]>([])
-const allContacts = ref<ContactOption[]>([])
+const allSubscribers = ref<SubscriberOption[]>([])
 const allPeopleGroups = ref<PeopleGroupOption[]>([])
 
 const loading = ref(true)
@@ -293,14 +294,14 @@ const creating = ref(false)
 const deleting = ref(false)
 
 const searchQuery = ref('')
-const groupForm = ref({ name: '', primary_contact_id: null as number | null, country: null as string | null })
+const groupForm = ref({ name: '', primary_subscriber_id: null as number | null, country: null as string | null })
 
 const showCreateModal = ref(false)
 const showDeleteModal = ref(false)
-const showAddContactModal = ref(false)
+const showAddSubscriberModal = ref(false)
 const showAddAdoptionModal = ref(false)
 const createGroupForm = ref({ name: '' })
-const addContactId = ref<number | null>(null)
+const addSubscriberId = ref<number | null>(null)
 const addAdoptionPeopleGroupId = ref<number | null>(null)
 
 const filteredGroups = computed(() => {
@@ -309,23 +310,23 @@ const filteredGroups = computed(() => {
   return groups.value.filter(g => g.name.toLowerCase().includes(q))
 })
 
-const primaryContactOptions = computed(() => {
+const primarySubscriberOptions = computed(() => {
   return [
     { label: 'None', value: null },
-    ...groupContacts.value.map(c => ({
-      label: `${c.name}${c.email_address ? ` (${c.email_address})` : ''}`,
-      value: c.contact_id
+    ...groupSubscribers.value.map(s => ({
+      label: `${s.name}${s.email ? ` (${s.email})` : ''}`,
+      value: s.subscriber_id
     }))
   ]
 })
 
-const allContactOptions = computed(() => {
-  const linkedIds = new Set(groupContacts.value.map(c => c.contact_id))
-  return allContacts.value
-    .filter(c => !linkedIds.has(c.id))
-    .map(c => ({
-      label: `${c.name}${c.email_address ? ` (${c.email_address})` : ''}`,
-      value: c.id
+const allSubscriberOptions = computed(() => {
+  const linkedIds = new Set(groupSubscribers.value.map(s => s.subscriber_id))
+  return allSubscribers.value
+    .filter(s => !linkedIds.has(s.id))
+    .map(s => ({
+      label: `${s.name}${s.primary_email ? ` (${s.primary_email})` : ''}`,
+      value: s.id
     }))
 })
 
@@ -340,13 +341,13 @@ async function loadData() {
   try {
     loading.value = true
     error.value = ''
-    const [groupsRes, contactsRes, pgRes] = await Promise.all([
+    const [groupsRes, subscribersRes, pgRes] = await Promise.all([
       $fetch<{ groups: GroupWithDetails[] }>('/api/admin/groups'),
-      $fetch<{ contacts: ContactOption[] }>('/api/admin/contacts'),
+      $fetch<{ subscribers: SubscriberOption[] }>('/api/admin/subscribers'),
       $fetch<{ peopleGroups: PeopleGroupOption[] }>('/api/admin/people-groups')
     ])
     groups.value = groupsRes.groups
-    allContacts.value = contactsRes.contacts
+    allSubscribers.value = subscribersRes.subscribers
     allPeopleGroups.value = pgRes.peopleGroups
   } catch (err: any) {
     error.value = 'Failed to load groups'
@@ -359,7 +360,7 @@ async function selectGroup(group: GroupWithDetails, updateUrl = true) {
   selectedGroup.value = group
   groupForm.value = {
     name: group.name,
-    primary_contact_id: group.primary_contact_id,
+    primary_subscriber_id: group.primary_subscriber_id,
     country: group.country
   }
   if (updateUrl && import.meta.client) {
@@ -367,11 +368,11 @@ async function selectGroup(group: GroupWithDetails, updateUrl = true) {
   }
 
   try {
-    const res = await $fetch<{ group: any; contacts: GroupContact[]; adoptions: Adoption[] }>(`/api/admin/groups/${group.id}`)
-    groupContacts.value = res.contacts
+    const res = await $fetch<{ group: any; subscribers: GroupSubscriber[]; adoptions: Adoption[] }>(`/api/admin/groups/${group.id}`)
+    groupSubscribers.value = res.subscribers
     groupAdoptions.value = res.adoptions
   } catch {
-    groupContacts.value = []
+    groupSubscribers.value = []
     groupAdoptions.value = []
   }
 }
@@ -384,7 +385,7 @@ async function saveGroupChanges() {
       method: 'PUT',
       body: {
         name: groupForm.value.name,
-        primary_contact_id: groupForm.value.primary_contact_id,
+        primary_subscriber_id: groupForm.value.primary_subscriber_id,
         country: groupForm.value.country
       }
     })
@@ -447,15 +448,15 @@ async function confirmDeleteGroup() {
   }
 }
 
-async function addContactToGroup() {
-  if (!selectedGroup.value || !addContactId.value) return
+async function addSubscriberToGroup() {
+  if (!selectedGroup.value || !addSubscriberId.value) return
   try {
-    await $fetch(`/api/admin/groups/${selectedGroup.value.id}/contacts`, {
+    await $fetch(`/api/admin/groups/${selectedGroup.value.id}/subscribers`, {
       method: 'POST',
-      body: { contact_id: addContactId.value }
+      body: { subscriber_id: addSubscriberId.value }
     })
-    showAddContactModal.value = false
-    addContactId.value = null
+    showAddSubscriberModal.value = false
+    addSubscriberId.value = null
     await refreshGroup()
     toast.add({ title: 'Contact added', color: 'success' })
   } catch (err: any) {
@@ -463,10 +464,10 @@ async function addContactToGroup() {
   }
 }
 
-async function removeContact(contactId: number) {
+async function removeSubscriber(subscriberId: number) {
   if (!selectedGroup.value) return
   try {
-    await $fetch(`/api/admin/groups/${selectedGroup.value.id}/contacts?contact_id=${contactId}`, {
+    await $fetch(`/api/admin/groups/${selectedGroup.value.id}/subscribers?subscriber_id=${subscriberId}`, {
       method: 'DELETE'
     })
     await refreshGroup()
@@ -559,13 +560,13 @@ onMounted(async () => {
   color: var(--ui-text-muted);
 }
 
-.contacts-list {
+.subscribers-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.contact-row {
+.subscriber-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -575,20 +576,20 @@ onMounted(async () => {
   border-radius: 6px;
 }
 
-.contact-row-info {
+.subscriber-row-info {
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
 }
 
-.contact-link {
+.subscriber-link {
   font-weight: 500;
   color: var(--ui-text);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
-.contact-email {
+.subscriber-email {
   font-size: 0.75rem;
   color: var(--ui-text-muted);
 }

@@ -3,28 +3,28 @@ import { getDatabase } from './db'
 export interface Group {
   id: number
   name: string
-  primary_contact_id: number | null
+  primary_subscriber_id: number | null
   country: string | null
   created_at: string
   updated_at: string
 }
 
 export interface GroupWithDetails extends Group {
-  primary_contact_name: string | null
-  primary_contact_email: string | null
-  contact_count: number
+  primary_subscriber_name: string | null
+  primary_subscriber_email: string | null
+  subscriber_count: number
   adoption_count: number
 }
 
 export interface CreateGroupData {
   name: string
-  primary_contact_id?: number | null
+  primary_subscriber_id?: number | null
   country?: string | null
 }
 
 export interface UpdateGroupData {
   name?: string
-  primary_contact_id?: number | null
+  primary_subscriber_id?: number | null
   country?: string | null
 }
 
@@ -33,10 +33,10 @@ class GroupService {
 
   async create(data: CreateGroupData): Promise<Group> {
     const stmt = this.db.prepare(`
-      INSERT INTO groups (name, primary_contact_id, country)
+      INSERT INTO groups (name, primary_subscriber_id, country)
       VALUES (?, ?, ?)
     `)
-    const result = await stmt.run(data.name, data.primary_contact_id || null, data.country || null)
+    const result = await stmt.run(data.name, data.primary_subscriber_id || null, data.country || null)
     return (await this.getById(result.lastInsertRowid as number))!
   }
 
@@ -52,12 +52,12 @@ class GroupService {
   }): Promise<GroupWithDetails[]> {
     let query = `
       SELECT g.*,
-        c.name as primary_contact_name,
-        c.email_address as primary_contact_email,
-        (SELECT COUNT(*) FROM connections WHERE from_type = 'contact' AND to_type = 'group' AND to_id = g.id) as contact_count,
+        s.name as primary_subscriber_name,
+        (SELECT cm.value FROM contact_methods cm WHERE cm.subscriber_id = s.id AND cm.type = 'email' ORDER BY cm.verified DESC, cm.created_at ASC LIMIT 1) as primary_subscriber_email,
+        (SELECT COUNT(*) FROM connections WHERE from_type = 'subscriber' AND to_type = 'group' AND to_id = g.id) as subscriber_count,
         (SELECT COUNT(*) FROM people_group_adoptions WHERE group_id = g.id) as adoption_count
       FROM groups g
-      LEFT JOIN contacts c ON g.primary_contact_id = c.id
+      LEFT JOIN subscribers s ON g.primary_subscriber_id = s.id
     `
     const params: any[] = []
 
@@ -106,9 +106,9 @@ class GroupService {
       updates.push('name = ?')
       values.push(data.name)
     }
-    if (data.primary_contact_id !== undefined) {
-      updates.push('primary_contact_id = ?')
-      values.push(data.primary_contact_id)
+    if (data.primary_subscriber_id !== undefined) {
+      updates.push('primary_subscriber_id = ?')
+      values.push(data.primary_subscriber_id)
     }
     if (data.country !== undefined) {
       updates.push('country = ?')

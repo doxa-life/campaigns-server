@@ -6,10 +6,9 @@ class BaseMigration {
 
 export default class AdoptionExtraFieldsMigration extends BaseMigration {
   id = 49
-  name = 'Add role to contacts, country to groups'
+  name = 'Add role to subscribers'
 
   async up(sql) {
-    await this.exec(sql, `ALTER TABLE contacts ADD COLUMN IF NOT EXISTS role TEXT`)
-    await this.exec(sql, `ALTER TABLE groups ADD COLUMN IF NOT EXISTS country TEXT`)
+    await this.exec(sql, `ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS role TEXT`)
   }
 }

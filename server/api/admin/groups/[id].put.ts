@@ -7,13 +7,13 @@ export default defineEventHandler(async (event) => {
   const id = getIntParam(event, 'id')
   const body = await readBody<{
     name?: string
-    primary_contact_id?: number | null
+    primary_subscriber_id?: number | null
     country?: string | null
   }>(event)
 
   const updated = await groupService.update(id, {
     name: body.name?.trim(),
-    primary_contact_id: body.primary_contact_id !== undefined ? (body.primary_contact_id || null) : undefined,
+    primary_subscriber_id: body.primary_subscriber_id !== undefined ? (body.primary_subscriber_id || null) : undefined,
     country: body.country !== undefined ? (body.country?.trim() || null) : undefined
   })
 

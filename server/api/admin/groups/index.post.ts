@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody<{
     name: string
-    primary_contact_id?: number | null
+    primary_subscriber_id?: number | null
   }>(event)
 
   if (!body.name?.trim()) {
@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
 
   const group = await groupService.create({
     name: body.name.trim(),
-    primary_contact_id: body.primary_contact_id || null
+    primary_subscriber_id: body.primary_subscriber_id || null
   })
 
   return { group }

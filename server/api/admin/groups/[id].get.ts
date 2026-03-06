@@ -13,10 +13,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Group not found' })
   }
 
-  const [contacts, adoptions] = await Promise.all([
-    connectionService.getContactsForGroup(id),
+  const [subscribers, adoptions] = await Promise.all([
+    connectionService.getSubscribersForGroup(id),
     peopleGroupAdoptionService.getForGroup(id)
   ])
 
-  return { group, contacts, adoptions }
+  return { group, subscribers, adoptions }
 })

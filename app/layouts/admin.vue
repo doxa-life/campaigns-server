@@ -29,11 +29,6 @@
         </li>
         <li>
           <NuxtLink to="/admin/subscribers" class="nav-link">
-            Subscribers
-          </NuxtLink>
-        </li>
-        <li v-if="isAdmin">
-          <NuxtLink to="/admin/contacts" class="nav-link">
             Contacts
           </NuxtLink>
         </li>

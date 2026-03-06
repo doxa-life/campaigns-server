@@ -2,8 +2,9 @@
   <CrmLayout :loading="loading" :error="error">
     <template #header>
       <div>
-        <h1>All Subscribers</h1>
+        <h1>Contacts</h1>
       </div>
+      <UButton icon="i-lucide-plus" @click="openCreateModal">New Contact</UButton>
     </template>
 
     <template #list-header>
@@ -27,7 +28,7 @@
 
     <template #list>
       <template v-if="filteredSubscribers.length === 0">
-        <div class="empty-list">No subscribers found</div>
+        <div class="empty-list">No contacts found</div>
       </template>
       <CrmListItem
         v-else
@@ -75,17 +76,49 @@
               <UInput v-model="subscriberForm.name" type="text" class="w-full" />
             </UFormField>
 
-            <UFormField v-if="selectedSubscriber.primary_email" label="Email">
-              <div class="contact-display">{{ selectedSubscriber.primary_email }}</div>
+            <UFormField label="Email">
+              <UInput v-model="subscriberForm.email" type="email" class="w-full" />
             </UFormField>
 
-            <UFormField v-if="selectedSubscriber.primary_phone" label="Phone">
-              <div class="contact-display">{{ selectedSubscriber.primary_phone }}</div>
+            <UFormField label="Phone">
+              <UInput v-model="subscriberForm.phone" type="tel" class="w-full" />
             </UFormField>
 
             <UFormField label="Preferred Language">
-              <div class="contact-display">{{ formatLanguage(selectedSubscriber.preferred_language) }}</div>
+              <USelectMenu
+                v-model="subscriberForm.preferred_language"
+                :items="languageOptions"
+                value-key="value"
+                class="w-full"
+              />
             </UFormField>
+          </CrmFormSection>
+
+          <!-- Groups -->
+          <CrmFormSection title="Groups">
+            <template #header-extra>
+              <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="showAddGroupModal = true">
+                Add
+              </UButton>
+            </template>
+
+            <div v-if="subscriberGroups.length === 0" class="empty-section">
+              Not in any groups
+            </div>
+            <div v-else class="groups-list">
+              <div v-for="g in subscriberGroups" :key="g.group_id" class="group-row">
+                <NuxtLink :to="`/admin/groups/${g.group_id}`" class="group-link">
+                  {{ g.name }}
+                </NuxtLink>
+                <UButton
+                  size="xs"
+                  variant="ghost"
+                  color="error"
+                  icon="i-lucide-x"
+                  @click="removeFromGroup(g.group_id)"
+                />
+              </div>
+            </div>
           </CrmFormSection>
 
           <!-- Marketing Consents -->
@@ -330,18 +363,60 @@
         </form>
 
         <template #empty>
-          Select a subscriber to view details
+          Select a contact to view details
         </template>
       </CrmDetailPanel>
     </template>
   </CrmLayout>
 
+  <!-- Add to Group Modal -->
+  <UModal v-model:open="showAddGroupModal" title="Add to Group">
+    <template #body>
+      <form @submit.prevent="addToGroup" class="modal-form">
+        <UFormField label="Group">
+          <USelectMenu
+            v-model="addGroupId"
+            :items="availableGroupOptions"
+            value-key="value"
+            placeholder="Select a group..."
+            class="w-full"
+          />
+        </UFormField>
+        <div class="modal-actions">
+          <UButton variant="outline" @click="showAddGroupModal = false">Cancel</UButton>
+          <UButton type="submit" :disabled="!addGroupId">Add</UButton>
+        </div>
+      </form>
+    </template>
+  </UModal>
+
+  <!-- Create Person Modal -->
+  <UModal v-model:open="showCreatePersonModal" title="New Contact">
+    <template #body>
+      <form @submit.prevent="createPerson" class="modal-form">
+        <UFormField label="Name" required>
+          <UInput v-model="createPersonForm.name" type="text" class="w-full" />
+        </UFormField>
+        <UFormField label="Email">
+          <UInput v-model="createPersonForm.email" type="email" class="w-full" />
+        </UFormField>
+        <UFormField label="Phone">
+          <UInput v-model="createPersonForm.phone" type="tel" class="w-full" />
+        </UFormField>
+        <div class="modal-actions">
+          <UButton variant="outline" @click="showCreatePersonModal = false">Cancel</UButton>
+          <UButton type="submit" :loading="creatingPerson">Create</UButton>
+        </div>
+      </form>
+    </template>
+  </UModal>
+
   <!-- Delete Confirmation Modal -->
   <ConfirmModal
     v-model:open="showDeleteModal"
-    title="Delete Subscriber"
+    title="Delete Contact"
     :message="subscriberToDelete ? `Are you sure you want to delete &quot;${subscriberToDelete.name}&quot;?` : ''"
-    warning="This will delete all subscriptions for this subscriber. This action cannot be undone."
+    warning="This will delete all subscriptions for this contact. This action cannot be undone."
     confirm-text="Delete"
     confirm-color="primary"
     :loading="deleting"
@@ -419,6 +494,7 @@ const route = useRoute()
 const toast = useToast()
 
 // Data
+const subscriberGroups = ref<{ group_id: number; name: string }[]>([])
 const subscribers = ref<GeneralSubscriber[]>([])
 const peopleGroups = ref<PeopleGroup[]>([])
 const selectedSubscriber = ref<GeneralSubscriber | null>(null)
@@ -433,11 +509,21 @@ const searchQuery = ref('')
 const filterPeopleGroupId = ref<number | null>(null)
 
 // Form state
-const subscriberForm = ref({ name: '' })
+const subscriberForm = ref({ name: '', email: '', phone: '', preferred_language: 'en' })
 const subscriptionForms = ref<Map<number, SubscriptionForm>>(new Map())
 
 // Expansion state for subscription cards
 const expandedSubscriptions = ref<Set<number>>(new Set())
+
+// Add to group modal state
+const showAddGroupModal = ref(false)
+const addGroupId = ref<number | null>(null)
+const allGroups = ref<{ id: number; name: string }[]>([])
+
+// Create person modal state
+const showCreatePersonModal = ref(false)
+const creatingPerson = ref(false)
+const createPersonForm = ref({ name: '', email: '', phone: '' })
 
 // Delete modal state
 const showDeleteModal = ref(false)
@@ -490,11 +576,31 @@ const frequencyOptions = [
   { label: 'Weekly', value: 'weekly' }
 ]
 
+const languageOptions = [
+  { label: 'English', value: 'en' },
+  { label: 'Spanish', value: 'es' },
+  { label: 'French', value: 'fr' },
+  { label: 'Portuguese', value: 'pt' },
+  { label: 'German', value: 'de' },
+  { label: 'Italian', value: 'it' },
+  { label: 'Chinese', value: 'zh' },
+  { label: 'Arabic', value: 'ar' },
+  { label: 'Russian', value: 'ru' },
+  { label: 'Hindi', value: 'hi' }
+]
+
 const peopleGroupOptions = computed(() => {
   return [
     { label: 'All People Groups', value: null },
     ...peopleGroups.value.map(c => ({ label: c.name, value: c.id }))
   ]
+})
+
+const availableGroupOptions = computed(() => {
+  const linkedIds = new Set(subscriberGroups.value.map(g => g.group_id))
+  return allGroups.value
+    .filter(g => !linkedIds.has(g.id))
+    .map(g => ({ label: g.name, value: g.id }))
 })
 
 const filteredSubscribers = computed(() => {
@@ -520,18 +626,79 @@ const filteredSubscribers = computed(() => {
   return filtered
 })
 
+function openCreateModal() {
+  createPersonForm.value = { name: '', email: '', phone: '' }
+  showCreatePersonModal.value = true
+}
+
+async function createPerson() {
+  if (!createPersonForm.value.name.trim()) return
+  try {
+    creatingPerson.value = true
+    const res = await $fetch<{ subscriber: any; isNew: boolean }>('/api/admin/subscribers', {
+      method: 'POST',
+      body: createPersonForm.value
+    })
+    showCreatePersonModal.value = false
+    await loadData()
+    const created = subscribers.value.find(s => s.id === res.subscriber.id)
+    if (created) selectSubscriber(created)
+    toast.add({
+      title: res.isNew ? 'Contact created' : 'Existing contact found',
+      color: 'success'
+    })
+  } catch (err: any) {
+    toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to create', color: 'error' })
+  } finally {
+    creatingPerson.value = false
+  }
+}
+
+async function addToGroup() {
+  if (!selectedSubscriber.value || !addGroupId.value) return
+  try {
+    await $fetch(`/api/admin/groups/${addGroupId.value}/subscribers`, {
+      method: 'POST',
+      body: { subscriber_id: selectedSubscriber.value.id }
+    })
+    showAddGroupModal.value = false
+    addGroupId.value = null
+    const res = await $fetch<{ groups: { group_id: number; name: string }[] }>(`/api/admin/subscribers/${selectedSubscriber.value.id}/groups`)
+    subscriberGroups.value = res.groups
+    toast.add({ title: 'Added to group', color: 'success' })
+  } catch (err: any) {
+    toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to add to group', color: 'error' })
+  }
+}
+
+async function removeFromGroup(groupId: number) {
+  if (!selectedSubscriber.value) return
+  try {
+    await $fetch(`/api/admin/groups/${groupId}/subscribers?subscriber_id=${selectedSubscriber.value.id}`, {
+      method: 'DELETE'
+    })
+    subscriberGroups.value = subscriberGroups.value.filter(g => g.group_id !== groupId)
+    toast.add({ title: 'Removed from group', color: 'success' })
+  } catch (err: any) {
+    toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to remove from group', color: 'error' })
+  }
+}
+
 async function loadData() {
   try {
     loading.value = true
     error.value = ''
 
-    const peopleGroupsResponse = await $fetch<{ peopleGroups: PeopleGroup[] }>('/api/admin/people-groups')
+    const [peopleGroupsResponse, subscribersResponse, groupsResponse] = await Promise.all([
+      $fetch<{ peopleGroups: PeopleGroup[] }>('/api/admin/people-groups'),
+      $fetch<{ subscribers: GeneralSubscriber[] }>('/api/admin/subscribers'),
+      $fetch<{ groups: { id: number; name: string }[] }>('/api/admin/groups')
+    ])
     peopleGroups.value = peopleGroupsResponse.peopleGroups
-
-    const subscribersResponse = await $fetch<{ subscribers: GeneralSubscriber[] }>('/api/admin/subscribers')
     subscribers.value = subscribersResponse.subscribers
+    allGroups.value = groupsResponse.groups
   } catch (err: any) {
-    error.value = 'Failed to load subscribers'
+    error.value = 'Failed to load contacts'
     console.error(err)
   } finally {
     loading.value = false
@@ -540,7 +707,7 @@ async function loadData() {
 
 async function selectSubscriber(subscriber: GeneralSubscriber, updateUrl = true) {
   selectedSubscriber.value = subscriber
-  subscriberForm.value = { name: subscriber.name }
+  subscriberForm.value = { name: subscriber.name, email: subscriber.primary_email || '', phone: subscriber.primary_phone || '', preferred_language: subscriber.preferred_language }
   if (updateUrl && import.meta.client) {
     const params = new URLSearchParams()
     if (filterPeopleGroupId.value) params.set('peopleGroup', String(filterPeopleGroupId.value))
@@ -566,6 +733,13 @@ async function selectSubscriber(subscriber: GeneralSubscriber, updateUrl = true)
   }
 
   await loadActivityLog(subscriber)
+
+  try {
+    const res = await $fetch<{ groups: { group_id: number; name: string }[] }>(`/api/admin/subscribers/${subscriber.id}/groups`)
+    subscriberGroups.value = res.groups
+  } catch {
+    subscriberGroups.value = []
+  }
 }
 
 function getSubscriptionForm(subscriptionId: number): SubscriptionForm {
@@ -602,7 +776,7 @@ async function loadActivityLog(subscriber: GeneralSubscriber) {
 
     for (const subscription of subscriber.subscriptions) {
       try {
-        const response = await $fetch<{ activities: ActivityLogEntry[] }>(`/api/admin/subscribers/${subscription.id}/activity`)
+        const response = await $fetch<{ activities: ActivityLogEntry[] }>(`/api/admin/subscriptions/${subscription.id}/activity`)
         allActivities.push(...response.activities)
       } catch (err) {
         console.error(`Failed to load activity for subscription ${subscription.id}:`, err)
@@ -627,7 +801,7 @@ async function sendReminder(subscription: Subscription) {
 
   try {
     sendingReminder.value[subscription.id] = true
-    await $fetch(`/api/admin/subscribers/${subscription.id}/send-reminder`, {
+    await $fetch(`/api/admin/subscriptions/${subscription.id}/send-reminder`, {
       method: 'POST'
     })
 
@@ -657,7 +831,7 @@ async function sendFollowup(subscription: Subscription) {
 
   try {
     sendingFollowup.value[subscription.id] = true
-    await $fetch(`/api/admin/subscribers/${subscription.id}/send-followup`, {
+    await $fetch(`/api/admin/subscriptions/${subscription.id}/send-followup`, {
       method: 'POST'
     })
 
@@ -688,59 +862,38 @@ async function saveChanges() {
   try {
     saving.value = true
     const subscriber = selectedSubscriber.value
+    // Save person info via subscriber endpoint
     const nameChanged = subscriberForm.value.name !== subscriber.name
+    const emailChanged = subscriberForm.value.email !== (subscriber.primary_email || '')
+    const phoneChanged = subscriberForm.value.phone !== (subscriber.primary_phone || '')
+    const langChanged = subscriberForm.value.preferred_language !== subscriber.preferred_language
 
-    const changedSubscriptions: number[] = []
-    for (const [subId, form] of subscriptionForms.value.entries()) {
-      const original = subscriber.subscriptions.find(s => s.id === subId)
-      if (original) {
-        if (
-          form.frequency !== original.frequency ||
-          form.time_preference !== original.time_preference ||
-          form.status !== original.status
-        ) {
-          changedSubscriptions.push(subId)
+    if (nameChanged || emailChanged || phoneChanged || langChanged) {
+      await $fetch(`/api/admin/subscribers/${subscriber.id}`, {
+        method: 'PUT',
+        body: {
+          name: subscriberForm.value.name,
+          email: subscriberForm.value.email,
+          phone: subscriberForm.value.phone,
+          preferred_language: subscriberForm.value.preferred_language
         }
-      }
+      })
     }
 
-    if (changedSubscriptions.length > 0) {
-      const firstSubId = changedSubscriptions[0]!
-      const form = subscriptionForms.value.get(firstSubId)
-      if (!form) return
-
-      await $fetch(`/api/admin/subscribers/${firstSubId}`, {
-        method: 'PUT',
-        body: {
-          name: subscriberForm.value.name,
-          ...form
-        }
-      })
-
-      for (const subId of changedSubscriptions.slice(1)) {
-        const subForm = subscriptionForms.value.get(subId)
-        if (!subForm) continue
-        await $fetch(`/api/admin/subscribers/${subId}`, {
+    // Save subscription changes via subscription endpoints
+    for (const [subId, form] of subscriptionForms.value.entries()) {
+      const original = subscriber.subscriptions.find(s => s.id === subId)
+      if (!original) continue
+      if (
+        form.frequency !== original.frequency ||
+        form.time_preference !== original.time_preference ||
+        form.status !== original.status
+      ) {
+        await $fetch(`/api/admin/subscriptions/${subId}`, {
           method: 'PUT',
-          body: subForm
+          body: form
         })
       }
-    } else if (nameChanged && subscriber.subscriptions.length > 0) {
-      const firstSub = subscriber.subscriptions[0]
-      if (!firstSub) return
-      const form = subscriptionForms.value.get(firstSub.id) || {
-        frequency: firstSub.frequency,
-        time_preference: firstSub.time_preference,
-        status: firstSub.status
-      }
-
-      await $fetch(`/api/admin/subscribers/${firstSub.id}`, {
-        method: 'PUT',
-        body: {
-          name: subscriberForm.value.name,
-          ...form
-        }
-      })
     }
 
     await loadData()
@@ -785,14 +938,17 @@ async function confirmDelete() {
     deleting.value = true
 
     for (const subscription of subscriberToDelete.value.subscriptions) {
-      await $fetch(`/api/admin/subscribers/${subscription.id}`, {
+      await $fetch(`/api/admin/subscriptions/${subscription.id}`, {
         method: 'DELETE'
       })
     }
 
+    await $fetch(`/api/admin/subscribers/${subscriberToDelete.value.id}`, {
+      method: 'DELETE'
+    })
+
     toast.add({
-      title: 'Success',
-      description: `Subscriber "${subscriberToDelete.value.name}" has been deleted.`,
+      title: 'Contact deleted',
       color: 'success'
     })
 
@@ -812,7 +968,7 @@ async function confirmDelete() {
   } catch (err: any) {
     toast.add({
       title: 'Error',
-      description: err.data?.statusMessage || 'Failed to delete subscriber',
+      description: err.data?.statusMessage || 'Failed to delete contact',
       color: 'error'
     })
   } finally {
@@ -1265,6 +1421,49 @@ onMounted(async () => {
   display: flex;
   flex-wrap: wrap;
   gap: 0.375rem;
+  margin-top: 0.5rem;
+}
+
+.groups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.group-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: 6px;
+}
+
+.empty-section {
+  padding: 1rem;
+  text-align: center;
+  color: var(--ui-text-muted);
+  font-size: 0.875rem;
+}
+
+.group-link {
+  font-weight: 500;
+  color: var(--ui-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
   margin-top: 0.5rem;
 }
 </style>

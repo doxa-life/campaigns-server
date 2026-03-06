@@ -47,26 +47,29 @@ class ConnectionService {
     return await stmt.all(type, id, targetType, type, id, targetType) as Connection[]
   }
 
-  async getContactsForGroup(groupId: number): Promise<{ contact_id: number; name: string; email_address: string | null; phone: string | null; connection_type: string | null }[]> {
+  async getSubscribersForGroup(groupId: number): Promise<{ subscriber_id: number; name: string; email: string | null; phone: string | null; role: string | null; connection_type: string | null }[]> {
     const stmt = this.db.prepare(`
-      SELECT c.id as contact_id, c.name, c.email_address, c.phone, conn.connection_type
+      SELECT s.id as subscriber_id, s.name, s.role,
+        (SELECT cm.value FROM contact_methods cm WHERE cm.subscriber_id = s.id AND cm.type = 'email' ORDER BY cm.verified DESC, cm.created_at ASC LIMIT 1) as email,
+        (SELECT cm.value FROM contact_methods cm WHERE cm.subscriber_id = s.id AND cm.type = 'phone' ORDER BY cm.verified DESC, cm.created_at ASC LIMIT 1) as phone,
+        conn.connection_type
       FROM connections conn
-      JOIN contacts c ON c.id = conn.from_id
-      WHERE conn.from_type = 'contact' AND conn.to_type = 'group' AND conn.to_id = ?
-      ORDER BY c.name
+      JOIN subscribers s ON s.id = conn.from_id
+      WHERE conn.from_type = 'subscriber' AND conn.to_type = 'group' AND conn.to_id = ?
+      ORDER BY s.name
     `)
     return await stmt.all(groupId) as any[]
   }
 
-  async getGroupsForContact(contactId: number): Promise<{ group_id: number; name: string; connection_type: string | null }[]> {
+  async getGroupsForSubscriber(subscriberId: number): Promise<{ group_id: number; name: string; connection_type: string | null }[]> {
     const stmt = this.db.prepare(`
       SELECT g.id as group_id, g.name, conn.connection_type
       FROM connections conn
       JOIN groups g ON g.id = conn.to_id
-      WHERE conn.from_type = 'contact' AND conn.to_type = 'group' AND conn.from_id = ?
+      WHERE conn.from_type = 'subscriber' AND conn.to_type = 'group' AND conn.from_id = ?
       ORDER BY g.name
     `)
-    return await stmt.all(contactId) as any[]
+    return await stmt.all(subscriberId) as any[]
   }
 
   async delete(id: number): Promise<boolean> {

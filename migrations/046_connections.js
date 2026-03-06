@@ -18,7 +18,7 @@ export default class ConnectionsMigration extends BaseMigration {
         to_id INTEGER NOT NULL,
         connection_type TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(from_type, from_id, to_type, to_id)
+        UNIQUE(from_type, from_id, to_type, to_id, connection_type)
       )
     `)
 
