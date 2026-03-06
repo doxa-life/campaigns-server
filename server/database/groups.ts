@@ -128,22 +128,20 @@ class GroupService {
   }
 
   async delete(id: number): Promise<boolean> {
-    // Delete adoption reports for this group's adoptions
-    await this.db.prepare(`
-      DELETE FROM adoption_reports WHERE adoption_id IN (
-        SELECT id FROM people_group_adoptions WHERE group_id = ?
-      )
-    `).run(id)
-    // Delete adoptions
-    await this.db.prepare('DELETE FROM people_group_adoptions WHERE group_id = ?').run(id)
-    // Delete connections
-    await this.db.prepare(`
-      DELETE FROM connections
-      WHERE (from_type = 'group' AND from_id = ?) OR (to_type = 'group' AND to_id = ?)
-    `).run(id, id)
-    // Delete the group
-    const result = await this.db.prepare('DELETE FROM groups WHERE id = ?').run(id)
-    return result.changes > 0
+    return await this.db.transaction(async (tx) => {
+      await tx.prepare(`
+        DELETE FROM adoption_reports WHERE adoption_id IN (
+          SELECT id FROM people_group_adoptions WHERE group_id = ?
+        )
+      `).run(id)
+      await tx.prepare('DELETE FROM people_group_adoptions WHERE group_id = ?').run(id)
+      await tx.prepare(`
+        DELETE FROM connections
+        WHERE (from_type = 'group' AND from_id = ?) OR (to_type = 'group' AND to_id = ?)
+      `).run(id, id)
+      const result = await tx.prepare('DELETE FROM groups WHERE id = ?').run(id)
+      return result.changes > 0
+    })
   }
 }
 

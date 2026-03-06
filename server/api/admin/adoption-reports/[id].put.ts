@@ -1,6 +1,8 @@
 import { adoptionReportService } from '../../../database/adoption-reports'
 import { getIntParam } from '#server/utils/api-helpers'
 
+const VALID_STATUSES = ['submitted', 'approved', 'rejected'] as const
+
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
@@ -9,8 +11,8 @@ export default defineEventHandler(async (event) => {
     status: 'submitted' | 'approved' | 'rejected'
   }>(event)
 
-  if (!body.status) {
-    throw createError({ statusCode: 400, statusMessage: 'status is required' })
+  if (!body.status || !VALID_STATUSES.includes(body.status)) {
+    throw createError({ statusCode: 400, statusMessage: `status is required and must be one of: ${VALID_STATUSES.join(', ')}` })
   }
 
   const updated = await adoptionReportService.updateStatus(id, body.status)

@@ -40,13 +40,14 @@ class PeopleGroupAdoptionService {
 
     const stmt = this.db.prepare(`
       INSERT INTO people_group_adoptions (people_group_id, group_id, status, show_publicly, adopted_at)
-      VALUES (?, ?, ?, ?, ${status === 'active' ? "CURRENT_TIMESTAMP AT TIME ZONE 'UTC'" : 'NULL'})
+      VALUES (?, ?, ?, ?, ?)
     `)
     const result = await stmt.run(
       data.people_group_id,
       data.group_id,
       status,
-      data.show_publicly ?? false
+      data.show_publicly ?? false,
+      status === 'active' ? new Date().toISOString() : null
     )
     return (await this.getById(result.lastInsertRowid as number))!
   }
@@ -130,7 +131,8 @@ class PeopleGroupAdoptionService {
       updates.push('status = ?')
       values.push(data.status)
       if (data.status === 'active' && !adoption.adopted_at) {
-        updates.push("adopted_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'")
+        updates.push('adopted_at = ?')
+        values.push(new Date().toISOString())
       }
     }
     if (data.show_publicly !== undefined) {
@@ -144,7 +146,8 @@ class PeopleGroupAdoptionService {
 
     if (updates.length === 0) return adoption
 
-    updates.push("updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'")
+    updates.push('updated_at = ?')
+    values.push(new Date().toISOString())
     values.push(id)
 
     const stmt = this.db.prepare(`

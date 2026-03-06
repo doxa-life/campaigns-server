@@ -2,6 +2,8 @@ import { peopleGroupAdoptionService } from '../../../../../database/people-group
 import { groupService } from '../../../../../database/groups'
 import { getIntParam } from '#server/utils/api-helpers'
 
+const VALID_STATUSES = ['pending', 'active', 'inactive'] as const
+
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
@@ -14,6 +16,10 @@ export default defineEventHandler(async (event) => {
 
   if (!body.people_group_id) {
     throw createError({ statusCode: 400, statusMessage: 'people_group_id is required' })
+  }
+
+  if (body.status !== undefined && !VALID_STATUSES.includes(body.status)) {
+    throw createError({ statusCode: 400, statusMessage: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` })
   }
 
   const group = await groupService.getById(groupId)

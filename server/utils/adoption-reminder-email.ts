@@ -8,19 +8,28 @@ export interface AdoptionReminderEmailData {
   }[]
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 export async function sendAdoptionReminderEmail(data: AdoptionReminderEmailData): Promise<boolean> {
   const config = useRuntimeConfig()
   const appName = config.appName || 'DOXA Prayer'
 
-  const subject = `${appName} - Monthly Adoption Update for ${data.groupName}`
+  const subject = `${appName} - Monthly Adoption Update for ${escapeHtml(data.groupName)}`
 
   const adoptionRows = data.adoptions.map(a => `
     <tr>
       <td style="padding: 12px 16px; border-bottom: 1px solid #e5e5e5; font-size: 15px;">
-        ${a.peopleGroupName}
+        ${escapeHtml(a.peopleGroupName)}
       </td>
       <td style="padding: 12px 16px; border-bottom: 1px solid #e5e5e5; text-align: right;">
-        <a href="${a.updateUrl}" style="display: inline-block; padding: 8px 20px; background: #3B463D; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500;">
+        <a href="${escapeHtml(a.updateUrl)}" style="display: inline-block; padding: 8px 20px; background: #3B463D; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500;">
           Submit Update
         </a>
       </td>
@@ -42,11 +51,11 @@ export async function sendAdoptionReminderEmail(data: AdoptionReminderEmailData)
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #3B463D; background: #ffffff; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: #3B463D; color: #ffffff; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
         <h1 style="margin: 0; font-size: 24px; font-weight: 500;">Monthly Adoption Update</h1>
-        <p style="margin: 10px 0 0; font-size: 16px; opacity: 0.8;">${data.groupName}</p>
+        <p style="margin: 10px 0 0; font-size: 16px; opacity: 0.8;">${escapeHtml(data.groupName)}</p>
       </div>
 
       <div style="background: #ffffff; border: 2px solid #3B463D; border-top: none; padding: 40px 30px; border-radius: 0 0 10px 10px;">
-        <h2 style="color: #3B463D; margin-top: 0; font-weight: 500;">Hello ${data.contactName},</h2>
+        <h2 style="color: #3B463D; margin-top: 0; font-weight: 500;">Hello ${escapeHtml(data.contactName)},</h2>
 
         <p style="font-size: 16px; margin: 20px 0; color: #3B463D;">
           It's time for your monthly adoption update! We'd love to hear how things are going with your adopted people groups. Please take a moment to share any updates.
