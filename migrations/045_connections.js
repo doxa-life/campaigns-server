@@ -5,7 +5,7 @@ class BaseMigration {
 }
 
 export default class ConnectionsMigration extends BaseMigration {
-  id = 46
+  id = 45
   name = 'Create connections table'
 
   // Polymorphic join table — no FK constraints by design.

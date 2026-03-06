@@ -5,7 +5,7 @@ class BaseMigration {
 }
 
 export default class AdoptionExtraFieldsMigration extends BaseMigration {
-  id = 49
+  id = 48
   name = 'Add role to subscribers'
 
   async up(sql) {

@@ -5,7 +5,7 @@ class BaseMigration {
 }
 
 export default class AdoptionReportsMigration extends BaseMigration {
-  id = 48
+  id = 47
   name = 'Create adoption_reports table'
 
   async up(sql) {

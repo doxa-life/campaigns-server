@@ -5,7 +5,7 @@ class BaseMigration {
 }
 
 export default class GroupsMigration extends BaseMigration {
-  id = 45
+  id = 44
   name = 'Create groups table'
 
   async up(sql) {

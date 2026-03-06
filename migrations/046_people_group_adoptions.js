@@ -5,7 +5,7 @@ class BaseMigration {
 }
 
 export default class PeopleGroupAdoptionsMigration extends BaseMigration {
-  id = 47
+  id = 46
   name = 'Create people_group_adoptions table'
 
   async up(sql) {
