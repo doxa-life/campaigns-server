@@ -107,7 +107,7 @@ export default defineEventHandler(async (event) => {
 
     for (let i = 0; i < body.updates.length; i++) {
       const item = body.updates[i]!
-      const hasValidId = typeof item.id === 'number'
+      const hasValidId = typeof item.id === 'number' && item.id > 0
       const identifier = hasValidId ? `id:${item.id}` : `slug:${item.slug}`
 
       // Resolve the id
@@ -187,7 +187,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const total = body.updates.length
-    const success = errorCount === 0 && notFound === 0
+    const success = errorCount === 0
 
     return {
       success,
