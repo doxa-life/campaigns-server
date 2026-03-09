@@ -29,7 +29,7 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
     db.prepare(`
       SELECT COALESCE(SUM(
         prayer_duration * GREATEST(0,
-          EXTRACT(EPOCH FROM (?::timestamp - GREATEST(?::timestamp, created_at))) / 86400
+          FLOOR(EXTRACT(EPOCH FROM (?::timestamp - GREATEST(?::timestamp, created_at))) / 86400)
         )
       ), 0) as total
       FROM campaign_subscriptions

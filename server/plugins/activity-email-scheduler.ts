@@ -1,3 +1,4 @@
+import { Cron } from 'croner'
 import { collectActivityStats, type ActivityStats } from '../utils/activity-email-stats'
 import { sendActivityEmail } from '../utils/activity-email'
 import { userService } from '#server/database/users'
@@ -111,11 +112,8 @@ export default defineNitroPlugin((nitroApp) => {
     }
   }
 
-  const interval = setInterval(async () => {
+  const task = new Cron('0 7 * * *', { timezone: 'UTC' }, async () => {
     const now = new Date()
-    const hour = now.getUTCHours()
-
-    if (hour !== 7) return
 
     await sendForFrequency('daily', now)
 
@@ -133,10 +131,10 @@ export default defineNitroPlugin((nitroApp) => {
     if (now.getUTCMonth() === 0 && now.getUTCDate() === 1) {
       await sendForFrequency('yearly', now)
     }
-  }, 60 * 60 * 1000)
+  })
 
   nitroApp.hooks.hook('close', () => {
     console.log('🛑 Stopping activity email scheduler...')
-    clearInterval(interval)
+    task.stop()
   })
 })

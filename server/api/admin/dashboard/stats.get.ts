@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
     db.prepare(`
       SELECT COALESCE(SUM(
         prayer_duration * GREATEST(0,
-          EXTRACT(EPOCH FROM (NOW() - created_at)) / 86400
+          FLOOR(EXTRACT(EPOCH FROM (NOW() - created_at)) / 86400)
         )
       ), 0) as total
       FROM campaign_subscriptions
