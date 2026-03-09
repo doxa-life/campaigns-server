@@ -13,12 +13,139 @@ servers:
     description: Local development
 
 tags:
+  - name: Admin
+    description: Admin-only operations (require API key or JWT authentication)
   - name: Signups
     description: Prayer reminder signup operations
   - name: People Groups
     description: Unreached people group data for WordPress themes and map widgets
 
 paths:
+  /api/admin/people-groups/bulk-update:
+    post:
+      tags:
+        - Admin
+      summary: Bulk update people groups
+      description: |
+        Updates multiple people groups in a single request. Each item identifies a group by `id` or `slug`
+        and provides fields to update. Partial success is supported — failures are reported per-item.
+        Maximum 500 items per request. The `errors` array is capped at 50 entries.
+      operationId: bulkUpdatePeopleGroups
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - updates
+              properties:
+                updates:
+                  type: array
+                  maxItems: 500
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: People group ID (provide id or slug, not both required)
+                      slug:
+                        type: string
+                        description: People group slug (provide id or slug, not both required)
+                      name:
+                        type: string
+                      image_url:
+                        type: string
+                        nullable: true
+                      joshua_project_id:
+                        type: string
+                        nullable: true
+                      metadata:
+                        type: object
+                        additionalProperties: true
+                      country_code:
+                        type: string
+                        nullable: true
+                      region:
+                        type: string
+                        nullable: true
+                      latitude:
+                        type: number
+                        nullable: true
+                      longitude:
+                        type: number
+                        nullable: true
+                      population:
+                        type: integer
+                        nullable: true
+                      evangelical_pct:
+                        type: number
+                        nullable: true
+                      engagement_status:
+                        type: string
+                        nullable: true
+                      primary_religion:
+                        type: string
+                        nullable: true
+                      primary_language:
+                        type: string
+                        nullable: true
+                      descriptions:
+                        type: object
+                        nullable: true
+                        additionalProperties:
+                          type: string
+            example:
+              updates:
+                - slug: yao
+                  joshua_project_id: "15988"
+                - id: 42
+                  population: 5000
+                  region: africa
+      responses:
+        '200':
+          description: Bulk update completed (may include partial failures)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                    example: "Bulk update: 3 updated, 0 not found, 0 skipped, 0 errors"
+                  stats:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      updated:
+                        type: integer
+                      notFound:
+                        type: integer
+                      skipped:
+                        type: integer
+                      errors:
+                        type: integer
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        index:
+                          type: integer
+                        identifier:
+                          type: string
+                        message:
+                          type: string
+        '400':
+          description: Invalid request (empty array, exceeds 500 items, missing id/slug)
+        '401':
+          description: Unauthorized — missing or invalid API key / JWT
+
   /api/people-groups/{slug}/signup:
     post:
       tags:
@@ -451,6 +578,13 @@ paths:
                     type: integer
 
 components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: API key for admin endpoints
+
   schemas:
     ValueLabel:
       type: object
