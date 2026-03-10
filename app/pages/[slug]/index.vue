@@ -147,25 +147,6 @@
             </div>
           </div>
 
-          <!-- Adoption Info -->
-          <div v-if="pg.adopted_by_count > 0" class="mt-6 text-center">
-            <div class="inline-flex items-center gap-2 bg-beige-100 dark:bg-elevated rounded-full px-5 py-2.5">
-              <UIcon name="i-lucide-heart" class="w-5 h-5 text-forest-500" />
-              <span class="text-sm font-medium text-default">
-                Adopted by {{ pg.adopted_by_count }} {{ pg.adopted_by_count === 1 ? 'church' : 'churches' }}
-              </span>
-            </div>
-            <div v-if="pg.adopted_by_names?.length > 0" class="mt-2 flex flex-wrap justify-center gap-2">
-              <UBadge
-                v-for="name in pg.adopted_by_names"
-                :key="name"
-                :label="name"
-                variant="subtle"
-                color="success"
-                size="sm"
-              />
-            </div>
-          </div>
         </div>
       </section>
 

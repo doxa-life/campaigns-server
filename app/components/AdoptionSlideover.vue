@@ -169,13 +169,15 @@ async function updateStatus(status: string) {
 
 async function updateField(field: string, value: any) {
   if (!props.adoption) return
+  const previous = props.adoption[field as keyof Adoption]
+  ;(props.adoption as any)[field] = value
   try {
     await $fetch(`/api/admin/groups/${props.adoption.group_id}/adoptions/${props.adoption.id}`, {
       method: 'PUT',
       body: { [field]: value }
     })
-    emit('change')
   } catch (err: any) {
+    ;(props.adoption as any)[field] = previous
     toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to update', color: 'error' })
   }
 }

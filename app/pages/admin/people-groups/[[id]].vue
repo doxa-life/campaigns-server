@@ -35,6 +35,13 @@
         <div class="group-name">{{ group.name }}</div>
         <div class="group-meta">
           <UBadge
+            v-if="group.adoption_count > 0"
+            label="Adopted"
+            color="success"
+            variant="subtle"
+            size="xs"
+          />
+          <UBadge
             v-if="group.metadata?.imb_engagement_status"
             :label="group.metadata.imb_engagement_status"
             :color="group.metadata.imb_engagement_status === 'engaged' ? 'success' : 'warning'"
@@ -251,6 +258,7 @@ interface PeopleGroup {
   metadata: Record<string, any>
   people_committed: number
   committed_duration: number
+  adoption_count: number
   people_praying: number
   daily_prayer_duration: number
   created_at: string

@@ -84,6 +84,10 @@
               <UInput v-model="subscriberForm.phone" type="tel" class="w-full" />
             </UFormField>
 
+            <UFormField label="Role">
+              <UInput v-model="subscriberForm.role" type="text" class="w-full" placeholder="e.g. Pastor, Missions Pastor" />
+            </UFormField>
+
             <UFormField label="Preferred Language">
               <USelectMenu
                 v-model="subscriberForm.preferred_language"
@@ -509,7 +513,7 @@ const searchQuery = ref('')
 const filterPeopleGroupId = ref<number | null>(null)
 
 // Form state
-const subscriberForm = ref({ name: '', email: '', phone: '', preferred_language: 'en' })
+const subscriberForm = ref({ name: '', email: '', phone: '', role: '', preferred_language: 'en' })
 const subscriptionForms = ref<Map<number, SubscriptionForm>>(new Map())
 
 // Expansion state for subscription cards
@@ -699,7 +703,7 @@ async function loadData() {
 
 async function selectSubscriber(subscriber: GeneralSubscriber, updateUrl = true) {
   selectedSubscriber.value = subscriber
-  subscriberForm.value = { name: subscriber.name, email: subscriber.primary_email || '', phone: subscriber.primary_phone || '', preferred_language: subscriber.preferred_language }
+  subscriberForm.value = { name: subscriber.name, email: subscriber.primary_email || '', phone: subscriber.primary_phone || '', role: subscriber.role || '', preferred_language: subscriber.preferred_language }
   if (updateUrl && import.meta.client) {
     const params = new URLSearchParams()
     if (filterPeopleGroupId.value) params.set('peopleGroup', String(filterPeopleGroupId.value))
@@ -858,15 +862,17 @@ async function saveChanges() {
     const nameChanged = subscriberForm.value.name !== subscriber.name
     const emailChanged = subscriberForm.value.email !== (subscriber.primary_email || '')
     const phoneChanged = subscriberForm.value.phone !== (subscriber.primary_phone || '')
+    const roleChanged = subscriberForm.value.role !== (subscriber.role || '')
     const langChanged = subscriberForm.value.preferred_language !== subscriber.preferred_language
 
-    if (nameChanged || emailChanged || phoneChanged || langChanged) {
+    if (nameChanged || emailChanged || phoneChanged || roleChanged || langChanged) {
       await $fetch(`/api/admin/subscribers/${subscriber.id}`, {
         method: 'PUT',
         body: {
           name: subscriberForm.value.name,
           email: subscriberForm.value.email,
           phone: subscriberForm.value.phone,
+          role: subscriberForm.value.role || null,
           preferred_language: subscriberForm.value.preferred_language
         }
       })

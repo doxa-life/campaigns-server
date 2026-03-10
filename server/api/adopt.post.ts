@@ -1,7 +1,122 @@
+import { subscriberService } from '../database/subscribers'
+import { groupService } from '../database/groups'
+import { connectionService } from '../database/connections'
+import { contactMethodService } from '../database/contact-methods'
+import { peopleGroupAdoptionService } from '../database/people-group-adoptions'
+import { peopleGroupService } from '../database/people-groups'
+import { requireFormApiKey } from '../utils/form-api-key'
+import { handleApiError } from '#server/utils/api-helpers'
+
 export default defineEventHandler(async (event) => {
-  // TODO: Implement adoption form submission
-  // - May require API key authentication from marketing website
-  // - Receives form data from external adoption form
-  // - Creates subscriber, group, connection, and adoption records
-  throw createError({ statusCode: 501, statusMessage: 'Not implemented' })
+  requireFormApiKey(event)
+
+  const body = await readBody<{
+    first_name: string
+    last_name: string
+    email: string
+    phone?: string
+    role?: string
+    church_name?: string
+    country?: string
+    people_group: string
+    permission_to_contact?: boolean
+    confirm_public_display?: boolean
+  }>(event)
+
+  // Validate required fields
+  const firstName = body.first_name?.trim()
+  const lastName = body.last_name?.trim()
+  const email = body.email?.trim().toLowerCase()
+  const churchName = body.church_name?.trim()
+  const peopleGroupSlug = body.people_group?.trim()
+
+  if (!firstName || !lastName || !email || !peopleGroupSlug) {
+    throw createError({ statusCode: 400, statusMessage: 'Missing required fields: first_name, last_name, email, people_group' })
+  }
+
+  // Basic email validation
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw createError({ statusCode: 400, statusMessage: 'Invalid email address' })
+  }
+
+  // Look up the people group by slug
+  const peopleGroup = await peopleGroupService.getPeopleGroupBySlug(peopleGroupSlug)
+  if (!peopleGroup) {
+    throw createError({ statusCode: 404, statusMessage: 'People group not found' })
+  }
+
+  try {
+    const fullName = `${firstName} ${lastName}`
+    const phone = body.phone?.trim() || undefined
+    const role = body.role?.trim() || undefined
+
+    // Find or create the subscriber (champion)
+    const { subscriber } = await subscriberService.findOrCreateSubscriber({
+      email,
+      phone,
+      name: fullName,
+      role
+    })
+
+    // Update role if subscriber already existed but role is new
+    if (role && subscriber.role !== role) {
+      await subscriberService.updateSubscriber(subscriber.id, { role })
+    }
+
+    // Find existing group by name or create new one
+    const groupName = churchName || fullName
+    const existingGroups = await groupService.getAll({ search: groupName, limit: 1 })
+    const existingMatch = existingGroups.find(g => g.name.toLowerCase() === groupName.toLowerCase())
+
+    const group = existingMatch ?? await groupService.create({
+      name: groupName,
+      primary_subscriber_id: subscriber.id,
+      country: body.country?.trim() || null
+    })
+
+    // Connect subscriber to group (if not already connected)
+    const existingConnections = await connectionService.getConnections('subscriber', subscriber.id, 'group')
+    const alreadyConnected = existingConnections.some(c =>
+      (c.from_type === 'subscriber' && c.from_id === subscriber.id && c.to_type === 'group' && c.to_id === group.id) ||
+      (c.to_type === 'subscriber' && c.to_id === subscriber.id && c.from_type === 'group' && c.from_id === group.id)
+    )
+    if (!alreadyConnected) {
+      await connectionService.create({
+        from_type: 'subscriber',
+        from_id: subscriber.id,
+        to_type: 'group',
+        to_id: group.id,
+        connection_type: 'champion'
+      })
+    }
+
+    // Grant marketing consents
+    const emailContact = await contactMethodService.getByValue('email', email)
+    if (emailContact) {
+      await contactMethodService.updateDoxaConsent(emailContact.id, true)
+      if (body.permission_to_contact) {
+        await contactMethodService.addPeopleGroupConsent(emailContact.id, peopleGroup.id)
+      }
+    }
+
+    // Create the adoption
+    const adoption = await peopleGroupAdoptionService.create({
+      people_group_id: peopleGroup.id,
+      group_id: group.id,
+      status: 'active',
+      show_publicly: body.confirm_public_display ?? false
+    })
+
+    return {
+      success: true,
+      adoption_id: adoption.id,
+      update_token: adoption.update_token
+    }
+  } catch (error: any) {
+    // Duplicate adoption
+    if (error.code === '23505') {
+      throw createError({ statusCode: 409, statusMessage: 'This people group is already adopted by this group' })
+    }
+    handleApiError(error, 'Failed to process adoption form', 500)
+  }
 })
