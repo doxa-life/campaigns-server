@@ -14,6 +14,9 @@ import { sendAdoptionReminderEmail } from '../utils/adoption-reminder-email'
 export default defineNitroPlugin((nitroApp) => {
   if (process.env.VITEST) return
 
+  // Temporarily disabled
+  return
+
   console.log('📅 Scheduling monthly adoption reminder emails (1st of each month)')
 
   let lastSentMonth: string | null = null
