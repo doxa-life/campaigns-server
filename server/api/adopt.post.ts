@@ -6,6 +6,8 @@ import { peopleGroupAdoptionService } from '../database/people-group-adoptions'
 import { peopleGroupService } from '../database/people-groups'
 import { requireFormApiKey } from '../utils/form-api-key'
 import { handleApiError } from '#server/utils/api-helpers'
+import { sendAdoptionWelcomeEmail } from '../utils/adoption-welcome-email'
+import { getDatabase } from '#server/database/db'
 
 export default defineEventHandler(async (event) => {
   requireFormApiKey(event)
@@ -106,6 +108,23 @@ export default defineEventHandler(async (event) => {
       status: 'active',
       show_publicly: body.confirm_public_display ?? false
     })
+
+    // Send adoption welcome email (fire-and-forget)
+    const db = getDatabase()
+    const [totalRow, adoptedRow] = await Promise.all([
+      db.prepare('SELECT COUNT(*) as count FROM people_groups').get(),
+      db.prepare("SELECT COUNT(DISTINCT people_group_id) as count FROM people_group_adoptions WHERE status = 'active'").get(),
+    ])
+    const remainingCount = Number(totalRow.count) - Number(adoptedRow.count)
+
+    sendAdoptionWelcomeEmail({
+      to: email,
+      firstName,
+      peopleGroupName: peopleGroup.name,
+      peopleGroupSlug: peopleGroup.slug!,
+      joshuaProjectId: peopleGroup.joshua_project_id,
+      remainingGroupsCount: remainingCount,
+    }).catch(err => console.error('Failed to send adoption welcome email:', err))
 
     return {
       success: true,
