@@ -444,6 +444,34 @@
       "thursday": "Joi",
       "friday": "Vineri",
       "saturday": "Sâmbătă"
+    },
+    "adoptionWelcome": {
+      "subject": "Raport DOXA: Angajamentul tău pentru {peopleGroupName}",
+      "headerTitle": "Raport de adoptare DOXA",
+      "greeting": "Dragă {firstName},",
+      "intro": "Astăzi, ca parte a parteneriatului DOXA, ai schimbat statutul {peopleGroupName} din în așteptare în adoptat — primul pas vital spre angajare. Ești acum un principal apărător, mijlocitor și mobilizator pentru un grup etnic care, până în acest moment, nu avea nicio mărturie constantă și niciun efort dedicat de rugăciune.",
+      "resourcesIntro": "Următoarele resurse te vor ajuta să gestionezi această oportunitate.",
+      "section1Title": "1. Pentru cine mijlocești",
+      "profileButton": "Profilul complet al grupului etnic",
+      "learnMore": "Află mai multe:",
+      "section2Title": "2. Setul tău de instrumente de mobilizare",
+      "section2Intro": "Nu trebuie să începi de la zero. Accesează resursele de pe {resourcesUrl}:",
+      "section2Item1": "URL și cod QR pentru grupul tău etnic, sfaturi, răspunsuri la întrebări frecvente și multe altele",
+      "section2Item2": "Imagini care te ajută să prezinți acest lucru bisericii tale sau grupului mic",
+      "section2Item3": "Un link dedicat pentru a facilita contribuția financiară la campania DOXA",
+      "section3Title": "3. Primele tale 30 de zile",
+      "section3Intro": "Pentru a te ajuta să treci de la adoptare la acțiune, îți cerem să te concentrezi pe acești trei pași în această lună:",
+      "step1Label": "Interiorizează:",
+      "step1Text": "Roagă-te 10 minute zilnic pentru {peopleGroupName}. Cere-I lui Dumnezeu să-ți dea o inimă pentru acest loc și acești oameni. Cere-I înțelepciune pentru pașii următori și favoare la toți cei care vor auzi datorită eforturilor tale de a împărtăși viziunea. Cere-I să pregătească inimile. Așteaptă-te ca El să răspundă — El lucrează deja!",
+      "step2Label": "Planifică și socializează:",
+      "step2Text": "Creează un plan cu conducerea bisericii tale despre cum să prezinți acest lucru bisericii și comunității tale. Împărtășește materialele tale digitale și alte resurse din setul tău de instrumente de mobilizare cu familia bisericii tale și pe platformele tale sociale. Fă cunoscut că acest grup etnic este prioritatea ta.",
+      "step3Label": "Mobilizează nucleul:",
+      "step3Text": "Identifică 5 persoane care se vor înscrie să se roage cu tine. Ia în considerare lideri de rugăciune, membri ai grupurilor mici și prieteni spiritual credincioși care sunt probabil aliniați în priorități și viziune. Un mic nucleu în acord susținut și plin de așteptare poate fi începutul unei mișcări.",
+      "section4Title": "4. Fii încurajat de actualizările DOXA",
+      "section4Text": "În fiecare lună, vei primi o actualizare strategică lunară — informându-te despre orice progrese regionale, resurse noi sau repere de mobilizare legate de grupul tău etnic. Dacă ai întrebări, ai nevoie de încurajare sau de ajutor pentru a gândi pașii următori, vrem să te ajutăm. Te rugăm să ne contactezi la {contactEmail}.",
+      "closingCount": "Erau {beforeCount} grupuri etnice care așteptau să fie adoptate. Datorită \"da\"-ului tău de astăzi, acel număr este acum {afterCount}. Continuă.",
+      "signoff": "Pentru slava lui Dumnezeu,",
+      "teamName": "Echipa DOXA"
     }
   }
 }

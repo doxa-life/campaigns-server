@@ -403,7 +403,7 @@
     "welcome": {
       "subject": "Willkommen bei Doxa! - {campaign}",
       "header": "Willkommen bei Doxa!",
-      "doxaMeaning": "Im Griechischen bedeutet Doxa „Herrlichkeit", und genau das bieten wir an, wenn wir uns im Gebet für die Millionen von Menschen vereinen, die mit wenig oder gar keinem Zeugnis des Evangeliums leben. Gemeinsam bringen wir Gott durch treues, erwartungsvolles Gebet die Ehre.",
+      "doxaMeaning": "Im Griechischen bedeutet Doxa ‚Herrlichkeit’, und genau das bieten wir an, wenn wir uns im Gebet für die Millionen von Menschen vereinen, die mit wenig oder gar keinem Zeugnis des Evangeliums leben. Gemeinsam bringen wir Gott durch treues, erwartungsvolles Gebet die Ehre.",
       "reminderExplanation": "Im Rahmen dieser Gebetskampagne werden Sie bald Erinnerungs-E-Mails mit Links zu täglichen Gebetsinhalten erhalten. Jeder Link enthält angeleitete Gebetsimpulse und weitere Materialien, die Ihnen helfen, strategisch und treu für die von Ihnen gewählte nicht-engagierte Volksgruppe zu beten.",
       "sharedGoal": "Durch diese Bewegung ist unser gemeinsames Ziel, eine tägliche 24-Stunden-Gebetsabdeckung für jede der über 2.000 nicht-engagierten Volksgruppen zu erreichen, Männer und Frauen auszusenden, die diese Volksgruppen bis zum Jahr 2033 mit dem Evangelium erreichen, und nachhaltige Spenden zur Unterstützung dieses Vorhabens.",
       "closing": "Wir sind zutiefst dankbar, uns mit der gesamten Kirche zusammenzuschließen, um das ganze Evangelium in die ganze Welt zu tragen.",
@@ -448,6 +448,34 @@
       "thursday": "Donnerstag",
       "friday": "Freitag",
       "saturday": "Samstag"
+    },
+    "adoptionWelcome": {
+      "subject": "DOXA-Briefing: Ihr Engagement für die {peopleGroupName}",
+      "headerTitle": "DOXA-Adoptionsbriefing",
+      "greeting": "Liebe/r {firstName},",
+      "intro": "Heute haben Sie im Rahmen der DOXA-Partnerschaft den Status der {peopleGroupName} von wartend auf adoptiert geändert — der entscheidende erste Schritt zum Engagement. Sie sind jetzt ein Hauptfürsprecher, Fürbitter und Mobilisierer für eine Volksgruppe, die bis zu diesem Moment kein beständiges Zeugnis und keinen gezielten Gebetseinsatz hatte.",
+      "resourcesIntro": "Die folgenden Ressourcen werden Ihnen helfen, diese Möglichkeit zu nutzen.",
+      "section1Title": "1. Für wen Sie eintreten",
+      "profileButton": "Vollständiges Profil der Volksgruppe",
+      "learnMore": "Mehr erfahren:",
+      "section2Title": "2. Ihr Mobilisierungs-Toolkit",
+      "section2Intro": "Sie müssen nicht bei null anfangen. Greifen Sie auf die Ressourcen unter {resourcesUrl} zu:",
+      "section2Item1": "URL und QR-Code für Ihre Volksgruppe, Tipps, Antworten auf häufig gestellte Fragen und mehr",
+      "section2Item2": "Bilder, die Ihnen helfen, dies Ihrer Gemeinde oder Kleingruppe vorzustellen",
+      "section2Item3": "Ein spezieller Link, der es einfach macht, finanziell zur DOXA-Kampagne beizutragen",
+      "section3Title": "3. Ihre ersten 30 Tage",
+      "section3Intro": "Um Ihnen den Übergang von der Adoption zur Aktion zu erleichtern, bitten wir Sie, sich in diesem Monat auf diese drei Schritte zu konzentrieren:",
+      "step1Label": "Verinnerlichen:",
+      "step1Text": "Beten Sie täglich 10 Minuten für die {peopleGroupName}. Bitten Sie Gott, Ihnen ein Herz für diesen Ort und diese Menschen zu geben. Bitten Sie Ihn um Weisheit für die nächsten Schritte und um Gunst bei allen, die durch Ihre Bemühungen, die Vision zu teilen, hören werden. Bitten Sie Ihn, die Herzen vorzubereiten. Erwarten Sie Seine Antwort — Er ist bereits am Werk!",
+      "step2Label": "Planen und Verbreiten:",
+      "step2Text": "Erstellen Sie gemeinsam mit Ihrer Gemeindeleitung einen Plan, wie Sie dies in Ihrer Gemeinde und Gemeinschaft vorstellen können. Teilen Sie Ihre digitalen Medien und andere Ressourcen aus Ihrem Mobilisierungs-Toolkit mit Ihrer Gemeindefamilie und auf Ihren sozialen Plattformen. Lassen Sie die Menschen wissen, dass diese Volksgruppe Ihr Schwerpunkt ist.",
+      "step3Label": "Kern mobilisieren:",
+      "step3Text": "Identifizieren Sie 5 Personen, die sich anmelden, um mit Ihnen zu beten. Denken Sie an Gebetsleiter, Kleingruppenmitglieder und geistlich treue Freunde, die wahrscheinlich in Prioritäten und Vision übereinstimmen. Ein kleiner Kern in beständiger, erwartungsvoller Übereinstimmung kann der Beginn einer Bewegung sein.",
+      "section4Title": "4. Lassen Sie sich von DOXA-Updates ermutigen",
+      "section4Text": "Jeden Monat erhalten Sie ein strategisches monatliches Update — mit Informationen über regionale Durchbrüche, neue Ressourcen oder Mobilisierungsmeilensteine in Bezug auf Ihre Volksgruppe. Wenn Sie Fragen haben, Ermutigung oder Hilfe beim Nachdenken über die nächsten Schritte brauchen, möchten wir Ihnen helfen. Bitte wenden Sie sich an {contactEmail}.",
+      "closingCount": "Es warteten {beforeCount} Volksgruppen darauf, adoptiert zu werden. Dank Ihres \"Ja\" heute ist diese Zahl jetzt {afterCount}. Machen Sie weiter.",
+      "signoff": "Zur Ehre Gottes,",
+      "teamName": "Das DOXA-Team"
     }
   }
 }

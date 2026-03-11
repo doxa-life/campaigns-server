@@ -448,6 +448,34 @@
       "thursday": "Giovedi",
       "friday": "Venerdi",
       "saturday": "Sabato"
+    },
+    "adoptionWelcome": {
+      "subject": "Rapporto DOXA: Il tuo impegno per i {peopleGroupName}",
+      "headerTitle": "Rapporto di adozione DOXA",
+      "greeting": "Caro/a {firstName},",
+      "intro": "Oggi, nell'ambito della partnership DOXA, hai cambiato lo stato dei {peopleGroupName} da in attesa ad adottato, il primo passo fondamentale verso il coinvolgimento. Ora sei un difensore principale, intercessore e mobilitatore per un gruppo etnico che, fino a questo momento, non aveva alcuna testimonianza costante né uno sforzo di preghiera dedicato.",
+      "resourcesIntro": "Le seguenti risorse ti aiuteranno a gestire questa opportunità.",
+      "section1Title": "1. Per chi stai intercedendo",
+      "profileButton": "Profilo completo del gruppo etnico",
+      "learnMore": "Per saperne di più:",
+      "section2Title": "2. Il tuo kit di mobilitazione",
+      "section2Intro": "Non devi partire da zero. Accedi alle risorse su {resourcesUrl}:",
+      "section2Item1": "URL e codice QR del tuo gruppo etnico, consigli, risposte alle domande frequenti e altro",
+      "section2Item2": "Immagini per aiutarti a presentare questo alla tua chiesa o piccolo gruppo",
+      "section2Item3": "Un link dedicato per facilitare il contributo finanziario alla campagna DOXA",
+      "section3Title": "3. I tuoi primi 30 giorni",
+      "section3Intro": "Per aiutarti a passare dall'adozione all'azione, ti chiediamo di concentrarti su questi tre passi questo mese:",
+      "step1Label": "Interiorizzare:",
+      "step1Text": "Prega 10 minuti al giorno per i {peopleGroupName}. Chiedi a Dio di darti un cuore per questo luogo e queste persone. Chiedigli di darti saggezza per i prossimi passi e favore presso tutti coloro che ascolteranno grazie ai tuoi sforzi per condividere la visione. Chiedigli di preparare i cuori. Aspettati che Lui risponda — è già all'opera!",
+      "step2Label": "Strategia e socializzazione:",
+      "step2Text": "Elabora un piano con la leadership della tua chiesa su come presentare questo alla tua chiesa e comunità. Condividi i tuoi media digitali e altre risorse del tuo kit di mobilitazione con la tua famiglia ecclesiale e sulle tue piattaforme social. Fai sapere alle persone che questo gruppo etnico è la tua priorità.",
+      "step3Label": "Mobilitare il nucleo:",
+      "step3Text": "Identifica 5 persone che si iscriveranno per pregare con te. Considera leader di preghiera, membri di piccoli gruppi e amici spiritualmente fedeli che probabilmente condividono priorità e visione. Un piccolo nucleo in accordo costante e pieno di aspettativa può essere l'inizio di un movimento.",
+      "section4Title": "4. Lasciati incoraggiare dagli aggiornamenti DOXA",
+      "section4Text": "Ogni mese riceverai un aggiornamento strategico mensile — con informazioni su eventuali progressi regionali, nuove risorse o traguardi di mobilitazione relativi al tuo gruppo etnico. Se hai domande, bisogno di incoraggiamento o aiuto per pensare ai prossimi passi, vogliamo aiutarti. Contattaci a {contactEmail}.",
+      "closingCount": "C'erano {beforeCount} gruppi etnici in attesa di adozione. Grazie al tuo \"sì\" di oggi, quel numero ora è {afterCount}. Continua così.",
+      "signoff": "Per la gloria di Dio,",
+      "teamName": "Il team DOXA"
     }
   }
 }

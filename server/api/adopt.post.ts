@@ -23,6 +23,7 @@ export default defineEventHandler(async (event) => {
     people_group: string
     permission_to_contact?: boolean
     confirm_public_display?: boolean
+    language?: string
   }>(event)
 
   // Validate required fields
@@ -51,13 +52,15 @@ export default defineEventHandler(async (event) => {
     const fullName = `${firstName} ${lastName}`
     const phone = body.phone?.trim() || undefined
     const role = body.role?.trim() || undefined
+    const language = body.language?.trim() || 'en'
 
     // Find or create the subscriber (champion)
     const { subscriber } = await subscriberService.findOrCreateSubscriber({
       email,
       phone,
       name: fullName,
-      role
+      role,
+      language
     })
 
     // Update role if subscriber already existed but role is new
@@ -124,6 +127,7 @@ export default defineEventHandler(async (event) => {
       peopleGroupSlug: peopleGroup.slug!,
       joshuaProjectId: peopleGroup.joshua_project_id,
       remainingGroupsCount: remainingCount,
+      locale: language,
     }).catch(err => console.error('Failed to send adoption welcome email:', err))
 
     return {

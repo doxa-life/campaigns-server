@@ -1,3 +1,5 @@
+import { t } from './translations'
+
 export interface AdoptionWelcomeEmailData {
   to: string
   firstName: string
@@ -5,6 +7,7 @@ export interface AdoptionWelcomeEmailData {
   peopleGroupSlug: string
   joshuaProjectId: string | null
   remainingGroupsCount: number
+  locale?: string
 }
 
 function escapeHtml(text: string): string {
@@ -20,6 +23,7 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
   const config = useRuntimeConfig()
   const siteUrl = config.public.siteUrl || 'http://localhost:3000'
   const appName = config.appName || 'DOXA Prayer'
+  const locale = data.locale || 'en'
 
   const firstName = escapeHtml(data.firstName)
   const peopleGroupName = escapeHtml(data.peopleGroupName)
@@ -27,6 +31,7 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
 
   const profileUrl = `${siteUrl}/${slug}`
   const resourcesUrl = `https://doxa.life/research/${slug}/resources/`
+  const contactEmail = 'contact@doxa.life'
 
   const joshuaProjectUrl = data.joshuaProjectId
     ? `https://joshuaproject.net/people_groups/${encodeURIComponent(data.joshuaProjectId)}`
@@ -35,11 +40,44 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
     ? `https://www.peoplegroups.org/explore/groupdetails.aspx?peid=${encodeURIComponent(data.joshuaProjectId)}`
     : null
 
-  const subject = `DOXA Briefing: Your Commitment to the ${data.peopleGroupName}`
+  const beforeCount = (data.remainingGroupsCount + 1).toLocaleString()
+  const afterCount = data.remainingGroupsCount.toLocaleString()
+
+  const params = { peopleGroupName: data.peopleGroupName, firstName: data.firstName }
+
+  const subject = t('email.adoptionWelcome.subject', locale, params)
+  const headerTitle = t('email.adoptionWelcome.headerTitle', locale)
+  const greeting = t('email.adoptionWelcome.greeting', locale, params)
+  const intro = t('email.adoptionWelcome.intro', locale, params)
+  const resourcesIntro = t('email.adoptionWelcome.resourcesIntro', locale)
+  const section1Title = t('email.adoptionWelcome.section1Title', locale)
+  const profileButton = t('email.adoptionWelcome.profileButton', locale)
+  const learnMore = t('email.adoptionWelcome.learnMore', locale)
+  const section2Title = t('email.adoptionWelcome.section2Title', locale)
+  const section2Intro = t('email.adoptionWelcome.section2Intro', locale, { resourcesUrl })
+  const section2Item1 = t('email.adoptionWelcome.section2Item1', locale)
+  const section2Item2 = t('email.adoptionWelcome.section2Item2', locale)
+  const section2Item3 = t('email.adoptionWelcome.section2Item3', locale)
+  const section3Title = t('email.adoptionWelcome.section3Title', locale)
+  const section3Intro = t('email.adoptionWelcome.section3Intro', locale)
+  const step1Label = t('email.adoptionWelcome.step1Label', locale)
+  const step1Text = t('email.adoptionWelcome.step1Text', locale, params)
+  const step2Label = t('email.adoptionWelcome.step2Label', locale)
+  const step2Text = t('email.adoptionWelcome.step2Text', locale)
+  const step3Label = t('email.adoptionWelcome.step3Label', locale)
+  const step3Text = t('email.adoptionWelcome.step3Text', locale, params)
+  const section4Title = t('email.adoptionWelcome.section4Title', locale)
+  const section4Text = t('email.adoptionWelcome.section4Text', locale, { contactEmail })
+  const closingCount = t('email.adoptionWelcome.closingCount', locale, { beforeCount, afterCount })
+  const signoff = t('email.adoptionWelcome.signoff', locale)
+  const teamName = t('email.adoptionWelcome.teamName', locale)
+  const automatedMessage = t('email.common.automatedMessage', locale, { appName })
+
+  const dir = locale === 'ar' ? 'rtl' : 'ltr'
 
   const externalLinksHtml = (peoplegroupsOrgUrl || joshuaProjectUrl) ? `
         <p style="font-size: 14px; color: #666666; margin: 15px 0 0;">
-          Learn more:
+          ${escapeHtml(learnMore)}
           ${peoplegroupsOrgUrl ? `<a href="${peoplegroupsOrgUrl}" style="color: #3B463D; text-decoration: underline;">Peoplegroups.org</a>` : ''}
           ${peoplegroupsOrgUrl && joshuaProjectUrl ? ' | ' : ''}
           ${joshuaProjectUrl ? `<a href="${joshuaProjectUrl}" style="color: #3B463D; text-decoration: underline;">Joshua Project</a>` : ''}
@@ -50,145 +88,142 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
     joshuaProjectUrl ? `  Joshua Project: ${joshuaProjectUrl}` : ''
   ].filter(Boolean).join('\n')
 
-  const beforeCount = (data.remainingGroupsCount + 1).toLocaleString()
-  const afterCount = data.remainingGroupsCount.toLocaleString()
-
   const html = `
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="${locale}" dir="${dir}">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${escapeHtml(subject)}</title>
     </head>
-    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #3B463D; background: #ffffff; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #3B463D; background: #ffffff; max-width: 600px; margin: 0 auto; padding: 20px; direction: ${dir};">
       <img src="${siteUrl}/images/template-header-doxa.jpeg" alt="DOXA" style="width: 100%; display: block; border-radius: 10px 10px 0 0;" />
       <div style="background: #3B463D; color: #ffffff; padding: 30px; text-align: center;">
-        <h1 style="margin: 0; font-size: 28px; font-weight: 500;">DOXA Adoption Briefing</h1>
+        <h1 style="margin: 0; font-size: 28px; font-weight: 500;">${escapeHtml(headerTitle)}</h1>
         <p style="margin: 10px 0 0; font-size: 16px; opacity: 0.8;">${peopleGroupName}</p>
       </div>
 
       <div style="background: #ffffff; border: 2px solid #3B463D; border-top: none; padding: 40px 30px; border-radius: 0 0 10px 10px;">
-        <h2 style="color: #3B463D; margin-top: 0; font-weight: 500;">Dear ${firstName},</h2>
+        <h2 style="color: #3B463D; margin-top: 0; font-weight: 500;">${escapeHtml(greeting)}</h2>
 
         <p style="font-size: 16px; margin: 20px 0; color: #3B463D;">
-          Today, as part of the DOXA partnership, you changed the status of the ${peopleGroupName} from <strong>waiting</strong> to <strong>adopted</strong>, the vital first step to engagement. You are now a primary advocate, intercessor, and mobilizer for a people group who, until this moment, had no consistent witness or dedicated prayer effort.
+          ${escapeHtml(intro)}
         </p>
 
         <p style="font-size: 16px; margin: 20px 0; color: #3B463D;">
-          The following resources will help you steward this opportunity.
+          ${escapeHtml(resourcesIntro)}
         </p>
 
-        <h3 style="color: #3B463D; font-size: 18px; margin: 30px 0 15px; font-weight: 600;">1. Who You Are Standing For</h3>
+        <h3 style="color: #3B463D; font-size: 18px; margin: 30px 0 15px; font-weight: 600;">${escapeHtml(section1Title)}</h3>
         <div style="text-align: center; margin: 20px 0;">
-          <a href="${profileUrl}" style="background: #3B463D; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: 500; font-size: 16px; display: inline-block; border: 2px solid #3B463D;">People Group Full Profile</a>
+          <a href="${profileUrl}" style="background: #3B463D; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: 500; font-size: 16px; display: inline-block; border: 2px solid #3B463D;">${escapeHtml(profileButton)}</a>
         </div>
 ${externalLinksHtml}
 
-        <h3 style="color: #3B463D; font-size: 18px; margin: 30px 0 15px; font-weight: 600;">2. Your Mobilization Toolkit</h3>
+        <h3 style="color: #3B463D; font-size: 18px; margin: 30px 0 15px; font-weight: 600;">${escapeHtml(section2Title)}</h3>
         <p style="font-size: 16px; margin: 0 0 10px; color: #3B463D;">
-          You don't have to start from scratch. Access resources at <a href="${resourcesUrl}" style="color: #3B463D; text-decoration: underline;">${resourcesUrl}</a>:
+          ${escapeHtml(section2Intro)}
         </p>
-        <ul style="font-size: 15px; color: #3B463D; margin: 10px 0 20px; padding-left: 20px;">
-          <li style="margin-bottom: 8px;">URL and QR code to your people group, tips, answers to frequently asked questions, and more</li>
-          <li style="margin-bottom: 8px;">Images to help you introduce this to your church or small group</li>
-          <li style="margin-bottom: 8px;">A dedicated link to make it easy to contribute financially to the DOXA campaign</li>
+        <ul style="font-size: 15px; color: #3B463D; margin: 10px 0 20px; padding-${dir === 'rtl' ? 'right' : 'left'}: 20px;">
+          <li style="margin-bottom: 8px;">${escapeHtml(section2Item1)}</li>
+          <li style="margin-bottom: 8px;">${escapeHtml(section2Item2)}</li>
+          <li style="margin-bottom: 8px;">${escapeHtml(section2Item3)}</li>
         </ul>
 
-        <h3 style="color: #3B463D; font-size: 18px; margin: 30px 0 15px; font-weight: 600;">3. Your First 30 Days</h3>
+        <h3 style="color: #3B463D; font-size: 18px; margin: 30px 0 15px; font-weight: 600;">${escapeHtml(section3Title)}</h3>
         <p style="font-size: 16px; margin: 0 0 15px; color: #3B463D;">
-          To help you move from adoption to action, we ask that you focus on these three steps this month:
+          ${escapeHtml(section3Intro)}
         </p>
 
-        <div style="background: #f4f6f4; border-left: 4px solid #3B463D; padding: 15px 20px; margin: 15px 0; border-radius: 0 5px 5px 0;">
+        <div style="background: #f4f6f4; border-${dir === 'rtl' ? 'right' : 'left'}: 4px solid #3B463D; padding: 15px 20px; margin: 15px 0; border-radius: ${dir === 'rtl' ? '5px 0 0 5px' : '0 5px 5px 0'};">
           <p style="font-size: 15px; margin: 0; color: #3B463D;">
-            <strong>Internalize:</strong> Pray 10 minutes daily for the ${peopleGroupName}. Ask God to give you a heart for this place and these people. Ask Him to give you wisdom for the next steps and favor with all who will hear because of your efforts to share the vision. Ask Him to prepare hearts. Expect Him to answer &mdash; He is already at work!
+            <strong>${escapeHtml(step1Label)}</strong> ${escapeHtml(step1Text)}
           </p>
         </div>
 
-        <div style="background: #f4f6f4; border-left: 4px solid #3B463D; padding: 15px 20px; margin: 15px 0; border-radius: 0 5px 5px 0;">
+        <div style="background: #f4f6f4; border-${dir === 'rtl' ? 'right' : 'left'}: 4px solid #3B463D; padding: 15px 20px; margin: 15px 0; border-radius: ${dir === 'rtl' ? '5px 0 0 5px' : '0 5px 5px 0'};">
           <p style="font-size: 15px; margin: 0; color: #3B463D;">
-            <strong>Strategize and Socialize:</strong> Make a plan with your church leadership on how to introduce this to your church and community. Share your digital media and other resources found in your mobilization toolkit with your church family and on your social platforms. Let people know that this group is your focus.
+            <strong>${escapeHtml(step2Label)}</strong> ${escapeHtml(step2Text)}
           </p>
         </div>
 
-        <div style="background: #f4f6f4; border-left: 4px solid #3B463D; padding: 15px 20px; margin: 15px 0; border-radius: 0 5px 5px 0;">
+        <div style="background: #f4f6f4; border-${dir === 'rtl' ? 'right' : 'left'}: 4px solid #3B463D; padding: 15px 20px; margin: 15px 0; border-radius: ${dir === 'rtl' ? '5px 0 0 5px' : '0 5px 5px 0'};">
           <p style="font-size: 15px; margin: 0; color: #3B463D;">
-            <strong>Mobilize Core:</strong> Identify 5 people who will sign up to pray with you. Consider prayer leaders, small group members, and spiritually faithful friends who are likely to be aligned in priorities and vision. A small core in sustained, expectant agreement can be the beginning of a movement.
+            <strong>${escapeHtml(step3Label)}</strong> ${escapeHtml(step3Text)}
           </p>
         </div>
 
-        <h3 style="color: #3B463D; font-size: 18px; margin: 30px 0 15px; font-weight: 600;">4. Be Encouraged by DOXA Updates</h3>
+        <h3 style="color: #3B463D; font-size: 18px; margin: 30px 0 15px; font-weight: 600;">${escapeHtml(section4Title)}</h3>
         <p style="font-size: 16px; margin: 0 0 10px; color: #3B463D;">
-          Every month, you will receive a strategic monthly update &mdash; briefing you on any regional breakthroughs, new resources, or mobilization milestones related to your group. If you have questions, need encouragement, or help thinking through next steps, we want to help. Please reach out to <a href="mailto:contact@doxa.life" style="color: #3B463D; text-decoration: underline;">contact@doxa.life</a>.
+          ${escapeHtml(section4Text)}
         </p>
 
         <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 30px 0;" />
 
         <p style="font-size: 16px; margin: 20px 0; color: #3B463D;">
-          There were ${beforeCount} groups left to adopt. Because of your &ldquo;yes&rdquo; today, that number is now ${afterCount}. Keep going.
+          ${escapeHtml(closingCount)}
         </p>
 
         <p style="font-size: 16px; margin: 20px 0 5px; color: #3B463D;">
-          To the Glory of God,
+          ${escapeHtml(signoff)}
         </p>
         <p style="font-size: 16px; margin: 0; color: #3B463D;">
-          The DOXA Team<br />
+          ${escapeHtml(teamName)}<br />
           <a href="https://doxa.life" style="color: #3B463D; text-decoration: underline;">doxa.life</a>
         </p>
       </div>
 
       <div style="text-align: center; margin-top: 20px; padding: 20px; color: #666666; font-size: 12px;">
-        <p style="margin: 0;">This is an automated message from ${appName}</p>
+        <p style="margin: 0;">${escapeHtml(automatedMessage)}</p>
       </div>
     </body>
     </html>
   `
 
   const text = `
-DOXA Briefing: Your Commitment to the ${data.peopleGroupName}
+${subject}
 
-Dear ${data.firstName},
+${greeting}
 
-Today, as part of the DOXA partnership, you changed the status of the ${data.peopleGroupName} from waiting to adopted, the vital first step to engagement. You are now a primary advocate, intercessor, and mobilizer for a people group who, until this moment, had no consistent witness or dedicated prayer effort.
+${intro}
 
-The following resources will help you steward this opportunity.
+${resourcesIntro}
 
-1. WHO YOU ARE STANDING FOR
+${section1Title.toUpperCase()}
 
-  People Group Full Profile: ${profileUrl}
+  ${profileButton}: ${profileUrl}
 ${externalLinksText ? '\n' + externalLinksText + '\n' : ''}
-2. YOUR MOBILIZATION TOOLKIT
+${section2Title.toUpperCase()}
 
-You don't have to start from scratch. Access resources at ${resourcesUrl}:
-- URL and QR code to your people group, tips, answers to frequently asked questions, and more
-- Images to help you introduce this to your church or small group
-- A dedicated link to make it easy to contribute financially to the DOXA campaign
+${section2Intro}
+- ${section2Item1}
+- ${section2Item2}
+- ${section2Item3}
 
-3. YOUR FIRST 30 DAYS
+${section3Title.toUpperCase()}
 
-To help you move from adoption to action, we ask that you focus on these three steps this month:
+${section3Intro}
 
-Internalize: Pray 10 minutes daily for the ${data.peopleGroupName}. Ask God to give you a heart for this place and these people. Ask Him to give you wisdom for the next steps and favor with all who will hear because of your efforts to share the vision. Ask Him to prepare hearts. Expect Him to answer - He is already at work!
+${step1Label} ${step1Text}
 
-Strategize and Socialize: Make a plan with your church leadership on how to introduce this to your church and community. Share your digital media and other resources found in your mobilization toolkit with your church family and on your social platforms. Let people know that this group is your focus.
+${step2Label} ${step2Text}
 
-Mobilize Core: Identify 5 people who will sign up to pray with you. Consider prayer leaders, small group members, and spiritually faithful friends who are likely to be aligned in priorities and vision. A small core in sustained, expectant agreement can be the beginning of a movement.
+${step3Label} ${step3Text}
 
-4. BE ENCOURAGED BY DOXA UPDATES
+${section4Title.toUpperCase()}
 
-Every month, you will receive a strategic monthly update - briefing you on any regional breakthroughs, new resources, or mobilization milestones related to your group. If you have questions, need encouragement, or help thinking through next steps, we want to help. Please reach out to contact@doxa.life.
+${section4Text}
 
 ---
 
-There were ${beforeCount} groups left to adopt. Because of your "yes" today, that number is now ${afterCount}. Keep going.
+${closingCount}
 
-To the Glory of God,
-The DOXA Team
+${signoff}
+${teamName}
 doxa.life
 
 ---
-This is an automated message from ${appName}
+${automatedMessage}
   `.trim()
 
   return await sendEmail({
