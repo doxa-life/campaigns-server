@@ -59,8 +59,10 @@ export function generatePeopleGroupDescription(peopleGroup: PeopleGroupData, loc
   // Combine engagement status with unreached status
   let engagementStatus = engagementLabel
   if (engagementStatus && isUnreached) {
-    const andUnreached = getTranslatedLabel('peopleGroups.descriptionTemplates.andUnreached', locale)
-    engagementStatus = `${engagementStatus} ${andUnreached}`
+    const isEngaged = metadata.imb_engagement_status === 'engaged'
+    const unreachedKey = isEngaged ? 'butUnreached' : 'andUnreached'
+    const unreachedSuffix = getTranslatedLabel(`peopleGroups.descriptionTemplates.${unreachedKey}`, locale)
+    engagementStatus = `${engagementStatus} ${unreachedSuffix}`
   }
 
   if (country && population && engagementStatus) {

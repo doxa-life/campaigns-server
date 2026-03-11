@@ -15,7 +15,8 @@
       "blocOnly": "Они принадлежат к аффинитетному блоку {bloc}.",
       "religion": "Их основная религия — {religion}.",
       "language": "Они в основном говорят на {language}.",
-      "andUnreached": "и недостигнутые"
+      "andUnreached": "и недостигнутые",
+      "butUnreached": "но недостигнутые"
     },
     "categories": {
       "status": "Статус",

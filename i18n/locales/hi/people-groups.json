@@ -15,7 +15,8 @@
       "blocOnly": "वे {bloc} संबंध समूह में हैं।",
       "religion": "उनका प्राथमिक धर्म {religion} है।",
       "language": "वे मुख्य रूप से {language} बोलते हैं।",
-      "andUnreached": "और अगम्य"
+      "andUnreached": "और अगम्य",
+      "butUnreached": "लेकिन अगम्य"
     },
     "categories": {
       "status": "स्थिति",

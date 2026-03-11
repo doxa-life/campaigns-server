@@ -15,7 +15,8 @@
       "blocOnly": "Fanno parte del blocco di affinità {bloc}.",
       "religion": "La loro religione principale è {religion}.",
       "language": "Parlano principalmente {language}.",
-      "andUnreached": "e Non Raggiunti"
+      "andUnreached": "e Non Raggiunti",
+      "butUnreached": "ma Non Raggiunti"
     },
     "categories": {
       "status": "Stato",

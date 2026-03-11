@@ -15,7 +15,8 @@
       "blocOnly": "Fac parte din blocul de afinitate {bloc}.",
       "religion": "Religia lor principală este {religion}.",
       "language": "Limba lor principală este {language}.",
-      "andUnreached": "și neatins"
+      "andUnreached": "și neatins",
+      "butUnreached": "dar neatins"
     },
     "categories": {
       "status": "Stare",

@@ -15,7 +15,8 @@
       "blocOnly": "هم في كتلة التقارب {bloc}.",
       "religion": "ديانتهم الرئيسية هي {religion}.",
       "language": "يتحدثون بشكل رئيسي {language}.",
-      "andUnreached": "وغير مُبلَّغين"
+      "andUnreached": "وغير مُبلَّغين",
+      "butUnreached": "لكن غير مُبلَّغين"
     },
     "categories": {
       "status": "الحالة",

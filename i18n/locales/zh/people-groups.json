@@ -15,7 +15,8 @@
       "blocOnly": "他们属于{bloc}亲缘集团。",
       "religion": "他们的主要宗教是{religion}。",
       "language": "他们主要使用{language}。",
-      "andUnreached": "且未得之民"
+      "andUnreached": "且未得之民",
+      "butUnreached": "但未得之民"
     },
     "categories": {
       "status": "状态",

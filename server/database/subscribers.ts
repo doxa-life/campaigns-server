@@ -9,6 +9,7 @@ export interface Subscriber {
   profile_id: string
   name: string
   preferred_language: string
+  role: string | null
   created_at: string
   updated_at: string
 }
@@ -90,7 +91,7 @@ class SubscriberService {
     }
   }
 
-  async updateSubscriber(id: number, updates: { name?: string; preferred_language?: string }): Promise<Subscriber | null> {
+  async updateSubscriber(id: number, updates: { name?: string; preferred_language?: string; role?: string | null }): Promise<Subscriber | null> {
     const fields: string[] = []
     const values: any[] = []
 
@@ -102,6 +103,11 @@ class SubscriberService {
     if (updates.preferred_language !== undefined) {
       fields.push('preferred_language = ?')
       values.push(updates.preferred_language)
+    }
+
+    if (updates.role !== undefined) {
+      fields.push('role = ?')
+      values.push(updates.role)
     }
 
     if (fields.length === 0) {
@@ -136,6 +142,7 @@ class SubscriberService {
     phone?: string
     name: string
     language?: string
+    role?: string | null
   }): Promise<{ subscriber: Subscriber; isNew: boolean }> {
     // 1. Try to find by email (case-insensitive)
     if (input.email) {

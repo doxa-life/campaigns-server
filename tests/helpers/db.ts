@@ -36,6 +36,18 @@ export async function cleanupTestData(sql: ReturnType<typeof postgres>) {
   // Clean up test data created during tests
   // Delete in order respecting foreign key constraints
 
+  // Clean adoption reports (depends on people_group_adoptions)
+  await sql`DELETE FROM adoption_reports WHERE adoption_id IN (SELECT id FROM people_group_adoptions WHERE group_id IN (SELECT id FROM groups WHERE name LIKE 'Test %'))`
+
+  // Clean people group adoptions (depends on groups and people_groups)
+  await sql`DELETE FROM people_group_adoptions WHERE group_id IN (SELECT id FROM groups WHERE name LIKE 'Test %')`
+
+  // Clean connections (depends on groups and subscribers)
+  await sql`DELETE FROM connections WHERE (to_type = 'group' AND to_id IN (SELECT id FROM groups WHERE name LIKE 'Test %')) OR (from_type = 'subscriber' AND from_id IN (SELECT id FROM subscribers WHERE name LIKE 'Test %'))`
+
+  // Clean groups
+  await sql`DELETE FROM groups WHERE name LIKE 'Test %'`
+
   // Clean library content and libraries (both test-named and people-group-linked)
   await sql`DELETE FROM library_content WHERE library_id IN (SELECT id FROM libraries WHERE name LIKE 'Test Library %' OR people_group_id IN (SELECT id FROM people_groups WHERE slug LIKE 'test-%'))`
   await sql`DELETE FROM campaign_library_config WHERE people_group_id IN (SELECT id FROM people_groups WHERE slug LIKE 'test-%')`
@@ -543,4 +555,125 @@ export async function getTestUserByEmail(
     superadmin: boolean
     role: string | null
   } | null
+}
+
+// Group helpers
+
+export interface TestGroup {
+  id: number
+  name: string
+  primary_subscriber_id: number | null
+  country: string | null
+}
+
+export async function createTestGroup(
+  sql: ReturnType<typeof postgres>,
+  options: {
+    name?: string
+    primary_subscriber_id?: number | null
+    country?: string | null
+  } = {}
+): Promise<TestGroup> {
+  const name = options.name || `Test Group ${uuidv4().slice(0, 8)}`
+  const primary_subscriber_id = options.primary_subscriber_id ?? null
+  const country = options.country ?? null
+
+  const result = await sql`
+    INSERT INTO groups (name, primary_subscriber_id, country)
+    VALUES (${name}, ${primary_subscriber_id}, ${country})
+    RETURNING id, name, primary_subscriber_id, country
+  `
+
+  return result[0] as TestGroup
+}
+
+export async function createTestConnection(
+  sql: ReturnType<typeof postgres>,
+  options: {
+    from_type: string
+    from_id: number
+    to_type: string
+    to_id: number
+    connection_type?: string | null
+  }
+) {
+  const result = await sql`
+    INSERT INTO connections (from_type, from_id, to_type, to_id, connection_type)
+    VALUES (${options.from_type}, ${options.from_id}, ${options.to_type}, ${options.to_id}, ${options.connection_type ?? null})
+    RETURNING id, from_type, from_id, to_type, to_id, connection_type
+  `
+  return result[0] as {
+    id: number
+    from_type: string
+    from_id: number
+    to_type: string
+    to_id: number
+    connection_type: string | null
+  }
+}
+
+export interface TestAdoption {
+  id: number
+  people_group_id: number
+  group_id: number
+  status: string
+  update_token: string
+  show_publicly: boolean
+  adopted_at: string | null
+}
+
+export async function createTestAdoption(
+  sql: ReturnType<typeof postgres>,
+  groupId: number,
+  peopleGroupId: number,
+  options: {
+    status?: 'pending' | 'active' | 'inactive'
+    show_publicly?: boolean
+  } = {}
+): Promise<TestAdoption> {
+  const status = options.status ?? 'active'
+  const show_publicly = options.show_publicly ?? false
+  const adopted_at = status === 'active' ? new Date().toISOString() : null
+
+  const result = await sql`
+    INSERT INTO people_group_adoptions (people_group_id, group_id, status, show_publicly, adopted_at)
+    VALUES (${peopleGroupId}, ${groupId}, ${status}, ${show_publicly}, ${adopted_at})
+    RETURNING id, people_group_id, group_id, status, update_token, show_publicly, adopted_at
+  `
+
+  return result[0] as TestAdoption
+}
+
+export interface TestAdoptionReport {
+  id: number
+  adoption_id: number
+  praying_count: number | null
+  stories: string | null
+  comments: string | null
+  status: string
+  submitted_at: string
+}
+
+export async function createTestAdoptionReport(
+  sql: ReturnType<typeof postgres>,
+  adoptionId: number,
+  options: {
+    praying_count?: number | null
+    stories?: string | null
+    comments?: string | null
+    status?: 'submitted' | 'approved' | 'rejected'
+  } = {}
+): Promise<TestAdoptionReport> {
+  const praying_count = options.praying_count ?? null
+  const stories = options.stories ?? null
+  const comments = options.comments ?? null
+  const status = options.status ?? 'submitted'
+
+  const result = await sql`
+    INSERT INTO adoption_reports (adoption_id, praying_count, stories, comments, status)
+    VALUES (${adoptionId}, ${praying_count}, ${stories}, ${comments}, ${status})
+    RETURNING id, adoption_id, praying_count, stories, comments, status, submitted_at
+  `
+
+  return result[0] as TestAdoptionReport
 }

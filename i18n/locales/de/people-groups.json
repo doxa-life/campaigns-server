@@ -15,7 +15,8 @@
       "blocOnly": "Sie gehören zum Affinitätsblock {bloc}.",
       "religion": "Ihre Hauptreligion ist {religion}.",
       "language": "Sie sprechen hauptsächlich {language}.",
-      "andUnreached": "und Unerreicht"
+      "andUnreached": "und Unerreicht",
+      "butUnreached": "aber Unerreicht"
     },
     "categories": {
       "status": "Status",

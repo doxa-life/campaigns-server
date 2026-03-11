@@ -15,7 +15,8 @@
       "blocOnly": "They are in the {bloc} affinity bloc.",
       "religion": "Their primary religion is {religion}.",
       "language": "They primarily speak {language}.",
-      "andUnreached": "and Unreached"
+      "andUnreached": "and Unreached",
+      "butUnreached": "but Unreached"
     },
     "categories": {
       "status": "Status",

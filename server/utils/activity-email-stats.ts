@@ -22,6 +22,7 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
     prayerCommittedRow,
     groupsWithPrayerRow,
     groupsWith144Row,
+    groupsAdoptedRow,
     groupsEngagedRow
   ] = await Promise.all([
     db.prepare(`SELECT COUNT(*) as count FROM subscribers WHERE created_at >= ? AND created_at < ?`).get(startIso, endIso),
@@ -37,6 +38,7 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
     `).get(endIso, startIso, endIso),
     db.prepare(`SELECT COUNT(DISTINCT people_group_id) as count FROM campaign_subscriptions WHERE status = 'active'`).get(),
     db.prepare(`SELECT COUNT(*) as count FROM (SELECT people_group_id FROM campaign_subscriptions WHERE status = 'active' GROUP BY people_group_id HAVING COUNT(*) >= 144) sub`).get(),
+    db.prepare(`SELECT COUNT(DISTINCT group_id) as count FROM people_group_adoptions WHERE status = 'active' AND adopted_at >= ? AND adopted_at < ?`).get(startIso, endIso),
     db.prepare(`SELECT COUNT(*) as count FROM people_groups WHERE engagement_status = 'engaged' OR (metadata::jsonb->>'imb_engagement_status') = 'engaged'`).get()
   ])
 
@@ -46,7 +48,7 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
     prayerCommitted: Math.round(Number(prayerCommittedRow?.total ?? 0)),
     groupsWithPrayer: Number(groupsWithPrayerRow?.count ?? 0),
     groupsWith144: Number(groupsWith144Row?.count ?? 0),
-    groupsAdopted: 0,
+    groupsAdopted: Number(groupsAdoptedRow?.count ?? 0),
     groupsEngaged: Number(groupsEngagedRow?.count ?? 0)
   }
 }

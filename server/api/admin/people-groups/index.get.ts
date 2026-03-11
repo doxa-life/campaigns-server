@@ -1,5 +1,6 @@
 import { peopleGroupService } from '../../../database/people-groups'
 import { peopleGroupSubscriptionService } from '../../../database/people-group-subscriptions'
+import { getDatabase } from '../../../database/db'
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
@@ -17,13 +18,30 @@ export default defineEventHandler(async (event) => {
   const peopleGroupIds = peopleGroups.map(g => g.id)
   const commitmentStats = await peopleGroupSubscriptionService.getCommitmentStatsForPeopleGroups(peopleGroupIds)
 
+  // Get adoption counts per people group
+  const adoptionCounts = new Map<number, number>()
+  if (peopleGroupIds.length > 0) {
+    const db = getDatabase()
+    const placeholders = peopleGroupIds.map(() => '?').join(',')
+    const rows = await db.prepare(`
+      SELECT people_group_id, COUNT(*) as count
+      FROM people_group_adoptions
+      WHERE people_group_id IN (${placeholders}) AND status IN ('active', 'pending')
+      GROUP BY people_group_id
+    `).all(...peopleGroupIds) as { people_group_id: number; count: number }[]
+    for (const row of rows) {
+      adoptionCounts.set(row.people_group_id, Number(row.count))
+    }
+  }
+
   // Parse metadata and descriptions for each group, attach stats
   const groupsWithParsedMetadata = peopleGroups.map(group => ({
     ...group,
     metadata: group.metadata ? JSON.parse(group.metadata) : {},
     descriptions: group.descriptions ? (typeof group.descriptions === 'string' ? JSON.parse(group.descriptions) : group.descriptions) : {},
     people_committed: commitmentStats.get(group.id)?.people_committed ?? 0,
-    committed_duration: commitmentStats.get(group.id)?.committed_duration ?? 0
+    committed_duration: commitmentStats.get(group.id)?.committed_duration ?? 0,
+    adoption_count: adoptionCounts.get(group.id) ?? 0
   }))
 
   return {
