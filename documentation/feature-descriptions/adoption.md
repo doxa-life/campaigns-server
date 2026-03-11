@@ -1,15 +1,17 @@
 # People Group Adoption
 
-This system lets churches and organizations formally adopt people groups for prayer, tracks their ongoing engagement through periodic reports, and publicly celebrates these commitments on people group pages.
+This system lets churches and individuals formally adopt people groups for prayer, tracks their ongoing engagement through periodic reports, and shows these commitments on people group pages.
 
 ## What it does
 
-When a church or organization wants to commit to praying for an unreached people group, an admin creates an "adoption" linking that group to the people group. The system then:
+When a church or individual wants to commit to praying for an unreached people group, they can adopt it through a public form or an admin can create the adoption manually. The system then:
 
-1. Tracks which organizations are praying for which people groups
-2. Sends monthly email reminders asking for prayer updates
-3. Collects reports on how many people are praying and what stories are emerging
-4. Displays adoption commitments publicly on people group pages to inspire others
+1. Creates a group record (if one doesn't already exist) to represent the adopting church or individual
+2. Links the group to the chosen people group as an active adoption
+3. Sends a welcome email with resources and next steps
+4. Sends monthly email reminders asking for prayer updates
+5. Collects reports on how many people are praying and what stories are emerging
+6. Makes adoption counts and group names available on people group pages
 
 ## Key concepts
 
@@ -17,10 +19,10 @@ When a church or organization wants to commit to praying for an unreached people
 
 A group represents a church, organization, or prayer team. Each group has:
 
-- A name (e.g., "First Baptist Church")
-- A primary contact person (selected from existing subscribers)
+- A name (e.g., "First Baptist Church" or the individual's full name if no church is provided)
+- A primary contact person
 - An optional country
-- Any number of linked contacts (subscribers associated with the group)
+- Any number of linked contacts
 
 Groups are the organizational unit that adopts people groups. One group can adopt multiple people groups, and one people group can be adopted by multiple groups.
 
@@ -31,6 +33,9 @@ An adoption is the link between a group and a people group. Each adoption has:
 - A **status**: pending, active, or inactive
 - A **public visibility** setting controlling whether the group's name appears on the people group's public page
 - A unique **update link** (magic link) used to submit reports without logging in
+- An **adoption date** recorded when the adoption becomes active
+
+A group can only adopt a given people group once — duplicates are prevented.
 
 ### Adoption reports
 
@@ -44,10 +49,49 @@ Reports go through a review process: they start as "submitted" and an admin can 
 
 ## How groups adopt a people group
 
-1. An admin creates a group in the admin panel, sets a primary contact, and optionally adds other contacts
-2. The admin creates an adoption, selecting which people group the group will pray for
+### Public adoption form
+
+Anyone can adopt a people group by submitting the public adoption form. The form collects:
+
+- First name, last name, and email (required)
+- Phone number and role (e.g., pastor, prayer leader) (optional)
+- Church or organization name (optional — if not provided, the individual's name is used)
+- Country (optional)
+- Which people group they want to adopt (required)
+- Whether they give permission to be contacted about the people group
+- Whether they agree to have their name displayed publicly on the people group page
+- Preferred language for communications
+
+When the form is submitted, the system automatically:
+
+1. Finds or creates a subscriber record for the contact
+2. Finds or creates a group (matched by name, so returning churches link to their existing group)
+3. Connects the subscriber to the group as a champion
+4. Creates the adoption as active immediately
+5. Grants communication consent based on the submitter's choices
+6. Sends a welcome email in the submitter's preferred language
+
+### Admin-created adoptions
+
+Admins can also create adoptions manually:
+
+1. Create or select a group in the admin panel, set a primary contact, and optionally add other contacts
+2. Create an adoption from the group page or the people group page, selecting the other side of the link
 3. The adoption starts as active by default
-4. If "show publicly" is enabled, the group's name appears on the people group's public page
+4. Toggle "show publicly" to control whether the group's name appears on the people group's public page
+
+## Welcome email
+
+When someone adopts through the public form, they receive a welcome email that includes:
+
+- A link to the people group's profile page on the site
+- Links to external resources (Joshua Project and Peoplegroups.org, when available)
+- A link to the people group's research and resources page on doxa.life
+- A three-step getting started guide: get to know the people group, find prayer materials, and send regular updates
+- Contact information for the team
+- A count showing how many people groups still need to be adopted (e.g., "Before you, there were 342 groups without a prayer champion. Now there are 341.")
+
+The email is translated into the submitter's preferred language and supports right-to-left layout for Arabic.
 
 ## How update reports are collected
 
@@ -71,14 +115,18 @@ The form does not require logging in — the unique link serves as authenticatio
 
 ## What the public sees
 
-On a people group's public page, visitors can see:
+The people group detail API provides adoption data to public pages:
 
-- How many churches/organizations have adopted the people group
+- How many churches/organizations have adopted the people group (count of active adoptions)
 - The names of adopting groups (only those marked as publicly visible and with an active adoption)
 
-This helps visitors see that others are already committed and may encourage them to get involved.
+However, the public people group pages do not yet display this information in the interface.
 
 ## Admin management
+
+### Dashboard
+
+The admin dashboard shows an overview of adoption coverage: how many people groups have been adopted versus how many have not.
 
 ### Groups page
 
@@ -88,16 +136,24 @@ The admin groups page shows all groups with their adoption and contact counts. S
 - **Contacts** — Add or remove subscribers linked to the group
 - **Adoptions** — View all adoptions with status badges, add new adoptions
 
+### People groups page
+
+The admin people groups page also shows adoption information. Selecting a people group reveals an "Adopted By" section listing all groups that have adopted it, with the ability to add new adoptions from this side as well.
+
 ### Adoption detail panel
 
-Clicking an adoption opens a detail panel where admins can:
+Clicking an adoption (from either the groups page or people groups page) opens a detail panel where admins can:
 
+- See links to both the group and the people group
 - Change the adoption status (pending, active, inactive)
 - Toggle public visibility
+- See the adoption date
 - Copy the update link to share manually
 - Send a reminder email to the primary contact
 - View submitted reports and approve or reject them
 - Delete the adoption or mark it inactive to preserve history
+
+When deleting, the system suggests making the adoption inactive instead and requires confirmation for permanent removal.
 
 ### Deleting a group
 
@@ -117,11 +173,16 @@ Reports may eventually be displayed publicly or shared with stakeholders. Having
 **Why "inactive" instead of just deleting adoptions?**
 Making an adoption inactive preserves the history of reports and the relationship. This is useful for tracking long-term engagement even if a group pauses their commitment.
 
+**Why find-or-create for groups on the public form?**
+If a church submits the adoption form for a second people group, the system matches them to their existing group by name rather than creating a duplicate. This keeps all of a church's adoptions together.
+
 ## Current limitations
 
 - Only the primary contact receives reminder emails — other group contacts are not included
 - There is no way to customize the reminder email content per group or per people group
 - Adoption reports are collected but not yet displayed publicly anywhere
+- The public people group pages do not yet render adoption counts or group names, even though the data is available
 - No bulk operations for managing adoptions across multiple groups
 - The monthly reminder schedule is fixed to the 1st of each month and cannot be configured
 - No tracking of whether reminder emails are opened or update links are clicked
+- The public form group matching is name-based, so slight variations in church name (e.g., "First Baptist" vs "First Baptist Church") would create separate groups
