@@ -134,18 +134,12 @@ export default defineEventHandler(async (event) => {
     ])
     const remainingCount = Number(totalRow.count) - Number(adoptedRow.count)
 
-    const metadata = typeof peopleGroup.metadata === 'string'
-      ? JSON.parse(peopleGroup.metadata)
-      : peopleGroup.metadata || {}
-    const imbPeid = metadata.imb_peid || null
-
     sendAdoptionWelcomeEmail({
       to: email,
       firstName,
       peopleGroupName: peopleGroup.name,
       peopleGroupSlug: peopleGroup.slug!,
-      joshuaProjectId: peopleGroup.joshua_project_id,
-      imbPeid,
+      imageUrl: peopleGroup.image_url,
       remainingGroupsCount: remainingCount,
       locale: language,
     }).catch(err => console.error('Failed to send adoption welcome email:', err))

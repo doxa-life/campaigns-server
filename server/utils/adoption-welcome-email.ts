@@ -5,8 +5,7 @@ export interface AdoptionWelcomeEmailData {
   firstName: string
   peopleGroupName: string
   peopleGroupSlug: string
-  joshuaProjectId: string | null
-  imbPeid: string | null
+  imageUrl: string | null
   remainingGroupsCount: number
   locale?: string
 }
@@ -30,16 +29,11 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
   const peopleGroupName = escapeHtml(data.peopleGroupName)
   const slug = encodeURIComponent(data.peopleGroupSlug)
 
-  const profileUrl = `${siteUrl}/${slug}`
+  const prayerPageUrl = `${siteUrl}/${slug}`
   const resourcesUrl = `https://doxa.life/research/${slug}/resources/`
+  const fullProfileUrl = `https://doxa.life/research/${slug}`
   const contactEmail = 'contact@doxa.life'
-
-  const joshuaProjectUrl = data.joshuaProjectId
-    ? `https://joshuaproject.net/people_groups/${encodeURIComponent(data.joshuaProjectId)}`
-    : null
-  const peoplegroupsOrgUrl = data.imbPeid
-    ? `https://peoplegroups.org/people_groups/${encodeURIComponent(data.imbPeid)}/`
-    : null
+  const imageUrl = data.imageUrl
 
   const beforeCount = (data.remainingGroupsCount + 1).toLocaleString()
   const afterCount = data.remainingGroupsCount.toLocaleString()
@@ -52,19 +46,13 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
   const intro = t('email.adoptionWelcome.intro', locale, params)
   const resourcesIntro = t('email.adoptionWelcome.resourcesIntro', locale)
   const section1Title = t('email.adoptionWelcome.section1Title', locale)
-  const profileButton = t('email.adoptionWelcome.profileButton', locale)
-  const learnMore = t('email.adoptionWelcome.learnMore', locale)
+  const resourcesButton = t('email.adoptionWelcome.resourcesButton', locale)
+  const section1Item1 = t('email.adoptionWelcome.section1Item1', locale)
+  const section1Item2 = t('email.adoptionWelcome.section1Item2', locale)
+  const section1Item3 = t('email.adoptionWelcome.section1Item3', locale)
   const section2Title = t('email.adoptionWelcome.section2Title', locale)
-  const resourcesPlaceholder = '{{RESOURCES_LINK}}'
-  const section2IntroRaw = t('email.adoptionWelcome.section2Intro', locale, { resourcesUrl: resourcesPlaceholder })
-  const section2IntroHtml = escapeHtml(section2IntroRaw).replace(
-    escapeHtml(resourcesPlaceholder),
-    `<a href="${resourcesUrl}" style="color: #3B463D; text-decoration: underline;">${escapeHtml(resourcesUrl)}</a>`
-  )
-  const section2Intro = t('email.adoptionWelcome.section2Intro', locale, { resourcesUrl })
-  const section2Item1 = t('email.adoptionWelcome.section2Item1', locale)
-  const section2Item2 = t('email.adoptionWelcome.section2Item2', locale)
-  const section2Item3 = t('email.adoptionWelcome.section2Item3', locale)
+  const fullProfileButton = t('email.adoptionWelcome.fullProfileButton', locale)
+  const prayerPageButton = t('email.adoptionWelcome.prayerPageButton', locale)
   const section3Title = t('email.adoptionWelcome.section3Title', locale)
   const section3Intro = t('email.adoptionWelcome.section3Intro', locale)
   const step1Label = t('email.adoptionWelcome.step1Label', locale)
@@ -82,18 +70,11 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
 
   const dir = locale === 'ar' ? 'rtl' : 'ltr'
 
-  const externalLinksHtml = (peoplegroupsOrgUrl || joshuaProjectUrl) ? `
-        <p style="font-size: 14px; color: #666666; margin: 15px 0 0;">
-          ${escapeHtml(learnMore)}
-          ${peoplegroupsOrgUrl ? `<a href="${peoplegroupsOrgUrl}" style="color: #3B463D; text-decoration: underline;">Peoplegroups.org</a>` : ''}
-          ${peoplegroupsOrgUrl && joshuaProjectUrl ? ' | ' : ''}
-          ${joshuaProjectUrl ? `<a href="${joshuaProjectUrl}" style="color: #3B463D; text-decoration: underline;">Joshua Project</a>` : ''}
-        </p>` : ''
-
-  const externalLinksText = [
-    peoplegroupsOrgUrl ? `  Peoplegroups.org: ${peoplegroupsOrgUrl}` : '',
-    joshuaProjectUrl ? `  Joshua Project: ${joshuaProjectUrl}` : ''
-  ].filter(Boolean).join('\n')
+  const peopleGroupImageHtml = imageUrl
+    ? `<div style="text-align: center; margin: 15px 0;">
+          <img src="${imageUrl}" alt="${peopleGroupName}" style="max-width: 100%; border-radius: 8px; display: block; margin: 0 auto;" />
+        </div>`
+    : ''
 
   const html = `
     <!DOCTYPE html>
@@ -122,19 +103,31 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
         </p>
 
         <h3 style="color: #3B463D; font-size: 18px; margin: 30px 0 15px; font-weight: 600;">${escapeHtml(section1Title)}</h3>
-        <div style="text-align: center; margin: 20px 0;">
-          <a href="${profileUrl}" style="background: #3B463D; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: 500; font-size: 16px; display: inline-block; border: 2px solid #3B463D;">${escapeHtml(profileButton)}</a>
-        </div>
-${externalLinksHtml}
+        <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 10px 0 20px;">
+          <tr>
+            <td width="45%" style="vertical-align: middle; padding-${dir === 'rtl' ? 'left' : 'right'}: 15px;">
+              ${imageUrl ? `<img src="${imageUrl}" alt="${peopleGroupName}" style="width: 100%; border-radius: 8px; display: block;" />` : ''}
+            </td>
+            <td width="55%" style="vertical-align: middle;">
+              <p style="font-size: 17px; margin: 0 0 10px; color: #3B463D; font-weight: 600;">${peopleGroupName}</p>
+              <p style="font-size: 15px; margin: 0 0 10px; color: #3B463D;">
+                ${escapeHtml(t('email.adoptionWelcome.fullProfileText', locale))} <a href="${fullProfileUrl}" style="color: #3B463D; text-decoration: underline;">${escapeHtml(fullProfileButton)}</a>
+              </p>
+              <p style="font-size: 15px; margin: 0; color: #3B463D;">
+                ${escapeHtml(t('email.adoptionWelcome.prayerPageText', locale))} <a href="${prayerPageUrl}" style="color: #3B463D; text-decoration: underline;">${escapeHtml(prayerPageButton)}</a>
+              </p>
+            </td>
+          </tr>
+        </table>
 
         <h3 style="color: #3B463D; font-size: 18px; margin: 30px 0 15px; font-weight: 600;">${escapeHtml(section2Title)}</h3>
-        <p style="font-size: 16px; margin: 0 0 10px; color: #3B463D;">
-          ${section2IntroHtml}
-        </p>
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="${resourcesUrl}" style="background: #3B463D; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: 500; font-size: 16px; display: inline-block; border: 2px solid #3B463D;">${escapeHtml(resourcesButton)}</a>
+        </div>
         <ul style="font-size: 15px; color: #3B463D; margin: 10px 0 20px; padding-${dir === 'rtl' ? 'right' : 'left'}: 20px;">
-          <li style="margin-bottom: 8px;">${escapeHtml(section2Item1)}</li>
-          <li style="margin-bottom: 8px;">${escapeHtml(section2Item2)}</li>
-          <li style="margin-bottom: 8px;">${escapeHtml(section2Item3)}</li>
+          <li style="margin-bottom: 8px;">${escapeHtml(section1Item1)}</li>
+          <li style="margin-bottom: 8px;">${escapeHtml(section1Item2)}</li>
+          <li style="margin-bottom: 8px;">${escapeHtml(section1Item3)}</li>
         </ul>
 
         <h3 style="color: #3B463D; font-size: 18px; margin: 30px 0 15px; font-weight: 600;">${escapeHtml(section3Title)}</h3>
@@ -198,14 +191,16 @@ ${resourcesIntro}
 
 ${section1Title.toUpperCase()}
 
-  ${profileButton}: ${profileUrl}
-${externalLinksText ? '\n' + externalLinksText + '\n' : ''}
+${peopleGroupName}
+  ${fullProfileButton}: ${fullProfileUrl}
+  ${prayerPageButton}: ${prayerPageUrl}
+
 ${section2Title.toUpperCase()}
 
-${section2Intro}
-- ${section2Item1}
-- ${section2Item2}
-- ${section2Item3}
+  ${resourcesButton}: ${resourcesUrl}
+- ${section1Item1}
+- ${section1Item2}
+- ${section1Item3}
 
 ${section3Title.toUpperCase()}
 
