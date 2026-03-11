@@ -43,9 +43,16 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
   const subject = t('email.adoptionWelcome.subject', locale, params)
   const headerTitle = t('email.adoptionWelcome.headerTitle', locale)
   const greeting = t('email.adoptionWelcome.greeting', locale, params)
-  const intro = t('email.adoptionWelcome.intro', locale, params)
+  const introRaw = t('email.adoptionWelcome.intro', locale, params)
+  const waitingWord = t('email.adoptionWelcome.waiting', locale)
+  const adoptedWord = t('email.adoptionWelcome.adopted', locale)
+  const intro = introRaw.replace('[waiting]', waitingWord).replace('[adopted]', adoptedWord)
+  const introHtml = escapeHtml(intro)
+    .replace(escapeHtml(waitingWord), `<em>${escapeHtml(waitingWord)}</em>`)
+    .replace(escapeHtml(adoptedWord), `<em>${escapeHtml(adoptedWord)}</em>`)
   const resourcesIntro = t('email.adoptionWelcome.resourcesIntro', locale)
   const section1Title = t('email.adoptionWelcome.section1Title', locale)
+  const section2Intro = t('email.adoptionWelcome.section2Intro', locale)
   const resourcesButton = t('email.adoptionWelcome.resourcesButton', locale)
   const section1Item1 = t('email.adoptionWelcome.section1Item1', locale)
   const section1Item2 = t('email.adoptionWelcome.section1Item2', locale)
@@ -95,7 +102,7 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
         <h2 style="color: #3B463D; margin-top: 0; font-weight: 500;">${escapeHtml(greeting)}</h2>
 
         <p style="font-size: 16px; margin: 20px 0; color: #3B463D;">
-          ${escapeHtml(intro)}
+          ${introHtml}
         </p>
 
         <p style="font-size: 16px; margin: 20px 0; color: #3B463D;">
@@ -121,14 +128,17 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
         </table>
 
         <h3 style="color: #3B463D; font-size: 18px; margin: 30px 0 15px; font-weight: 600;">${escapeHtml(section2Title)}</h3>
-        <div style="text-align: center; margin: 20px 0;">
-          <a href="${resourcesUrl}" style="background: #3B463D; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: 500; font-size: 16px; display: inline-block; border: 2px solid #3B463D;">${escapeHtml(resourcesButton)}</a>
-        </div>
+        <p style="font-size: 16px; margin: 0 0 10px; color: #3B463D;">
+          ${escapeHtml(section2Intro)}
+        </p>
         <ul style="font-size: 15px; color: #3B463D; margin: 10px 0 20px; padding-${dir === 'rtl' ? 'right' : 'left'}: 20px;">
           <li style="margin-bottom: 8px;">${escapeHtml(section1Item1)}</li>
           <li style="margin-bottom: 8px;">${escapeHtml(section1Item2)}</li>
           <li style="margin-bottom: 8px;">${escapeHtml(section1Item3)}</li>
         </ul>
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="${resourcesUrl}" style="background: #3B463D; color: #ffffff; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: 500; font-size: 16px; display: inline-block; border: 2px solid #3B463D;">${escapeHtml(resourcesButton)}</a>
+        </div>
 
         <h3 style="color: #3B463D; font-size: 18px; margin: 30px 0 15px; font-weight: 600;">${escapeHtml(section3Title)}</h3>
         <p style="font-size: 16px; margin: 0 0 15px; color: #3B463D;">
@@ -197,10 +207,11 @@ ${peopleGroupName}
 
 ${section2Title.toUpperCase()}
 
-  ${resourcesButton}: ${resourcesUrl}
+${section2Intro}
 - ${section1Item1}
 - ${section1Item2}
 - ${section1Item3}
+  ${resourcesButton}: ${resourcesUrl}
 
 ${section3Title.toUpperCase()}
 
