@@ -232,8 +232,6 @@
   <AdoptionSlideover
     v-model:open="showAdoptionSlideover"
     :adoption="selectedAdoption"
-    :title="selectedAdoption?.group_name"
-    :link-to="selectedAdoption ? `/admin/groups/${selectedAdoption.group_id}` : undefined"
     @change="selectGroup(selectedGroup!, false)"
     @delete="removeAdoption"
   />

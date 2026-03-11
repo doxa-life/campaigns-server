@@ -1,10 +1,21 @@
 <template>
-  <USlideover v-model:open="isOpen" side="right" title="Adopted by">
+  <USlideover v-model:open="isOpen" side="right" :title="`Adopted by ${adoption?.group_name || ''}`">
     <template #body>
       <div v-if="adoption" class="slideover-body">
-        <NuxtLink v-if="linkTo" :to="linkTo" class="adoption-link">
-          {{ title }}
-        </NuxtLink>
+        <div class="adoption-links">
+          <div class="adoption-link-row">
+            <span class="label">Group:</span>
+            <NuxtLink :to="`/admin/groups/${adoption.group_id}`" class="adoption-link">
+              {{ adoption.group_name }}
+            </NuxtLink>
+          </div>
+          <div class="adoption-link-row">
+            <span class="label">People Group:</span>
+            <NuxtLink :to="`/admin/people-groups/${adoption.people_group_id}`" class="adoption-link">
+              {{ adoption.people_group_name }}
+            </NuxtLink>
+          </div>
+        </div>
 
         <UFormField label="Status">
           <USelect
@@ -122,8 +133,6 @@ import type { Adoption, AdoptionReport } from '~/types/adoption'
 
 const props = defineProps<{
   adoption: Adoption | null
-  title?: string
-  linkTo?: string
 }>()
 
 const isOpen = defineModel<boolean>('open', { required: true })
@@ -254,12 +263,24 @@ async function makeInactive() {
   gap: 1rem;
 }
 
+.adoption-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.adoption-link-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
 .adoption-link {
   font-weight: 500;
   color: var(--ui-text);
   text-decoration: underline;
   text-underline-offset: 2px;
-  font-size: 1rem;
 }
 
 .info-row {

@@ -223,8 +223,6 @@
   <AdoptionSlideover
     v-model:open="showAdoptionSlideover"
     :adoption="selectedAdoption"
-    :title="selectedAdoption?.people_group_name"
-    :link-to="selectedAdoption?.people_group_slug ? `/${selectedAdoption.people_group_slug}` : undefined"
     @change="refreshGroup"
     @delete="deleteAdoption"
   />

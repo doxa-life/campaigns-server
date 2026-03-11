@@ -6,6 +6,7 @@ export interface AdoptionWelcomeEmailData {
   peopleGroupName: string
   peopleGroupSlug: string
   joshuaProjectId: string | null
+  imbPeid: string | null
   remainingGroupsCount: number
   locale?: string
 }
@@ -36,8 +37,8 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
   const joshuaProjectUrl = data.joshuaProjectId
     ? `https://joshuaproject.net/people_groups/${encodeURIComponent(data.joshuaProjectId)}`
     : null
-  const peoplegroupsOrgUrl = data.joshuaProjectId
-    ? `https://www.peoplegroups.org/explore/groupdetails.aspx?peid=${encodeURIComponent(data.joshuaProjectId)}`
+  const peoplegroupsOrgUrl = data.imbPeid
+    ? `https://peoplegroups.org/people_groups/${encodeURIComponent(data.imbPeid)}/`
     : null
 
   const beforeCount = (data.remainingGroupsCount + 1).toLocaleString()
@@ -54,6 +55,12 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
   const profileButton = t('email.adoptionWelcome.profileButton', locale)
   const learnMore = t('email.adoptionWelcome.learnMore', locale)
   const section2Title = t('email.adoptionWelcome.section2Title', locale)
+  const resourcesPlaceholder = '{{RESOURCES_LINK}}'
+  const section2IntroRaw = t('email.adoptionWelcome.section2Intro', locale, { resourcesUrl: resourcesPlaceholder })
+  const section2IntroHtml = escapeHtml(section2IntroRaw).replace(
+    escapeHtml(resourcesPlaceholder),
+    `<a href="${resourcesUrl}" style="color: #3B463D; text-decoration: underline;">${escapeHtml(resourcesUrl)}</a>`
+  )
   const section2Intro = t('email.adoptionWelcome.section2Intro', locale, { resourcesUrl })
   const section2Item1 = t('email.adoptionWelcome.section2Item1', locale)
   const section2Item2 = t('email.adoptionWelcome.section2Item2', locale)
@@ -122,7 +129,7 @@ ${externalLinksHtml}
 
         <h3 style="color: #3B463D; font-size: 18px; margin: 30px 0 15px; font-weight: 600;">${escapeHtml(section2Title)}</h3>
         <p style="font-size: 16px; margin: 0 0 10px; color: #3B463D;">
-          ${escapeHtml(section2Intro)}
+          ${section2IntroHtml}
         </p>
         <ul style="font-size: 15px; color: #3B463D; margin: 10px 0 20px; padding-${dir === 'rtl' ? 'right' : 'left'}: 20px;">
           <li style="margin-bottom: 8px;">${escapeHtml(section2Item1)}</li>

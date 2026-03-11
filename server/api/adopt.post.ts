@@ -68,24 +68,29 @@ export default defineEventHandler(async (event) => {
       await subscriberService.updateSubscriber(subscriber.id, { role })
     }
 
-    // Find existing group by name or create new one
+    // Find a group this subscriber is already connected to with the same name,
+    // or create a new one. This avoids collisions between different churches
+    // that happen to share a name.
     const groupName = churchName || fullName
-    const existingGroups = await groupService.getAll({ search: groupName, limit: 1 })
-    const existingMatch = existingGroups.find(g => g.name.toLowerCase() === groupName.toLowerCase())
-
-    const group = existingMatch ?? await groupService.create({
-      name: groupName,
-      primary_subscriber_id: subscriber.id,
-      country: body.country?.trim() || null
-    })
-
-    // Connect subscriber to group (if not already connected)
     const existingConnections = await connectionService.getConnections('subscriber', subscriber.id, 'group')
-    const alreadyConnected = existingConnections.some(c =>
-      (c.from_type === 'subscriber' && c.from_id === subscriber.id && c.to_type === 'group' && c.to_id === group.id) ||
-      (c.to_type === 'subscriber' && c.to_id === subscriber.id && c.from_type === 'group' && c.from_id === group.id)
-    )
-    if (!alreadyConnected) {
+    const connectedGroupIds = new Set(existingConnections.map(c =>
+      c.from_type === 'subscriber' ? c.to_id : c.from_id
+    ))
+
+    let group = null
+    if (connectedGroupIds.size > 0) {
+      const matchingGroups = await groupService.getAll({ search: groupName, limit: 50 })
+      group = matchingGroups.find(g =>
+        g.name.toLowerCase() === groupName.toLowerCase() && connectedGroupIds.has(g.id)
+      ) ?? null
+    }
+
+    if (!group) {
+      group = await groupService.create({
+        name: groupName,
+        primary_subscriber_id: subscriber.id,
+        country: body.country?.trim() || null
+      })
       await connectionService.create({
         from_type: 'subscriber',
         from_id: subscriber.id,
@@ -104,13 +109,22 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    // Create the adoption
-    const adoption = await peopleGroupAdoptionService.create({
-      people_group_id: peopleGroup.id,
-      group_id: group.id,
-      status: 'active',
-      show_publicly: body.confirm_public_display ?? false
-    })
+    // Create the adoption (handle duplicate gracefully)
+    let adoption
+    try {
+      adoption = await peopleGroupAdoptionService.create({
+        people_group_id: peopleGroup.id,
+        group_id: group.id,
+        status: 'active',
+        show_publicly: body.confirm_public_display ?? false
+      })
+    } catch (err: any) {
+      if (err.code === '23505') {
+        // Already adopted by this group — return success silently
+        return { success: true }
+      }
+      throw err
+    }
 
     // Send adoption welcome email (fire-and-forget)
     const db = getDatabase()
@@ -120,12 +134,18 @@ export default defineEventHandler(async (event) => {
     ])
     const remainingCount = Number(totalRow.count) - Number(adoptedRow.count)
 
+    const metadata = typeof peopleGroup.metadata === 'string'
+      ? JSON.parse(peopleGroup.metadata)
+      : peopleGroup.metadata || {}
+    const imbPeid = metadata.imb_peid || null
+
     sendAdoptionWelcomeEmail({
       to: email,
       firstName,
       peopleGroupName: peopleGroup.name,
       peopleGroupSlug: peopleGroup.slug!,
       joshuaProjectId: peopleGroup.joshua_project_id,
+      imbPeid,
       remainingGroupsCount: remainingCount,
       locale: language,
     }).catch(err => console.error('Failed to send adoption welcome email:', err))
@@ -136,10 +156,6 @@ export default defineEventHandler(async (event) => {
       update_token: adoption.update_token
     }
   } catch (error: any) {
-    // Duplicate adoption
-    if (error.code === '23505') {
-      throw createError({ statusCode: 409, statusMessage: 'This people group is already adopted by this group' })
-    }
     handleApiError(error, 'Failed to process adoption form', 500)
   }
 })
