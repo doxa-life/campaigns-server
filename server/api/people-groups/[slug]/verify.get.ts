@@ -10,7 +10,6 @@ import { sendWelcomeEmail } from '#server/utils/welcome-email'
 import { pendingAdoptionService } from '#server/database/pending-adoptions'
 import { peopleGroupAdoptionService } from '#server/database/people-group-adoptions'
 import { sendAdoptionWelcomeEmail } from '#server/utils/adoption-welcome-email'
-import { getDatabase } from '#server/database/db'
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
@@ -58,7 +57,7 @@ export default defineEventHandler(async (event) => {
     subscriber = await subscriberService.getSubscriberById(result.contactMethod.subscriber_id)
 
     // Send welcome email (only if this was a new verification, not already verified)
-    if (result.error !== 'Already verified' && subscriber) {
+    if (!result.alreadyVerified && subscriber) {
       const subscriptions = await peopleGroupSubscriptionService.getAllBySubscriberAndPeopleGroup(
         result.contactMethod.subscriber_id,
         peopleGroup.id
@@ -79,6 +78,12 @@ export default defineEventHandler(async (event) => {
 
     // Cross-flow: activate any pending adoptions for this contact method
     const pendingAdoptions = await pendingAdoptionService.getByContactMethodId(result.contactMethod.id)
+
+    // Compute remaining count once (only needed for welcome emails on new verifications)
+    const remainingCount = !result.alreadyVerified && pendingAdoptions.length > 0
+      ? await peopleGroupService.getRemainingUnadoptedCount()
+      : 0
+
     for (const pending of pendingAdoptions) {
       const formData = typeof pending.form_data === 'string'
         ? JSON.parse(pending.form_data)
@@ -95,16 +100,9 @@ export default defineEventHandler(async (event) => {
         if (err.code !== '23505') throw err
       }
 
-      if (result.error !== 'Already verified') {
+      if (!result.alreadyVerified) {
         const adoptionPeopleGroup = await peopleGroupService.getPeopleGroupById(pending.people_group_id)
         if (adoptionPeopleGroup) {
-          const db = getDatabase()
-          const [totalRow, adoptedRow] = await Promise.all([
-            db.prepare('SELECT COUNT(*) as count FROM people_groups').get(),
-            db.prepare("SELECT COUNT(DISTINCT people_group_id) as count FROM people_group_adoptions WHERE status = 'active'").get(),
-          ])
-          const remainingCount = Number(totalRow.count) - Number(adoptedRow.count)
-
           sendAdoptionWelcomeEmail({
             to: result.contactMethod.value,
             firstName: formData.first_name || '',
@@ -126,6 +124,6 @@ export default defineEventHandler(async (event) => {
     people_group_name: peopleGroup.name,
     people_group_slug: slug,
     tracking_id: subscriber?.tracking_id,
-    already_verified: result.error === 'Already verified'
+    already_verified: result.alreadyVerified === true
   }
 })

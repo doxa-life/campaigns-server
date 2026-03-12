@@ -7,7 +7,6 @@ import { pendingAdoptionService } from '#server/database/pending-adoptions'
 import { peopleGroupAdoptionService } from '#server/database/people-group-adoptions'
 import { peopleGroupService } from '#server/database/people-groups'
 import { sendAdoptionWelcomeEmail } from '#server/utils/adoption-welcome-email'
-import { getDatabase } from '#server/database/db'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -43,6 +42,11 @@ export default defineEventHandler(async (event) => {
   let firstPeopleGroupName: string | null = null
   let firstPeopleGroupSlug: string | null = null
 
+  // Compute remaining count once (only needed for welcome emails on new verifications)
+  const remainingCount = !result.alreadyVerified && pendingAdoptions.length > 0
+    ? await peopleGroupService.getRemainingUnadoptedCount()
+    : 0
+
   for (const pending of pendingAdoptions) {
     const formData = typeof pending.form_data === 'string'
       ? JSON.parse(pending.form_data)
@@ -70,14 +74,7 @@ export default defineEventHandler(async (event) => {
       }
 
       // Send adoption welcome email (only for new verifications)
-      if (result.error !== 'Already verified') {
-        const db = getDatabase()
-        const [totalRow, adoptedRow] = await Promise.all([
-          db.prepare('SELECT COUNT(*) as count FROM people_groups').get(),
-          db.prepare("SELECT COUNT(DISTINCT people_group_id) as count FROM people_group_adoptions WHERE status = 'active'").get(),
-        ])
-        const remainingCount = Number(totalRow.count) - Number(adoptedRow.count)
-
+      if (!result.alreadyVerified) {
         sendAdoptionWelcomeEmail({
           to: result.contactMethod.value,
           firstName: formData.first_name || '',
@@ -98,6 +95,6 @@ export default defineEventHandler(async (event) => {
     success: true,
     people_group_name: firstPeopleGroupName,
     people_group_slug: firstPeopleGroupSlug,
-    already_verified: result.error === 'Already verified'
+    already_verified: result.alreadyVerified === true
   }
 })

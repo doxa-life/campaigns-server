@@ -30,7 +30,7 @@ class PendingAdoptionService {
     const stmt = this.db.prepare(`
       INSERT INTO pending_adoptions (contact_method_id, people_group_id, group_id, people_group_slug, form_data)
       VALUES (?, ?, ?, ?, ?)
-      ON CONFLICT (people_group_id, group_id)
+      ON CONFLICT (contact_method_id, people_group_id, group_id)
       DO UPDATE SET
         form_data = EXCLUDED.form_data,
         contact_method_id = EXCLUDED.contact_method_id,

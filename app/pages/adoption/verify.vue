@@ -1,34 +1,43 @@
 <template>
-  <div class="verify-page">
-    <div class="container">
-      <div v-if="pending" class="status-card">
-        <div class="spinner"></div>
+  <div class="min-h-[calc(100vh-200px)] flex items-center justify-center p-8">
+    <div class="max-w-[500px] w-full">
+      <UCard v-if="pending" class="text-center py-8">
+        <div class="w-10 h-10 border-4 border-[var(--ui-border)] border-t-[var(--ui-text)] rounded-full animate-spin mx-auto mb-4" />
         <p>{{ $t('adoption.verify.verifying') }}</p>
-      </div>
+      </UCard>
 
-      <div v-else-if="error" class="status-card error">
-        <div class="status-header">
-          <UIcon name="i-lucide-x-circle" class="status-icon" />
-          <h1>{{ $t('adoption.verify.error.title') }}</h1>
+      <UCard v-else-if="error" class="text-center py-8">
+        <div class="flex items-center justify-center gap-3 mb-6">
+          <UIcon name="i-lucide-x-circle" class="text-4xl text-[var(--ui-text)] shrink-0" />
+          <h1 class="text-2xl font-bold m-0">{{ $t('adoption.verify.error.title') }}</h1>
         </div>
-        <p class="message">{{ errorMessage }}</p>
-      </div>
+        <p class="text-[var(--ui-text-muted)] mb-8 leading-relaxed">{{ errorMessage }}</p>
+      </UCard>
 
-      <div v-else class="status-card success">
-        <div class="status-header">
-          <UIcon name="i-lucide-check-circle" class="status-icon" />
-          <h1>{{ data?.already_verified ? $t('adoption.verify.alreadyVerified.title') : $t('adoption.verify.success.title') }}</h1>
+      <UCard v-else class="text-center py-8">
+        <div class="flex items-center justify-center gap-3 mb-6">
+          <UIcon name="i-lucide-check-circle" class="text-4xl text-[var(--ui-text)] shrink-0" />
+          <h1 class="text-2xl font-bold m-0">{{ data?.already_verified ? $t('adoption.verify.alreadyVerified.title') : $t('adoption.verify.success.title') }}</h1>
         </div>
-        <p class="message">{{ data?.already_verified ? $t('adoption.verify.alreadyVerified.message', { peopleGroupName }) : $t('adoption.verify.success.message', { peopleGroupName }) }}</p>
-        <div v-if="data?.people_group_slug" class="button-group">
-          <a :href="`https://doxa.life/research/${data.people_group_slug}/resources/`" class="btn-grey">
-            {{ $t('adoption.verify.viewResources') }}
-          </a>
-          <NuxtLink :to="localePath(`/${data.people_group_slug}`)" class="btn-grey btn-outline">
-            {{ $t('adoption.verify.viewPeopleGroup') }}
-          </NuxtLink>
+        <p class="text-[var(--ui-text-muted)] mb-8 leading-relaxed">{{ data?.already_verified ? $t('adoption.verify.alreadyVerified.message', { peopleGroupName }) : $t('adoption.verify.success.message', { peopleGroupName }) }}</p>
+        <div v-if="data?.people_group_slug" class="flex flex-col gap-3 items-center">
+          <UButton
+            :to="`https://doxa.life/research/${data.people_group_slug}/resources/`"
+            external
+            color="neutral"
+            variant="solid"
+            size="lg"
+            :label="$t('adoption.verify.viewResources')"
+          />
+          <UButton
+            :to="localePath(`/${data.people_group_slug}`)"
+            color="neutral"
+            variant="outline"
+            size="lg"
+            :label="$t('adoption.verify.viewPeopleGroup')"
+          />
         </div>
-      </div>
+      </UCard>
     </div>
   </div>
 </template>
@@ -57,111 +66,3 @@ useHead(() => ({
   title: `${t('adoption.verify.pageTitle')} - ${t('app.title')}`
 }))
 </script>
-
-<style scoped>
-.verify-page {
-  min-height: calc(100vh - 200px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.container {
-  max-width: 500px;
-  width: 100%;
-}
-
-.status-card {
-  background: var(--bg-soft);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 3rem 2rem;
-  text-align: center;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--border);
-  border-top: 4px solid var(--text);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.status-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.status-icon {
-  font-size: 2.5rem;
-  color: var(--text);
-  flex-shrink: 0;
-}
-
-.status-card h1 {
-  font-size: 1.75rem;
-  margin: 0;
-}
-
-.message {
-  color: var(--text-muted, #666);
-  margin-bottom: 2rem;
-  line-height: 1.6;
-}
-
-.btn-grey {
-  display: inline-block;
-  background: #555;
-  color: white;
-  border: 2px solid #555;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-
-.btn-grey:hover {
-  background: #444;
-  border-color: #444;
-  transform: translateY(-1px);
-}
-
-.btn-outline {
-  background: transparent;
-  color: #555;
-}
-
-.btn-outline:hover {
-  background: #555;
-  color: white;
-}
-
-.button-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-@media (max-width: 768px) {
-  .status-card {
-    padding: 2rem 1.5rem;
-  }
-
-  .status-card h1 {
-    font-size: 1.5rem;
-  }
-}
-</style>

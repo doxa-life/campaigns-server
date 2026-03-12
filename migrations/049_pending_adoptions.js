@@ -19,7 +19,7 @@ export default class PendingAdoptionsMigration extends BaseMigration {
         form_data JSONB NOT NULL DEFAULT '{}',
         created_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
         updated_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
-        UNIQUE(people_group_id, group_id)
+        UNIQUE(contact_method_id, people_group_id, group_id)
       )
     `)
     await this.exec(sql, `CREATE INDEX IF NOT EXISTS idx_pending_adoptions_contact_method_id ON pending_adoptions(contact_method_id)`)
