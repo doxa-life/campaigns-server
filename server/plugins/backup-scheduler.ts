@@ -1,6 +1,22 @@
 import { Cron } from 'croner'
 import { createDatabaseBackup } from '../utils/backup'
 
+async function claimBackupLock(dateKey: string): Promise<boolean> {
+  const lockKey = `backup-scheduler:${dateKey}`
+  const [row] = await sql`
+    INSERT INTO activity_logs (id, timestamp, event_type, metadata)
+    VALUES (
+      md5(${lockKey})::uuid,
+      ${Date.now()},
+      'BACKUP_SCHEDULER_LOCK',
+      ${{ date: dateKey }}
+    )
+    ON CONFLICT (id) DO NOTHING
+    RETURNING id
+  `
+  return !!row
+}
+
 /**
  * Nitro plugin to schedule automatic daily database backups at 2 AM UTC
  */
@@ -20,6 +36,9 @@ export default defineNitroPlugin((nitroApp) => {
   console.log('📅 Scheduling automatic database backups (daily at 2 AM UTC)')
 
   const task = new Cron('0 2 * * *', { timezone: 'UTC' }, async () => {
+    const dateKey = new Date().toISOString().split('T')[0]!
+    if (!await claimBackupLock(dateKey)) return
+
     console.log('🔄 Starting scheduled database backup...')
 
     try {

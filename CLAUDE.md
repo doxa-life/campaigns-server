@@ -215,6 +215,16 @@ Runtime config in `nuxt.config.ts` pulls from environment variables:
 - `S3_*` - S3/Spaces configuration
 - `NUXT_PUBLIC_SITE_URL` - Public URL for links in emails
 
+## Scheduled Tasks (Multi-Instance Safety)
+
+The app runs on multiple DigitalOcean App Platform instances. All schedulers must be safe to run concurrently. Two patterns are used:
+
+### High-volume polling tasks (e.g., reminder emails)
+Use `SELECT ... FOR UPDATE OF <table> SKIP LOCKED LIMIT <batch>` inside a short transaction to claim and advance rows atomically. Each instance processes a different batch. See `claimSubscriptionsDueForReminder()` in `server/database/people-group-subscriptions.ts`.
+
+### Singleton cron/periodic tasks (e.g., backups, followups, activity emails)
+Use `claimLock` — INSERT a deterministic UUID (`md5(lockKey)::uuid`) into `activity_logs` with `ON CONFLICT (id) DO NOTHING`. Only the instance whose INSERT returns a row proceeds. Lock key format: `{scheduler-name}:{period-key}` (e.g., `backup-scheduler:2026-03-12`).
+
 ## Documentation
 
 Reference documentation in `documentation/` folder:

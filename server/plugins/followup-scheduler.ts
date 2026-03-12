@@ -60,8 +60,26 @@ export default defineNitroPlugin((nitroApp) => {
   })
 })
 
+async function claimFollowupLock(hourKey: string): Promise<boolean> {
+  const lockKey = `followup-scheduler:${hourKey}`
+  const [row] = await sql`
+    INSERT INTO activity_logs (id, timestamp, event_type, metadata)
+    VALUES (
+      md5(${lockKey})::uuid,
+      ${Date.now()},
+      'FOLLOWUP_SCHEDULER_LOCK',
+      ${{ hourKey }}
+    )
+    ON CONFLICT (id) DO NOTHING
+    RETURNING id
+  `
+  return !!row
+}
+
 async function processFollowups() {
   const now = new Date()
+  const hourKey = now.toISOString().slice(0, 13) // YYYY-MM-DDTHH
+  if (!await claimFollowupLock(hourKey)) return
 
   // Get all active subscriptions with their activity data
   const subscriptions = await followupTrackingService.getActiveSubscriptionsForFollowup()
