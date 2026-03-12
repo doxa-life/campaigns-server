@@ -69,8 +69,9 @@ export default defineNitroPlugin((nitroApp) => {
 
 /**
  * Process reminders in batches using claim-then-process pattern.
- * Each batch atomically locks and advances next_reminder_utc,
- * so multiple instances process different subscriptions.
+ * Each batch atomically locks rows and sets claimed_at so other instances skip them.
+ * After successful send, next_reminder_utc is advanced and claimed_at is cleared.
+ * On failure (or crash), claimed_at expires after 5 minutes and the row becomes claimable again.
  */
 async function processReminders() {
   const todayDate = new Date().toISOString().split('T')[0]!
@@ -112,7 +113,10 @@ async function processReminders() {
           try {
             // Safety net: check if we already sent today
             const alreadySent = await reminderSentService.wasSent(subscription.id, todayDate)
-            if (alreadySent) continue
+            if (alreadySent) {
+              await peopleGroupSubscriptionService.setNextReminderAfterSend(subscription.id)
+              continue
+            }
 
             const emailSent = await sendPrayerReminderEmail({
               to: subscription.email_value,
@@ -129,6 +133,7 @@ async function processReminders() {
 
             if (emailSent) {
               await reminderSentService.recordSent(subscription.id, todayDate)
+              await peopleGroupSubscriptionService.setNextReminderAfterSend(subscription.id)
               console.log(`  ✅ Sent reminder to ${subscription.email_value} for ${subscription.people_group_name}`)
             } else {
               console.error(`  ❌ Failed to send reminder to ${subscription.email_value}`)

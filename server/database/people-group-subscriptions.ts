@@ -341,7 +341,8 @@ class PeopleGroupSubscriptionService {
   /**
    * Claim a batch of subscriptions due for a reminder using row-level locking.
    * Uses FOR UPDATE SKIP LOCKED so multiple instances can process different batches concurrently.
-   * Advances next_reminder_utc inside the transaction before returning.
+   * Sets claimed_at inside the transaction. The caller is responsible for advancing
+   * next_reminder_utc after successful send, so failed sends can be retried.
    */
   async claimSubscriptionsDueForReminder(batchSize: number = 50): Promise<SubscriptionDueForReminder[]> {
     const globalStartDate = await appConfigService.getConfig<string>('global_campaign_start_date')
@@ -372,6 +373,7 @@ class PeopleGroupSubscriptionService {
           AND cs.status = 'active'
           AND cs.delivery_method = 'email'
           AND cm.verified = true
+          AND (cs.claimed_at IS NULL OR cs.claimed_at < CURRENT_TIMESTAMP AT TIME ZONE 'UTC' - INTERVAL '5 minutes')
         ORDER BY cs.next_reminder_utc ASC
         FOR UPDATE OF cs SKIP LOCKED
         LIMIT ?
@@ -382,21 +384,14 @@ class PeopleGroupSubscriptionService {
         return []
       }
 
-      for (const sub of claimed) {
-        const daysOfWeek = sub.days_of_week ? JSON.parse(sub.days_of_week) : undefined
-        const nextUtc = calculateNextReminderAfterSend({
-          timezone: sub.timezone || 'UTC',
-          timePreference: sub.time_preference,
-          frequency: sub.frequency,
-          daysOfWeek
-        })
-        const updateStmt = tx.prepare(`
-          UPDATE campaign_subscriptions
-          SET next_reminder_utc = ?, updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-          WHERE id = ?
-        `)
-        await updateStmt.run(nextUtc.toISOString(), sub.id)
-      }
+      const ids = claimed.map(s => s.id)
+      const placeholders = ids.map(() => '?').join(', ')
+      const updateStmt = tx.prepare(`
+        UPDATE campaign_subscriptions
+        SET claimed_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+        WHERE id IN (${placeholders})
+      `)
+      await updateStmt.run(...ids)
 
       return claimed
     })
@@ -447,7 +442,7 @@ class PeopleGroupSubscriptionService {
   async updateNextReminderUtc(subscriptionId: number, nextUtc: Date): Promise<void> {
     const stmt = this.db.prepare(`
       UPDATE campaign_subscriptions
-      SET next_reminder_utc = ?, updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      SET next_reminder_utc = ?, claimed_at = NULL, updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE id = ?
     `)
     await stmt.run(nextUtc.toISOString(), subscriptionId)
