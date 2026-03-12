@@ -339,6 +339,70 @@ class PeopleGroupSubscriptionService {
   }
 
   /**
+   * Claim a batch of subscriptions due for a reminder using row-level locking.
+   * Uses FOR UPDATE SKIP LOCKED so multiple instances can process different batches concurrently.
+   * Advances next_reminder_utc inside the transaction before returning.
+   */
+  async claimSubscriptionsDueForReminder(batchSize: number = 50): Promise<SubscriptionDueForReminder[]> {
+    const globalStartDate = await appConfigService.getConfig<string>('global_campaign_start_date')
+    if (globalStartDate) {
+      const today = new Date().toISOString().split('T')[0]
+      if (today! < globalStartDate) {
+        return []
+      }
+    }
+
+    return await this.db.transaction(async (tx) => {
+      const selectStmt = tx.prepare(`
+        SELECT
+          cs.*,
+          s.name as subscriber_name,
+          s.tracking_id as subscriber_tracking_id,
+          s.profile_id as subscriber_profile_id,
+          s.preferred_language as subscriber_language,
+          cm.value as email_value,
+          cm.verified as email_verified,
+          pg.slug as people_group_slug,
+          pg.name as people_group_name
+        FROM campaign_subscriptions cs
+        JOIN subscribers s ON s.id = cs.subscriber_id
+        JOIN people_groups pg ON pg.id = cs.people_group_id
+        LEFT JOIN contact_methods cm ON cm.subscriber_id = s.id AND cm.type = 'email'
+        WHERE cs.next_reminder_utc <= CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+          AND cs.status = 'active'
+          AND cs.delivery_method = 'email'
+          AND cm.verified = true
+        ORDER BY cs.next_reminder_utc ASC
+        FOR UPDATE OF cs SKIP LOCKED
+        LIMIT ?
+      `)
+      const claimed = await selectStmt.all(batchSize) as SubscriptionDueForReminder[]
+
+      if (claimed.length === 0) {
+        return []
+      }
+
+      for (const sub of claimed) {
+        const daysOfWeek = sub.days_of_week ? JSON.parse(sub.days_of_week) : undefined
+        const nextUtc = calculateNextReminderAfterSend({
+          timezone: sub.timezone || 'UTC',
+          timePreference: sub.time_preference,
+          frequency: sub.frequency,
+          daysOfWeek
+        })
+        const updateStmt = tx.prepare(`
+          UPDATE campaign_subscriptions
+          SET next_reminder_utc = ?, updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+          WHERE id = ?
+        `)
+        await updateStmt.run(nextUtc.toISOString(), sub.id)
+      }
+
+      return claimed
+    })
+  }
+
+  /**
    * Get subscriptions that are due for a reminder.
    * Only returns subscriptions where:
    * - next_reminder_utc <= now

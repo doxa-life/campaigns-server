@@ -59,20 +59,30 @@ export default defineNitroPlugin((nitroApp) => {
 
   console.log('📊 Activity email scheduler initialized (daily at 7 AM UTC)')
 
-  async function alreadySent(frequency: Frequency, dateKey: string): Promise<boolean> {
-    const [existing] = await sql`
-      SELECT 1 FROM activity_logs
-      WHERE event_type = 'ACTIVITY_EMAIL_SENT'
-        AND metadata->>'frequency' = ${frequency}
-        AND metadata->>'date' = ${dateKey}
-      LIMIT 1
+  /**
+   * Atomically claim the lock for a given frequency+date.
+   * Uses INSERT ... ON CONFLICT on a deterministic UUID so only one instance
+   * wins across multiple server processes.
+   */
+  async function claimLock(frequency: Frequency, dateKey: string): Promise<boolean> {
+    const lockKey = `activity-email:${frequency}:${dateKey}`
+    const [row] = await sql`
+      INSERT INTO activity_logs (id, timestamp, event_type, metadata)
+      VALUES (
+        md5(${lockKey})::uuid,
+        ${Date.now()},
+        'ACTIVITY_EMAIL_LOCK',
+        ${{ frequency, date: dateKey }}
+      )
+      ON CONFLICT (id) DO NOTHING
+      RETURNING id
     `
-    return !!existing
+    return !!row
   }
 
   async function sendForFrequency(frequency: Frequency, now: Date) {
     const dateKey = now.toISOString().split('T')[0]!
-    if (await alreadySent(frequency, dateKey)) return
+    if (!await claimLock(frequency, dateKey)) return
 
     try {
       const period = getPeriod(frequency, now)
