@@ -351,6 +351,26 @@
     "yes": "Si",
     "no": "No"
   },
+  "adoption": {
+    "verify": {
+      "pageTitle": "Verifica Adozione",
+      "verifying": "Verifica della tua adozione in corso...",
+      "success": {
+        "title": "Adozione Confermata!",
+        "message": "La tua adozione dei {peopleGroupName} è stata confermata. Benvenuto a bordo!"
+      },
+      "alreadyVerified": {
+        "title": "Già Verificata",
+        "message": "La tua email è già stata verificata."
+      },
+      "error": {
+        "title": "Verifica Fallita",
+        "generic": "Impossibile verificare la tua email. Questo link potrebbe essere già stato usato o è scaduto."
+      },
+      "viewPeopleGroup": "Visualizza pagina di iscrizione alla preghiera",
+      "viewResources": "Visualizza risorse di adozione"
+    }
+  },
   "followupPage": {
     "recording": "Registrazione della tua risposta...",
     "error": {
@@ -448,6 +468,17 @@
       "thursday": "Giovedi",
       "friday": "Venerdi",
       "saturday": "Sabato"
+    },
+    "adoptionVerification": {
+      "subject": "Verifica la tua email per adottare i {peopleGroupName}",
+      "header": "Verifica la Tua Email",
+      "thankYou": "Grazie per il tuo impegno nell'adottare i {peopleGroupName}.",
+      "pleaseVerify": "Verifica il tuo indirizzo email cliccando il pulsante qui sotto per confermare la tua adozione:",
+      "verifyButton": "Verifica Email",
+      "linkInstructions": "Se il pulsante non funziona, puoi anche copiare e incollare questo link nel tuo browser:",
+      "note": "Nota:",
+      "expiration": "Questo link di verifica scadrà tra 7 giorni.",
+      "ignoreMessage": "Se non hai inviato un modulo di adozione, puoi ignorare questa email."
     },
     "adoptionWelcome": {
       "subject": "Rapporto DOXA: Il tuo impegno per i {peopleGroupName}",

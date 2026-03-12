@@ -351,6 +351,26 @@
     "yes": "是",
     "no": "否"
   },
+  "adoption": {
+    "verify": {
+      "pageTitle": "验证认领",
+      "verifying": "正在验证您的认领...",
+      "success": {
+        "title": "认领已确认！",
+        "message": "您对{peopleGroupName}的认领已确认。欢迎加入！"
+      },
+      "alreadyVerified": {
+        "title": "已验证",
+        "message": "您的邮箱已经验证过了。"
+      },
+      "error": {
+        "title": "验证失败",
+        "generic": "无法验证您的邮箱。此链接可能已被使用或已过期。"
+      },
+      "viewPeopleGroup": "查看祷告报名页面",
+      "viewResources": "查看领养资源"
+    }
+  },
   "followupPage": {
     "recording": "正在记录您的回复...",
     "error": {
@@ -448,6 +468,17 @@
       "thursday": "周四",
       "friday": "周五",
       "saturday": "周六"
+    },
+    "adoptionVerification": {
+      "subject": "验证您的邮箱以认领{peopleGroupName}",
+      "header": "验证您的邮箱",
+      "thankYou": "感谢您承诺认领{peopleGroupName}。",
+      "pleaseVerify": "请点击下方按钮验证您的邮箱地址以确认您的认领：",
+      "verifyButton": "验证邮箱",
+      "linkInstructions": "如果按钮无法使用，您也可以复制并粘贴此链接到浏览器：",
+      "note": "注意：",
+      "expiration": "此验证链接将在7天后过期。",
+      "ignoreMessage": "如果您没有提交认领表单，可以安全地忽略此邮件。"
     },
     "adoptionWelcome": {
       "subject": "DOXA简报：您对{peopleGroupName}的承诺",

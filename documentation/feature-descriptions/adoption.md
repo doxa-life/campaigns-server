@@ -67,9 +67,9 @@ When the form is submitted, the system automatically:
 1. Finds or creates a subscriber record for the contact
 2. Finds or creates a group (matched by name, so returning churches link to their existing group)
 3. Connects the subscriber to the group as a champion
-4. Creates the adoption as active immediately
-5. Grants communication consent based on the submitter's choices
-6. Sends a welcome email in the submitter's preferred language
+4. Grants communication consent based on the submitter's choices
+5. **If the email is already verified** (returning user): creates the adoption as active immediately and sends the welcome email
+6. **If the email is not yet verified** (new user): creates a pending adoption record, sends a verification email, and only creates the real adoption after the user clicks the verification link
 
 ### Admin-created adoptions
 
@@ -79,6 +79,22 @@ Admins can also create adoptions manually:
 2. Create an adoption from the group page or the people group page, selecting the other side of the link
 3. The adoption starts as active by default
 4. Toggle "show publicly" to control whether the group's name appears on the people group's public page
+
+## Email verification
+
+New users (with unverified emails) must verify their email before the adoption becomes active. The flow works as follows:
+
+1. User submits the adoption form
+2. The system creates a pending adoption record (stored in `pending_adoptions` table) and sends a verification email
+3. The verification email contains a link to `/adoption/verify?token=xxx`
+4. When the user clicks the link, the system verifies the email, converts all pending adoptions into real active adoptions, and sends the welcome email
+5. The verification token expires after 7 days
+
+**Returning users** (those whose email was previously verified through an adoption or subscription) skip verification entirely — their adoption is created immediately.
+
+**Cross-flow verification**: If a user adopts a people group (creating a pending adoption) and then subscribes to prayer reminders and verifies through the subscription flow, the subscription verification endpoint also processes any pending adoptions for that contact method.
+
+**Duplicate submissions**: If the same group submits the adoption form again before verifying, the pending record is updated and a new verification token is issued. The previous token becomes invalid.
 
 ## Welcome email
 

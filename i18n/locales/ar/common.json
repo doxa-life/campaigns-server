@@ -351,6 +351,26 @@
     "yes": "نعم",
     "no": "لا"
   },
+  "adoption": {
+    "verify": {
+      "pageTitle": "تحقق من التبنّي",
+      "verifying": "جارٍ التحقق من تبنّيك...",
+      "success": {
+        "title": "تم تأكيد التبنّي!",
+        "message": "تم تأكيد تبنّيك لـ {peopleGroupName}. مرحباً بك!"
+      },
+      "alreadyVerified": {
+        "title": "تم التحقق مسبقاً",
+        "message": "تم التحقق من بريدك الإلكتروني بالفعل."
+      },
+      "error": {
+        "title": "فشل التحقق",
+        "generic": "تعذر التحقق من بريدك الإلكتروني. ربما تم استخدام هذا الرابط بالفعل أو انتهت صلاحيته."
+      },
+      "viewPeopleGroup": "عرض صفحة التسجيل للصلاة",
+      "viewResources": "عرض موارد التبني"
+    }
+  },
   "followupPage": {
     "recording": "جارٍ تسجيل ردك...",
     "error": {
@@ -448,6 +468,17 @@
       "thursday": "الخميس",
       "friday": "الجمعة",
       "saturday": "السبت"
+    },
+    "adoptionVerification": {
+      "subject": "تحقق من بريدك الإلكتروني لتبنّي {peopleGroupName}",
+      "header": "تحقق من بريدك الإلكتروني",
+      "thankYou": "شكراً لالتزامك بتبنّي {peopleGroupName}.",
+      "pleaseVerify": "يرجى التحقق من عنوان بريدك الإلكتروني بالنقر على الزر أدناه لتأكيد تبنّيك:",
+      "verifyButton": "تحقق من البريد الإلكتروني",
+      "linkInstructions": "إذا لم يعمل الزر، يمكنك أيضاً نسخ ولصق هذا الرابط في متصفحك:",
+      "note": "ملاحظة:",
+      "expiration": "ستنتهي صلاحية رابط التحقق هذا خلال 7 أيام.",
+      "ignoreMessage": "إذا لم تقدم نموذج تبنّي، يمكنك تجاهل هذا البريد الإلكتروني بأمان."
     },
     "adoptionWelcome": {
       "subject": "تقرير DOXA: التزامكم تجاه {peopleGroupName}",

@@ -351,6 +351,26 @@
     "yes": "Yes",
     "no": "No"
   },
+  "adoption": {
+    "verify": {
+      "pageTitle": "Verify Adoption",
+      "verifying": "Verifying your adoption...",
+      "success": {
+        "title": "Adoption Confirmed!",
+        "message": "Your adoption of the {peopleGroupName} has been confirmed. Welcome aboard!"
+      },
+      "alreadyVerified": {
+        "title": "Already Verified",
+        "message": "Your email was already verified."
+      },
+      "error": {
+        "title": "Verification Failed",
+        "generic": "Unable to verify your email. This link may have already been used or has expired."
+      },
+      "viewPeopleGroup": "View Prayer Sign Up Page",
+      "viewResources": "View Adoption Resources"
+    }
+  },
   "followupPage": {
     "recording": "Recording your response...",
     "error": {
@@ -448,6 +468,17 @@
       "thursday": "Thursday",
       "friday": "Friday",
       "saturday": "Saturday"
+    },
+    "adoptionVerification": {
+      "subject": "Verify your email to adopt the {peopleGroupName}",
+      "header": "Verify Your Email",
+      "thankYou": "Thank you for your commitment to adopt the {peopleGroupName}.",
+      "pleaseVerify": "Please verify your email address by clicking the button below to confirm your adoption:",
+      "verifyButton": "Verify Email",
+      "linkInstructions": "If the button doesn't work, you can also copy and paste this link into your browser:",
+      "note": "Note:",
+      "expiration": "This verification link will expire in 7 days.",
+      "ignoreMessage": "If you didn't submit an adoption form, you can safely ignore this email."
     },
     "adoptionWelcome": {
       "subject": "DOXA Briefing: Your Commitment to the {peopleGroupName}",

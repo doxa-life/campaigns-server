@@ -351,6 +351,26 @@
     "yes": "Oui",
     "no": "Non"
   },
+  "adoption": {
+    "verify": {
+      "pageTitle": "Vérifier l'Adoption",
+      "verifying": "Vérification de votre adoption...",
+      "success": {
+        "title": "Adoption Confirmée !",
+        "message": "Votre adoption des {peopleGroupName} a été confirmée. Bienvenue à bord !"
+      },
+      "alreadyVerified": {
+        "title": "Déjà Vérifié",
+        "message": "Votre e-mail a déjà été vérifié."
+      },
+      "error": {
+        "title": "Échec de la Vérification",
+        "generic": "Impossible de vérifier votre e-mail. Ce lien a peut-être déjà été utilisé ou a expiré."
+      },
+      "viewPeopleGroup": "Voir la page d'inscription à la prière",
+      "viewResources": "Voir les ressources d'adoption"
+    }
+  },
   "followupPage": {
     "recording": "Enregistrement de votre réponse...",
     "error": {
@@ -448,6 +468,17 @@
       "thursday": "Jeudi",
       "friday": "Vendredi",
       "saturday": "Samedi"
+    },
+    "adoptionVerification": {
+      "subject": "Vérifiez votre e-mail pour adopter les {peopleGroupName}",
+      "header": "Vérifiez Votre E-mail",
+      "thankYou": "Merci pour votre engagement à adopter les {peopleGroupName}.",
+      "pleaseVerify": "Veuillez vérifier votre adresse e-mail en cliquant sur le bouton ci-dessous pour confirmer votre adoption :",
+      "verifyButton": "Vérifier l'E-mail",
+      "linkInstructions": "Si le bouton ne fonctionne pas, vous pouvez également copier et coller ce lien dans votre navigateur :",
+      "note": "Note :",
+      "expiration": "Ce lien de vérification expirera dans 7 jours.",
+      "ignoreMessage": "Si vous n'avez pas soumis de formulaire d'adoption, vous pouvez ignorer cet e-mail."
     },
     "adoptionWelcome": {
       "subject": "Rapport DOXA : Votre engagement envers les {peopleGroupName}",

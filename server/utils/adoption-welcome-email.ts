@@ -113,7 +113,7 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 10px 0 20px;">
           <tr>
             <td width="45%" style="vertical-align: middle; padding-${dir === 'rtl' ? 'left' : 'right'}: 15px;">
-              ${imageUrl ? `<img src="${imageUrl}" alt="${peopleGroupName}" style="width: 100%; border-radius: 8px; display: block;" />` : ''}
+              ${imageUrl ? `<img src="${imageUrl}" alt="${peopleGroupName}" style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 8px; display: block;" />` : ''}
             </td>
             <td width="55%" style="vertical-align: middle;">
               <p style="font-size: 17px; margin: 0 0 10px; color: #3B463D; font-weight: 600;">${peopleGroupName}</p>

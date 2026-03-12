@@ -351,6 +351,26 @@
     "yes": "Da",
     "no": "Nu"
   },
+  "adoption": {
+    "verify": {
+      "pageTitle": "Verifică adoptarea",
+      "verifying": "Se verifică adoptarea ta...",
+      "success": {
+        "title": "Adoptare confirmată!",
+        "message": "Adoptarea ta pentru {peopleGroupName} a fost confirmată. Bine ai venit!"
+      },
+      "alreadyVerified": {
+        "title": "Deja verificat",
+        "message": "Emailul tău a fost deja verificat."
+      },
+      "error": {
+        "title": "Verificarea a eșuat",
+        "generic": "Nu s-a putut verifica emailul. Acest link a fost deja folosit sau a expirat."
+      },
+      "viewPeopleGroup": "Vezi pagina de înscriere la rugăciune",
+      "viewResources": "Vedeți resursele de adopție"
+    }
+  },
   "followupPage": {
     "recording": "Se înregistrează răspunsul tău...",
     "error": {
@@ -444,6 +464,17 @@
       "thursday": "Joi",
       "friday": "Vineri",
       "saturday": "Sâmbătă"
+    },
+    "adoptionVerification": {
+      "subject": "Verifică emailul pentru a adopta {peopleGroupName}",
+      "header": "Verifică-ți emailul",
+      "thankYou": "Mulțumim pentru angajamentul tău de a adopta {peopleGroupName}.",
+      "pleaseVerify": "Te rugăm să verifici adresa de email făcând click pe butonul de mai jos pentru a confirma adoptarea ta:",
+      "verifyButton": "Verifică emailul",
+      "linkInstructions": "Dacă butonul nu funcționează, poți copia și lipi acest link în browser:",
+      "note": "Notă:",
+      "expiration": "Acest link de verificare va expira în 7 zile.",
+      "ignoreMessage": "Dacă nu ai trimis un formular de adoptare, poți ignora acest email în siguranță."
     },
     "adoptionWelcome": {
       "subject": "Raport DOXA: Angajamentul tău pentru {peopleGroupName}",

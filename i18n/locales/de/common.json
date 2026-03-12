@@ -351,6 +351,26 @@
     "yes": "Ja",
     "no": "Nein"
   },
+  "adoption": {
+    "verify": {
+      "pageTitle": "Adoption Bestätigen",
+      "verifying": "Ihre Adoption wird bestätigt...",
+      "success": {
+        "title": "Adoption Bestätigt!",
+        "message": "Ihre Adoption der {peopleGroupName} wurde bestätigt. Willkommen an Bord!"
+      },
+      "alreadyVerified": {
+        "title": "Bereits Bestätigt",
+        "message": "Ihre E-Mail wurde bereits bestätigt."
+      },
+      "error": {
+        "title": "Bestätigung Fehlgeschlagen",
+        "generic": "Ihre E-Mail konnte nicht bestätigt werden. Dieser Link wurde möglicherweise bereits verwendet oder ist abgelaufen."
+      },
+      "viewPeopleGroup": "Gebetsanmeldeseite ansehen",
+      "viewResources": "Adoptionsressourcen ansehen"
+    }
+  },
   "followupPage": {
     "recording": "Ihre Antwort wird aufgezeichnet...",
     "error": {
@@ -448,6 +468,17 @@
       "thursday": "Donnerstag",
       "friday": "Freitag",
       "saturday": "Samstag"
+    },
+    "adoptionVerification": {
+      "subject": "Bestätigen Sie Ihre E-Mail, um die {peopleGroupName} zu adoptieren",
+      "header": "Bestätigen Sie Ihre E-Mail",
+      "thankYou": "Vielen Dank für Ihr Engagement, die {peopleGroupName} zu adoptieren.",
+      "pleaseVerify": "Bitte bestätigen Sie Ihre E-Mail-Adresse, indem Sie auf die Schaltfläche unten klicken, um Ihre Adoption zu bestätigen:",
+      "verifyButton": "E-Mail bestätigen",
+      "linkInstructions": "Wenn die Schaltfläche nicht funktioniert, können Sie auch diesen Link kopieren und in Ihren Browser einfügen:",
+      "note": "Hinweis:",
+      "expiration": "Dieser Bestätigungslink läuft in 7 Tagen ab.",
+      "ignoreMessage": "Wenn Sie kein Adoptionsformular eingereicht haben, können Sie diese E-Mail ignorieren."
     },
     "adoptionWelcome": {
       "subject": "DOXA-Briefing: Ihr Engagement für die {peopleGroupName}",

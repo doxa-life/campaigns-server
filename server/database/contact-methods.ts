@@ -176,6 +176,7 @@ class ContactMethodService {
   async verifyByToken(token: string): Promise<{
     success: boolean
     contactMethod?: ContactMethod
+    alreadyVerified?: boolean
     error?: string
   }> {
     const contactMethod = await this.getByVerificationToken(token)
@@ -185,7 +186,7 @@ class ContactMethodService {
     }
 
     if (contactMethod.verified) {
-      return { success: true, contactMethod, error: 'Already verified' }
+      return { success: true, contactMethod, alreadyVerified: true }
     }
 
     if (this.isTokenExpired(contactMethod)) {

@@ -306,6 +306,14 @@ export class PeopleGroupService {
     return await peopleGroupAccessService.userHasAccess(userId, peopleGroupId)
   }
 
+  async getRemainingUnadoptedCount(): Promise<number> {
+    const [totalRow, adoptedRow] = await Promise.all([
+      this.db.prepare('SELECT COUNT(*) as count FROM people_groups').get() as Promise<{ count: string | number }>,
+      this.db.prepare("SELECT COUNT(DISTINCT people_group_id) as count FROM people_group_adoptions WHERE status = 'active'").get() as Promise<{ count: string | number }>,
+    ])
+    return Number(totalRow.count) - Number(adoptedRow.count)
+  }
+
   async getPeopleGroupsForUser(userId: string): Promise<PeopleGroup[]> {
     const isAdmin = await roleService.isAdmin(userId)
     if (isAdmin) {
