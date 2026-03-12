@@ -34,3 +34,5 @@ logs
 /data/tmp/
 /data/bibles/
 wip
+/scripts/
+/.nuxtrc
