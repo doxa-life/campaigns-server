@@ -19,7 +19,8 @@ export default defineEventHandler(async (event) => {
     db.prepare(`
       SELECT
         TO_CHAR(d.date, 'YYYY-MM-DD') as date,
-        COALESCE(SUM(cs.prayer_duration), 0) as committed
+        COALESCE(SUM(cs.prayer_duration), 0) as committed,
+        COUNT(DISTINCT cs.subscriber_id) as unique_subscribers
       FROM generate_series(
         (NOW() - INTERVAL '29 days')::date,
         NOW()::date,
@@ -34,7 +35,7 @@ export default defineEventHandler(async (event) => {
   ])
 
   const recordedMap = new Map(recordedRows.map((r: any) => [r.date, r]))
-  const committedMap = new Map(committedRows.map((r: any) => [r.date, Number(r.committed)]))
+  const committedMap = new Map(committedRows.map((r: any) => [r.date, { committed: Number(r.committed), unique_subscribers: Number(r.unique_subscribers) }]))
   const result = []
   const now = new Date()
 
@@ -43,11 +44,13 @@ export default defineEventHandler(async (event) => {
     d.setUTCDate(d.getUTCDate() - i)
     const key = d.toISOString().split('T')[0]!
     const existing = recordedMap.get(key)
+    const committedData = committedMap.get(key)
     result.push({
       date: key,
       minutes: Number(existing?.minutes ?? 0),
       unique_sessions: Number(existing?.unique_sessions ?? 0),
-      committed: committedMap.get(key) ?? 0
+      committed: committedData?.committed ?? 0,
+      unique_subscribers: committedData?.unique_subscribers ?? 0
     })
   }
 

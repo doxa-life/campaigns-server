@@ -120,6 +120,52 @@
       <div v-else-if="prayerDaily" class="space-y-4">
         <UCard>
           <template #header>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <UIcon name="i-lucide-users" class="text-[var(--ui-primary)] text-lg" />
+                <span class="font-semibold">Unique People Praying</span>
+                <span class="text-sm text-[var(--ui-text-dimmed)]">(last 30 days)</span>
+              </div>
+              <div class="flex items-center gap-3 text-xs">
+                <span class="flex items-center gap-1">
+                  <span class="inline-block w-2.5 h-2.5 rounded-sm bg-[#92b195]/50" />
+                  Signed up
+                </span>
+                <span class="flex items-center gap-1">
+                  <span class="inline-block w-2.5 h-2.5 rounded-sm bg-[#3b463d]" />
+                  Prayed
+                </span>
+              </div>
+            </div>
+          </template>
+          <div class="flex items-end gap-1 h-48">
+            <div
+              v-for="day in prayerDaily"
+              :key="day.date"
+              class="flex-1 flex flex-col items-center justify-end h-full group relative"
+            >
+              <div class="w-full relative flex items-end" :style="{ height: '100%' }">
+                <div
+                  class="absolute bottom-0 w-full rounded-t-sm bg-[#92b195]/50 group-hover:bg-[#92b195]/70 transition-all min-w-[4px]"
+                  :style="{ height: uniquePeopleBarHeight(day.unique_subscribers) }"
+                />
+                <div
+                  class="absolute bottom-0 w-full rounded-t-sm bg-[#3b463d] opacity-80 group-hover:opacity-100 transition-all min-w-[4px]"
+                  :style="{ height: uniquePeopleBarHeight(day.unique_sessions) }"
+                />
+              </div>
+              <span class="text-[10px] text-[var(--ui-text-dimmed)] mt-1 tabular-nums leading-none">
+                {{ day.date.slice(8) }}
+              </span>
+              <div class="absolute bottom-full mb-1 px-1.5 py-0.5 rounded text-xs bg-[var(--ui-bg-inverted)] text-[var(--ui-text-inverted)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                {{ formatChartDate(day.date) }}: {{ day.unique_sessions }} prayed / {{ day.unique_subscribers }} signed up
+              </div>
+            </div>
+          </div>
+        </UCard>
+
+        <UCard>
+          <template #header>
             <div class="flex items-center gap-2">
               <UIcon name="i-lucide-bar-chart-3" class="text-[var(--ui-primary)] text-lg" />
               <span class="font-semibold">Daily Prayer Recorded</span>
@@ -149,34 +195,6 @@
         <UCard>
           <template #header>
             <div class="flex items-center gap-2">
-              <UIcon name="i-lucide-users" class="text-[var(--ui-primary)] text-lg" />
-              <span class="font-semibold">Unique People Praying</span>
-              <span class="text-sm text-[var(--ui-text-dimmed)]">(last 30 days)</span>
-            </div>
-          </template>
-          <div class="flex items-end gap-1 h-48">
-            <div
-              v-for="day in prayerDaily"
-              :key="day.date"
-              class="flex-1 flex flex-col items-center justify-end h-full group relative"
-            >
-              <div
-                class="w-full rounded-t-sm bg-amber-500 opacity-80 group-hover:opacity-100 transition-all min-w-[4px]"
-                :style="{ height: uniquePeopleBarHeight(day.unique_sessions) }"
-              />
-              <span class="text-[10px] text-[var(--ui-text-dimmed)] mt-1 tabular-nums leading-none">
-                {{ day.date.slice(8) }}
-              </span>
-              <div class="absolute bottom-full mb-1 px-1.5 py-0.5 rounded text-xs bg-[var(--ui-bg-inverted)] text-[var(--ui-text-inverted)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                {{ formatChartDate(day.date) }}: {{ day.unique_sessions }} {{ day.unique_sessions === 1 ? 'person' : 'people' }}
-              </div>
-            </div>
-          </div>
-        </UCard>
-
-        <UCard>
-          <template #header>
-            <div class="flex items-center gap-2">
               <UIcon name="i-lucide-calendar-check" class="text-[var(--ui-primary)] text-lg" />
               <span class="font-semibold">Daily Prayer Committed</span>
               <span class="text-sm text-[var(--ui-text-dimmed)]">(last 30 days)</span>
@@ -189,7 +207,7 @@
               class="flex-1 flex flex-col items-center justify-end h-full group relative"
             >
               <div
-                class="w-full rounded-t-sm bg-emerald-500 opacity-80 group-hover:opacity-100 transition-all min-w-[4px]"
+                class="w-full rounded-t-sm bg-[#73A17F] opacity-80 group-hover:opacity-100 transition-all min-w-[4px]"
                 :style="{ height: committedBarHeight(day.committed) }"
               />
               <span class="text-[10px] text-[var(--ui-text-dimmed)] mt-1 tabular-nums leading-none">
@@ -235,7 +253,7 @@ function barHeight(minutes: number): string {
 
 const maxUniquePeople = computed(() => {
   if (!prayerDaily.value) return 1
-  return Math.max(1, ...prayerDaily.value.map((d: any) => d.unique_sessions))
+  return Math.max(1, ...prayerDaily.value.map((d: any) => Math.max(d.unique_sessions, d.unique_subscribers)))
 })
 
 function uniquePeopleBarHeight(count: number): string {
