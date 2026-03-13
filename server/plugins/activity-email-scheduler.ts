@@ -2,6 +2,7 @@ import { Cron } from 'croner'
 import { collectActivityStats, type ActivityStats } from '../utils/activity-email-stats'
 import { sendActivityEmail } from '../utils/activity-email'
 import { userService } from '#server/database/users'
+import { notificationRecipientService } from '#server/database/notification-recipients'
 
 type Frequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
 
@@ -92,23 +93,29 @@ export default defineNitroPlugin((nitroApp) => {
         getPreviousStats(frequency)
       ])
 
-      const users = await userService.getAdminUsers()
+      const statsRecipients = await notificationRecipientService.getByGroup('stats')
+      const statsEmails = new Set(statsRecipients.map(r => r.email.toLowerCase()))
+
+      const adminUsers = await userService.getAdminUsers()
       const defaultPrefs = { daily: true, weekly: true, monthly: true, yearly: true }
 
-      const recipients = users.filter(user => {
-        const prefs = user.activity_email_preferences ?? defaultPrefs
-        return prefs[frequency] !== false
-      })
+      const recipientEmails = adminUsers
+        .filter(user => {
+          if (!statsEmails.has(user.email.toLowerCase())) return false
+          const prefs = user.activity_email_preferences ?? defaultPrefs
+          return prefs[frequency] !== false
+        })
+        .map(user => user.email)
 
-      console.log(`📧 Sending ${frequency} activity email to ${recipients.length} users...`)
+      console.log(`📧 Sending ${frequency} activity email to ${recipientEmails.length} users...`)
 
       let sent = 0
-      for (const user of recipients) {
+      for (const email of recipientEmails) {
         try {
-          await sendActivityEmail(user.email, frequency, stats, previousStats)
+          await sendActivityEmail(email, frequency, stats, previousStats)
           sent++
         } catch (error: any) {
-          console.error(`❌ Failed to send ${frequency} activity email to ${user.email}:`, error.message)
+          console.error(`❌ Failed to send ${frequency} activity email to ${email}:`, error.message)
         }
       }
 
@@ -116,7 +123,7 @@ export default defineNitroPlugin((nitroApp) => {
         eventType: 'ACTIVITY_EMAIL_SENT',
         metadata: { frequency, recipientCount: sent, date: dateKey, stats }
       })
-      console.log(`✅ ${frequency} activity email sent to ${sent}/${recipients.length} users`)
+      console.log(`✅ ${frequency} activity email sent to ${sent}/${recipientEmails.length} users`)
     } catch (error: any) {
       console.error(`❌ Failed to process ${frequency} activity emails:`, error.message)
     }
