@@ -80,7 +80,7 @@ function buildStatRows(stats: ActivityStats, previousStats: ActivityStats | null
     {
       label: 'People groups adopted',
       value: String(stats.groupsAdopted),
-      change: null
+      change: previousStats ? formatChange(stats.groupsAdopted, previousStats.groupsAdopted) : null
     },
     {
       label: 'People groups engaged',
