@@ -181,6 +181,75 @@
           </UCard>
         </div>
 
+        <!-- Notifications Tab -->
+        <div v-if="item.value === 'notifications'" class="py-6">
+          <h2 class="text-xl font-semibold mb-2">Notification Recipients</h2>
+          <p class="text-[var(--ui-text-muted)] mb-6">Configure who receives email notifications for different events.</p>
+
+          <div class="space-y-8">
+            <div v-for="group in notificationGroups" :key="group.key">
+              <UCard>
+                <template #header>
+                  <div>
+                    <h3 class="font-semibold">{{ group.label }}</h3>
+                    <p class="text-sm text-[var(--ui-text-muted)]">{{ group.description }}</p>
+                  </div>
+                </template>
+
+                <div class="space-y-3">
+                  <div
+                    v-for="recipient in (notificationRecipients[group.key] || [])"
+                    :key="recipient.id"
+                    class="flex items-center justify-between"
+                  >
+                    <div>
+                      <span class="font-medium">{{ recipient.name || recipient.email }}</span>
+                      <span v-if="recipient.name" class="text-[var(--ui-text-muted)] ml-2">{{ recipient.email }}</span>
+                    </div>
+                    <UButton
+                      icon="i-lucide-x"
+                      size="xs"
+                      variant="ghost"
+                      color="error"
+                      @click="removeRecipient(group.key, recipient.id)"
+                    />
+                  </div>
+
+                  <p v-if="!(notificationRecipients[group.key] || []).length" class="text-[var(--ui-text-muted)] text-sm italic">
+                    No recipients configured
+                  </p>
+
+                  <div class="flex gap-2 pt-2 border-t border-[var(--ui-border)]">
+                    <UInput
+                      v-model="newRecipient[group.key].name"
+                      placeholder="Name (optional)"
+                      class="w-40"
+                      size="sm"
+                    />
+                    <UInput
+                      v-model="newRecipient[group.key].email"
+                      placeholder="Email"
+                      type="email"
+                      class="flex-1"
+                      size="sm"
+                      @keyup.enter="addRecipient(group.key)"
+                    />
+                    <UButton
+                      icon="i-lucide-plus"
+                      size="sm"
+                      variant="outline"
+                      :disabled="!newRecipient[group.key].email"
+                      @click="addRecipient(group.key)"
+                    >
+                      Add
+                    </UButton>
+                  </div>
+                </div>
+              </UCard>
+            </div>
+          </div>
+        </div>
+
         <!-- Prayer Counts Tab -->
         <div v-if="item.value === 'prayer-counts'" class="py-6">
           <h2 class="text-xl font-semibold mb-2">Prayer Counts</h2>
@@ -312,6 +381,7 @@ const tabs = [
   { label: 'People Groups', value: 'people-groups' },
   { label: 'Libraries', value: 'libraries' },
   { label: 'Prayer Counts', value: 'prayer-counts' },
+  { label: 'Notifications', value: 'notifications' },
 ]
 
 const activeTab = ref('backups')
@@ -322,6 +392,63 @@ const lastBackup = ref<{ filename: string; size: number; location: string } | nu
 const isUpdatingPrayerCounts = ref(false)
 const prayerCountsMessage = ref<{ text: string; type: 'success' | 'error' } | null>(null)
 
+// Notification recipients state
+const notificationGroups = [
+  { key: 'adoption', label: 'Adoption Notifications', description: 'Notified when a new adoption form is submitted' },
+  { key: 'stats', label: 'Stats Email', description: 'Daily/weekly activity summary' },
+  { key: 'contact_us', label: 'Contact Us', description: 'Notified when someone submits the contact form' },
+]
+
+const notificationRecipients = ref<Record<string, Array<{ id: number; email: string; name: string | null }>>>({})
+const newRecipient = ref<Record<string, { email: string; name: string }>>(
+  Object.fromEntries(notificationGroups.map(g => [g.key, { email: '', name: '' }]))
+)
+
+async function fetchNotificationRecipients() {
+  try {
+    const data = await $fetch<Record<string, Array<{ id: number; email: string; name: string | null }>>>('/api/admin/superadmin/notification-recipients')
+    notificationRecipients.value = data
+  } catch (error) {
+    console.error('Failed to fetch notification recipients:', error)
+  }
+}
+
+async function addRecipient(groupKey: string) {
+  const { email, name } = newRecipient.value[groupKey]
+  if (!email) return
+
+  try {
+    const recipient = await $fetch<{ id: number; email: string; name: string | null }>('/api/admin/superadmin/notification-recipients', {
+      method: 'POST',
+      body: { group_key: groupKey, email, name: name || undefined }
+    })
+
+    if (!notificationRecipients.value[groupKey]) {
+      notificationRecipients.value[groupKey] = []
+    }
+    notificationRecipients.value[groupKey].push(recipient)
+    newRecipient.value[groupKey] = { email: '', name: '' }
+  } catch (error: any) {
+    console.error('Failed to add recipient:', error)
+    useToast().add({
+      title: error.data?.message || 'Failed to add recipient',
+      color: 'error'
+    })
+  }
+}
+
+async function removeRecipient(groupKey: string, id: number) {
+  try {
+    await $fetch(`/api/admin/superadmin/notification-recipients/${id}`, {
+      method: 'DELETE'
+    })
+    notificationRecipients.value[groupKey] = notificationRecipients.value[groupKey].filter(r => r.id !== id)
+  } catch (error) {
+    console.error('Failed to remove recipient:', error)
+  }
+}
+
+fetchNotificationRecipients()
 
 // Translation state
 const selectedTranslateField = ref<string | null>(null)

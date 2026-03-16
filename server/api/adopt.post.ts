@@ -9,6 +9,7 @@ import { requireFormApiKey } from '../utils/form-api-key'
 import { handleApiError } from '#server/utils/api-helpers'
 import { sendAdoptionWelcomeEmail } from '../utils/adoption-welcome-email'
 import { sendAdoptionVerificationEmail } from '../utils/adoption-verification-email'
+import { notifyAdoptionRecipients } from '../utils/adoption-notification-email'
 
 export default defineEventHandler(async (event) => {
   requireFormApiKey(event)
@@ -119,8 +120,11 @@ export default defineEventHandler(async (event) => {
         people_group_slug: peopleGroupSlug,
         form_data: {
           show_publicly: body.confirm_public_display ?? false,
+          permission_to_contact: body.permission_to_contact ?? false,
           locale: language,
-          first_name: firstName
+          first_name: firstName,
+          phone: phone,
+          country: body.country?.trim(),
         }
       })
 
@@ -165,6 +169,22 @@ export default defineEventHandler(async (event) => {
       remainingGroupsCount: remainingCount,
       locale: language,
     }).catch(err => console.error('Failed to send adoption welcome email:', err))
+
+    notifyAdoptionRecipients({
+      peopleGroupName: peopleGroup.name,
+      peopleGroupId: peopleGroup.id,
+      churchOrGroupName: groupName,
+      groupId: group.id,
+      contactName: fullName,
+      contactEmail: email,
+      subscriberId: subscriber.id,
+      phone: body.phone?.trim(),
+      role,
+      language,
+      country: body.country?.trim(),
+      permissionToContact: body.permission_to_contact ?? false,
+      confirmPublicDisplay: body.confirm_public_display ?? false,
+    }).catch(err => console.error('Failed to notify adoption recipients:', err))
 
     return {
       success: true,
