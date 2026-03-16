@@ -50,6 +50,9 @@
             color="success"
             size="xs"
           />
+          <span v-if="subscriber.total_prayer_minutes > 0" class="prayer-time">
+            <UIcon name="i-lucide-timer" />{{ formatMinutes(subscriber.total_prayer_minutes) }}
+          </span>
           <span class="date">{{ formatDate(subscriber.created_at) }}</span>
         </div>
       </CrmListItem>
@@ -479,6 +482,7 @@ interface GeneralSubscriber {
   primary_phone: string | null
   subscriptions: Subscription[]
   consents: SubscriberConsents
+  total_prayer_minutes: number
 }
 
 interface PeopleGroup {
@@ -1169,6 +1173,13 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   font-size: 0.75rem;
+}
+
+.prayer-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--ui-text-muted);
 }
 
 .date {

@@ -35,6 +35,7 @@ export interface SubscriberWithSubscriptions extends SubscriberWithContacts {
   primary_phone: string | null
   subscriptions: PeopleGroupSubscriptionWithDetails[]
   consents: SubscriberConsents
+  total_prayer_minutes: number
 }
 
 class SubscriberService {
@@ -275,6 +276,14 @@ class SubscriberService {
     const stmt = this.db.prepare(query)
     const subscribers = await stmt.all(...params) as Subscriber[]
 
+    // Fetch prayer time totals for all subscribers in one query
+    const prayerTimeStmt = this.db.prepare(`
+      SELECT tracking_id, COALESCE(ROUND(SUM(duration) / 60.0), 0) as total_minutes
+      FROM prayer_activity WHERE tracking_id IS NOT NULL GROUP BY tracking_id
+    `)
+    const prayerTimes = await prayerTimeStmt.all() as { tracking_id: string; total_minutes: number }[]
+    const prayerTimeMap = new Map(prayerTimes.map(pt => [pt.tracking_id, Number(pt.total_minutes)]))
+
     // Enrich each subscriber with contacts and subscriptions
     const enrichedSubscribers: SubscriberWithSubscriptions[] = []
 
@@ -325,7 +334,8 @@ class SubscriberService {
           doxa_general_at: emailContact?.consent_doxa_general_at || null,
           people_group_ids: consentedPeopleGroupIds,
           people_group_names: peopleGroupNames
-        }
+        },
+        total_prayer_minutes: prayerTimeMap.get(subscriber.tracking_id) || 0
       })
     }
 
