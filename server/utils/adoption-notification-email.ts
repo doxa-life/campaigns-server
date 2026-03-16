@@ -99,8 +99,12 @@ export async function notifyAdoptionRecipients(data: AdoptionNotificationData) {
   const recipients = await notificationRecipientService.getByGroup('adoption')
   if (recipients.length === 0) return
 
-  for (const r of recipients) {
-    sendAdoptionNotificationEmail(r.email, data)
-      .catch(err => console.error('Failed to send adoption notification:', err))
+  const results = await Promise.allSettled(
+    recipients.map(r => sendAdoptionNotificationEmail(r.email, data))
+  )
+  for (const result of results) {
+    if (result.status === 'rejected') {
+      console.error('Failed to send adoption notification:', result.reason)
+    }
   }
 }

@@ -14,6 +14,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'group_key and email are required' })
   }
 
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email.trim())) {
+    throw createError({ statusCode: 400, statusMessage: 'Invalid email address' })
+  }
+
   try {
     const recipient = await notificationRecipientService.add(
       body.group_key,

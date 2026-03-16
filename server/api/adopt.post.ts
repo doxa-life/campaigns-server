@@ -122,7 +122,9 @@ export default defineEventHandler(async (event) => {
           show_publicly: body.confirm_public_display ?? false,
           permission_to_contact: body.permission_to_contact ?? false,
           locale: language,
-          first_name: firstName
+          first_name: firstName,
+          phone: phone,
+          country: body.country?.trim(),
         }
       })
 

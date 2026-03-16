@@ -100,8 +100,10 @@ export default defineEventHandler(async (event) => {
         contactName: subscriber?.name || formData.first_name || '',
         contactEmail: result.contactMethod.value,
         subscriberId: result.contactMethod.subscriber_id,
+        phone: formData.phone,
         role: subscriber?.role || undefined,
         language: subscriber?.preferred_language || formData.locale,
+        country: formData.country,
         permissionToContact: formData.permission_to_contact ?? false,
         confirmPublicDisplay: formData.show_publicly ?? false,
       }).catch(err => console.error('Failed to notify adoption recipients:', err))
