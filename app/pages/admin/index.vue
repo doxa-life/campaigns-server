@@ -186,7 +186,7 @@
                 {{ day.date.slice(8) }}
               </span>
               <div class="absolute bottom-full mb-1 px-1.5 py-0.5 rounded text-xs bg-[var(--ui-bg-inverted)] text-[var(--ui-text-inverted)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                {{ formatChartDate(day.date) }}: {{ day.minutes }}m
+                {{ formatChartDate(day.date) }}: {{ formatMinutes(day.minutes) }}
               </div>
             </div>
           </div>
