@@ -139,6 +139,7 @@ class GroupService {
         DELETE FROM connections
         WHERE (from_type = 'group' AND from_id = ?) OR (to_type = 'group' AND to_id = ?)
       `).run(id, id)
+      await tx.prepare(`DELETE FROM comments WHERE record_type = 'group' AND record_id = ?`).run(id)
       const result = await tx.prepare('DELETE FROM groups WHERE id = ?').run(id)
       return result.changes > 0
     })

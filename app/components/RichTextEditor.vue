@@ -12,19 +12,24 @@ import Superscript from '@tiptap/extension-superscript'
 import Youtube from '@tiptap/extension-youtube'
 import { DOMParser as ProseMirrorDOMParser } from '@tiptap/pm/model'
 import { ImageUploadExtension } from '~/utils/imageUploadExtension'
+import Mention from '@tiptap/extension-mention'
 import { Spacer } from '~/extensions/spacer'
 import { Vimeo } from '~/extensions/vimeo'
 import { Verse } from '~/extensions/verse'
 import { editorConfig } from '~/config/editor.config'
+import { mentionSuggestion } from '~/utils/mentionSuggestion'
 import { uploadImage } from '~/composables/editor/useImageUpload'
 import { useEditorHandlers, textColors, highlightColors } from '~/composables/editor/useEditorHandlers'
 import { useVideoEmbed } from '~/composables/editor/useVideoEmbed'
 import { useEditorDragHandle } from '~/composables/editor/useEditorDragHandle'
 import type { Editor } from '@tiptap/core'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: any
-}>()
+  mentions?: boolean
+}>(), {
+  mentions: false
+})
 
 const emit = defineEmits<{
   'update:modelValue': [value: any]
@@ -263,7 +268,11 @@ const customExtensions = [
     onSuccess: (url: string) => {
       console.log('Upload successful:', url)
     }
-  })
+  }),
+  ...(props.mentions ? [Mention.configure({
+    HTMLAttributes: { class: 'mention' },
+    suggestion: mentionSuggestion
+  })] : [])
 ]
 
 const { showVideoUrlModal } = useVideoEmbed()
@@ -805,5 +814,15 @@ const setHighlight = (color: string | null) => {
 
 :deep(.ProseMirror ::selection) {
   background: #DBEAFE;
+}
+
+:deep(.ProseMirror .mention) {
+  background-color: var(--ui-bg-elevated, #DBEAFE);
+  color: var(--ui-primary, #2563eb);
+  border-radius: 4px;
+  padding: 0.1em 0.3em;
+  font-weight: 500;
+  font-size: 0.95em;
+  white-space: nowrap;
 }
 </style>
