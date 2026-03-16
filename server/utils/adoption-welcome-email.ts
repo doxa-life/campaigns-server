@@ -44,6 +44,7 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
   const headerTitle = t('email.adoptionWelcome.headerTitle', locale)
   const greeting = t('email.adoptionWelcome.greeting', locale, params)
   const introRaw = t('email.adoptionWelcome.intro', locale, params)
+  const introContinued = t('email.adoptionWelcome.introContinued', locale)
   const waitingWord = t('email.adoptionWelcome.waiting', locale)
   const adoptedWord = t('email.adoptionWelcome.adopted', locale)
   const intro = introRaw.replace('[waiting]', waitingWord).replace('[adopted]', adoptedWord)
@@ -63,9 +64,16 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
   const section3Title = t('email.adoptionWelcome.section3Title', locale)
   const section3Intro = t('email.adoptionWelcome.section3Intro', locale)
   const step1Label = t('email.adoptionWelcome.step1Label', locale)
-  const step1Text = t('email.adoptionWelcome.step1Text', locale, params)
+  const step1PrayerPage = t('email.adoptionWelcome.step1PrayerPage', locale)
+  const step1TextRaw = t('email.adoptionWelcome.step1Text', locale, {
+    ...params,
+    prayerPageLink: '[prayer_page]'
+  })
   const step2Label = t('email.adoptionWelcome.step2Label', locale)
-  const step2Text = t('email.adoptionWelcome.step2Text', locale)
+  const step2AdoptionResources = t('email.adoptionWelcome.step2AdoptionResources', locale)
+  const step2TextRaw = t('email.adoptionWelcome.step2Text', locale, {
+    adoptionResourcesLink: `[adoption_resources]`
+  })
   const step3Label = t('email.adoptionWelcome.step3Label', locale)
   const step3Text = t('email.adoptionWelcome.step3Text', locale, params)
   const section4Title = t('email.adoptionWelcome.section4Title', locale)
@@ -102,11 +110,11 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
         <h2 style="color: #3B463D; margin-top: 0; font-weight: 500;">${escapeHtml(greeting)}</h2>
 
         <p style="font-size: 16px; margin: 20px 0; color: #3B463D;">
-          ${introHtml}
+          <strong>${introHtml}</strong> ${escapeHtml(introContinued)}
         </p>
 
         <p style="font-size: 16px; margin: 20px 0; color: #3B463D;">
-          ${escapeHtml(resourcesIntro)}
+          <strong>${escapeHtml(resourcesIntro)}</strong>
         </p>
 
         <h3 style="color: #3B463D; font-size: 18px; margin: 30px 0 15px; font-weight: 600;">${escapeHtml(section1Title)}</h3>
@@ -118,10 +126,10 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
             <td width="55%" style="vertical-align: middle;">
               <p style="font-size: 17px; margin: 0 0 10px; color: #3B463D; font-weight: 600;">${peopleGroupName}</p>
               <p style="font-size: 15px; margin: 0 0 10px; color: #3B463D;">
-                ${escapeHtml(t('email.adoptionWelcome.fullProfileText', locale))} <a href="${fullProfileUrl}" style="color: #3B463D; text-decoration: underline;">${escapeHtml(fullProfileButton)}</a>
+                ${escapeHtml(t('email.adoptionWelcome.fullProfileText', locale))} <a href="${fullProfileUrl}" style="text-decoration: underline;">${escapeHtml(fullProfileButton)}</a>
               </p>
               <p style="font-size: 15px; margin: 0; color: #3B463D;">
-                ${escapeHtml(t('email.adoptionWelcome.prayerPageText', locale))} <a href="${prayerPageUrl}" style="color: #3B463D; text-decoration: underline;">${escapeHtml(prayerPageButton)}</a>
+                ${escapeHtml(t('email.adoptionWelcome.prayerPageText', locale))} <a href="${prayerPageUrl}" style="text-decoration: underline;">${escapeHtml(prayerPageButton)}</a>
               </p>
             </td>
           </tr>
@@ -147,13 +155,13 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
 
         <div style="background: #f4f6f4; border-${dir === 'rtl' ? 'right' : 'left'}: 4px solid #3B463D; padding: 15px 20px; margin: 15px 0; border-radius: ${dir === 'rtl' ? '5px 0 0 5px' : '0 5px 5px 0'};">
           <p style="font-size: 15px; margin: 0; color: #3B463D;">
-            <strong>${escapeHtml(step1Label)}</strong> ${escapeHtml(step1Text)}
+            <strong>${escapeHtml(step1Label)}</strong> ${escapeHtml(step1TextRaw).replace(escapeHtml('[prayer_page]'), `<a href="${prayerPageUrl}" style="text-decoration: underline;">${escapeHtml(step1PrayerPage)}</a>`)}
           </p>
         </div>
 
         <div style="background: #f4f6f4; border-${dir === 'rtl' ? 'right' : 'left'}: 4px solid #3B463D; padding: 15px 20px; margin: 15px 0; border-radius: ${dir === 'rtl' ? '5px 0 0 5px' : '0 5px 5px 0'};">
           <p style="font-size: 15px; margin: 0; color: #3B463D;">
-            <strong>${escapeHtml(step2Label)}</strong> ${escapeHtml(step2Text)}
+            <strong>${escapeHtml(step2Label)}</strong> ${escapeHtml(step2TextRaw).replace(escapeHtml('[adoption_resources]'), `<a href="${resourcesUrl}" style="text-decoration: underline;">${escapeHtml(step2AdoptionResources)}</a>`)}
           </p>
         </div>
 
@@ -171,15 +179,15 @@ export async function sendAdoptionWelcomeEmail(data: AdoptionWelcomeEmailData): 
         <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 30px 0;" />
 
         <p style="font-size: 16px; margin: 20px 0; color: #3B463D;">
-          ${escapeHtml(closingCount)}
+          <strong>${escapeHtml(closingCount)}</strong>
         </p>
 
         <p style="font-size: 16px; margin: 20px 0 5px; color: #3B463D;">
-          ${escapeHtml(signoff)}
+          <strong>${escapeHtml(signoff)}</strong>
         </p>
         <p style="font-size: 16px; margin: 0; color: #3B463D;">
-          ${escapeHtml(teamName)}<br />
-          <a href="https://doxa.life" style="color: #3B463D; text-decoration: underline;">doxa.life</a>
+          <strong>${escapeHtml(teamName)}</strong><br />
+          <a href="https://doxa.life" style="text-decoration: underline;">doxa.life</a>
         </p>
       </div>
 
@@ -195,7 +203,7 @@ ${subject}
 
 ${greeting}
 
-${intro}
+${intro} ${introContinued}
 
 ${resourcesIntro}
 
@@ -217,9 +225,9 @@ ${section3Title.toUpperCase()}
 
 ${section3Intro}
 
-${step1Label} ${step1Text}
+${step1Label} ${step1TextRaw.replace('[prayer_page]', `${step1PrayerPage} (${prayerPageUrl})`)}
 
-${step2Label} ${step2Text}
+${step2Label} ${step2TextRaw.replace('[adoption_resources]', `${step2AdoptionResources} (${resourcesUrl})`)}
 
 ${step3Label} ${step3Text}
 
