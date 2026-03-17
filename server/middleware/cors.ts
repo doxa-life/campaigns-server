@@ -1,9 +1,9 @@
 import { setResponseHeader } from 'h3'
 
 export default defineEventHandler((event) => {
-  const path = getRequestURL(event).pathname
+  const path = event.path
 
-  if (!path.startsWith('/api/') || path.startsWith('/api/admin/')) return
+  if (!path.startsWith('/api/people-groups/')) return
 
   setResponseHeader(event, 'Access-Control-Allow-Origin', '*')
   setResponseHeader(event, 'Access-Control-Allow-Methods', 'GET, OPTIONS')

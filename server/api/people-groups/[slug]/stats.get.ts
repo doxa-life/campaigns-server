@@ -6,7 +6,6 @@ import { peopleGroupService } from '#server/database/people-groups'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
 
 export default defineEventHandler(async (event) => {
-
   const slug = getRouterParam(event, 'slug')
 
   if (!slug) {
