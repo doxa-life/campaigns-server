@@ -65,42 +65,38 @@
       </CrmListItem>
     </template>
 
+    <template v-if="selectedGroup" #detail-header>
+      <div class="header-info">
+        <img
+          v-if="selectedGroup.image_url"
+          :src="selectedGroup.image_url"
+          :alt="selectedGroup.name"
+          class="header-image"
+        />
+        <div>
+          <h2>{{ selectedGroup.name }}</h2>
+          <div class="header-meta">
+            <span v-if="selectedGroup.joshua_project_id">JP ID: {{ selectedGroup.joshua_project_id }}</span>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template v-if="selectedGroup" #detail-actions>
+      <UButton size="sm" @click="navigateToSubscribers(selectedGroup.id)" variant="outline">
+        Subscribers
+      </UButton>
+      <UButton size="sm" :to="`/admin/people-groups/${selectedGroup.id}/content`" variant="outline">
+        Content
+      </UButton>
+      <UButton size="sm" v-if="selectedGroup.slug" :to="`/${selectedGroup.slug}`" target="_blank" variant="outline">
+        Open
+      </UButton>
+      <UButton size="sm" @click="saveChanges" :loading="saving">Save</UButton>
+    </template>
+
     <template #detail>
       <CrmDetailPanel v-if="selectedGroup" :tabs="detailTabs">
-        <template #header>
-          <div class="header-info">
-            <img
-              v-if="selectedGroup?.image_url"
-              :src="selectedGroup.image_url"
-              :alt="selectedGroup?.name"
-              class="header-image"
-            />
-            <div>
-              <h2>{{ selectedGroup?.name }}</h2>
-              <div class="header-meta">
-                <span v-if="selectedGroup?.joshua_project_id">JP ID: {{ selectedGroup.joshua_project_id }}</span>
-              </div>
-            </div>
-          </div>
-        </template>
-
-        <template #secondary-actions>
-          <UButton @click="navigateToSubscribers(selectedGroup!.id)" variant="outline">
-            View Subscribers
-          </UButton>
-          <UButton :to="`/admin/people-groups/${selectedGroup!.id}/content`" variant="outline">
-            Manage Content
-          </UButton>
-          <UButton v-if="selectedGroup!.slug" :to="`/${selectedGroup!.slug}`" target="_blank" variant="outline">
-            Open People Group
-          </UButton>
-        </template>
-
-        <template #actions>
-          <UButton @click="resetForm" variant="outline">Reset</UButton>
-          <UButton @click="saveChanges" :loading="saving">Save Changes</UButton>
-        </template>
-
         <template #tab-details>
           <CrmFormSection title="Adopted By">
             <template #header-extra>

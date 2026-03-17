@@ -42,20 +42,17 @@
       </CrmListItem>
     </template>
 
+    <template v-if="selectedGroup" #detail-header>
+      <h2>{{ selectedGroup.name }}</h2>
+    </template>
+
+    <template v-if="selectedGroup" #detail-actions>
+      <UButton size="sm" @click="openDeleteGroupModal" color="error" variant="outline">Delete</UButton>
+      <UButton size="sm" @click="saveGroupChanges" :loading="saving">Save</UButton>
+    </template>
+
     <template #detail>
       <CrmDetailPanel v-if="selectedGroup" :tabs="detailTabs">
-        <template #header>
-          <h2>{{ selectedGroup?.name }}</h2>
-        </template>
-
-        <template #actions>
-          <UButton type="button" @click="resetForm" variant="outline">Reset</UButton>
-          <UButton @click="openDeleteGroupModal" color="error" variant="outline">Delete</UButton>
-          <UButton @click="saveGroupChanges" :loading="saving">
-            {{ saving ? 'Saving...' : 'Save Changes' }}
-          </UButton>
-        </template>
-
         <template #tab-details>
           <form @submit.prevent="saveGroupChanges">
             <CrmFormSection title="Group Information">

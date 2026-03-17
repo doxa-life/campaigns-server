@@ -25,6 +25,23 @@
       side="right"
       :ui="{ content: 'sm:max-w-3xl' }"
     >
+      <template #header>
+        <div class="slideover-header">
+          <div class="slideover-header-info">
+            <slot name="detail-header" />
+          </div>
+          <div class="slideover-header-actions">
+            <slot name="detail-actions" />
+            <UButton
+              icon="i-lucide-x"
+              variant="ghost"
+              color="neutral"
+              size="sm"
+              @click="slideoverOpen = false"
+            />
+          </div>
+        </div>
+      </template>
       <template #body>
         <slot name="detail" />
       </template>
@@ -91,5 +108,32 @@ const slideoverOpen = computed({
   padding: 2rem;
   text-align: center;
   color: var(--ui-text-muted);
+}
+
+.slideover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.slideover-header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.slideover-header-info :deep(h2) {
+  margin: 0;
+  font-size: 1.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slideover-header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 </style>

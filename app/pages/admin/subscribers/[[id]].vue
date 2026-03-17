@@ -67,19 +67,17 @@
       </CrmListItem>
     </template>
 
+    <template v-if="selectedSubscriber" #detail-header>
+      <h2>{{ selectedSubscriber.name }}</h2>
+    </template>
+
+    <template v-if="selectedSubscriber" #detail-actions>
+      <UButton size="sm" @click="openDeleteModal" color="error" variant="outline">Delete</UButton>
+      <UButton size="sm" @click="saveChanges" :loading="saving">Save</UButton>
+    </template>
+
     <template #detail>
       <CrmDetailPanel v-if="selectedSubscriber" :tabs="detailTabs">
-        <template #header>
-          <h2>{{ selectedSubscriber?.name }}</h2>
-        </template>
-
-        <template #actions>
-          <UButton type="button" @click="resetForm" variant="outline">Reset</UButton>
-          <UButton @click="openDeleteModal" color="error" variant="outline">Delete</UButton>
-          <UButton @click="saveChanges" :loading="saving">
-            {{ saving ? 'Saving...' : 'Save Changes' }}
-          </UButton>
-        </template>
 
         <template #tab-details>
           <form @submit.prevent="saveChanges">

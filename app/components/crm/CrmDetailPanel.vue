@@ -1,14 +1,5 @@
 <template>
   <div class="crm-detail-panel">
-    <div class="details-header">
-      <div class="header-info">
-        <slot name="header" />
-      </div>
-      <div class="header-actions">
-        <slot name="actions" />
-      </div>
-    </div>
-
     <div v-if="$slots['secondary-actions']" class="secondary-actions">
       <slot name="secondary-actions" />
     </div>
@@ -44,29 +35,6 @@ withDefaults(defineProps<{
 <style scoped>
 .crm-detail-panel {
   height: 100%;
-}
-
-.details-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--ui-border);
-}
-
-.header-info {
-  flex: 1;
-}
-
-.header-info :deep(h2) {
-  margin: 0 0 0.25rem;
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
 }
 
 .secondary-actions {
