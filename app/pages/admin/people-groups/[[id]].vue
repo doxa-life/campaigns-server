@@ -73,12 +73,7 @@
           :alt="selectedGroup.name"
           class="header-image"
         />
-        <div>
-          <h2>{{ selectedGroup.name }}</h2>
-          <div class="header-meta">
-            <span v-if="selectedGroup.joshua_project_id">JP ID: {{ selectedGroup.joshua_project_id }}</span>
-          </div>
-        </div>
+        <h2>{{ selectedGroup.name }}</h2>
       </div>
     </template>
 
@@ -622,14 +617,18 @@ onMounted(async () => {
 
 .header-info {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   align-items: center;
 }
 
+.header-info :deep(h2) {
+  font-size: 1.1rem;
+}
+
 .header-image {
-  width: 60px;
-  height: 60px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
   object-fit: cover;
 }
 

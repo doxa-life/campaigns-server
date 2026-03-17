@@ -23,12 +23,10 @@
     <USlideover
       v-model:open="slideoverOpen"
       side="right"
-      title="Record Details"
-      description="View and edit record details"
       :ui="{ content: 'sm:max-w-6xl' }"
     >
       <template #header>
-        <div class="slideover-header">
+        <DialogTitle as="div" class="slideover-header">
           <div class="slideover-header-info">
             <slot name="detail-header" />
           </div>
@@ -42,7 +40,8 @@
               @click="slideoverOpen = false"
             />
           </div>
-        </div>
+        </DialogTitle>
+        <DialogDescription class="sr-only">Record details</DialogDescription>
       </template>
       <template #body>
         <slot name="detail" />
@@ -52,6 +51,8 @@
 </template>
 
 <script setup lang="ts">
+import { DialogTitle, DialogDescription } from 'reka-ui'
+
 const props = defineProps<{
   loading?: boolean
   error?: string
@@ -114,7 +115,6 @@ const slideoverOpen = computed({
 
 .slideover-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 1rem;
   width: 100%;

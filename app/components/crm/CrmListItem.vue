@@ -43,9 +43,9 @@ defineEmits<{
 }
 
 .item-image {
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
+  width: 56px;
+  height: 56px;
+  border-radius: 6px;
   overflow: hidden;
   flex-shrink: 0;
 }
