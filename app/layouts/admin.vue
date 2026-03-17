@@ -12,14 +12,12 @@
 
     <nav class="sidebar" :class="{ open: sidebarOpen, collapsed: sidebarCollapsed }">
       <div class="sidebar-header">
-        <template v-if="!sidebarCollapsed">
-          <div class="header-row">
-            <h1 class="logo">{{ config.public.appName || 'Base' }} Admin</h1>
-            <button class="collapse-toggle" @click="toggleCollapsed" title="Collapse sidebar">
-              <UIcon name="i-lucide-panel-left-close" />
-            </button>
-          </div>
-        </template>
+        <div v-if="showExpanded" class="header-row">
+          <h1 class="logo">{{ config.public.appName || 'Base' }} Admin</h1>
+          <button class="collapse-toggle" @click="toggleCollapsed" title="Collapse sidebar">
+            <UIcon name="i-lucide-panel-left-close" />
+          </button>
+        </div>
         <template v-else>
           <img src="/favicon-32x32.png" alt="Logo" class="logo-icon" />
           <button class="collapse-toggle" @click="toggleCollapsed" title="Expand sidebar">
@@ -30,45 +28,45 @@
 
       <ul class="nav-menu" v-if="hasRole">
         <li v-if="isAdmin">
-          <NuxtLink to="/admin" class="nav-link" :class="{ 'router-link-active': route.path === '/admin' }" :title="sidebarCollapsed ? 'Dashboard' : undefined">
+          <NuxtLink to="/admin" class="nav-link" :class="{ 'router-link-active': route.path === '/admin' }" :title="!showExpanded ? 'Dashboard' : undefined">
             <UIcon name="i-lucide-layout-dashboard" />
-            <span v-if="!sidebarCollapsed" class="nav-label">Dashboard</span>
+            <span v-if="showExpanded" class="nav-label">Dashboard</span>
           </NuxtLink>
         </li>
         <li v-if="isAdmin">
-          <NuxtLink to="/admin/people-groups" class="nav-link" :title="sidebarCollapsed ? 'People Groups' : undefined">
+          <NuxtLink to="/admin/people-groups" class="nav-link" :title="!showExpanded ? 'People Groups' : undefined">
             <UIcon name="i-lucide-globe" />
-            <span v-if="!sidebarCollapsed" class="nav-label">People Groups</span>
+            <span v-if="showExpanded" class="nav-label">People Groups</span>
           </NuxtLink>
         </li>
         <li>
-          <NuxtLink to="/admin/subscribers" class="nav-link" :title="sidebarCollapsed ? 'Contacts' : undefined">
+          <NuxtLink to="/admin/subscribers" class="nav-link" :title="!showExpanded ? 'Contacts' : undefined">
             <UIcon name="i-lucide-user" />
-            <span v-if="!sidebarCollapsed" class="nav-label">Contacts</span>
+            <span v-if="showExpanded" class="nav-label">Contacts</span>
           </NuxtLink>
         </li>
         <li v-if="isAdmin">
-          <NuxtLink to="/admin/groups" class="nav-link" :title="sidebarCollapsed ? 'Groups' : undefined">
+          <NuxtLink to="/admin/groups" class="nav-link" :title="!showExpanded ? 'Groups' : undefined">
             <UIcon name="i-lucide-users" />
-            <span v-if="!sidebarCollapsed" class="nav-label">Groups</span>
+            <span v-if="showExpanded" class="nav-label">Groups</span>
           </NuxtLink>
         </li>
         <li v-if="isAdmin">
-          <NuxtLink to="/admin/libraries" class="nav-link" :title="sidebarCollapsed ? 'Libraries' : undefined">
+          <NuxtLink to="/admin/libraries" class="nav-link" :title="!showExpanded ? 'Libraries' : undefined">
             <UIcon name="i-lucide-book-open" />
-            <span v-if="!sidebarCollapsed" class="nav-label">Libraries</span>
+            <span v-if="showExpanded" class="nav-label">Libraries</span>
           </NuxtLink>
         </li>
         <li v-if="isAdmin">
-          <NuxtLink to="/admin/users" class="nav-link" :title="sidebarCollapsed ? 'Users' : undefined">
+          <NuxtLink to="/admin/users" class="nav-link" :title="!showExpanded ? 'Users' : undefined">
             <UIcon name="i-lucide-user-cog" />
-            <span v-if="!sidebarCollapsed" class="nav-label">Users</span>
+            <span v-if="showExpanded" class="nav-label">Users</span>
           </NuxtLink>
         </li>
         <li v-if="isSuperAdmin">
-          <NuxtLink to="/superadmin" class="nav-link" :title="sidebarCollapsed ? 'Superadmin' : undefined">
+          <NuxtLink to="/superadmin" class="nav-link" :title="!showExpanded ? 'Superadmin' : undefined">
             <UIcon name="i-lucide-shield" />
-            <span v-if="!sidebarCollapsed" class="nav-label">Superadmin</span>
+            <span v-if="showExpanded" class="nav-label">Superadmin</span>
           </NuxtLink>
         </li>
       </ul>
@@ -78,10 +76,10 @@
         <NuxtLink v-if="user && !sidebarCollapsed" to="/admin/profile" class="user-name-link">
           {{ user.display_name || user.email }}
         </NuxtLink>
-        <NuxtLink v-else-if="user" to="/admin/profile" class="nav-link footer-icon" :title="user.display_name || user.email">
+        <NuxtLink v-else-if="user && !showExpanded" to="/admin/profile" class="nav-link footer-icon" :title="user.display_name || user.email">
           <UIcon name="i-lucide-circle-user" />
         </NuxtLink>
-        <ThemeToggle v-if="!sidebarCollapsed" />
+        <ThemeToggle v-if="showExpanded" />
       </div>
     </nav>
 
@@ -107,6 +105,9 @@ const { user, isAdmin, isSuperAdmin, hasRole, checkAuth } = useAuthUser()
 const route = useRoute()
 const sidebarOpen = ref(false)
 const sidebarCollapsed = ref(true)
+
+// On mobile when sidebar is open, show full labels regardless of collapsed state
+const showExpanded = computed(() => !sidebarCollapsed.value || sidebarOpen.value)
 
 // Close sidebar on route change
 watch(() => route.path, () => {
@@ -149,8 +150,9 @@ onMounted(async () => {
 .sidebar {
   width: 250px;
   flex-shrink: 0;
-  background-color: var(--ui-bg-elevated);
-  border-right: 1px solid var(--ui-border);
+  background-color: var(--color-forest-500);
+  color: #ffffff;
+  border-right: none;
   display: flex;
   flex-direction: column;
   position: sticky;
@@ -167,7 +169,7 @@ onMounted(async () => {
 
 .sidebar-header {
   padding: 1rem;
-  border-bottom: 1px solid var(--ui-border);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -189,7 +191,7 @@ onMounted(async () => {
 .logo {
   font-size: 1.25rem;
   margin: 0;
-  color: var(--ui-text);
+  color: #ffffff;
   white-space: nowrap;
 }
 
@@ -206,7 +208,7 @@ onMounted(async () => {
   padding: 0.375rem;
   border: none;
   background: none;
-  color: var(--ui-text-muted);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   border-radius: 6px;
   flex-shrink: 0;
@@ -214,8 +216,8 @@ onMounted(async () => {
 }
 
 .collapse-toggle:hover {
-  background-color: var(--ui-bg);
-  color: var(--ui-text);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
 .nav-menu {
@@ -234,9 +236,9 @@ onMounted(async () => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  color: var(--ui-text);
+  color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.2s;
   white-space: nowrap;
 }
 
@@ -246,12 +248,14 @@ onMounted(async () => {
 }
 
 .nav-link:hover {
-  background-color: var(--ui-bg);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
 .nav-link.router-link-active {
-  background-color: var(--ui-bg);
-  border-right: 3px solid var(--ui-text);
+  background-color: rgba(255, 255, 255, 0.15);
+  border-right: 3px solid #ffffff;
+  color: #ffffff;
 }
 
 .nav-label {
@@ -260,7 +264,7 @@ onMounted(async () => {
 
 .sidebar-footer {
   padding: 1rem;
-  border-top: 1px solid var(--ui-border);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -280,7 +284,7 @@ onMounted(async () => {
 .user-name-link {
   font-weight: 600;
   font-size: 0.875rem;
-  color: var(--ui-text);
+  color: rgba(255, 255, 255, 0.8);
   text-decoration: underline;
   text-underline-offset: 2px;
   transition: opacity 0.2s;
@@ -315,8 +319,9 @@ onMounted(async () => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  background-color: var(--ui-bg-elevated);
-  border-bottom: 1px solid var(--ui-border);
+  background-color: var(--color-forest-500);
+  color: #ffffff;
+  border-bottom: none;
 }
 
 .mobile-title {
