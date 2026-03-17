@@ -2,7 +2,6 @@ import { subscriberService } from '#server/database/subscribers'
 import { contactMethodService } from '#server/database/contact-methods'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
 import { connectionService } from '../../../database/connections'
-import { commentService } from '#server/database/comments'
 import { getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
@@ -28,14 +27,12 @@ export default defineEventHandler(async (event) => {
   // Remove connections (group memberships, etc.)
   await connectionService.deleteForEntity('subscriber', id)
 
-  // Remove comments
-  await commentService.deleteForRecord('subscriber', id)
-
   // Remove contact methods
   for (const contact of contacts) {
     await contactMethodService.removeContactMethod(contact.id)
   }
 
+  await doAction('record.delete', 'subscriber', id)
   await subscriberService.deleteSubscriber(id)
 
   logDelete('subscribers', String(id), event, {

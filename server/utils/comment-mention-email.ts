@@ -1,5 +1,13 @@
 import { getDatabase } from '#server/database/db'
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
 /**
  * Extract plain text from Tiptap JSON content for use in emails.
  */
@@ -43,7 +51,9 @@ export async function sendCommentMentionEmails(
 
   const recordTypeLabel = recordType.replace(/_/g, ' ')
   const recordUrl = `${baseUrl}/admin/${recordType.replace(/_/g, '-')}s/${recordId}`
-  const commentText = tiptapToPlainText(content).trim()
+  const commentText = escapeHtml(tiptapToPlainText(content).trim())
+  const safeAuthorName = escapeHtml(authorName)
+  const safeRecordName = escapeHtml(recordName)
 
   // Look up email addresses for mentioned users
   const db = getDatabase()
@@ -54,7 +64,7 @@ export async function sendCommentMentionEmails(
   for (const user of users) {
     if (!user.email) continue
 
-    const subject = `${authorName} mentioned you in a comment on ${appName}`
+    const subject = `${safeAuthorName} mentioned you in a comment on ${appName}`
 
     const html = `
       <!DOCTYPE html>
@@ -70,7 +80,7 @@ export async function sendCommentMentionEmails(
         </div>
         <div style="background: #ffffff; border: 2px solid #3B463D; border-top: none; padding: 30px; border-radius: 0 0 10px 10px;">
           <p style="font-size: 16px; margin: 0 0 20px;">
-            <strong>${authorName}</strong> mentioned you in a comment on ${recordTypeLabel} "<strong>${recordName}</strong>":
+            <strong>${safeAuthorName}</strong> mentioned you in a comment on ${recordTypeLabel} "<strong>${safeRecordName}</strong>":
           </p>
           <div style="background: #f4f6f4; border-left: 4px solid #3B463D; padding: 15px 20px; margin: 0 0 20px; border-radius: 0 5px 5px 0;">
             <p style="font-size: 15px; margin: 0; color: #3B463D; white-space: pre-line;">${commentText}</p>
@@ -97,7 +107,7 @@ export async function sendCommentMentionEmails(
 
     const text = `${authorName} mentioned you in a comment on ${recordTypeLabel} "${recordName}":
 
-"${commentText}"
+"${tiptapToPlainText(content).trim()}"
 
 View it here: ${recordUrl}
 
