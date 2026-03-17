@@ -52,8 +52,8 @@
     </template>
 
     <template #detail>
-      <CrmDetailPanel v-if="selectedGroup" :tabs="detailTabs">
-        <template #tab-details>
+      <CrmDetailPanel v-if="selectedGroup" :side-tabs="sideTabs">
+        <template #details>
           <form @submit.prevent="saveGroupChanges">
             <CrmFormSection title="Group Information">
               <UFormField label="Name" required>
@@ -142,7 +142,7 @@
           </form>
         </template>
 
-        <template #tab-comments>
+        <template #side-comments>
           <RecordComments record-type="group" :record-id="selectedGroup.id" />
         </template>
       </CrmDetailPanel>
@@ -301,8 +301,7 @@ const addAdoptionPeopleGroupId = ref<number | null>(null)
 
 const slideoverOpen = ref(false)
 
-const detailTabs = [
-  { label: 'Details', slot: 'details', icon: 'i-lucide-file-text' },
+const sideTabs = [
   { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square' }
 ]
 

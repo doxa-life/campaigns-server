@@ -83,21 +83,24 @@
     </template>
 
     <template v-if="selectedGroup" #detail-actions>
-      <UButton size="sm" @click="navigateToSubscribers(selectedGroup.id)" variant="outline">
-        Subscribers
-      </UButton>
-      <UButton size="sm" :to="`/admin/people-groups/${selectedGroup.id}/content`" variant="outline">
-        Content
-      </UButton>
-      <UButton size="sm" v-if="selectedGroup.slug" :to="`/${selectedGroup.slug}`" target="_blank" variant="outline">
-        Open
-      </UButton>
       <UButton size="sm" @click="saveChanges" :loading="saving">Save</UButton>
     </template>
 
     <template #detail>
-      <CrmDetailPanel v-if="selectedGroup" :tabs="detailTabs">
-        <template #tab-details>
+      <CrmDetailPanel v-if="selectedGroup" :side-tabs="sideTabs">
+        <template #top>
+          <UButton size="xs" @click="navigateToSubscribers(selectedGroup.id)" variant="outline">
+            Subscribers
+          </UButton>
+          <UButton size="xs" :to="`/admin/people-groups/${selectedGroup.id}/content`" variant="outline">
+            Content
+          </UButton>
+          <UButton size="xs" v-if="selectedGroup.slug" :to="`/${selectedGroup.slug}`" target="_blank" variant="outline">
+            Open
+          </UButton>
+        </template>
+
+        <template #details>
           <CrmFormSection title="Adopted By">
             <template #header-extra>
               <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="openAddAdoptionModal">
@@ -196,7 +199,7 @@
           </form>
         </template>
 
-        <template #tab-comments>
+        <template #side-comments>
           <RecordComments v-if="selectedGroup" record-type="people_group" :record-id="selectedGroup.id" />
         </template>
       </CrmDetailPanel>
@@ -297,8 +300,7 @@ const selectedAdoption = ref<Adoption | null>(null)
 // Slideover state
 const slideoverOpen = ref(false)
 
-const detailTabs = [
-  { label: 'Details', slot: 'details', icon: 'i-lucide-file-text' },
+const sideTabs = [
   { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square' }
 ]
 
@@ -668,4 +670,5 @@ onMounted(async () => {
   flex-direction: column;
   gap: 0.5rem;
 }
+
 </style>

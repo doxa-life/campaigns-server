@@ -77,9 +77,9 @@
     </template>
 
     <template #detail>
-      <CrmDetailPanel v-if="selectedSubscriber" :tabs="detailTabs">
+      <CrmDetailPanel v-if="selectedSubscriber" :side-tabs="sideTabs">
 
-        <template #tab-details>
+        <template #details>
           <form @submit.prevent="saveChanges">
             <CrmFormSection title="Contact Information">
               <UFormField label="Name" required>
@@ -312,11 +312,11 @@
           </form>
         </template>
 
-        <template #tab-comments>
+        <template #side-comments>
           <RecordComments record-type="subscriber" :record-id="selectedSubscriber.id" />
         </template>
 
-        <template #tab-activity>
+        <template #side-activity>
           <CrmFormSection title="Activity Log">
             <div v-if="loadingActivityLog" class="activity-loading">
               Loading...
@@ -547,8 +547,7 @@ const deleting = ref(false)
 // Slideover state
 const slideoverOpen = ref(false)
 
-const detailTabs = [
-  { label: 'Details', slot: 'details', icon: 'i-lucide-file-text' },
+const sideTabs = [
   { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square' },
   { label: 'Activity', slot: 'activity', icon: 'i-lucide-activity' }
 ]

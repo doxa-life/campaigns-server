@@ -23,7 +23,9 @@
     <USlideover
       v-model:open="slideoverOpen"
       side="right"
-      :ui="{ content: 'sm:max-w-3xl' }"
+      title="Record Details"
+      description="View and edit record details"
+      :ui="{ content: 'sm:max-w-6xl' }"
     >
       <template #header>
         <div class="slideover-header">

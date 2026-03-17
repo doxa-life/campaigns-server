@@ -1,19 +1,39 @@
 <template>
   <div class="crm-detail-panel">
-    <div v-if="$slots['secondary-actions']" class="secondary-actions">
-      <slot name="secondary-actions" />
+    <div v-if="$slots.top" class="top-bar">
+      <slot name="top" />
     </div>
 
-    <UTabs v-if="tabs.length > 0" :items="tabs" class="detail-tabs">
-      <template v-for="tab in tabs" :key="tab.slot" #[tab.slot]>
-        <div class="tab-content">
-          <slot :name="'tab-' + tab.slot" />
-        </div>
-      </template>
-    </UTabs>
+    <!-- Desktop: two columns -->
+    <div class="desktop-layout">
+      <div class="detail-column">
+        <slot name="details" />
+      </div>
+      <div v-if="sideTabs.length > 0" class="side-column">
+        <UTabs :items="sideTabs">
+          <template v-for="tab in sideTabs" :key="tab.slot" #[tab.slot]>
+            <div class="side-tab-content">
+              <slot :name="'side-' + tab.slot" />
+            </div>
+          </template>
+        </UTabs>
+      </div>
+    </div>
 
-    <div v-else class="details-body">
-      <slot />
+    <!-- Mobile: all tabs -->
+    <div class="mobile-layout">
+      <UTabs :items="mobileTabs">
+        <template #details>
+          <div class="mobile-tab-content">
+            <slot name="details" />
+          </div>
+        </template>
+        <template v-for="tab in sideTabs" :key="tab.slot" #[tab.slot]>
+          <div class="mobile-tab-content">
+            <slot :name="'side-' + tab.slot" />
+          </div>
+        </template>
+      </UTabs>
     </div>
   </div>
 </template>
@@ -25,11 +45,16 @@ interface Tab {
   icon?: string
 }
 
-withDefaults(defineProps<{
-  tabs?: Tab[]
+const props = withDefaults(defineProps<{
+  sideTabs?: Tab[]
 }>(), {
-  tabs: () => []
+  sideTabs: () => []
 })
+
+const mobileTabs = computed(() => [
+  { label: 'Details', slot: 'details', icon: 'i-lucide-file-text' },
+  ...props.sideTabs
+])
 </script>
 
 <style scoped>
@@ -37,30 +62,60 @@ withDefaults(defineProps<{
   height: 100%;
 }
 
-.secondary-actions {
+.top-bar {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--ui-border);
+  margin-bottom: 1rem;
 }
 
-.tab-content {
+.desktop-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.mobile-layout {
+  display: none;
+}
+
+.detail-column {
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  min-width: 0;
+}
+
+.detail-column :deep(form) {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.side-column {
+  overflow-y: auto;
+  min-height: 0;
+  border-left: 1px solid var(--ui-border);
+  padding-left: 1.5rem;
+}
+
+.side-tab-content {
   padding-top: 1rem;
 }
 
-.details-body {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.mobile-tab-content {
+  padding-top: 1rem;
 }
 
-.details-body :deep(form) {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+@media (max-width: 768px) {
+  .desktop-layout {
+    display: none;
+  }
+
+  .mobile-layout {
+    display: block;
+  }
 }
 </style>
