@@ -45,19 +45,22 @@ export const mentionSuggestion: Omit<SuggestionOptions, 'editor'> = {
 
         if (!component.element) return
 
-        popup = document.createElement('div')
-        popup.style.position = 'absolute'
-        popup.style.zIndex = '50'
-        popup.appendChild(component.element)
-        document.body.appendChild(popup)
+        const editorEl = props.editor.options.element as HTMLElement | undefined
+        const container = editorEl?.closest('.editor-wrapper') || editorEl?.parentElement || document.body
 
-        updatePosition(props.clientRect, popup)
+        popup = document.createElement('div')
+        popup.style.position = 'fixed'
+        popup.style.zIndex = '100'
+        popup.appendChild(component.element)
+        container.appendChild(popup)
+
+        updatePosition(props.clientRect ?? null, popup)
       },
 
       onUpdate: (props) => {
         component?.updateProps(props)
         if (popup && props.clientRect) {
-          updatePosition(props.clientRect, popup)
+          updatePosition(props.clientRect ?? null, popup)
         }
       },
 
@@ -85,6 +88,6 @@ function updatePosition(clientRect: (() => DOMRect | null) | null, popup: HTMLEl
   const rect = clientRect?.()
   if (!rect) return
 
-  popup.style.left = `${rect.left + window.scrollX}px`
-  popup.style.top = `${rect.bottom + window.scrollY + 4}px`
+  popup.style.left = `${rect.left}px`
+  popup.style.top = `${rect.bottom + 4}px`
 }

@@ -1,5 +1,9 @@
 <template>
-  <CrmLayout :loading="loading" :error="error">
+  <CrmLayout
+    :loading="loading"
+    :error="error"
+    v-model:open="slideoverOpen"
+  >
     <template #header>
       <div>
         <h1>Contacts</h1>
@@ -47,6 +51,11 @@
             :key="groupName"
             :label="`${groupName} (${count})`"
             variant="subtle"
+            size="xs"
+          />
+          <UBadge
+            v-if="subscriber.consents?.doxa_general"
+            label="Doxa"
             color="success"
             size="xs"
           />
@@ -58,258 +67,256 @@
       </CrmListItem>
     </template>
 
+    <template v-if="selectedSubscriber" #detail-header>
+      <h2>{{ selectedSubscriber.name }}</h2>
+    </template>
+
+    <template v-if="selectedSubscriber" #detail-actions>
+      <UButton size="sm" @click="openDeleteModal" color="error" variant="outline">Delete</UButton>
+      <UButton size="sm" @click="saveChanges" :loading="saving">Save</UButton>
+    </template>
+
     <template #detail>
-      <CrmDetailPanel :has-selection="!!selectedSubscriber">
-        <template #header>
-          <h2>{{ selectedSubscriber?.name }}</h2>
-        </template>
+      <CrmDetailPanel v-if="selectedSubscriber" :side-tabs="sideTabs">
 
-        <template #actions>
-          <UButton type="button" @click="resetForm" variant="outline">Reset</UButton>
-          <UButton @click="openDeleteModal" color="error" variant="outline">Delete</UButton>
-          <UButton @click="saveChanges" :loading="saving">
-            {{ saving ? 'Saving...' : 'Save Changes' }}
-          </UButton>
-        </template>
+        <template #details>
+          <form @submit.prevent="saveChanges">
+            <CrmFormSection title="Contact Information">
+              <UFormField label="Name" required>
+                <UInput v-model="subscriberForm.name" type="text" class="w-full" />
+              </UFormField>
 
-        <form v-if="selectedSubscriber" @submit.prevent="saveChanges">
-          <!-- Contact Information -->
-          <CrmFormSection title="Contact Information">
-            <UFormField label="Name" required>
-              <UInput v-model="subscriberForm.name" type="text" class="w-full" />
-            </UFormField>
+              <UFormField label="Email">
+                <UInput v-model="subscriberForm.email" type="email" class="w-full" />
+              </UFormField>
 
-            <UFormField label="Email">
-              <UInput v-model="subscriberForm.email" type="email" class="w-full" />
-            </UFormField>
+              <UFormField label="Phone">
+                <UInput v-model="subscriberForm.phone" type="tel" class="w-full" />
+              </UFormField>
 
-            <UFormField label="Phone">
-              <UInput v-model="subscriberForm.phone" type="tel" class="w-full" />
-            </UFormField>
+              <UFormField label="Role">
+                <UInput v-model="subscriberForm.role" type="text" class="w-full" placeholder="e.g. Pastor, Missions Pastor" />
+              </UFormField>
 
-            <UFormField label="Role">
-              <UInput v-model="subscriberForm.role" type="text" class="w-full" placeholder="e.g. Pastor, Missions Pastor" />
-            </UFormField>
-
-            <UFormField label="Preferred Language">
-              <USelectMenu
-                v-model="subscriberForm.preferred_language"
-                :items="languageOptions"
-                value-key="value"
-                class="w-full"
-              />
-            </UFormField>
-          </CrmFormSection>
-
-          <!-- Groups -->
-          <CrmFormSection title="Groups">
-            <template #header-extra>
-              <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="showAddGroupModal = true">
-                Add
-              </UButton>
-            </template>
-
-            <div v-if="subscriberGroups.length === 0" class="p-4 text-center text-muted text-sm">
-              Not in any groups
-            </div>
-            <div v-else class="groups-list">
-              <div v-for="g in subscriberGroups" :key="g.group_id" class="group-row">
-                <NuxtLink :to="`/admin/groups/${g.group_id}`" class="group-link">
-                  {{ g.name }}
-                </NuxtLink>
-                <UButton
-                  size="xs"
-                  variant="ghost"
-                  color="error"
-                  icon="i-lucide-x"
-                  @click="removeFromGroup(g.group_id)"
+              <UFormField label="Preferred Language">
+                <USelectMenu
+                  v-model="subscriberForm.preferred_language"
+                  :items="languageOptions"
+                  value-key="value"
+                  class="w-full"
                 />
-              </div>
-            </div>
-          </CrmFormSection>
+              </UFormField>
+            </CrmFormSection>
 
-          <!-- Marketing Consents -->
-          <CrmFormSection title="Marketing Consents">
-            <div class="consents-list">
-              <div class="consent-item">
-                <div class="consent-label">
-                  <span class="consent-name">Doxa General Updates</span>
-                  <UBadge
-                    :label="selectedSubscriber.consents.doxa_general ? 'Opted In' : 'Not Opted In'"
-                    :color="selectedSubscriber.consents.doxa_general ? 'success' : 'neutral'"
-                    :variant="selectedSubscriber.consents.doxa_general ? 'solid' : 'outline'"
-                    size="xs"
-                  />
-                </div>
-                <span v-if="selectedSubscriber.consents.doxa_general && selectedSubscriber.consents.doxa_general_at" class="consent-date">
-                  since {{ formatDate(selectedSubscriber.consents.doxa_general_at) }}
-                </span>
-              </div>
+            <CrmFormSection title="Groups">
+              <template #header-extra>
+                <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="showAddGroupModal = true">
+                  Add
+                </UButton>
+              </template>
 
-              <div v-if="selectedSubscriber.consents.people_group_names.length > 0" class="consent-item">
-                <div class="consent-label">
-                  <span class="consent-name">People Group Marketing</span>
-                </div>
-                <div class="people-group-consents">
-                  <UBadge
-                    v-for="(name, idx) in selectedSubscriber.consents.people_group_names"
-                    :key="selectedSubscriber.consents.people_group_ids[idx]"
-                    :label="name"
-                    color="primary"
-                    variant="subtle"
+              <div v-if="subscriberGroups.length === 0" class="p-4 text-center text-muted text-sm">
+                Not in any groups
+              </div>
+              <div v-else class="groups-list">
+                <div v-for="g in subscriberGroups" :key="g.group_id" class="group-row">
+                  <NuxtLink :to="`/admin/groups/${g.group_id}`" class="group-link">
+                    {{ g.name }}
+                  </NuxtLink>
+                  <UButton
                     size="xs"
+                    variant="ghost"
+                    color="error"
+                    icon="i-lucide-x"
+                    @click="removeFromGroup(g.group_id)"
                   />
                 </div>
               </div>
+            </CrmFormSection>
 
-              <div v-else class="consent-item">
-                <div class="consent-label">
-                  <span class="consent-name">People Group Marketing</span>
-                  <UBadge label="None" color="neutral" variant="outline" size="xs" />
-                </div>
-              </div>
-            </div>
-          </CrmFormSection>
-
-          <!-- Subscriptions -->
-          <CrmFormSection :title="`Subscriptions (${selectedSubscriber.subscriptions.length})`">
-            <div v-if="selectedSubscriber.subscriptions.length === 0" class="no-subscriptions">
-              No active subscriptions
-            </div>
-
-            <div v-else class="subscriptions-list">
-              <div
-                v-for="subscription in selectedSubscriber.subscriptions"
-                :key="subscription.id"
-                class="subscription-card"
-              >
-                <div class="subscription-header" @click="toggleSubscription(subscription.id)">
-                  <div class="subscription-title">
-                    <span class="people-group-name">{{ subscription.people_group_name }}</span>
+            <CrmFormSection title="Marketing Consents">
+              <div class="consents-list">
+                <div class="consent-item">
+                  <div class="consent-label">
+                    <span class="consent-name">Doxa General Updates</span>
                     <UBadge
-                      :label="subscription.status"
-                      variant="outline"
-                      :color="subscription.status === 'active' ? 'success' : 'error'"
+                      :label="selectedSubscriber.consents.doxa_general ? 'Opted In' : 'Not Opted In'"
+                      :color="selectedSubscriber.consents.doxa_general ? 'success' : 'neutral'"
+                      :variant="selectedSubscriber.consents.doxa_general ? 'solid' : 'outline'"
                       size="xs"
                     />
                   </div>
-                  <UIcon
-                    :name="expandedSubscriptions.has(subscription.id) ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
-                    class="expand-icon"
-                  />
+                  <span v-if="selectedSubscriber.consents.doxa_general && selectedSubscriber.consents.doxa_general_at" class="consent-date">
+                    since {{ formatDate(selectedSubscriber.consents.doxa_general_at) }}
+                  </span>
                 </div>
 
-                <div v-if="expandedSubscriptions.has(subscription.id)" class="subscription-details">
-                  <UFormField label="Delivery Method">
-                    <div class="field-display">
+                <div v-if="selectedSubscriber.consents.people_group_names.length > 0" class="consent-item">
+                  <div class="consent-label">
+                    <span class="consent-name">People Group Marketing</span>
+                  </div>
+                  <div class="people-group-consents">
+                    <UBadge
+                      v-for="(name, idx) in selectedSubscriber.consents.people_group_names"
+                      :key="selectedSubscriber.consents.people_group_ids[idx]"
+                      :label="name"
+                      color="primary"
+                      variant="subtle"
+                      size="xs"
+                    />
+                  </div>
+                </div>
+
+                <div v-else class="consent-item">
+                  <div class="consent-label">
+                    <span class="consent-name">People Group Marketing</span>
+                    <UBadge label="None" color="neutral" variant="outline" size="xs" />
+                  </div>
+                </div>
+              </div>
+            </CrmFormSection>
+
+            <CrmFormSection :title="`Subscriptions (${selectedSubscriber.subscriptions.length})`">
+              <div v-if="selectedSubscriber.subscriptions.length === 0" class="no-subscriptions">
+                No active subscriptions
+              </div>
+
+              <div v-else class="subscriptions-list">
+                <div
+                  v-for="subscription in selectedSubscriber.subscriptions"
+                  :key="subscription.id"
+                  class="subscription-card"
+                >
+                  <div class="subscription-header" @click="toggleSubscription(subscription.id)">
+                    <div class="subscription-title">
+                      <span class="people-group-name">{{ subscription.people_group_name }}</span>
                       <UBadge
-                        :label="subscription.delivery_method"
-                        :variant="subscription.delivery_method === 'email' ? 'solid' : 'outline'"
-                        :color="subscription.delivery_method === 'email' ? 'primary' : 'neutral'"
+                        :label="subscription.status"
+                        variant="outline"
+                        :color="subscription.status === 'active' ? 'success' : 'error'"
                         size="xs"
                       />
                     </div>
-                  </UFormField>
-
-                  <UFormField label="Frequency">
-                    <USelect
-                      v-model="getSubscriptionForm(subscription.id).frequency"
-                      :items="frequencyOptions"
-                      value-key="value"
-                      class="w-full"
+                    <UIcon
+                      :name="expandedSubscriptions.has(subscription.id) ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+                      class="expand-icon"
                     />
-                  </UFormField>
+                  </div>
 
-                  <UFormField v-if="subscription.frequency !== 'daily' && subscription.days_of_week" label="Days of Week">
-                    <div class="field-display">{{ formatDaysOfWeek(subscription.days_of_week) }}</div>
-                  </UFormField>
+                  <div v-if="expandedSubscriptions.has(subscription.id)" class="subscription-details">
+                    <UFormField label="Delivery Method">
+                      <div class="field-display">
+                        <UBadge
+                          :label="subscription.delivery_method"
+                          :variant="subscription.delivery_method === 'email' ? 'solid' : 'outline'"
+                          :color="subscription.delivery_method === 'email' ? 'primary' : 'neutral'"
+                          size="xs"
+                        />
+                      </div>
+                    </UFormField>
 
-                  <UFormField label="Time Preference">
-                    <UInput
-                      v-model="getSubscriptionForm(subscription.id).time_preference"
-                      type="time"
-                      class="w-full"
-                    />
-                  </UFormField>
+                    <UFormField label="Frequency">
+                      <USelect
+                        v-model="getSubscriptionForm(subscription.id).frequency"
+                        :items="frequencyOptions"
+                        value-key="value"
+                        class="w-full"
+                      />
+                    </UFormField>
 
-                  <UFormField v-if="subscription.timezone" label="Timezone">
-                    <div class="field-display">{{ subscription.timezone }}</div>
-                  </UFormField>
+                    <UFormField v-if="subscription.frequency !== 'daily' && subscription.days_of_week" label="Days of Week">
+                      <div class="field-display">{{ formatDaysOfWeek(subscription.days_of_week) }}</div>
+                    </UFormField>
 
-                  <UFormField label="Prayer Duration">
-                    <div class="field-display">{{ formatDuration(subscription.prayer_duration) }}</div>
-                  </UFormField>
+                    <UFormField label="Time Preference">
+                      <UInput
+                        v-model="getSubscriptionForm(subscription.id).time_preference"
+                        type="time"
+                        class="w-full"
+                      />
+                    </UFormField>
 
-                  <UFormField v-if="subscription.next_reminder_utc" label="Next Reminder">
-                    <div class="field-display">{{ formatDateTime(subscription.next_reminder_utc) }}</div>
-                  </UFormField>
+                    <UFormField v-if="subscription.timezone" label="Timezone">
+                      <div class="field-display">{{ subscription.timezone }}</div>
+                    </UFormField>
 
-                  <UFormField label="Status">
-                    <USelect
-                      v-model="getSubscriptionForm(subscription.id).status"
-                      :items="statusOptions"
-                      value-key="value"
-                      class="w-full"
-                    />
-                  </UFormField>
+                    <UFormField label="Prayer Duration">
+                      <div class="field-display">{{ formatDuration(subscription.prayer_duration) }}</div>
+                    </UFormField>
 
-                  <div class="subscription-actions">
-                    <UButton
-                      size="xs"
-                      variant="outline"
-                      :loading="sendingReminder[subscription.id]"
-                      :disabled="subscription.delivery_method !== 'email'"
-                      @click="sendReminder(subscription)"
-                    >
-                      Send Reminder
-                    </UButton>
-                    <UButton
-                      size="xs"
-                      variant="outline"
-                      :loading="sendingFollowup[subscription.id]"
-                      :disabled="subscription.delivery_method !== 'email'"
-                      @click="sendFollowup(subscription)"
-                    >
-                      Send Follow-up
-                    </UButton>
-                    <UButton size="xs" variant="ghost" @click="filterByPeopleGroup(subscription)">
-                      Filter by People Group
-                    </UButton>
+                    <UFormField v-if="subscription.next_reminder_utc" label="Next Reminder">
+                      <div class="field-display">{{ formatDateTime(subscription.next_reminder_utc) }}</div>
+                    </UFormField>
+
+                    <UFormField label="Status">
+                      <USelect
+                        v-model="getSubscriptionForm(subscription.id).status"
+                        :items="statusOptions"
+                        value-key="value"
+                        class="w-full"
+                      />
+                    </UFormField>
+
+                    <div class="subscription-actions">
+                      <UButton
+                        size="xs"
+                        variant="outline"
+                        :loading="sendingReminder[subscription.id]"
+                        :disabled="subscription.delivery_method !== 'email'"
+                        @click="sendReminder(subscription)"
+                      >
+                        Send Reminder
+                      </UButton>
+                      <UButton
+                        size="xs"
+                        variant="outline"
+                        :loading="sendingFollowup[subscription.id]"
+                        :disabled="subscription.delivery_method !== 'email'"
+                        @click="sendFollowup(subscription)"
+                      >
+                        Send Follow-up
+                      </UButton>
+                      <UButton size="xs" variant="ghost" @click="filterByPeopleGroup(subscription)">
+                        Filter by People Group
+                      </UButton>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </CrmFormSection>
+            </CrmFormSection>
 
-          <RecordComments record-type="subscriber" :record-id="selectedSubscriber.id" />
-
-          <!-- Metadata -->
-          <CrmFormSection title="Metadata">
-            <div class="info-row">
-              <span class="label">Tracking ID:</span>
-              <span class="value monospace">{{ selectedSubscriber.tracking_id }}</span>
-            </div>
-
-            <div class="info-row">
-              <span class="label">Profile Link:</span>
-              <div class="profile-link-container">
-                <span class="value profile-link-text">{{ getProfileUrl(selectedSubscriber) }}</span>
-                <UButton
-                  size="xs"
-                  variant="ghost"
-                  icon="i-lucide-copy"
-                  @click="copyProfileLink(selectedSubscriber)"
-                />
+            <CrmFormSection title="Metadata">
+              <div class="info-row">
+                <span class="label">Tracking ID:</span>
+                <span class="value monospace">{{ selectedSubscriber.tracking_id }}</span>
               </div>
-            </div>
 
-            <div class="info-row">
-              <span class="label">Subscriber Since:</span>
-              <span class="value">{{ formatDateTime(selectedSubscriber.created_at) }}</span>
-            </div>
-          </CrmFormSection>
+              <div class="info-row">
+                <span class="label">Profile Link:</span>
+                <div class="profile-link-container">
+                  <span class="value profile-link-text">{{ getProfileUrl(selectedSubscriber) }}</span>
+                  <UButton
+                    size="xs"
+                    variant="ghost"
+                    icon="i-lucide-copy"
+                    @click="copyProfileLink(selectedSubscriber)"
+                  />
+                </div>
+              </div>
 
-          <!-- Activity Log -->
+              <div class="info-row">
+                <span class="label">Subscriber Since:</span>
+                <span class="value">{{ formatDateTime(selectedSubscriber.created_at) }}</span>
+              </div>
+            </CrmFormSection>
+          </form>
+        </template>
+
+        <template #side-comments>
+          <RecordComments record-type="subscriber" :record-id="selectedSubscriber.id" />
+        </template>
+
+        <template #side-activity>
           <CrmFormSection title="Activity Log">
             <div v-if="loadingActivityLog" class="activity-loading">
               Loading...
@@ -369,10 +376,6 @@
               </div>
             </div>
           </CrmFormSection>
-        </form>
-
-        <template #empty>
-          Select a contact to view details
         </template>
       </CrmDetailPanel>
     </template>
@@ -482,6 +485,7 @@ interface GeneralSubscriber {
   contacts: Contact[]
   primary_email: string | null
   primary_phone: string | null
+  role?: string | null
   subscriptions: Subscription[]
   consents: SubscriberConsents
   total_prayer_minutes: number
@@ -539,6 +543,20 @@ const createPersonForm = ref({ name: '', email: '', phone: '' })
 const showDeleteModal = ref(false)
 const subscriberToDelete = ref<GeneralSubscriber | null>(null)
 const deleting = ref(false)
+
+// Slideover state
+const slideoverOpen = ref(false)
+
+const sideTabs = [
+  { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square' },
+  { label: 'Activity', slot: 'activity', icon: 'i-lucide-activity' }
+]
+
+watch(slideoverOpen, (open) => {
+  if (!open) {
+    deselectSubscriber()
+  }
+})
 
 // Activity log state
 interface ActivityLogEntry {
@@ -708,7 +726,13 @@ async function loadData() {
 }
 
 async function selectSubscriber(subscriber: GeneralSubscriber, updateUrl = true) {
+  if (updateUrl && selectedSubscriber.value?.id === subscriber.id && slideoverOpen.value) {
+    slideoverOpen.value = false
+    return
+  }
+
   selectedSubscriber.value = subscriber
+  slideoverOpen.value = true
   subscriberForm.value = { name: subscriber.name, email: subscriber.primary_email || '', phone: subscriber.primary_phone || '', role: subscriber.role || '', preferred_language: subscriber.preferred_language }
   if (updateUrl && import.meta.client) {
     const params = new URLSearchParams()
@@ -741,6 +765,18 @@ async function selectSubscriber(subscriber: GeneralSubscriber, updateUrl = true)
     subscriberGroups.value = res.groups
   } catch {
     subscriberGroups.value = []
+  }
+}
+
+function deselectSubscriber() {
+  selectedSubscriber.value = null
+  if (import.meta.client) {
+    const params = new URLSearchParams()
+    if (filterPeopleGroupId.value) params.set('peopleGroup', String(filterPeopleGroupId.value))
+    if (route.query.from) params.set('from', route.query.from as string)
+    if (route.query.peopleGroupId) params.set('peopleGroupId', route.query.peopleGroupId as string)
+    const queryString = params.toString()
+    window.history.replaceState({}, '', `/admin/subscribers${queryString ? '?' + queryString : ''}`)
   }
 }
 
@@ -813,7 +849,6 @@ async function sendReminder(subscription: Subscription) {
       color: 'success'
     })
 
-    // Refresh activity log to show the new email
     if (selectedSubscriber.value) {
       await loadActivityLog(selectedSubscriber.value)
     }
@@ -843,7 +878,6 @@ async function sendFollowup(subscription: Subscription) {
       color: 'success'
     })
 
-    // Refresh activity log to show the new email
     if (selectedSubscriber.value) {
       await loadActivityLog(selectedSubscriber.value)
     }
@@ -864,7 +898,6 @@ async function saveChanges() {
   try {
     saving.value = true
     const subscriber = selectedSubscriber.value
-    // Save person info via subscriber endpoint
     const nameChanged = subscriberForm.value.name !== subscriber.name
     const emailChanged = subscriberForm.value.email !== (subscriber.primary_email || '')
     const phoneChanged = subscriberForm.value.phone !== (subscriber.primary_phone || '')
@@ -884,7 +917,6 @@ async function saveChanges() {
       })
     }
 
-    // Save subscription changes via subscription endpoints
     for (const [subId, form] of subscriptionForms.value.entries()) {
       const original = subscriber.subscriptions.find(s => s.id === subId)
       if (!original) continue
@@ -904,7 +936,7 @@ async function saveChanges() {
 
     const updated = subscribers.value.find(s => s.id === subscriber.id)
     if (updated) {
-      selectSubscriber(updated)
+      selectSubscriber(updated, false)
     }
 
     toast.add({
@@ -957,18 +989,9 @@ async function confirmDelete() {
     })
 
     subscribers.value = subscribers.value.filter(s => s.id !== subscriberToDelete.value!.id)
-    selectedSubscriber.value = null
+    slideoverOpen.value = false
     showDeleteModal.value = false
     subscriberToDelete.value = null
-
-    if (import.meta.client) {
-      const params = new URLSearchParams()
-      if (filterPeopleGroupId.value) params.set('peopleGroup', String(filterPeopleGroupId.value))
-      if (route.query.from) params.set('from', route.query.from as string)
-      if (route.query.peopleGroupId) params.set('peopleGroupId', route.query.peopleGroupId as string)
-      const queryString = params.toString()
-      window.history.replaceState({}, '', `/admin/subscribers${queryString ? '?' + queryString : ''}`)
-    }
   } catch (err: any) {
     toast.add({
       title: 'Error',
@@ -1278,7 +1301,7 @@ onMounted(async () => {
 }
 
 .activity-list {
-  max-height: 200px;
+  max-height: 400px;
   overflow-y: auto;
   border: 1px solid var(--ui-border);
   border-radius: 4px;

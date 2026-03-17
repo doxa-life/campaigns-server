@@ -1,5 +1,9 @@
 <template>
-  <CrmLayout :loading="loading" :error="error">
+  <CrmLayout
+    :loading="loading"
+    :error="error"
+    v-model:open="slideoverOpen"
+  >
     <template #header>
       <div>
         <h1>Groups</h1>
@@ -38,114 +42,108 @@
       </CrmListItem>
     </template>
 
+    <template v-if="selectedGroup" #detail-header>
+      <h2>{{ selectedGroup.name }}</h2>
+    </template>
+
+    <template v-if="selectedGroup" #detail-actions>
+      <UButton size="sm" @click="openDeleteGroupModal" color="error" variant="outline">Delete</UButton>
+      <UButton size="sm" @click="saveGroupChanges" :loading="saving">Save</UButton>
+    </template>
+
     <template #detail>
-      <CrmDetailPanel :has-selection="!!selectedGroup">
-        <template #header>
-          <h2>{{ selectedGroup?.name }}</h2>
-        </template>
+      <CrmDetailPanel v-if="selectedGroup" :side-tabs="sideTabs">
+        <template #details>
+          <form @submit.prevent="saveGroupChanges">
+            <CrmFormSection title="Group Information">
+              <UFormField label="Name" required>
+                <UInput v-model="groupForm.name" type="text" class="w-full" />
+              </UFormField>
+              <UFormField label="Primary Contact">
+                <USelectMenu
+                  v-model="groupForm.primary_subscriber_id"
+                  :items="primarySubscriberOptions"
+                  value-key="value"
+                  placeholder="Select primary contact..."
+                  class="w-full"
+                />
+              </UFormField>
+              <UFormField label="Country">
+                <USelectMenu
+                  v-model="groupForm.country"
+                  :items="countryOptions"
+                  value-key="value"
+                  placeholder="Select country..."
+                  virtualize
+                  class="w-full"
+                />
+              </UFormField>
+            </CrmFormSection>
 
-        <template #actions>
-          <UButton type="button" @click="resetForm" variant="outline">Reset</UButton>
-          <UButton @click="openDeleteGroupModal" color="error" variant="outline">Delete</UButton>
-          <UButton @click="saveGroupChanges" :loading="saving">
-            {{ saving ? 'Saving...' : 'Save Changes' }}
-          </UButton>
-        </template>
+            <CrmFormSection title="Contacts">
+              <template #header-extra>
+                <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="showAddSubscriberModal = true">
+                  Add
+                </UButton>
+              </template>
 
-        <form v-if="selectedGroup" @submit.prevent="saveGroupChanges">
-          <CrmFormSection title="Group Information">
-            <UFormField label="Name" required>
-              <UInput v-model="groupForm.name" type="text" class="w-full" />
-            </UFormField>
-            <UFormField label="Primary Contact">
-              <USelectMenu
-                v-model="groupForm.primary_subscriber_id"
-                :items="primarySubscriberOptions"
-                value-key="value"
-                placeholder="Select primary contact..."
-                class="w-full"
-              />
-            </UFormField>
-            <UFormField label="Country">
-              <USelectMenu
-                v-model="groupForm.country"
-                :items="countryOptions"
-                value-key="value"
-                placeholder="Select country..."
-                virtualize
-                class="w-full"
-              />
-            </UFormField>
-          </CrmFormSection>
-
-          <!-- Contacts Section -->
-          <CrmFormSection title="Contacts">
-            <template #header-extra>
-              <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="showAddSubscriberModal = true">
-                Add
-              </UButton>
-            </template>
-
-            <div v-if="groupSubscribers.length === 0" class="empty-section">
-              No contacts linked
-            </div>
-            <div v-else class="subscribers-list">
-              <div v-for="s in groupSubscribers" :key="s.subscriber_id" class="subscriber-row">
-                <div class="subscriber-row-info">
-                  <NuxtLink :to="`/admin/subscribers/${s.subscriber_id}`" class="subscriber-link">
-                    {{ s.name }}
-                  </NuxtLink>
-                  <span v-if="s.email" class="subscriber-email">{{ s.email }}</span>
+              <div v-if="groupSubscribers.length === 0" class="empty-section">
+                No contacts linked
+              </div>
+              <div v-else class="subscribers-list">
+                <div v-for="s in groupSubscribers" :key="s.subscriber_id" class="subscriber-row">
+                  <div class="subscriber-row-info">
+                    <NuxtLink :to="`/admin/subscribers/${s.subscriber_id}`" class="subscriber-link">
+                      {{ s.name }}
+                    </NuxtLink>
+                    <span v-if="s.email" class="subscriber-email">{{ s.email }}</span>
+                  </div>
+                  <UButton
+                    size="xs"
+                    variant="ghost"
+                    color="error"
+                    icon="i-lucide-x"
+                    @click="removeSubscriber(s.subscriber_id)"
+                  />
                 </div>
-                <UButton
-                  size="xs"
-                  variant="ghost"
-                  color="error"
-                  icon="i-lucide-x"
-                  @click="removeSubscriber(s.subscriber_id)"
+              </div>
+            </CrmFormSection>
+
+            <CrmFormSection title="Adoptions">
+              <template #header-extra>
+                <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="showAddAdoptionModal = true">
+                  Add
+                </UButton>
+              </template>
+
+              <div v-if="groupAdoptions.length === 0" class="empty-section">
+                No adoptions
+              </div>
+              <div v-else class="adoptions-list">
+                <AdoptionCard
+                  v-for="adoption in groupAdoptions"
+                  :key="adoption.id"
+                  :adoption="adoption"
+                  :label="adoption.people_group_name"
+                  @open="openAdoptionSlideover(adoption)"
                 />
               </div>
-            </div>
-          </CrmFormSection>
+            </CrmFormSection>
+            <CrmFormSection title="Metadata">
+              <div class="info-row">
+                <span class="label">Group ID:</span>
+                <span class="value monospace">{{ selectedGroup.id }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Created:</span>
+                <span class="value">{{ formatDateTime(selectedGroup.created_at) }}</span>
+              </div>
+            </CrmFormSection>
+          </form>
+        </template>
 
-          <!-- Adoptions Section -->
-          <CrmFormSection title="Adoptions">
-            <template #header-extra>
-              <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="showAddAdoptionModal = true">
-                Add
-              </UButton>
-            </template>
-
-            <div v-if="groupAdoptions.length === 0" class="empty-section">
-              No adoptions
-            </div>
-            <div v-else class="adoptions-list">
-              <AdoptionCard
-                v-for="adoption in groupAdoptions"
-                :key="adoption.id"
-                :adoption="adoption"
-                :label="adoption.people_group_name"
-                @open="openAdoptionSlideover(adoption)"
-              />
-            </div>
-          </CrmFormSection>
-
+        <template #side-comments>
           <RecordComments record-type="group" :record-id="selectedGroup.id" />
-
-          <CrmFormSection title="Metadata">
-            <div class="info-row">
-              <span class="label">Group ID:</span>
-              <span class="value monospace">{{ selectedGroup.id }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Created:</span>
-              <span class="value">{{ formatDateTime(selectedGroup.created_at) }}</span>
-            </div>
-          </CrmFormSection>
-        </form>
-
-        <template #empty>
-          Select a group to view details
         </template>
       </CrmDetailPanel>
     </template>
@@ -301,6 +299,18 @@ const createGroupForm = ref({ name: '' })
 const addSubscriberId = ref<number | null>(null)
 const addAdoptionPeopleGroupId = ref<number | null>(null)
 
+const slideoverOpen = ref(false)
+
+const sideTabs = [
+  { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square' }
+]
+
+watch(slideoverOpen, (open) => {
+  if (!open) {
+    deselectGroup()
+  }
+})
+
 const filteredGroups = computed(() => {
   if (!searchQuery.value) return groups.value
   const q = searchQuery.value.toLowerCase()
@@ -354,7 +364,13 @@ async function loadData() {
 }
 
 async function selectGroup(group: GroupWithDetails, updateUrl = true) {
+  if (updateUrl && selectedGroup.value?.id === group.id && slideoverOpen.value) {
+    slideoverOpen.value = false
+    return
+  }
+
   selectedGroup.value = group
+  slideoverOpen.value = true
   groupForm.value = {
     name: group.name,
     primary_subscriber_id: group.primary_subscriber_id,
@@ -371,6 +387,13 @@ async function selectGroup(group: GroupWithDetails, updateUrl = true) {
   } catch {
     groupSubscribers.value = []
     groupAdoptions.value = []
+  }
+}
+
+function deselectGroup() {
+  selectedGroup.value = null
+  if (import.meta.client) {
+    window.history.replaceState({}, '', '/admin/groups')
   }
 }
 
@@ -434,9 +457,8 @@ async function confirmDeleteGroup() {
     deleting.value = true
     await $fetch(`/api/admin/groups/${selectedGroup.value.id}`, { method: 'DELETE' })
     groups.value = groups.value.filter(g => g.id !== selectedGroup.value!.id)
-    selectedGroup.value = null
+    slideoverOpen.value = false
     showDeleteModal.value = false
-    if (import.meta.client) window.history.replaceState({}, '', '/admin/groups')
     toast.add({ title: 'Group deleted', color: 'success' })
   } catch (err: any) {
     toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to delete', color: 'error' })

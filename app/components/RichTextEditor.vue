@@ -12,7 +12,6 @@ import Superscript from '@tiptap/extension-superscript'
 import Youtube from '@tiptap/extension-youtube'
 import { DOMParser as ProseMirrorDOMParser } from '@tiptap/pm/model'
 import { ImageUploadExtension } from '~/utils/imageUploadExtension'
-import Mention from '@tiptap/extension-mention'
 import { Spacer } from '~/extensions/spacer'
 import { Vimeo } from '~/extensions/vimeo'
 import { Verse } from '~/extensions/verse'
@@ -268,11 +267,7 @@ const customExtensions = [
     onSuccess: (url: string) => {
       console.log('Upload successful:', url)
     }
-  }),
-  ...(props.mentions ? [Mention.configure({
-    HTMLAttributes: { class: 'mention' },
-    suggestion: mentionSuggestion
-  })] : [])
+  })
 ]
 
 const { showVideoUrlModal } = useVideoEmbed()
@@ -421,6 +416,7 @@ const setHighlight = (color: string | null) => {
       :handlers="customHandlers"
       :placeholder="editorConfig.placeholder.default"
       :image="false"
+      :mention="props.mentions ? { HTMLAttributes: { class: 'mention' }, suggestion: mentionSuggestion } : false"
       :editor-props="{ transformPastedHTML, handlePaste }"
       class="editor-content"
     >

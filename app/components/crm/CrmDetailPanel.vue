@@ -1,34 +1,60 @@
 <template>
   <div class="crm-detail-panel">
-    <div v-if="!hasSelection" class="no-selection">
-      <slot name="empty">Select an item to view details</slot>
+    <div v-if="$slots.top" class="top-bar">
+      <slot name="top" />
     </div>
 
-    <div v-else class="details-content">
-      <div class="details-header">
-        <div class="header-info">
-          <slot name="header" />
-        </div>
-        <div class="header-actions">
-          <slot name="actions" />
-        </div>
+    <!-- Desktop: two columns -->
+    <div class="desktop-layout">
+      <div class="detail-column">
+        <slot name="details" />
       </div>
+      <div v-if="sideTabs.length > 0" class="side-column">
+        <UTabs :items="sideTabs">
+          <template v-for="tab in sideTabs" :key="tab.slot" #[tab.slot]>
+            <div class="side-tab-content">
+              <slot :name="'side-' + tab.slot" />
+            </div>
+          </template>
+        </UTabs>
+      </div>
+    </div>
 
-      <div v-if="$slots['secondary-actions']" class="secondary-actions">
-        <slot name="secondary-actions" />
-      </div>
-
-      <div class="details-body">
-        <slot />
-      </div>
+    <!-- Mobile: all tabs -->
+    <div class="mobile-layout">
+      <UTabs :items="mobileTabs">
+        <template #details>
+          <div class="mobile-tab-content">
+            <slot name="details" />
+          </div>
+        </template>
+        <template v-for="tab in sideTabs" :key="tab.slot" #[tab.slot]>
+          <div class="mobile-tab-content">
+            <slot :name="'side-' + tab.slot" />
+          </div>
+        </template>
+      </UTabs>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  hasSelection?: boolean
-}>()
+interface Tab {
+  label: string
+  slot: string
+  icon?: string
+}
+
+const props = withDefaults(defineProps<{
+  sideTabs?: Tab[]
+}>(), {
+  sideTabs: () => []
+})
+
+const mobileTabs = computed(() => [
+  { label: 'Details', slot: 'details', icon: 'i-lucide-file-text' },
+  ...props.sideTabs
+])
 </script>
 
 <style scoped>
@@ -36,59 +62,60 @@ defineProps<{
   height: 100%;
 }
 
-.no-selection {
+.top-bar {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--ui-border);
+  margin-bottom: 1rem;
+}
+
+.desktop-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
   height: 100%;
-  min-height: 400px;
-  color: var(--ui-text-muted);
 }
 
-.details-content {
-  padding: 1.5rem;
+.mobile-layout {
+  display: none;
 }
 
-.details-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--ui-border);
+.detail-column {
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  min-width: 0;
 }
 
-.header-info {
-  flex: 1;
-}
-
-.header-info :deep(h2) {
-  margin: 0 0 0.25rem;
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.secondary-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--ui-border);
-}
-
-.details-body {
+.detail-column :deep(form) {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.details-body :deep(form) {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.side-column {
+  overflow-y: auto;
+  min-height: 0;
+  border-left: 1px solid var(--ui-border);
+  padding-left: 1.5rem;
+}
+
+.side-tab-content {
+  padding-top: 1rem;
+}
+
+.mobile-tab-content {
+  padding-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .desktop-layout {
+    display: none;
+  }
+
+  .mobile-layout {
+    display: block;
+  }
 }
 </style>

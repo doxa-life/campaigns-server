@@ -7,7 +7,6 @@
     <div v-if="error" class="error">{{ error }}</div>
 
     <div v-else class="crm-layout">
-      <!-- Left Column: List Panel -->
       <div class="list-panel">
         <slot name="list-header" />
         <div class="list-items">
@@ -19,31 +18,58 @@
           </slot>
         </div>
       </div>
-
-      <!-- Right Column: Detail Panel -->
-      <div class="detail-panel">
-        <slot name="detail">
-          <div class="no-selection">
-            <slot name="detail-empty">Select an item to view details</slot>
-          </div>
-        </slot>
-      </div>
     </div>
+
+    <USlideover
+      v-model:open="slideoverOpen"
+      side="right"
+      :ui="{ content: 'sm:max-w-6xl' }"
+    >
+      <template #header>
+        <DialogTitle as="div" class="slideover-header">
+          <div class="slideover-header-info">
+            <slot name="detail-header" />
+          </div>
+          <div class="slideover-header-actions">
+            <slot name="detail-actions" />
+            <UButton
+              icon="i-lucide-x"
+              variant="ghost"
+              color="neutral"
+              size="sm"
+              @click="slideoverOpen = false"
+            />
+          </div>
+        </DialogTitle>
+        <DialogDescription class="sr-only">Record details</DialogDescription>
+      </template>
+      <template #body>
+        <slot name="detail" />
+      </template>
+    </USlideover>
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { DialogTitle, DialogDescription } from 'reka-ui'
+
+const props = defineProps<{
   loading?: boolean
   error?: string
+  open?: boolean
 }>()
+
+const emit = defineEmits<{
+  'update:open': [value: boolean]
+}>()
+
+const slideoverOpen = computed({
+  get: () => props.open ?? false,
+  set: (val) => emit('update:open', val)
+})
 </script>
 
 <style scoped>
-.crm-page {
-  max-width: 1400px;
-}
-
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -64,9 +90,6 @@ defineProps<{
 }
 
 .crm-layout {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 2rem;
   min-height: 600px;
 }
 
@@ -90,34 +113,29 @@ defineProps<{
   color: var(--ui-text-muted);
 }
 
-.detail-panel {
-  border: 1px solid var(--ui-border);
-  border-radius: 8px;
-  background-color: var(--ui-bg-elevated);
-  overflow-y: auto;
-  max-height: calc(100vh - 150px);
-}
-
-.no-selection {
+.slideover-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 400px;
-  color: var(--ui-text-muted);
+  gap: 1rem;
+  width: 100%;
 }
 
-@media (max-width: 1024px) {
-  .crm-layout {
-    grid-template-columns: 1fr;
-  }
+.slideover-header-info {
+  flex: 1;
+  min-width: 0;
+}
 
-  .list-panel {
-    max-height: 300px;
-  }
+.slideover-header-info :deep(h2) {
+  margin: 0;
+  font-size: 1.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  .detail-panel {
-    max-height: none;
-  }
+.slideover-header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 </style>
