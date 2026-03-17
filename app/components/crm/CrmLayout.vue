@@ -7,7 +7,6 @@
     <div v-if="error" class="error">{{ error }}</div>
 
     <div v-else class="crm-layout">
-      <!-- Left Column: List Panel -->
       <div class="list-panel">
         <slot name="list-header" />
         <div class="list-items">
@@ -19,31 +18,38 @@
           </slot>
         </div>
       </div>
-
-      <!-- Right Column: Detail Panel -->
-      <div class="detail-panel">
-        <slot name="detail">
-          <div class="no-selection">
-            <slot name="detail-empty">Select an item to view details</slot>
-          </div>
-        </slot>
-      </div>
     </div>
+
+    <USlideover
+      v-model:open="slideoverOpen"
+      side="right"
+      :ui="{ content: 'sm:max-w-3xl' }"
+    >
+      <template #body>
+        <slot name="detail" />
+      </template>
+    </USlideover>
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   loading?: boolean
   error?: string
+  open?: boolean
 }>()
+
+const emit = defineEmits<{
+  'update:open': [value: boolean]
+}>()
+
+const slideoverOpen = computed({
+  get: () => props.open ?? false,
+  set: (val) => emit('update:open', val)
+})
 </script>
 
 <style scoped>
-.crm-page {
-  max-width: 1400px;
-}
-
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -64,9 +70,6 @@ defineProps<{
 }
 
 .crm-layout {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 2rem;
   min-height: 600px;
 }
 
@@ -88,36 +91,5 @@ defineProps<{
   padding: 2rem;
   text-align: center;
   color: var(--ui-text-muted);
-}
-
-.detail-panel {
-  border: 1px solid var(--ui-border);
-  border-radius: 8px;
-  background-color: var(--ui-bg-elevated);
-  overflow-y: auto;
-  max-height: calc(100vh - 150px);
-}
-
-.no-selection {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 400px;
-  color: var(--ui-text-muted);
-}
-
-@media (max-width: 1024px) {
-  .crm-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .list-panel {
-    max-height: 300px;
-  }
-
-  .detail-panel {
-    max-height: none;
-  }
 }
 </style>

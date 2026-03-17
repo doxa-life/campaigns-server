@@ -1,52 +1,49 @@
 <template>
   <div class="crm-detail-panel">
-    <div v-if="!hasSelection" class="no-selection">
-      <slot name="empty">Select an item to view details</slot>
+    <div class="details-header">
+      <div class="header-info">
+        <slot name="header" />
+      </div>
+      <div class="header-actions">
+        <slot name="actions" />
+      </div>
     </div>
 
-    <div v-else class="details-content">
-      <div class="details-header">
-        <div class="header-info">
-          <slot name="header" />
-        </div>
-        <div class="header-actions">
-          <slot name="actions" />
-        </div>
-      </div>
+    <div v-if="$slots['secondary-actions']" class="secondary-actions">
+      <slot name="secondary-actions" />
+    </div>
 
-      <div v-if="$slots['secondary-actions']" class="secondary-actions">
-        <slot name="secondary-actions" />
-      </div>
+    <UTabs v-if="tabs.length > 0" :items="tabs" class="detail-tabs">
+      <template v-for="tab in tabs" :key="tab.slot" #[tab.slot]>
+        <div class="tab-content">
+          <slot :name="'tab-' + tab.slot" />
+        </div>
+      </template>
+    </UTabs>
 
-      <div class="details-body">
-        <slot />
-      </div>
+    <div v-else class="details-body">
+      <slot />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  hasSelection?: boolean
-}>()
+interface Tab {
+  label: string
+  slot: string
+  icon?: string
+}
+
+withDefaults(defineProps<{
+  tabs?: Tab[]
+}>(), {
+  tabs: () => []
+})
 </script>
 
 <style scoped>
 .crm-detail-panel {
   height: 100%;
-}
-
-.no-selection {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 400px;
-  color: var(--ui-text-muted);
-}
-
-.details-content {
-  padding: 1.5rem;
 }
 
 .details-header {
@@ -78,6 +75,13 @@ defineProps<{
   margin-bottom: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--ui-border);
+}
+
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 1rem;
 }
 
 .details-body {

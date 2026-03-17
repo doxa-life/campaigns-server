@@ -1,5 +1,9 @@
 <template>
-  <CrmLayout :loading="loading" :error="error">
+  <CrmLayout
+    :loading="loading"
+    :error="error"
+    v-model:open="slideoverOpen"
+  >
     <template #header>
       <div class="flex items-center justify-between w-full">
         <h1>People Groups</h1>
@@ -62,7 +66,7 @@
     </template>
 
     <template #detail>
-      <CrmDetailPanel :has-selection="!!selectedGroup">
+      <CrmDetailPanel v-if="selectedGroup" :tabs="detailTabs">
         <template #header>
           <div class="header-info">
             <img
@@ -97,114 +101,107 @@
           <UButton @click="saveChanges" :loading="saving">Save Changes</UButton>
         </template>
 
-        <CrmFormSection title="Adopted By">
-          <template #header-extra>
-            <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="openAddAdoptionModal">
-              Add
-            </UButton>
-          </template>
+        <template #tab-details>
+          <CrmFormSection title="Adopted By">
+            <template #header-extra>
+              <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="openAddAdoptionModal">
+                Add
+              </UButton>
+            </template>
 
-          <div v-if="adoptions.length === 0" class="p-4 text-center text-muted text-sm">
-            Not adopted by any groups
-          </div>
-          <div v-else class="adoptions-list">
-            <AdoptionCard
-              v-for="adoption in adoptions"
-              :key="adoption.id"
-              :adoption="adoption"
-              :label="adoption.group_name"
-              @open="openAdoptionSlideover(adoption)"
-            />
-          </div>
-        </CrmFormSection>
-
-        <form @submit.prevent="saveChanges">
-          <CrmFormSection
-            v-for="category in fieldCategories"
-            :key="category.key"
-            :title="category.label"
-          >
-            <div class="fields-grid">
-              <UFormField
-                v-for="field in category.fields"
-                :key="field.key"
-                :label="field.label"
-                :hint="field.description"
-                :class="{ 'full-width': field.type === 'textarea' || field.type === 'translatable' || field.type === 'picture-credit' }"
-              >
-                <!-- Read-only field -->
-                <div v-if="field.readOnly" class="readonly-field">
-                  {{ getFieldValue(field.key) || '—' }}
-                </div>
-
-                <!-- Text input -->
-                <UInput
-                  v-else-if="field.type === 'text'"
-                  :model-value="getFieldValue(field.key)"
-                  @update:model-value="setFieldValue(field.key, $event)"
-                  class="w-full"
-                />
-
-                <!-- Number input -->
-                <UInput
-                  v-else-if="field.type === 'number'"
-                  type="number"
-                  :model-value="getFieldValue(field.key)"
-                  @update:model-value="setFieldValue(field.key, $event)"
-                  class="w-full"
-                />
-
-                <!-- Textarea -->
-                <UTextarea
-                  v-else-if="field.type === 'textarea'"
-                  :model-value="getFieldValue(field.key)"
-                  @update:model-value="setFieldValue(field.key, $event)"
-                  :rows="3"
-                  class="w-full"
-                />
-
-                <!-- Select -->
-                <USelectMenu
-                  v-else-if="field.type === 'select' && field.options"
-                  :model-value="getFieldValue(field.key)"
-                  @update:model-value="setFieldValue(field.key, $event)"
-                  :items="field.options"
-                  value-key="value"
-                  :search-input="{ placeholder: 'Search...' }"
-                  :virtualize="field.options.length > 50"
-                  class="w-full"
-                />
-                <!-- Translatable field (multi-language textarea) -->
-                <TranslatableField
-                  v-else-if="field.type === 'translatable'"
-                  :model-value="getFieldValue(field.key)"
-                  @update:model-value="setFieldValue(field.key, $event)"
-                  @save="saveChanges"
-                  :rows="3"
-                />
-
-                <!-- Picture credit -->
-                <PictureCreditEditor
-                  v-else-if="field.type === 'picture-credit'"
-                  :model-value="getFieldValue(field.key)"
-                  @update:model-value="setFieldValue(field.key, $event)"
-                />
-
-                <!-- Boolean -->
-                <UCheckbox
-                  v-else-if="field.type === 'boolean'"
-                  :model-value="getFieldValue(field.key) === true || getFieldValue(field.key) === '1'"
-                  @update:model-value="setFieldValue(field.key, $event)"
-                />
-              </UFormField>
+            <div v-if="adoptions.length === 0" class="p-4 text-center text-muted text-sm">
+              Not adopted by any groups
+            </div>
+            <div v-else class="adoptions-list">
+              <AdoptionCard
+                v-for="adoption in adoptions"
+                :key="adoption.id"
+                :adoption="adoption"
+                :label="adoption.group_name"
+                @open="openAdoptionSlideover(adoption)"
+              />
             </div>
           </CrmFormSection>
-        </form>
 
-        <RecordComments v-if="selectedGroup" record-type="people_group" :record-id="selectedGroup.id" />
+          <form @submit.prevent="saveChanges">
+            <CrmFormSection
+              v-for="category in fieldCategories"
+              :key="category.key"
+              :title="category.label"
+            >
+              <div class="fields-grid">
+                <UFormField
+                  v-for="field in category.fields"
+                  :key="field.key"
+                  :label="field.label"
+                  :hint="field.description"
+                  :class="{ 'full-width': field.type === 'textarea' || field.type === 'translatable' || field.type === 'picture-credit' }"
+                >
+                  <div v-if="field.readOnly" class="readonly-field">
+                    {{ getFieldValue(field.key) || '\u2014' }}
+                  </div>
 
-        <template #empty>
-          Select a people group to view and edit details
+                  <UInput
+                    v-else-if="field.type === 'text'"
+                    :model-value="getFieldValue(field.key)"
+                    @update:model-value="setFieldValue(field.key, $event)"
+                    class="w-full"
+                  />
+
+                  <UInput
+                    v-else-if="field.type === 'number'"
+                    type="number"
+                    :model-value="getFieldValue(field.key)"
+                    @update:model-value="setFieldValue(field.key, $event)"
+                    class="w-full"
+                  />
+
+                  <UTextarea
+                    v-else-if="field.type === 'textarea'"
+                    :model-value="getFieldValue(field.key)"
+                    @update:model-value="setFieldValue(field.key, $event)"
+                    :rows="3"
+                    class="w-full"
+                  />
+
+                  <USelectMenu
+                    v-else-if="field.type === 'select' && field.options"
+                    :model-value="getFieldValue(field.key)"
+                    @update:model-value="setFieldValue(field.key, $event)"
+                    :items="field.options"
+                    value-key="value"
+                    :search-input="{ placeholder: 'Search...' }"
+                    :virtualize="field.options.length > 50"
+                    class="w-full"
+                  />
+
+                  <TranslatableField
+                    v-else-if="field.type === 'translatable'"
+                    :model-value="getFieldValue(field.key)"
+                    @update:model-value="setFieldValue(field.key, $event)"
+                    @save="saveChanges"
+                    :rows="3"
+                  />
+
+                  <PictureCreditEditor
+                    v-else-if="field.type === 'picture-credit'"
+                    :model-value="getFieldValue(field.key)"
+                    @update:model-value="setFieldValue(field.key, $event)"
+                  />
+
+                  <UCheckbox
+                    v-else-if="field.type === 'boolean'"
+                    :model-value="getFieldValue(field.key) === true || getFieldValue(field.key) === '1'"
+                    @update:model-value="setFieldValue(field.key, $event)"
+                  />
+                </UFormField>
+              </div>
+            </CrmFormSection>
+          </form>
+        </template>
+
+        <template #tab-comments>
+          <RecordComments v-if="selectedGroup" record-type="people_group" :record-id="selectedGroup.id" />
         </template>
       </CrmDetailPanel>
     </template>
@@ -301,6 +298,20 @@ const addAdoptionGroupId = ref<number | null>(null)
 const showAdoptionSlideover = ref(false)
 const selectedAdoption = ref<Adoption | null>(null)
 
+// Slideover state
+const slideoverOpen = ref(false)
+
+const detailTabs = [
+  { label: 'Details', slot: 'details', icon: 'i-lucide-file-text' },
+  { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square' }
+]
+
+watch(slideoverOpen, (open) => {
+  if (!open) {
+    deselectGroup()
+  }
+})
+
 const availableGroupOptions = computed(() => {
   const adoptedGroupIds = new Set(adoptions.value.map(a => a.group_id))
   return allGroups.value
@@ -339,7 +350,6 @@ function getOptionsForField(field: FieldDefinition): { value: string; label: str
   if (field.options) {
     return field.options.map(opt => ({
       value: opt.value,
-      // Use direct label if available, otherwise translate labelKey
       label: opt.label || (opt.labelKey ? t(opt.labelKey) : opt.value)
     }))
   }
@@ -393,7 +403,13 @@ function debouncedSearch() {
 
 // Select a people group
 async function selectGroup(group: PeopleGroup, updateUrl = true) {
+  if (updateUrl && selectedGroup.value?.id === group.id && slideoverOpen.value) {
+    slideoverOpen.value = false
+    return
+  }
+
   selectedGroup.value = group
+  slideoverOpen.value = true
   initializeForm(group)
   if (updateUrl && import.meta.client) {
     window.history.replaceState({}, '', `/admin/people-groups/${group.id}`)
@@ -404,6 +420,13 @@ async function selectGroup(group: PeopleGroup, updateUrl = true) {
     adoptions.value = res.adoptions
   } catch {
     adoptions.value = []
+  }
+}
+
+function deselectGroup() {
+  selectedGroup.value = null
+  if (import.meta.client) {
+    window.history.replaceState({}, '', '/admin/people-groups')
   }
 }
 
@@ -421,7 +444,6 @@ function initializeForm(group: PeopleGroup) {
 // Get field value from form data
 function getFieldValue(key: string): any {
   const value = formData.value[key]
-  // For translatable fields (like descriptions), return the object or empty object
   if (key === 'descriptions') {
     return value || {}
   }
@@ -532,7 +554,7 @@ function navigateToSubscribers(peopleGroupId: number) {
 
 function formatNumber(num: number | string): string {
   const n = typeof num === 'string' ? parseInt(num) : num
-  if (isNaN(n)) return '—'
+  if (isNaN(n)) return '\u2014'
   return n.toLocaleString()
 }
 
@@ -563,19 +585,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.back-link {
-  display: inline-block;
-  margin-bottom: 1rem;
-  color: var(--text);
-  text-decoration: none;
-  font-size: 0.875rem;
-  transition: opacity 0.2s;
-}
-
-.back-link:hover {
-  opacity: 0.7;
-}
-
 .empty-list {
   padding: 2rem;
   text-align: center;
