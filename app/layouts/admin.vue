@@ -308,8 +308,6 @@ onMounted(async () => {
 .main-content {
   flex: 1;
   padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
   width: 100%;
 }
 

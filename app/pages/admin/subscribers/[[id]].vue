@@ -286,6 +286,31 @@
                 </div>
               </div>
             </CrmFormSection>
+
+            <CrmFormSection title="Metadata">
+              <div class="info-row">
+                <span class="label">Tracking ID:</span>
+                <span class="value monospace">{{ selectedSubscriber.tracking_id }}</span>
+              </div>
+
+              <div class="info-row">
+                <span class="label">Profile Link:</span>
+                <div class="profile-link-container">
+                  <span class="value profile-link-text">{{ getProfileUrl(selectedSubscriber) }}</span>
+                  <UButton
+                    size="xs"
+                    variant="ghost"
+                    icon="i-lucide-copy"
+                    @click="copyProfileLink(selectedSubscriber)"
+                  />
+                </div>
+              </div>
+
+              <div class="info-row">
+                <span class="label">Subscriber Since:</span>
+                <span class="value">{{ formatDateTime(selectedSubscriber.created_at) }}</span>
+              </div>
+            </CrmFormSection>
           </form>
         </template>
 
@@ -351,33 +376,6 @@
                   </div>
                 </div>
               </div>
-            </div>
-          </CrmFormSection>
-        </template>
-
-        <template #tab-metadata>
-          <CrmFormSection title="Metadata">
-            <div class="info-row">
-              <span class="label">Tracking ID:</span>
-              <span class="value monospace">{{ selectedSubscriber.tracking_id }}</span>
-            </div>
-
-            <div class="info-row">
-              <span class="label">Profile Link:</span>
-              <div class="profile-link-container">
-                <span class="value profile-link-text">{{ getProfileUrl(selectedSubscriber) }}</span>
-                <UButton
-                  size="xs"
-                  variant="ghost"
-                  icon="i-lucide-copy"
-                  @click="copyProfileLink(selectedSubscriber)"
-                />
-              </div>
-            </div>
-
-            <div class="info-row">
-              <span class="label">Subscriber Since:</span>
-              <span class="value">{{ formatDateTime(selectedSubscriber.created_at) }}</span>
             </div>
           </CrmFormSection>
         </template>
@@ -554,8 +552,7 @@ const slideoverOpen = ref(false)
 const detailTabs = [
   { label: 'Details', slot: 'details', icon: 'i-lucide-file-text' },
   { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square' },
-  { label: 'Activity', slot: 'activity', icon: 'i-lucide-activity' },
-  { label: 'Metadata', slot: 'metadata', icon: 'i-lucide-info' }
+  { label: 'Activity', slot: 'activity', icon: 'i-lucide-activity' }
 ]
 
 watch(slideoverOpen, (open) => {

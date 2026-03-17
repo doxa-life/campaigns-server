@@ -132,24 +132,21 @@
                 />
               </div>
             </CrmFormSection>
+            <CrmFormSection title="Metadata">
+              <div class="info-row">
+                <span class="label">Group ID:</span>
+                <span class="value monospace">{{ selectedGroup.id }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Created:</span>
+                <span class="value">{{ formatDateTime(selectedGroup.created_at) }}</span>
+              </div>
+            </CrmFormSection>
           </form>
         </template>
 
         <template #tab-comments>
           <RecordComments record-type="group" :record-id="selectedGroup.id" />
-        </template>
-
-        <template #tab-metadata>
-          <CrmFormSection title="Metadata">
-            <div class="info-row">
-              <span class="label">Group ID:</span>
-              <span class="value monospace">{{ selectedGroup.id }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Created:</span>
-              <span class="value">{{ formatDateTime(selectedGroup.created_at) }}</span>
-            </div>
-          </CrmFormSection>
         </template>
       </CrmDetailPanel>
     </template>
@@ -309,8 +306,7 @@ const slideoverOpen = ref(false)
 
 const detailTabs = [
   { label: 'Details', slot: 'details', icon: 'i-lucide-file-text' },
-  { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square' },
-  { label: 'Metadata', slot: 'metadata', icon: 'i-lucide-info' }
+  { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square' }
 ]
 
 watch(slideoverOpen, (open) => {
