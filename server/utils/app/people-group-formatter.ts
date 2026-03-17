@@ -160,7 +160,7 @@ export function formatPeopleGroupForList(pg: PeopleGroupRecord, lang: string = '
     religion: formatValueLabelWithDescription('imb_reg_of_religion', (pg.primary_religion || meta.imb_reg_of_religion) as string, lang),
     location_description: meta.imb_location_description || null,
     population: pg.population || null,
-    has_photo: meta.imb_has_photo === 'yes' || meta.imb_has_photo === true || !!pg.image_url,
+    has_photo: meta.imb_has_photo === '1' || meta.imb_has_photo === true,
     picture_url: pg.image_url || meta.imb_picture_url || null,
     picture_credit: meta.picture_credit || null,
     people_praying: pg.total_people_praying || 0,
@@ -219,7 +219,7 @@ export function formatPeopleGroupForListWithFields(
         result.population = pg.population || null
         break
       case 'has_photo':
-        result.has_photo = meta.imb_has_photo === 'yes' || meta.imb_has_photo === true || !!pg.image_url
+        result.has_photo = meta.imb_has_photo === '1' || meta.imb_has_photo === true
         break
       case 'picture_url':
         result.picture_url = pg.image_url || meta.imb_picture_url || null
