@@ -13,8 +13,8 @@ export default defineEventHandler(async (event) => {
   }
 
   await peopleGroupAdoptionService.delete(adoptionId)
-  logDelete('groups', String(groupId), event, { adoption_removed: adoption.people_group_id })
-  logDelete('people_groups', String(adoption.people_group_id), event, { adoption_removed: groupId })
+  logUpdate('groups', String(groupId), event, { adoption_removed: adoption.people_group_id })
+  logUpdate('people_groups', String(adoption.people_group_id), event, { adoption_removed: groupId })
 
   return { success: true }
 })

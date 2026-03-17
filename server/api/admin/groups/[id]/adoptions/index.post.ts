@@ -37,8 +37,8 @@ export default defineEventHandler(async (event) => {
       status: body.status,
       show_publicly: body.show_publicly
     })
-    logCreate('groups', String(groupId), event, { adoption_added: peopleGroup.name })
-    logCreate('people_groups', String(body.people_group_id), event, { adoption_added: group.name })
+    logUpdate('groups', String(groupId), event, { adoption_added: peopleGroup.name })
+    logUpdate('people_groups', String(body.people_group_id), event, { adoption_added: group.name })
     return { adoption }
   } catch (error: any) {
     if (error.code === '23505') {

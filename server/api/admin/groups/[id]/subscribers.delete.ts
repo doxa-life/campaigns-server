@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
   const group = await groupService.getById(groupId)
 
   await connectionService.deleteByEntities('subscriber', subscriberId, 'group', groupId)
-  logDelete('groups', String(groupId), event, { contact_removed: subscriberId })
-  logDelete('subscribers', String(subscriberId), event, { removed_from_group: group?.name || groupId })
+  logUpdate('groups', String(groupId), event, { contact_removed: subscriberId })
+  logUpdate('subscribers', String(subscriberId), event, { removed_from_group: group?.name || groupId })
   return { success: true }
 })
