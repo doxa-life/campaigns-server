@@ -5,15 +5,13 @@
  */
 import { getDatabase } from '../../../database/db'
 import { formatPeopleGroupForDetail } from '../../../utils/app/people-group-formatter'
-import { setCorsHeaders, setCacheHeaders } from '../../../utils/app/cors'
+import { setCacheHeaders } from '../../../utils/app/cors'
 import { LANGUAGE_CODES } from '../../../../config/languages'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
 import { appConfigService } from '#server/database/app-config'
 import { peopleGroupAdoptionService } from '../../../database/people-group-adoptions'
 
 export default defineEventHandler(async (event) => {
-  // Set CORS and cache headers
-  setCorsHeaders(event)
   setCacheHeaders(event)
 
   const slug = getRouterParam(event, 'slug')

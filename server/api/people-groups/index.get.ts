@@ -7,12 +7,10 @@
 import { getDatabase } from '../../database/db'
 import { formatPeopleGroupRaw, DEFAULT_ALL_FIELDS } from '../../utils/app/people-group-formatter'
 import { allFields } from '../../utils/app/field-options'
-import { setCorsHeaders, setCacheHeaders } from '../../utils/app/cors'
+import { setCacheHeaders } from '../../utils/app/cors'
 import { LANGUAGE_CODES } from '../../../config/languages'
 
 export default defineEventHandler(async (event) => {
-  // Set CORS and cache headers
-  setCorsHeaders(event)
   setCacheHeaders(event)
 
   // Parse query params

@@ -4,11 +4,8 @@
  */
 import { peopleGroupService } from '#server/database/people-groups'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
-import { setCorsHeaders } from '../../../utils/app/cors'
 
 export default defineEventHandler(async (event) => {
-  setCorsHeaders(event)
-
   const slug = getRouterParam(event, 'slug')
 
   if (!slug) {
