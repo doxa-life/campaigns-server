@@ -130,6 +130,8 @@
             </div>
           </CrmFormSection>
 
+          <RecordComments record-type="group" :record-id="selectedGroup.id" />
+
           <CrmFormSection title="Metadata">
             <div class="info-row">
               <span class="label">Group ID:</span>

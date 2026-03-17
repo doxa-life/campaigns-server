@@ -45,6 +45,9 @@ export async function cleanupTestData(sql: ReturnType<typeof postgres>) {
   // Clean connections (depends on groups and subscribers)
   await sql`DELETE FROM connections WHERE (to_type = 'group' AND to_id IN (SELECT id FROM groups WHERE name LIKE 'Test %')) OR (from_type = 'subscriber' AND from_id IN (SELECT id FROM subscribers WHERE name LIKE 'Test %'))`
 
+  // Clean comments on test groups and test subscribers
+  await sql`DELETE FROM comments WHERE (record_type = 'group' AND record_id IN (SELECT id FROM groups WHERE name LIKE 'Test %')) OR (record_type = 'subscriber' AND record_id IN (SELECT id FROM subscribers WHERE name LIKE 'Test %'))`
+
   // Clean groups
   await sql`DELETE FROM groups WHERE name LIKE 'Test %'`
 

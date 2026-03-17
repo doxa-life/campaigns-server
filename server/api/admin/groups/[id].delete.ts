@@ -5,6 +5,7 @@ export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
   const id = getIntParam(event, 'id')
+  await doAction('record.delete', 'group', id)
   const deleted = await groupService.delete(id)
 
   if (!deleted) {

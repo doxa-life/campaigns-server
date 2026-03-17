@@ -281,6 +281,8 @@
             </div>
           </CrmFormSection>
 
+          <RecordComments record-type="subscriber" :record-id="selectedSubscriber.id" />
+
           <!-- Metadata -->
           <CrmFormSection title="Metadata">
             <div class="info-row">

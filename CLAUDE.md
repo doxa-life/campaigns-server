@@ -225,6 +225,27 @@ Use `SELECT ... FOR UPDATE OF <table> SKIP LOCKED LIMIT <batch>` inside a short 
 ### Singleton cron/periodic tasks (e.g., backups, followups, activity emails)
 Use `claimLock` — INSERT a deterministic UUID (`md5(lockKey)::uuid`) into `activity_logs` with `ON CONFLICT (id) DO NOTHING`. Only the instance whose INSERT returns a row proceeds. Lock key format: `{scheduler-name}:{period-key}` (e.g., `backup-scheduler:2026-03-12`).
 
+## Hooks (WordPress-style Actions)
+
+A lightweight `addAction` / `doAction` system in `server/utils/hooks.ts` for decoupled cross-cutting concerns.
+
+```typescript
+// Register a hook (in a server plugin, runs at startup)
+addAction('record.delete', async (recordType: string, recordId: number) => {
+  await commentService.deleteForRecord(recordType, recordId)
+})
+
+// Fire a hook (in an API handler or service)
+await doAction('record.delete', 'subscriber', id)
+```
+
+**Registering hooks**: Create a server plugin in `server/plugins/` that calls `addAction()`. Plugins run at startup, guaranteeing hooks are registered before any request. Each feature owns its own plugin (e.g., `comment-hooks.ts`).
+
+**Firing hooks**: Call `doAction()` from API handlers. It's auto-imported from `server/utils/hooks.ts`.
+
+**Current hooks**:
+- `record.delete(recordType, recordId)` — fired before a record is deleted. Used by comments cleanup.
+
 ## Documentation
 
 Reference documentation in `documentation/` folder:

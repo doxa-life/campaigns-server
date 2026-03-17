@@ -32,6 +32,7 @@ export default defineEventHandler(async (event) => {
     await contactMethodService.removeContactMethod(contact.id)
   }
 
+  await doAction('record.delete', 'subscriber', id)
   await subscriberService.deleteSubscriber(id)
 
   logDelete('subscribers', String(id), event, {

@@ -28,7 +28,8 @@ const ALLOWED_NODE_TYPES = new Set([
   'youtube',
   'vimeo',
   'spacer',
-  'verse'
+  'verse',
+  'mention'
 ])
 
 // Allowed mark types
@@ -56,7 +57,8 @@ const ALLOWED_NODE_ATTRS: Record<string, Set<string>> = {
   spacer: new Set(['height']),
   paragraph: new Set(['textAlign']),
   listItem: new Set([]),
-  verse: new Set(['reference', 'translation'])
+  verse: new Set(['reference', 'translation']),
+  mention: new Set(['id', 'label'])
 }
 
 // Allowed attributes for marks

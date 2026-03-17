@@ -201,6 +201,8 @@
           </CrmFormSection>
         </form>
 
+        <RecordComments v-if="selectedGroup" record-type="people_group" :record-id="selectedGroup.id" />
+
         <template #empty>
           Select a people group to view and edit details
         </template>
