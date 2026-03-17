@@ -5,14 +5,14 @@ interface Segment {
 }
 
 const props = defineProps<{
-  modelValue: Segment[] | null
+  modelValue: Segment[] | null | string
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: Segment[]]
 }>()
 
-const segments = computed(() => props.modelValue || [])
+const segments = computed(() => Array.isArray(props.modelValue) ? props.modelValue : [])
 
 function updateSegment(index: number, field: 'text' | 'link', value: string) {
   const updated = segments.value.map((seg, i) => {

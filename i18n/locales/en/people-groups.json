@@ -38,7 +38,7 @@
       "imb_alternate_name": "Alternate Name",
       "imb_people_name": "People Name (ROP3)",
       "descriptions": "People Group Description",
-      "imb_people_description": "Description (from API)",
+      "imb_people_description": "Description (original)",
       "imb_location_description": "Location Description",
       "joshua_project_id": "Joshua Project ID",
       "doxa_masteruid": "Doxa Master UID",

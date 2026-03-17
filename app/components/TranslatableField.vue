@@ -1,26 +1,27 @@
 <template>
   <div>
-    <div class="relative">
-      <UTabs :items="languageTabs" class="w-full">
-        <template #content="{ item }">
-          <UTextarea
-            :model-value="modelValue?.[item.code] || ''"
-            @update:model-value="updateLanguage(item.code, $event)"
-            :rows="rows"
-            class="w-full mt-2"
-          />
-        </template>
-      </UTabs>
-
-      <UButton
-        v-if="showTranslateButton"
-        @click="showTranslateModal = true"
-        :disabled="!hasEnglishContent"
-        variant="outline"
-        size="sm"
-        icon="i-lucide-languages"
-        class="absolute right-0 top-0.5"
-        :title="hasEnglishContent ? 'Translate from English' : 'Add English content first'"
+    <div class="space-y-2">
+      <div class="flex items-center gap-2">
+        <USelect
+          v-model="selectedLanguage"
+          :items="languageOptions"
+          class="w-48"
+        />
+        <UButton
+          v-if="showTranslateButton"
+          @click="showTranslateModal = true"
+          :disabled="!hasEnglishContent"
+          variant="outline"
+          size="sm"
+          icon="i-lucide-languages"
+          :title="hasEnglishContent ? 'Translate from English' : 'Add English content first'"
+        />
+      </div>
+      <UTextarea
+        :model-value="modelValue?.[selectedLanguage] || ''"
+        @update:model-value="updateLanguage(selectedLanguage, $event)"
+        :rows="rows"
+        class="w-full"
       />
     </div>
 
@@ -86,17 +87,17 @@ const emit = defineEmits<{
   'save': []
 }>()
 
+const selectedLanguage = ref('en')
 const showTranslateModal = ref(false)
 const isTranslating = ref(false)
 const overwriteExisting = ref(true)
 const translateError = ref<string | null>(null)
 const translateSuccess = ref<string | null>(null)
 
-const languageTabs = computed(() =>
+const languageOptions = computed(() =>
   LANGUAGES.map(lang => ({
-    label: `${lang.flag} ${lang.code.toUpperCase()}`,
-    code: lang.code,
-    badge: props.modelValue?.[lang.code] ? undefined : undefined
+    label: `${lang.flag} ${lang.name}`,
+    value: lang.code
   }))
 )
 
