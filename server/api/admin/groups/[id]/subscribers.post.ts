@@ -28,6 +28,8 @@ export default defineEventHandler(async (event) => {
       to_type: 'group',
       to_id: groupId
     })
+    logCreate('groups', String(groupId), event, { contact_added: subscriber.name || body.subscriber_id })
+    logCreate('subscribers', String(body.subscriber_id), event, { added_to_group: group.name })
     return { connection }
   } catch (error: any) {
     if (error.code === '23505') {

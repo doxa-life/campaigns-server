@@ -197,6 +197,10 @@
         <template #side-comments>
           <RecordComments v-if="selectedGroup" record-type="people_group" :record-id="selectedGroup.id" />
         </template>
+
+        <template #side-activity>
+          <RecordActivity v-if="selectedGroup" ref="activityRef" table-name="people_groups" :record-id="selectedGroup.id" />
+        </template>
       </CrmDetailPanel>
     </template>
   </CrmLayout>
@@ -295,8 +299,11 @@ const selectedAdoption = ref<Adoption | null>(null)
 // Slideover state
 const slideoverOpen = ref(false)
 
+const activityRef = ref<{ refresh: () => void } | null>(null)
+
 const sideTabs = [
-  { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square' }
+  { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square' },
+  { label: 'Activity', slot: 'activity', icon: 'i-lucide-activity' }
 ]
 
 watch(slideoverOpen, (open) => {
@@ -485,6 +492,8 @@ async function saveChanges() {
     if (index !== -1) {
       peopleGroups.value[index] = response.peopleGroup
     }
+
+    activityRef.value?.refresh()
 
     toast.add({
       title: 'Success',

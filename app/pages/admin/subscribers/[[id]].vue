@@ -361,6 +361,12 @@
                     · {{ activity.metadata.peopleGroupName }}
                   </template>
                 </div>
+                <div v-if="activity.metadata?.added_to_group" class="activity-detail">
+                  Added to group: {{ activity.metadata.added_to_group }}
+                </div>
+                <div v-if="activity.metadata?.removed_from_group" class="activity-detail">
+                  Removed from group: {{ activity.metadata.removed_from_group }}
+                </div>
                 <div v-if="activity.metadata?.changes" class="activity-changes">
                   <div
                     v-for="(change, field) in activity.metadata.changes"
@@ -574,6 +580,8 @@ interface ActivityLogEntry {
     peopleGroupName?: string
     sentDate?: string
     response?: string
+    added_to_group?: string
+    removed_from_group?: string
   }
 }
 const activityLog = ref<ActivityLogEntry[]>([])
@@ -803,15 +811,19 @@ function toggleSubscription(subscriptionId: number) {
 }
 
 async function loadActivityLog(subscriber: GeneralSubscriber) {
-  if (!subscriber.subscriptions.length) {
-    activityLog.value = []
-    return
-  }
-
   try {
     loadingActivityLog.value = true
     const allActivities: ActivityLogEntry[] = []
 
+    // Subscriber-level activity (field edits, group connections)
+    try {
+      const response = await $fetch<{ activities: ActivityLogEntry[] }>(`/api/admin/activity/subscribers/${subscriber.id}`)
+      allActivities.push(...response.activities)
+    } catch (err) {
+      console.error('Failed to load subscriber activity:', err)
+    }
+
+    // Subscription-level activity (reminders, prayer, emails)
     for (const subscription of subscriber.subscriptions) {
       try {
         const response = await $fetch<{ activities: ActivityLogEntry[] }>(`/api/admin/subscriptions/${subscription.id}/activity`)
@@ -1340,6 +1352,12 @@ onMounted(async () => {
   font-size: 0.75rem;
   color: var(--ui-text-muted);
   margin-top: 0.25rem;
+}
+
+.activity-detail {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--color-neutral-600);
 }
 
 .activity-changes {

@@ -1,4 +1,5 @@
 import { connectionService } from '../../../../database/connections'
+import { groupService } from '../../../../database/groups'
 import { getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
@@ -12,6 +13,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'subscriber_id is required' })
   }
 
+  const group = await groupService.getById(groupId)
+
   await connectionService.deleteByEntities('subscriber', subscriberId, 'group', groupId)
+  logDelete('groups', String(groupId), event, { contact_removed: subscriberId })
+  logDelete('subscribers', String(subscriberId), event, { removed_from_group: group?.name || groupId })
   return { success: true }
 })
