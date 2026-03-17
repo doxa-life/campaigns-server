@@ -4,11 +4,9 @@
  */
 import { getDatabase } from '../../database/db'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
-import { setCorsHeaders, setCacheHeaders } from '../../utils/app/cors'
+import { setCacheHeaders } from '../../utils/app/cors'
 
 export default defineEventHandler(async (event) => {
-  // Set CORS and cache headers
-  setCorsHeaders(event)
   setCacheHeaders(event)
 
   const db = getDatabase()

@@ -1,16 +1,6 @@
 import { type H3Event, setResponseHeader } from 'h3'
 
 /**
- * Set CORS headers for public API endpoints
- * Allows cross-origin requests from WordPress themes and other clients
- */
-export function setCorsHeaders(event: H3Event) {
-  setResponseHeader(event, 'Access-Control-Allow-Origin', '*')
-  setResponseHeader(event, 'Access-Control-Allow-Methods', 'GET, OPTIONS')
-  setResponseHeader(event, 'Access-Control-Allow-Headers', 'Content-Type')
-}
-
-/**
  * Set cache headers for public API endpoints
  * Default: 5 minutes for both browser and CDN
  */
