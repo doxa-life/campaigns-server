@@ -1,6 +1,30 @@
 import { getDatabase } from '#server/database/db'
 
 /**
+ * Extract plain text from Tiptap JSON content for use in emails.
+ */
+function tiptapToPlainText(node: any): string {
+  if (!node || typeof node !== 'object') return ''
+
+  if (node.type === 'text') return node.text || ''
+
+  if (node.type === 'mention') return `@${node.attrs?.label || ''}`
+
+  if (node.type === 'hardBreak') return '\n'
+
+  let text = ''
+  if (Array.isArray(node.content)) {
+    text = node.content.map(tiptapToPlainText).join('')
+  }
+
+  if (['paragraph', 'heading', 'blockquote', 'listItem', 'taskItem'].includes(node.type)) {
+    text += '\n'
+  }
+
+  return text
+}
+
+/**
  * Send notification emails to users mentioned in a comment.
  */
 export async function sendCommentMentionEmails(
@@ -8,7 +32,8 @@ export async function sendCommentMentionEmails(
   authorName: string,
   recordType: string,
   recordId: number,
-  recordName: string
+  recordName: string,
+  content: Record<string, any>
 ): Promise<void> {
   if (mentionedUserIds.length === 0) return
 
@@ -18,6 +43,7 @@ export async function sendCommentMentionEmails(
 
   const recordTypeLabel = recordType.replace(/_/g, ' ')
   const recordUrl = `${baseUrl}/admin/${recordType.replace(/_/g, '-')}s/${recordId}`
+  const commentText = tiptapToPlainText(content).trim()
 
   // Look up email addresses for mentioned users
   const db = getDatabase()
@@ -44,8 +70,11 @@ export async function sendCommentMentionEmails(
         </div>
         <div style="background: #ffffff; border: 2px solid #3B463D; border-top: none; padding: 30px; border-radius: 0 0 10px 10px;">
           <p style="font-size: 16px; margin: 0 0 20px;">
-            <strong>${authorName}</strong> mentioned you in a comment on ${recordTypeLabel} "<strong>${recordName}</strong>".
+            <strong>${authorName}</strong> mentioned you in a comment on ${recordTypeLabel} "<strong>${recordName}</strong>":
           </p>
+          <div style="background: #f4f6f4; border-left: 4px solid #3B463D; padding: 15px 20px; margin: 0 0 20px; border-radius: 0 5px 5px 0;">
+            <p style="font-size: 15px; margin: 0; color: #3B463D; white-space: pre-line;">${commentText}</p>
+          </div>
           <div style="text-align: center; margin: 20px 0;">
             <a href="${recordUrl}" style="
               background: #3B463D;
@@ -66,7 +95,9 @@ export async function sendCommentMentionEmails(
       </html>
     `
 
-    const text = `${authorName} mentioned you in a comment on ${recordTypeLabel} "${recordName}".
+    const text = `${authorName} mentioned you in a comment on ${recordTypeLabel} "${recordName}":
+
+"${commentText}"
 
 View it here: ${recordUrl}
 

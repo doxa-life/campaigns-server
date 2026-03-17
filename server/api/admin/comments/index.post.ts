@@ -40,7 +40,8 @@ export default defineEventHandler(async (event) => {
         user.display_name || user.email,
         body.record_type,
         body.record_id,
-        `#${body.record_id}`
+        `#${body.record_id}`,
+        sanitized
       ).catch(err => console.error('Failed to send mention emails:', err))
     }
 
