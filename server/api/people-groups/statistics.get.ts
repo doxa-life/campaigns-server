@@ -20,13 +20,22 @@ export default defineEventHandler(async (event) => {
     FROM people_groups
   `)
 
-  const result = await stmt.get() as { total_with_prayer: string | number; total_with_full_prayer: string | number }
-  const commitmentStats = await peopleGroupSubscriptionService.getGlobalCommitmentStats()
+  const adoptedStmt = db.prepare(`
+    SELECT COUNT(DISTINCT people_group_id) as count
+    FROM people_group_adoptions
+    WHERE status = 'active'
+  `)
+
+  const [result, adoptedResult, commitmentStats] = await Promise.all([
+    stmt.get() as Promise<{ total_with_prayer: string | number; total_with_full_prayer: string | number }>,
+    adoptedStmt.get() as Promise<{ count: string | number }>,
+    peopleGroupSubscriptionService.getGlobalCommitmentStats()
+  ])
 
   return {
     total_with_prayer: Number(result.total_with_prayer),
     total_with_full_prayer: Number(result.total_with_full_prayer),
-    total_adopted: 0,
+    total_adopted: Number(adoptedResult.count),
     people_committed: commitmentStats.people_committed,
     committed_duration: commitmentStats.committed_duration
   }
