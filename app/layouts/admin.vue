@@ -10,56 +10,78 @@
       <span class="mobile-title">{{ config.public.appName || 'Base' }} Admin</span>
     </div>
 
-    <nav class="sidebar" :class="{ open: sidebarOpen }">
+    <nav class="sidebar" :class="{ open: sidebarOpen, collapsed: sidebarCollapsed }">
       <div class="sidebar-header">
-        <h1 class="logo">{{ config.public.appName || 'Base' }} Admin</h1>
-        <LanguageSwitcher />
+        <template v-if="!sidebarCollapsed">
+          <div class="header-row">
+            <h1 class="logo">{{ config.public.appName || 'Base' }} Admin</h1>
+            <button class="collapse-toggle" @click="toggleCollapsed" title="Collapse sidebar">
+              <UIcon name="i-lucide-panel-left-close" />
+            </button>
+          </div>
+        </template>
+        <template v-else>
+          <img src="/favicon-32x32.png" alt="Logo" class="logo-icon" />
+          <button class="collapse-toggle" @click="toggleCollapsed" title="Expand sidebar">
+            <UIcon name="i-lucide-panel-left-open" />
+          </button>
+        </template>
       </div>
 
       <ul class="nav-menu" v-if="hasRole">
         <li v-if="isAdmin">
-          <NuxtLink to="/admin" class="nav-link" :class="{ 'router-link-active': route.path === '/admin' }">
-            <UIcon name="i-lucide-layout-dashboard" /> Dashboard
+          <NuxtLink to="/admin" class="nav-link" :class="{ 'router-link-active': route.path === '/admin' }" :title="sidebarCollapsed ? 'Dashboard' : undefined">
+            <UIcon name="i-lucide-layout-dashboard" />
+            <span v-if="!sidebarCollapsed" class="nav-label">Dashboard</span>
           </NuxtLink>
         </li>
         <li v-if="isAdmin">
-          <NuxtLink to="/admin/people-groups" class="nav-link">
-            <UIcon name="i-lucide-globe" /> People Groups
+          <NuxtLink to="/admin/people-groups" class="nav-link" :title="sidebarCollapsed ? 'People Groups' : undefined">
+            <UIcon name="i-lucide-globe" />
+            <span v-if="!sidebarCollapsed" class="nav-label">People Groups</span>
           </NuxtLink>
         </li>
         <li>
-          <NuxtLink to="/admin/subscribers" class="nav-link">
-            <UIcon name="i-lucide-user" /> Contacts
+          <NuxtLink to="/admin/subscribers" class="nav-link" :title="sidebarCollapsed ? 'Contacts' : undefined">
+            <UIcon name="i-lucide-user" />
+            <span v-if="!sidebarCollapsed" class="nav-label">Contacts</span>
           </NuxtLink>
         </li>
         <li v-if="isAdmin">
-          <NuxtLink to="/admin/groups" class="nav-link">
-            <UIcon name="i-lucide-users" /> Groups
+          <NuxtLink to="/admin/groups" class="nav-link" :title="sidebarCollapsed ? 'Groups' : undefined">
+            <UIcon name="i-lucide-users" />
+            <span v-if="!sidebarCollapsed" class="nav-label">Groups</span>
           </NuxtLink>
         </li>
         <li v-if="isAdmin">
-          <NuxtLink to="/admin/libraries" class="nav-link">
-            <UIcon name="i-lucide-book-open" /> Libraries
+          <NuxtLink to="/admin/libraries" class="nav-link" :title="sidebarCollapsed ? 'Libraries' : undefined">
+            <UIcon name="i-lucide-book-open" />
+            <span v-if="!sidebarCollapsed" class="nav-label">Libraries</span>
           </NuxtLink>
         </li>
         <li v-if="isAdmin">
-          <NuxtLink to="/admin/users" class="nav-link">
-            <UIcon name="i-lucide-user-cog" /> Users
+          <NuxtLink to="/admin/users" class="nav-link" :title="sidebarCollapsed ? 'Users' : undefined">
+            <UIcon name="i-lucide-user-cog" />
+            <span v-if="!sidebarCollapsed" class="nav-label">Users</span>
           </NuxtLink>
         </li>
         <li v-if="isSuperAdmin">
-          <NuxtLink to="/superadmin" class="nav-link">
-            <UIcon name="i-lucide-shield" /> Superadmin
+          <NuxtLink to="/superadmin" class="nav-link" :title="sidebarCollapsed ? 'Superadmin' : undefined">
+            <UIcon name="i-lucide-shield" />
+            <span v-if="!sidebarCollapsed" class="nav-label">Superadmin</span>
           </NuxtLink>
         </li>
       </ul>
       <div v-if="!hasRole" class="nav-menu"></div>
 
       <div class="sidebar-footer">
-        <NuxtLink to="/admin/profile" class="user-name-link" v-if="user">
+        <NuxtLink v-if="user && !sidebarCollapsed" to="/admin/profile" class="user-name-link">
           {{ user.display_name || user.email }}
         </NuxtLink>
-        <ThemeToggle />
+        <NuxtLink v-else-if="user" to="/admin/profile" class="nav-link footer-icon" :title="user.display_name || user.email">
+          <UIcon name="i-lucide-circle-user" />
+        </NuxtLink>
+        <ThemeToggle v-if="!sidebarCollapsed" />
       </div>
     </nav>
 
@@ -84,13 +106,27 @@ const { user, isAdmin, isSuperAdmin, hasRole, checkAuth } = useAuthUser()
 
 const route = useRoute()
 const sidebarOpen = ref(false)
+const sidebarCollapsed = ref(true)
 
 // Close sidebar on route change
 watch(() => route.path, () => {
   sidebarOpen.value = false
 })
 
+function toggleCollapsed() {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+  if (import.meta.client) {
+    localStorage.setItem('sidebar-collapsed', String(sidebarCollapsed.value))
+  }
+}
+
 onMounted(async () => {
+  // Restore collapsed state (default collapsed unless user explicitly expanded)
+  const stored = localStorage.getItem('sidebar-collapsed')
+  if (stored === 'false') {
+    sidebarCollapsed.value = false
+  }
+
   try {
     await checkAuth()
     if (user.value && !hasRole.value && route.path !== '/admin/pending-approval') {
@@ -121,25 +157,70 @@ onMounted(async () => {
   top: 0;
   height: 100vh;
   overflow-y: auto;
+  overflow-x: hidden;
+  transition: width 0.2s ease;
+}
+
+.sidebar.collapsed {
+  width: 60px;
 }
 
 .sidebar-header {
-  padding: 1.5rem 1rem;
+  padding: 1rem;
   border-bottom: 1px solid var(--ui-border);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
+}
+
+.sidebar.collapsed .sidebar-header {
+  align-items: center;
+  padding: 0.75rem;
+  gap: 0.25rem;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .logo {
   font-size: 1.25rem;
   margin: 0;
   color: var(--ui-text);
+  white-space: nowrap;
+}
+
+.logo-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+}
+
+.collapse-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem;
+  border: none;
+  background: none;
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  border-radius: 6px;
+  flex-shrink: 0;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.collapse-toggle:hover {
+  background-color: var(--ui-bg);
+  color: var(--ui-text);
 }
 
 .nav-menu {
   list-style: none;
-  padding: 1rem 0;
+  padding: 0.5rem 0;
   margin: 0;
   flex: 1;
 }
@@ -156,6 +237,12 @@ onMounted(async () => {
   color: var(--ui-text);
   text-decoration: none;
   transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.sidebar.collapsed .nav-link {
+  justify-content: center;
+  padding: 0.75rem;
 }
 
 .nav-link:hover {
@@ -167,6 +254,10 @@ onMounted(async () => {
   border-right: 3px solid var(--ui-text);
 }
 
+.nav-label {
+  overflow: hidden;
+}
+
 .sidebar-footer {
   padding: 1rem;
   border-top: 1px solid var(--ui-border);
@@ -176,6 +267,16 @@ onMounted(async () => {
   gap: 0.5rem;
 }
 
+.sidebar.collapsed .sidebar-footer {
+  flex-direction: column;
+  padding: 0.5rem;
+  gap: 0;
+}
+
+.footer-icon {
+  padding: 0.5rem;
+}
+
 .user-name-link {
   font-weight: 600;
   font-size: 0.875rem;
@@ -183,6 +284,9 @@ onMounted(async () => {
   text-decoration: underline;
   text-underline-offset: 2px;
   transition: opacity 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-name-link:hover {
@@ -194,6 +298,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   background-color: var(--ui-bg);
+  min-width: 0;
 }
 
 .main-content {
@@ -239,12 +344,32 @@ onMounted(async () => {
     left: 0;
     top: 0;
     z-index: 50;
+    width: 250px !important;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
   }
 
   .sidebar.open {
     transform: translateX(0);
+  }
+
+  /* Always show labels on mobile (sidebar is overlay) */
+  .sidebar.collapsed .nav-link {
+    justify-content: flex-start;
+    padding: 0.75rem 1rem;
+  }
+
+  .sidebar.collapsed .sidebar-header {
+    align-items: stretch;
+  }
+
+  .sidebar.collapsed .sidebar-footer {
+    flex-direction: row;
+    padding: 1rem;
+  }
+
+  .collapse-toggle {
+    display: none;
   }
 
   .sidebar-backdrop {

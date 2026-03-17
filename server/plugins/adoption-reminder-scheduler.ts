@@ -15,7 +15,7 @@ export default defineNitroPlugin((nitroApp) => {
   if (process.env.VITEST) return
 
   // Temporarily disabled
-  return
+  return;
 
   console.log('📅 Scheduling monthly adoption reminder emails (1st of each month)')
 

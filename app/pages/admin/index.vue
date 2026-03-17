@@ -2,6 +2,21 @@
   <div class="p-6">
     <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
 
+    <!-- Navigation Links -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+      <NuxtLink
+        v-for="link in navLinks"
+        :key="link.to"
+        :to="link.to"
+        class="nav-card"
+      >
+        <UIcon :name="link.icon" class="text-xl text-[var(--ui-text-muted)]" />
+        <span class="text-sm font-medium">{{ link.label }}</span>
+      </NuxtLink>
+    </div>
+
+    <!-- Stats -->
+    <h2 class="text-lg font-semibold mb-3">Stats</h2>
     <div class="flex gap-2 mb-6">
       <UButton
         v-for="tab in tabs"
@@ -230,6 +245,15 @@ definePageMeta({
   middleware: 'auth'
 })
 
+const navLinks = [
+  { label: 'People Groups', to: '/admin/people-groups', icon: 'i-lucide-globe' },
+  { label: 'Contacts', to: '/admin/subscribers', icon: 'i-lucide-user' },
+  { label: 'Groups', to: '/admin/groups', icon: 'i-lucide-users' },
+  { label: 'Libraries', to: '/admin/libraries', icon: 'i-lucide-book-open' },
+  { label: 'Users', to: '/admin/users', icon: 'i-lucide-user-cog' },
+  { label: 'Profile', to: '/admin/profile', icon: 'i-lucide-circle-user' }
+]
+
 const activeTab = ref('general')
 
 const tabs = [
@@ -279,3 +303,24 @@ function formatChartDate(dateStr: string): string {
 }
 
 </script>
+
+<style scoped>
+.nav-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  background-color: var(--ui-bg-elevated);
+  text-decoration: none;
+  color: var(--ui-text);
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.nav-card:hover {
+  border-color: var(--ui-border-accented);
+  background-color: var(--ui-bg);
+}
+</style>
