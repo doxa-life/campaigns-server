@@ -32,5 +32,16 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Adoption not found' })
   }
 
+  const changes: Record<string, { from: any; to: any }> = {}
+  if (body.status !== undefined && body.status !== adoption.status) {
+    changes.status = { from: adoption.status, to: body.status }
+  }
+  if (body.show_publicly !== undefined && body.show_publicly !== adoption.show_publicly) {
+    changes.show_publicly = { from: adoption.show_publicly, to: body.show_publicly }
+  }
+  if (Object.keys(changes).length > 0) {
+    logUpdate('people_group_adoptions', String(adoptionId), event, { changes })
+  }
+
   return { adoption: updated }
 })

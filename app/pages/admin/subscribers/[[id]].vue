@@ -328,9 +328,9 @@
               <div v-for="activity in activityLog" :key="activity.id" class="activity-item">
                 <div class="activity-header">
                   <UBadge
-                    :label="formatEventType(activity.eventType)"
-                    :color="getEventColor(activity.eventType)"
-                    :icon="getEventIcon(activity.eventType)"
+                    :label="formatEventType(activity.metadata?.badge || activity.eventType)"
+                    :color="getEventColor(activity.metadata?.badge || activity.eventType)"
+                    :icon="getEventIcon(activity.metadata?.badge || activity.eventType)"
                     size="xs"
                   />
                   <span class="activity-time">{{ formatTimestamp(activity.timestamp) }}</span>
@@ -341,6 +341,9 @@
                   </template>
                   <template v-else-if="activity.userName">
                     by {{ activity.userName }}
+                  </template>
+                  <template v-else-if="activity.metadata?.source">
+                    by {{ activity.metadata.source }}
                   </template>
                 </div>
                 <div v-if="activity.eventType === 'PRAYER'" class="prayer-details">
@@ -360,6 +363,22 @@
                   <template v-if="activity.metadata.peopleGroupName">
                     · {{ activity.metadata.peopleGroupName }}
                   </template>
+                </div>
+                <div v-if="activity.metadata?.message" class="activity-detail">
+                  {{ activity.metadata.message }}
+                  <NuxtLink v-if="activity.metadata.link_url" :to="activity.metadata.link_url" class="activity-link">
+                    {{ activity.metadata.link_text }}
+                  </NuxtLink>
+                </div>
+                <div v-if="activity.metadata?.form_values" class="activity-changes">
+                  <div
+                    v-for="(value, key) in activity.metadata.form_values"
+                    :key="key"
+                    class="change-item"
+                  >
+                    <span class="change-field">{{ formatFormKey(key as string) }}:</span>
+                    <span class="change-to">{{ formatFormValue(value) }}</span>
+                  </div>
                 </div>
                 <div v-if="activity.metadata?.changes" class="activity-changes">
                   <div
@@ -574,6 +593,10 @@ interface ActivityLogEntry {
     peopleGroupName?: string
     sentDate?: string
     response?: string
+    message?: string
+    link_text?: string
+    link_url?: string
+    form_values?: Record<string, any>
   }
 }
 const activityLog = ref<ActivityLogEntry[]>([])
@@ -803,22 +826,22 @@ function toggleSubscription(subscriptionId: number) {
 }
 
 async function loadActivityLog(subscriber: GeneralSubscriber) {
-  if (!subscriber.subscriptions.length) {
-    activityLog.value = []
-    return
-  }
-
   try {
     loadingActivityLog.value = true
     const allActivities: ActivityLogEntry[] = []
 
-    for (const subscription of subscriber.subscriptions) {
-      try {
-        const response = await $fetch<{ activities: ActivityLogEntry[] }>(`/api/admin/subscriptions/${subscription.id}/activity`)
-        allActivities.push(...response.activities)
-      } catch (err) {
-        console.error(`Failed to load activity for subscription ${subscription.id}:`, err)
-      }
+    // Fetch subscriber-level and all subscription-level activity in parallel
+    const fetches = [
+      $fetch<{ activities: ActivityLogEntry[] }>(`/api/admin/activity/subscribers/${subscriber.id}`)
+        .catch((err) => { console.error('Failed to load subscriber activity:', err); return { activities: [] as ActivityLogEntry[] } }),
+      ...subscriber.subscriptions.map(sub =>
+        $fetch<{ activities: ActivityLogEntry[] }>(`/api/admin/subscriptions/${sub.id}/activity`)
+          .catch((err) => { console.error(`Failed to load activity for subscription ${sub.id}:`, err); return { activities: [] as ActivityLogEntry[] } })
+      )
+    ]
+    const results = await Promise.all(fetches)
+    for (const result of results) {
+      allActivities.push(...result.activities)
     }
 
     activityLog.value = allActivities
@@ -1066,7 +1089,9 @@ function formatEventType(eventType: string): string {
     'DELETE': 'Deleted',
     'PRAYER': 'Prayed',
     'EMAIL': 'Email Sent',
-    'FOLLOWUP_RESPONSE': 'Check-in Response'
+    'FOLLOWUP_RESPONSE': 'Check-in Response',
+    'Linked': 'Linked',
+    'Unlinked': 'Unlinked'
   }
   return types[eventType] || eventType
 }
@@ -1078,7 +1103,9 @@ function getEventColor(eventType: string): 'success' | 'warning' | 'error' | 'ne
     'DELETE': 'error',
     'PRAYER': 'primary',
     'EMAIL': 'neutral',
-    'FOLLOWUP_RESPONSE': 'primary'
+    'FOLLOWUP_RESPONSE': 'primary',
+    'Linked': 'success',
+    'Unlinked': 'error'
   }
   return colors[eventType] || 'neutral'
 }
@@ -1088,7 +1115,9 @@ function getEventIcon(eventType: string): string | undefined {
     'UPDATE': 'i-lucide-pencil',
     'PRAYER': 'i-lucide-hand-helping',
     'EMAIL': 'i-lucide-mail',
-    'FOLLOWUP_RESPONSE': 'i-lucide-message-circle'
+    'FOLLOWUP_RESPONSE': 'i-lucide-message-circle',
+    'Linked': 'i-lucide-link',
+    'Unlinked': 'i-lucide-link-2-off'
   }
   return icons[eventType]
 }
@@ -1115,6 +1144,7 @@ function formatValue(value: any): string {
   }
   return String(value)
 }
+
 
 function formatPrayerDuration(seconds: number): string {
   if (seconds >= 60) {
@@ -1340,6 +1370,17 @@ onMounted(async () => {
   font-size: 0.75rem;
   color: var(--ui-text-muted);
   margin-top: 0.25rem;
+}
+
+.activity-detail {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--color-neutral-600);
+}
+
+.activity-link {
+  color: var(--color-primary-500);
+  text-decoration: underline;
 }
 
 .activity-changes {

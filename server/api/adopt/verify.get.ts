@@ -68,9 +68,27 @@ export default defineEventHandler(async (event) => {
       // Duplicate — already adopted, continue
     }
 
-    // Look up people group and group for emails
+    // Look up people group and group for emails and logging
     const peopleGroup = await peopleGroupService.getPeopleGroupById(pending.people_group_id)
     const group = await groupService.getById(pending.group_id)
+
+    if (peopleGroup && group) {
+      logUpdate('people_groups', String(peopleGroup.id), event, {
+        badge: 'Linked',
+        source: 'Adoption Form',
+        message: 'Adopted by',
+        link_text: group.name,
+        link_url: `/admin/groups/${group.id}`
+      })
+      logUpdate('groups', String(group.id), event, {
+        badge: 'Linked',
+        source: 'Adoption Form',
+        message: 'Adoption added:',
+        link_text: peopleGroup.name,
+        link_url: `/admin/people-groups/${peopleGroup.id}`
+      })
+    }
+
     if (peopleGroup) {
       if (!firstPeopleGroupName) {
         firstPeopleGroupName = peopleGroup.name

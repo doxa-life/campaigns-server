@@ -30,9 +30,15 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    const oldRole = user.role || null
+
     // If role is null, remove the user's role
     if (body.role === null) {
       await roleService.setUserRole(userId, null)
+
+      if (oldRole !== null) {
+        logUpdate('users', userId, event, { changes: { role: { from: oldRole, to: null } } })
+      }
 
       return {
         success: true,
@@ -51,6 +57,10 @@ export default defineEventHandler(async (event) => {
 
     // Set new role
     await roleService.setUserRole(userId, body.role as RoleName)
+
+    if (oldRole !== body.role) {
+      logUpdate('users', userId, event, { changes: { role: { from: oldRole, to: body.role } } })
+    }
 
     return {
       success: true,

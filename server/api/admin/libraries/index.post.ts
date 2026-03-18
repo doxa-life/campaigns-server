@@ -22,6 +22,8 @@ export default defineEventHandler(async (event) => {
       repeating: body.repeating
     })
 
+    logCreate('libraries', String(library.id), event)
+
     return {
       success: true,
       library

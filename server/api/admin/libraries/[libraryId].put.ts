@@ -8,6 +8,11 @@ export default defineEventHandler(async (event) => {
 
   const id = getIntParam(event, 'libraryId')
 
+  const oldLibrary = await libraryService.getLibraryById(id)
+  if (!oldLibrary) {
+    throw createError({ statusCode: 404, statusMessage: 'Library not found' })
+  }
+
   const body = await readBody(event)
 
   try {
@@ -26,6 +31,20 @@ export default defineEventHandler(async (event) => {
 
     // Clear cached library stats so changes take effect immediately
     prayerContentService.clearLibraryCache(id)
+
+    const changes: Record<string, { from: any; to: any }> = {}
+    if (body.name !== undefined && body.name !== oldLibrary.name) {
+      changes.name = { from: oldLibrary.name, to: body.name }
+    }
+    if (body.description !== undefined && body.description !== oldLibrary.description) {
+      changes.description = { from: oldLibrary.description, to: body.description }
+    }
+    if (body.repeating !== undefined && body.repeating !== oldLibrary.repeating) {
+      changes.repeating = { from: oldLibrary.repeating, to: body.repeating }
+    }
+    if (Object.keys(changes).length > 0) {
+      logUpdate('libraries', String(id), event, { changes })
+    }
 
     return {
       success: true,

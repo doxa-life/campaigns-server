@@ -17,5 +17,7 @@ export default defineEventHandler(async (event) => {
     primary_subscriber_id: body.primary_subscriber_id || null
   })
 
+  logCreate('groups', String(group.id), event)
+
   return { group }
 })

@@ -100,7 +100,37 @@ export default defineEventHandler(async (event) => {
         to_id: group.id,
         connection_type: 'champion'
       })
+      logCreate('groups', String(group.id), event, {
+        source: 'Adoption Form',
+        message: 'Created from adoption form. Primary contact:',
+        link_text: fullName,
+        link_url: `/admin/subscribers/${subscriber.id}`
+      })
+      logUpdate('subscribers', String(subscriber.id), event, {
+        badge: 'Linked',
+        source: 'Adoption Form',
+        message: 'Connected to group:',
+        link_text: group.name,
+        link_url: `/admin/groups/${group.id}`
+      })
     }
+
+    // Log form submission on the contact record
+    logCreate('subscribers', String(subscriber.id), event, {
+      source: 'Adoption Form',
+      message: 'Adoption form submitted',
+      form_values: {
+        people_group: peopleGroup.name,
+        email,
+        phone: phone || null,
+        church: churchName || null,
+        role: role || null,
+        country: body.country?.trim() || null,
+        language,
+        public_display: body.confirm_public_display ?? false,
+        permission_to_contact: body.permission_to_contact ?? false
+      }
+    })
 
     // Grant marketing consents
     const emailContact = await contactMethodService.getByValue('email', email)
@@ -156,6 +186,21 @@ export default defineEventHandler(async (event) => {
       }
       throw err
     }
+
+    logUpdate('people_groups', String(peopleGroup.id), event, {
+      badge: 'Linked',
+      source: 'Adoption Form',
+      message: 'Adopted by',
+      link_text: groupName,
+      link_url: `/admin/groups/${group.id}`
+    })
+    logUpdate('groups', String(group.id), event, {
+      badge: 'Linked',
+      source: 'Adoption Form',
+      message: 'Adoption added:',
+      link_text: peopleGroup.name,
+      link_url: `/admin/people-groups/${peopleGroup.id}`
+    })
 
     // Send adoption welcome email (fire-and-forget)
     const remainingCount = await peopleGroupService.getRemainingUnadoptedCount()

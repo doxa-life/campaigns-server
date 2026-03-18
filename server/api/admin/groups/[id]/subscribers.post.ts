@@ -28,6 +28,18 @@ export default defineEventHandler(async (event) => {
       to_type: 'group',
       to_id: groupId
     })
+    logUpdate('groups', String(groupId), event, {
+      badge: 'Linked',
+      message: 'Contact added:',
+      link_text: subscriber.name || `#${body.subscriber_id}`,
+      link_url: `/admin/subscribers/${body.subscriber_id}`
+    })
+    logUpdate('subscribers', String(body.subscriber_id), event, {
+      badge: 'Linked',
+      message: 'Added to group:',
+      link_text: group.name,
+      link_url: `/admin/groups/${groupId}`
+    })
     return { connection }
   } catch (error: any) {
     if (error.code === '23505') {

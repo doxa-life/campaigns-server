@@ -1,4 +1,4 @@
-import { peopleGroupService, UpdatePeopleGroupData } from '../../../database/people-groups'
+import { peopleGroupService, type UpdatePeopleGroupData } from '../../../database/people-groups'
 import { getIntParam } from '#server/utils/api-helpers'
 
 interface UpdateBody {
@@ -19,10 +19,21 @@ interface UpdateBody {
   descriptions?: Record<string, string> | null
 }
 
+const TRACKED_FIELDS = [
+  'name', 'image_url', 'joshua_project_id', 'country_code', 'region',
+  'latitude', 'longitude', 'population', 'evangelical_pct',
+  'engagement_status', 'primary_religion', 'primary_language'
+] as const
+
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
   const id = getIntParam(event, 'id')
+
+  const oldRecord = await peopleGroupService.getPeopleGroupById(id)
+  if (!oldRecord) {
+    throw createError({ statusCode: 404, statusMessage: 'People group not found' })
+  }
 
   const body = await readBody<UpdateBody>(event)
 
@@ -93,6 +104,41 @@ export default defineEventHandler(async (event) => {
       statusCode: 404,
       statusMessage: 'People group not found'
     })
+  }
+
+  // Track field-level changes
+  const changes: Record<string, { from: any; to: any }> = {}
+  for (const field of TRACKED_FIELDS) {
+    if (body[field] !== undefined && String(body[field] ?? '') !== String((oldRecord as any)[field] ?? '')) {
+      changes[field] = { from: (oldRecord as any)[field], to: body[field] }
+    }
+  }
+  if (body.metadata !== undefined) {
+    const oldMeta: Record<string, any> = oldRecord.metadata
+      ? (typeof oldRecord.metadata === 'string' ? JSON.parse(oldRecord.metadata) : oldRecord.metadata)
+      : {}
+    const newMeta = body.metadata || {}
+    const allKeys = new Set([...Object.keys(oldMeta), ...Object.keys(newMeta)])
+    for (const key of allKeys) {
+      if (String(oldMeta[key] ?? '') !== String(newMeta[key] ?? '')) {
+        changes[key] = { from: oldMeta[key] ?? null, to: newMeta[key] ?? null }
+      }
+    }
+  }
+  if (body.descriptions !== undefined) {
+    const oldDescs: Record<string, string> = oldRecord.descriptions
+      ? (typeof oldRecord.descriptions === 'string' ? JSON.parse(oldRecord.descriptions) : oldRecord.descriptions)
+      : {}
+    const newDescs = body.descriptions || {}
+    const descKeys = new Set([...Object.keys(oldDescs), ...Object.keys(newDescs)])
+    for (const lang of descKeys) {
+      if ((oldDescs[lang] ?? '') !== (newDescs[lang] ?? '')) {
+        changes[`description_${lang}`] = { from: oldDescs[lang] ?? null, to: newDescs[lang] ?? null }
+      }
+    }
+  }
+  if (Object.keys(changes).length > 0) {
+    logUpdate('people_groups', String(id), event, { changes })
   }
 
   return {
