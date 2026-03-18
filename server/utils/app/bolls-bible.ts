@@ -12,7 +12,9 @@ import { existsSync } from 'node:fs'
 import { mkdir, readFile, writeFile, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
 
-interface FetchVerseParams {
+export interface VerseData { verse: number; text: string }
+
+export interface FetchVerseParams {
   bibleId: string
   bookId: string
   chapter: number
@@ -295,7 +297,7 @@ export function isBollsBibleConfigured(bibleId: string | undefined): boolean {
   return !!bibleId
 }
 
-export async function fetchVerseText(params: FetchVerseParams): Promise<string> {
+async function fetchFilteredVerses(params: FetchVerseParams): Promise<BollsVerse[]> {
   const { bibleId, bookId, chapter, verseStart, verseEnd } = params
 
   const bookNumber = USFM_TO_BOOK_NUMBER[bookId]
@@ -303,7 +305,6 @@ export async function fetchVerseText(params: FetchVerseParams): Promise<string> 
     throw new Error(`Unknown USFM book code: "${bookId}"`)
   }
 
-  // Remap chapter/verse numbers for translations with different numbering
   const remapped = remapReference(bibleId, bookId, chapter, verseStart, verseEnd)
 
   const verses = await fetchChapter(bibleId, bookNumber, remapped.chapter)
@@ -311,7 +312,6 @@ export async function fetchVerseText(params: FetchVerseParams): Promise<string> 
   let vs = remapped.verseStart
   let ve = remapped.verseEnd
 
-  // Auto-detect psalm verse offset by comparing with NKJV
   if (remapped.needsPsalmVerseOffset && vs !== undefined) {
     const nkjvVerses = await fetchChapter('NKJV', bookNumber, chapter)
     const nkjvMax = Math.max(...nkjvVerses.map(v => v.verse))
@@ -325,7 +325,6 @@ export async function fetchVerseText(params: FetchVerseParams): Promise<string> 
     }
   }
 
-  // Filter by verse range if specified
   let filtered = verses
   if (vs !== undefined) {
     const end = ve ?? vs
@@ -336,5 +335,15 @@ export async function fetchVerseText(params: FetchVerseParams): Promise<string> 
     throw new Error('No verse data returned from Bolls Bible')
   }
 
+  return filtered
+}
+
+export async function fetchVerseData(params: FetchVerseParams): Promise<VerseData[]> {
+  const filtered = await fetchFilteredVerses(params)
+  return filtered.map(v => ({ verse: v.verse, text: cleanVerseText(v.text) }))
+}
+
+export async function fetchVerseText(params: FetchVerseParams): Promise<string> {
+  const filtered = await fetchFilteredVerses(params)
   return filtered.map(v => cleanVerseText(v.text)).join(' ').trim()
 }

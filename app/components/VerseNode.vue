@@ -55,10 +55,23 @@ async function fetchVerse() {
       const to = pos + 1 + verseNode.content.size
 
       const schema = state.schema
-      const newParagraph = schema.nodes.paragraph.create(
-        null,
-        data.text ? schema.text(data.text) : null
-      )
+      let newParagraph
+      if (data.verses && data.verses.length > 0) {
+        const nodes: any[] = []
+        const superscriptMark = schema.marks.superscript?.create()
+        for (let i = 0; i < data.verses.length; i++) {
+          const v = data.verses[i]!
+          nodes.push(schema.text(`${v.verse} `, superscriptMark ? [superscriptMark] : []))
+          const text = i < data.verses.length - 1 ? v.text + ' ' : v.text
+          nodes.push(schema.text(text))
+        }
+        newParagraph = schema.nodes.paragraph!.create(null, nodes)
+      } else {
+        newParagraph = schema.nodes.paragraph!.create(
+          null,
+          data.text ? schema.text(data.text) : null
+        )
+      }
 
       props.editor.view.dispatch(
         state.tr.replaceWith(from, to, newParagraph)
