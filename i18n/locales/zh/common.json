@@ -482,7 +482,7 @@
     },
     "adoptionWelcome": {
       "subject": "DOXA认领更新：您对{peopleGroupName}的承诺",
-      "headerTitle": "DOXA认领简报",
+      "headerTitle": "DOXA认领更新",
       "greeting": "亲爱的{firstName}：",
       "intro": "今天，作为DOXA伙伴关系的一部分，您将{peopleGroupName}的状态从[waiting]更改为[adopted]——这是迈向接触的关键第一步。",
       "introContinued": "您现在是一个族群的首要倡导者、代祷者和动员者，而这个族群在此刻之前，没有任何持续的见证或专门的祷告事工。",
@@ -512,7 +512,7 @@
       "step3Text": "找到5个愿意注册与您一起祷告的人。考虑祷告领袖、小组成员以及在优先事项和异象上可能一致的属灵忠信的朋友。一个持续、充满期待的核心团契可以成为一场运动的开端。",
       "section4Title": "4. DOXA更新带给您鼓励",
       "section4Text": "每个月，您将收到一份战略性月度更新——向您通报与您的族群相关的区域突破、新资源或动员里程碑。如果您有疑问、需要鼓励或需要帮助思考下一步，我们愿意帮助。请联系 {contactEmail}。",
-      "closingCount": "曾有{beforeCount}个族群等待被认领。因为您今天的「是」，这个数字现在是{afterCount}。谢谢您。",
+      "closingCount": "曾有{beforeCount}个族群等待被认领。因为您今天的「是」，这个数字现在是{afterCount}。我们感恩能与您在这项有价值的事工中同行。",
       "signoff": "愿荣耀归于神，",
       "teamName": "DOXA团队"
     }

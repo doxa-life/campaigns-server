@@ -482,7 +482,7 @@
     },
     "adoptionWelcome": {
       "subject": "DOXA-Adoptionsupdate: Ihr Engagement für die {peopleGroupName}",
-      "headerTitle": "DOXA-Adoptionsbriefing",
+      "headerTitle": "DOXA-Adoptionsaktualisierung",
       "greeting": "Liebe/r {firstName},",
       "intro": "Heute haben Sie im Rahmen der DOXA-Partnerschaft den Status der {peopleGroupName} von [waiting] auf [adopted] geändert — der entscheidende erste Schritt zum Engagement.",
       "introContinued": "Sie sind jetzt ein Hauptfürsprecher, Fürbitter und Mobilisierer für eine Volksgruppe, die bis zu diesem Moment kein beständiges Zeugnis und keinen gezielten Gebetseinsatz hatte.",
@@ -512,7 +512,7 @@
       "step3Text": "Identifizieren Sie 5 Personen, die sich anmelden, um mit Ihnen zu beten. Denken Sie an Gebetsleiter, Kleingruppenmitglieder und geistlich treue Freunde, die wahrscheinlich in Prioritäten und Vision übereinstimmen. Ein kleiner Kern in beständiger, erwartungsvoller Übereinstimmung kann der Beginn einer Bewegung sein.",
       "section4Title": "4. Lassen Sie sich von DOXA-Updates ermutigen",
       "section4Text": "Jeden Monat erhalten Sie ein strategisches monatliches Update — mit Informationen über regionale Durchbrüche, neue Ressourcen oder Mobilisierungsmeilensteine in Bezug auf Ihre Volksgruppe. Wenn Sie Fragen haben, Ermutigung oder Hilfe beim Nachdenken über die nächsten Schritte brauchen, möchten wir Ihnen helfen. Bitte wenden Sie sich an {contactEmail}.",
-      "closingCount": "Es warteten {beforeCount} Volksgruppen darauf, adoptiert zu werden. Dank Ihres \"Ja\" heute ist diese Zahl jetzt {afterCount}. Vielen Dank.",
+      "closingCount": "Es warteten {beforeCount} Volksgruppen darauf, adoptiert zu werden. Dank Ihres \"Ja\" heute ist diese Zahl jetzt {afterCount}. Wir sind dankbar, mit Ihnen in diesem wertvollen Vorhaben zusammenzuarbeiten.",
       "signoff": "Zur Ehre Gottes,",
       "teamName": "Das DOXA-Team"
     }

@@ -482,7 +482,7 @@
     },
     "adoptionWelcome": {
       "subject": "DOXA Adoption Update: Your Commitment to the {peopleGroupName}",
-      "headerTitle": "DOXA Adoption Briefing",
+      "headerTitle": "DOXA Adoption Update",
       "greeting": "Dear {firstName},",
       "intro": "Today, as part of the DOXA partnership, you changed the status of the {peopleGroupName} from [waiting] to [adopted], the vital first step to engagement.",
       "introContinued": "You are now a primary advocate, intercessor, and mobilizer for a people group who, until this moment, had no consistent witness or dedicated prayer effort.",
@@ -512,7 +512,7 @@
       "step3Text": "Identify 5 people who will sign up to pray with you. Consider prayer leaders, small group members, and spiritually faithful friends who are likely to be aligned in priorities and vision. A small core in sustained, expectant agreement can be the beginning of a movement.",
       "section4Title": "4. Be Encouraged by DOXA Updates",
       "section4Text": "Every month, you will receive a strategic monthly update — briefing you on any regional breakthroughs, new resources, or mobilization milestones related to your group. If you have questions, need encouragement, or help thinking through next steps, we want to help. Please reach out to {contactEmail}.",
-      "closingCount": "There were {beforeCount} groups left to adopt. Because of your \"yes\" today, that number is now {afterCount}. Thank you.",
+      "closingCount": "There were {beforeCount} groups left to adopt. Because of your \"yes\" today, that number is now {afterCount}. We are grateful to partner with you in this worthy endeavor.",
       "signoff": "To the Glory of God,",
       "teamName": "The DOXA Team"
     }

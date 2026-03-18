@@ -482,7 +482,7 @@
     },
     "adoptionWelcome": {
       "subject": "Mise à jour d'adoption DOXA : Votre engagement envers les {peopleGroupName}",
-      "headerTitle": "Rapport d'adoption DOXA",
+      "headerTitle": "Mise à jour d'adoption DOXA",
       "greeting": "Cher/Chère {firstName},",
       "intro": "Aujourd'hui, dans le cadre du partenariat DOXA, vous avez changé le statut des {peopleGroupName} d'[waiting] à [adopted], la première étape vitale vers l'engagement.",
       "introContinued": "Vous êtes désormais un défenseur principal, intercesseur et mobilisateur pour un groupe ethnique qui, jusqu'à ce moment, n'avait aucun témoignage constant ni effort de prière dédié.",
@@ -512,7 +512,7 @@
       "step3Text": "Identifiez 5 personnes qui s'inscriront pour prier avec vous. Pensez aux responsables de prière, aux membres de petits groupes et aux amis spirituellement fidèles susceptibles d'être alignés en priorités et en vision. Un petit noyau dans un accord soutenu et plein d'attente peut être le début d'un mouvement.",
       "section4Title": "4. Soyez encouragé par les mises à jour DOXA",
       "section4Text": "Chaque mois, vous recevrez une mise à jour stratégique mensuelle — vous informant de toute percée régionale, de nouvelles ressources ou de jalons de mobilisation liés à votre groupe ethnique. Si vous avez des questions, besoin d'encouragement ou d'aide pour réfléchir aux prochaines étapes, nous voulons vous aider. N'hésitez pas à nous contacter à {contactEmail}.",
-      "closingCount": "Il restait {beforeCount} groupes ethniques en attente d'adoption. Grâce à votre « oui » aujourd'hui, ce nombre est maintenant {afterCount}. Merci.",
+      "closingCount": "Il restait {beforeCount} groupes ethniques en attente d'adoption. Grâce à votre « oui » aujourd'hui, ce nombre est maintenant {afterCount}. Nous sommes reconnaissants de nous associer à vous dans cette noble entreprise.",
       "signoff": "Pour la gloire de Dieu,",
       "teamName": "L'équipe DOXA"
     }
