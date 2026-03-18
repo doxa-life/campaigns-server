@@ -16,6 +16,10 @@ interface CommentWithAuthor {
   updated_at: string
 }
 
+const emit = defineEmits<{
+  'update:count': [count: number]
+}>()
+
 const { user } = useAuthUser()
 const toast = useToast()
 
@@ -35,8 +39,10 @@ async function fetchComments() {
       params: { record_type: props.recordType, record_id: props.recordId }
     })
     comments.value = res.comments
+    emit('update:count', comments.value.length)
   } catch {
     comments.value = []
+    emit('update:count', 0)
   } finally {
     loading.value = false
   }

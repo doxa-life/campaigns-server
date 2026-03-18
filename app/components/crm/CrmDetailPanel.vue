@@ -11,6 +11,9 @@
       </div>
       <div v-if="sideTabs.length > 0" class="side-column">
         <UTabs :items="sideTabs">
+          <template #trailing="{ item }">
+            <UBadge v-if="item.badge != null" :label="item.badge" variant="subtle" size="xs" />
+          </template>
           <template v-for="tab in sideTabs" :key="tab.slot" #[tab.slot]>
             <div class="side-tab-content">
               <slot :name="'side-' + tab.slot" />
@@ -23,6 +26,9 @@
     <!-- Mobile: all tabs -->
     <div class="mobile-layout">
       <UTabs :items="mobileTabs">
+        <template #trailing="{ item }">
+          <UBadge v-if="item.badge != null" :label="item.badge" variant="subtle" size="xs" />
+        </template>
         <template #details>
           <div class="mobile-tab-content">
             <slot name="details" />
@@ -43,6 +49,7 @@ interface Tab {
   label: string
   slot: string
   icon?: string
+  badge?: string | number
 }
 
 const props = withDefaults(defineProps<{
