@@ -7,7 +7,7 @@
 
 import { LANGUAGE_CODES, getDeeplTargetCode, getDeeplSourceCode, getBibleId, getBibleLabel, getGlossaryId } from '~/utils/languages'
 import { parseReference, localizeReference } from '../../config/bible-books'
-import { fetchVerseText, isBollsBibleConfigured } from './app/bolls-bible'
+import { fetchVerseData, isBollsBibleConfigured } from './app/bolls-bible'
 
 // Re-export for convenience
 export const SUPPORTED_LANGUAGES = LANGUAGE_CODES
@@ -338,7 +338,7 @@ export async function translateVerseNodes(node: TiptapNode, targetLanguage: stri
       }
 
       try {
-        const text = await fetchVerseText({
+        const verses = await fetchVerseData({
           bibleId: bibleId!,
           bookId: parsed.bookId,
           chapter: parsed.chapter,
@@ -346,9 +346,14 @@ export async function translateVerseNodes(node: TiptapNode, targetLanguage: stri
           verseEnd: parsed.verseEnd
         })
 
+        const content: any[] = []
+        verses.forEach((v, i) => {
+          content.push({ type: 'text', text: `${v.verse} `, marks: [{ type: 'superscript' }] })
+          content.push({ type: 'text', text: i < verses.length - 1 ? v.text + ' ' : v.text })
+        })
         child.content = [{
           type: 'paragraph',
-          content: [{ type: 'text', text }]
+          content
         }]
         child.attrs!.reference = localizeReference(parsed, 'en')
         child.attrs!.translation = getBibleLabel(targetLanguage)

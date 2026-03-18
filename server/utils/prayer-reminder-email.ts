@@ -93,6 +93,9 @@ function renderNode(node: any): string {
             case 'strike':
               text = `<s>${text}</s>`
               break
+            case 'superscript':
+              text = `<sup>${text}</sup>`
+              break
             case 'link':
               const href = escapeHtml(mark.attrs?.href || '#')
               text = `<a href="${href}" style="color: #3B463D; text-decoration: underline;">${text}</a>`
