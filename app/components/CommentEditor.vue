@@ -84,7 +84,7 @@ const bubbleToolbarItems = computed(() => [
 
 <style scoped>
 .comment-editor-wrapper {
-  background: white;
+  background: var(--ui-bg);
   border: 1px solid var(--ui-border);
   border-radius: 8px;
   transition: border-color 0.15s ease;

@@ -569,18 +569,6 @@ function formatDuration(minutes: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`
 }
 
-// Handle URL-based selection
-function handleUrlSelection() {
-  const idParam = route.params.id as string | undefined
-  if (!idParam) return
-
-  const id = parseInt(idParam)
-  const group = peopleGroups.value.find(g => g.id === id)
-  if (group) {
-    selectGroup(group, false)
-  }
-}
-
 onMounted(async () => {
   const idParam = route.params.id as string | undefined
 
