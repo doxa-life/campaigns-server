@@ -313,7 +313,7 @@
         </template>
 
         <template #side-comments>
-          <RecordComments record-type="subscriber" :record-id="selectedSubscriber.id" />
+          <RecordComments record-type="subscriber" :record-id="selectedSubscriber.id" @update:count="commentCount = $event" />
         </template>
 
         <template #side-activity>
@@ -566,10 +566,11 @@ const deleting = ref(false)
 // Slideover state
 const slideoverOpen = ref(false)
 
-const sideTabs = [
-  { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square' },
-  { label: 'Activity', slot: 'activity', icon: 'i-lucide-activity' }
-]
+const commentCount = ref(0)
+const sideTabs = computed(() => [
+  { label: 'Activity', slot: 'activity', icon: 'i-lucide-activity' },
+  { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square', badge: commentCount.value || undefined }
+])
 
 watch(slideoverOpen, (open) => {
   if (!open) {

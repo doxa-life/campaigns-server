@@ -143,7 +143,7 @@
         </template>
 
         <template #side-comments>
-          <RecordComments record-type="group" :record-id="selectedGroup.id" />
+          <RecordComments record-type="group" :record-id="selectedGroup.id" @update:count="commentCount = $event" />
         </template>
 
         <template #side-activity>
@@ -307,10 +307,11 @@ const slideoverOpen = ref(false)
 
 const activityRef = ref<{ refresh: () => void } | null>(null)
 
-const sideTabs = [
-  { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square' },
-  { label: 'Activity', slot: 'activity', icon: 'i-lucide-activity' }
-]
+const commentCount = ref(0)
+const sideTabs = computed(() => [
+  { label: 'Activity', slot: 'activity', icon: 'i-lucide-activity' },
+  { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square', badge: commentCount.value || undefined }
+])
 
 watch(slideoverOpen, (open) => {
   if (!open) {

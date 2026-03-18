@@ -16,6 +16,10 @@ interface CommentWithAuthor {
   updated_at: string
 }
 
+const emit = defineEmits<{
+  'update:count': [count: number]
+}>()
+
 const { user } = useAuthUser()
 const toast = useToast()
 
@@ -35,8 +39,10 @@ async function fetchComments() {
       params: { record_type: props.recordType, record_id: props.recordId }
     })
     comments.value = res.comments
+    emit('update:count', comments.value.length)
   } catch {
     comments.value = []
+    emit('update:count', 0)
   } finally {
     loading.value = false
   }
@@ -150,10 +156,20 @@ watch(() => props.recordId, () => {
     <div v-if="loading" class="comments-loading">Loading...</div>
 
     <div v-else class="comments-container">
-      <!-- Comment list -->
+      <!-- New comment form -->
+      <div class="new-comment">
+        <CommentEditor v-model="newCommentContent" :mentions="true" />
+        <div class="new-comment-actions">
+          <UButton @click="addComment" :loading="submitting" :disabled="isEmptyDoc(newCommentContent)">
+            Add Comment
+          </UButton>
+        </div>
+      </div>
+
+      <!-- Comment list (newest first) -->
       <div v-if="comments.length > 0" class="comments-list">
         <div
-          v-for="comment in comments"
+          v-for="comment in [...comments].reverse()"
           :key="comment.id"
           class="comment"
           :class="{ 'comment-system': !comment.user_id }"
@@ -173,7 +189,7 @@ watch(() => props.recordId, () => {
 
           <!-- Edit mode -->
           <div v-if="editingId === comment.id" class="comment-edit">
-            <RichTextEditor v-model="editContent" :mentions="true" />
+            <CommentEditor v-model="editContent" :mentions="true" />
             <div class="comment-edit-actions">
               <UButton size="xs" variant="outline" @click="cancelEdit">Cancel</UButton>
               <UButton size="xs" @click="saveEdit">Save</UButton>
@@ -189,16 +205,6 @@ watch(() => props.recordId, () => {
 
       <div v-else-if="!loading" class="comments-empty">
         No comments yet
-      </div>
-
-      <!-- New comment form -->
-      <div class="new-comment">
-        <RichTextEditor v-model="newCommentContent" :mentions="true" />
-        <div class="new-comment-actions">
-          <UButton @click="addComment" :loading="submitting" :disabled="isEmptyDoc(newCommentContent)">
-            Add Comment
-          </UButton>
-        </div>
       </div>
     </div>
 
@@ -308,15 +314,6 @@ watch(() => props.recordId, () => {
   gap: 0.5rem;
 }
 
-.comment-edit :deep(.editor-wrapper) {
-  min-height: auto;
-}
-
-.comment-edit :deep(.editor-content) {
-  padding: 16px;
-  min-height: 80px;
-}
-
 .comment-edit-actions {
   display: flex;
   justify-content: flex-end;
@@ -327,15 +324,6 @@ watch(() => props.recordId, () => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-.new-comment :deep(.editor-wrapper) {
-  min-height: auto;
-}
-
-.new-comment :deep(.editor-content) {
-  padding: 16px;
-  min-height: 80px;
 }
 
 .new-comment-actions {

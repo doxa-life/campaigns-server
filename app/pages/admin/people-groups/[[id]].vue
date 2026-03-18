@@ -195,7 +195,7 @@
         </template>
 
         <template #side-comments>
-          <RecordComments v-if="selectedGroup" record-type="people_group" :record-id="selectedGroup.id" />
+          <RecordComments v-if="selectedGroup" record-type="people_group" :record-id="selectedGroup.id" @update:count="commentCount = $event" />
         </template>
 
         <template #side-activity>
@@ -301,10 +301,11 @@ const slideoverOpen = ref(false)
 
 const activityRef = ref<{ refresh: () => void } | null>(null)
 
-const sideTabs = [
-  { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square' },
-  { label: 'Activity', slot: 'activity', icon: 'i-lucide-activity' }
-]
+const commentCount = ref(0)
+const sideTabs = computed(() => [
+  { label: 'Activity', slot: 'activity', icon: 'i-lucide-activity' },
+  { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square', badge: commentCount.value || undefined }
+])
 
 watch(slideoverOpen, (open) => {
   if (!open) {
@@ -568,21 +569,40 @@ function formatDuration(minutes: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`
 }
 
-// Handle URL-based selection
-function handleUrlSelection() {
-  const idParam = route.params.id as string | undefined
-  if (!idParam) return
-
-  const id = parseInt(idParam)
-  const group = peopleGroups.value.find(g => g.id === id)
-  if (group) {
-    selectGroup(group, false)
-  }
-}
-
 onMounted(async () => {
-  await loadPeopleGroups(true)
-  handleUrlSelection()
+  const idParam = route.params.id as string | undefined
+
+  if (idParam) {
+    // Start loading the list in the background
+    const listPromise = loadPeopleGroups(true)
+
+    // Fetch the specific group immediately and open the slider
+    try {
+      const groupRes = await $fetch<{ peopleGroup: any; adoptions: Adoption[] }>(`/api/admin/people-groups/${idParam}`)
+      const group = {
+        ...groupRes.peopleGroup,
+        people_committed: 0,
+        committed_duration: 0,
+        adoption_count: groupRes.adoptions.length
+      } as PeopleGroup
+      selectedGroup.value = group
+      slideoverOpen.value = true
+      initializeForm(group)
+      adoptions.value = groupRes.adoptions
+    } catch {
+      // Group not found — just wait for the list
+    }
+
+    // Once the list finishes, swap in the list version which has accurate stats
+    await listPromise
+    const listGroup = peopleGroups.value.find(g => g.id === parseInt(idParam))
+    if (listGroup) {
+      selectedGroup.value = listGroup
+      initializeForm(listGroup)
+    }
+  } else {
+    await loadPeopleGroups(true)
+  }
 })
 </script>
 
