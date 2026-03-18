@@ -69,8 +69,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // Get all people groups (limited to 200 for testing)
-    const allPeopleGroups = await peopleGroupService.getAllPeopleGroups({ limit: 200 })
+    const allPeopleGroups = await peopleGroupService.getAllPeopleGroups()
 
     sendEvent('progress', { phase: 'loading', message: `Loaded ${allPeopleGroups.length} people groups` })
 
