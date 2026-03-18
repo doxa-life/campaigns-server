@@ -582,8 +582,39 @@ function handleUrlSelection() {
 }
 
 onMounted(async () => {
-  await loadPeopleGroups(true)
-  handleUrlSelection()
+  const idParam = route.params.id as string | undefined
+
+  if (idParam) {
+    // Start loading the list in the background
+    const listPromise = loadPeopleGroups(true)
+
+    // Fetch the specific group immediately and open the slider
+    try {
+      const groupRes = await $fetch<{ peopleGroup: any; adoptions: Adoption[] }>(`/api/admin/people-groups/${idParam}`)
+      const group = {
+        ...groupRes.peopleGroup,
+        people_committed: 0,
+        committed_duration: 0,
+        adoption_count: groupRes.adoptions.length
+      } as PeopleGroup
+      selectedGroup.value = group
+      slideoverOpen.value = true
+      initializeForm(group)
+      adoptions.value = groupRes.adoptions
+    } catch {
+      // Group not found — just wait for the list
+    }
+
+    // Once the list finishes, swap in the list version which has accurate stats
+    await listPromise
+    const listGroup = peopleGroups.value.find(g => g.id === parseInt(idParam))
+    if (listGroup) {
+      selectedGroup.value = listGroup
+      initializeForm(listGroup)
+    }
+  } else {
+    await loadPeopleGroups(true)
+  }
 })
 </script>
 
