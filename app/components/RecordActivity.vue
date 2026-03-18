@@ -272,5 +272,6 @@ function formatValue(field: string, value: any): string {
 .change-to {
   color: var(--color-neutral-500);
   word-break: break-word;
+  white-space: pre-line;
 }
 </style>
