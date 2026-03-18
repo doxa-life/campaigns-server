@@ -78,7 +78,7 @@ class JobQueueService {
       type,
       referenceType || null,
       referenceId || null,
-      JSON.stringify(payload),
+      payload,
       priority,
       scheduledAt?.toISOString() || null,
       maxAttempts
@@ -135,7 +135,7 @@ class JobQueueService {
           updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE id = ?
     `)
-    await stmt.run(result ? JSON.stringify(result) : null, id)
+    await stmt.run(result || null, id)
   }
 
   async markFailed(id: number, errorMessage: string): Promise<void> {

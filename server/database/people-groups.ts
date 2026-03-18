@@ -223,7 +223,10 @@ export class PeopleGroupService {
 
     if (data.descriptions !== undefined) {
       updates.push('descriptions = ?')
-      values.push(JSON.stringify(data.descriptions))
+      const desc = typeof data.descriptions === 'string'
+        ? JSON.parse(data.descriptions)
+        : data.descriptions
+      values.push(desc)
     }
 
     if (updates.length === 0) {

@@ -34,7 +34,7 @@ class CommentService {
       data.record_id,
       data.user_id || null,
       data.author_label || null,
-      JSON.stringify(data.content)
+      data.content
     )
     return (await this.getById(result.lastInsertRowid as number))!
   }
@@ -69,7 +69,7 @@ class CommentService {
     const stmt = this.db.prepare(`
       UPDATE comments SET content = ?, updated_at = NOW() WHERE id = ?
     `)
-    await stmt.run(JSON.stringify(content), id)
+    await stmt.run(content, id)
     return this.getById(id)
   }
 
