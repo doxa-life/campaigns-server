@@ -20,7 +20,15 @@ export default defineEventHandler(async (event) => {
   ])
 
   await connectionService.deleteByEntities('subscriber', subscriberId, 'group', groupId)
-  logUpdate('groups', String(groupId), event, { contact_removed: subscriber?.name || subscriberId })
-  logUpdate('subscribers', String(subscriberId), event, { removed_from_group: group?.name || groupId })
+  logUpdate('groups', String(groupId), event, {
+    message: 'Contact removed:',
+    link_text: subscriber?.name || `#${subscriberId}`,
+    link_url: `/admin/subscribers/${subscriberId}`
+  })
+  logUpdate('subscribers', String(subscriberId), event, {
+    message: 'Removed from group:',
+    link_text: group?.name || `#${groupId}`,
+    link_url: `/admin/groups/${groupId}`
+  })
   return { success: true }
 })

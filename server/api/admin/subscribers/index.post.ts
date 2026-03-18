@@ -26,5 +26,9 @@ export default defineEventHandler(async (event) => {
     await subscriberService.updateSubscriber(subscriber.id, { role: body.role.trim() })
   }
 
+  if (isNew) {
+    logCreate('subscribers', String(subscriber.id), event)
+  }
+
   return { subscriber, isNew }
 })

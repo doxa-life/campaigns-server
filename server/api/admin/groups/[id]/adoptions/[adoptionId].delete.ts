@@ -20,8 +20,16 @@ export default defineEventHandler(async (event) => {
   ])
 
   await peopleGroupAdoptionService.delete(adoptionId)
-  logUpdate('groups', String(groupId), event, { adoption_removed: peopleGroup?.name || adoption.people_group_id })
-  logUpdate('people_groups', String(adoption.people_group_id), event, { adoption_removed: group?.name || groupId })
+  logUpdate('groups', String(groupId), event, {
+    message: 'Adoption removed:',
+    link_text: peopleGroup?.name || `#${adoption.people_group_id}`,
+    link_url: `/admin/people-groups/${adoption.people_group_id}`
+  })
+  logUpdate('people_groups', String(adoption.people_group_id), event, {
+    message: 'Adoption removed by',
+    link_text: group?.name || `#${groupId}`,
+    link_url: `/admin/groups/${groupId}`
+  })
 
   return { success: true }
 })

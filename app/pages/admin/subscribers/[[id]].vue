@@ -342,6 +342,9 @@
                   <template v-else-if="activity.userName">
                     by {{ activity.userName }}
                   </template>
+                  <template v-else-if="activity.metadata?.source">
+                    by {{ activity.metadata.source }}
+                  </template>
                 </div>
                 <div v-if="activity.eventType === 'PRAYER'" class="prayer-details">
                   {{ formatPrayerDuration(activity.metadata.duration ?? 0) }}
@@ -361,11 +364,21 @@
                     · {{ activity.metadata.peopleGroupName }}
                   </template>
                 </div>
-                <div v-if="activity.metadata?.added_to_group" class="activity-detail">
-                  Added to group: {{ activity.metadata.added_to_group }}
+                <div v-if="activity.metadata?.message" class="activity-detail">
+                  {{ activity.metadata.message }}
+                  <NuxtLink v-if="activity.metadata.link_url" :to="activity.metadata.link_url" class="activity-link">
+                    {{ activity.metadata.link_text }}
+                  </NuxtLink>
                 </div>
-                <div v-if="activity.metadata?.removed_from_group" class="activity-detail">
-                  Removed from group: {{ activity.metadata.removed_from_group }}
+                <div v-if="activity.metadata?.form_values" class="activity-changes">
+                  <div
+                    v-for="(value, key) in activity.metadata.form_values"
+                    :key="key"
+                    class="change-item"
+                  >
+                    <span class="change-field">{{ formatFormKey(key as string) }}:</span>
+                    <span class="change-to">{{ formatFormValue(value) }}</span>
+                  </div>
                 </div>
                 <div v-if="activity.metadata?.changes" class="activity-changes">
                   <div
@@ -580,8 +593,10 @@ interface ActivityLogEntry {
     peopleGroupName?: string
     sentDate?: string
     response?: string
-    added_to_group?: string
-    removed_from_group?: string
+    message?: string
+    link_text?: string
+    link_url?: string
+    form_values?: Record<string, any>
   }
 }
 const activityLog = ref<ActivityLogEntry[]>([])
@@ -1128,6 +1143,28 @@ function formatValue(value: any): string {
   return String(value)
 }
 
+const FORM_KEY_LABELS: Record<string, string> = {
+  people_group: 'People Group',
+  email: 'Email',
+  phone: 'Phone',
+  church: 'Church',
+  role: 'Role',
+  country: 'Country',
+  language: 'Language',
+  public_display: 'Public Display',
+  permission_to_contact: 'Permission to Contact'
+}
+
+function formatFormKey(key: string): string {
+  return FORM_KEY_LABELS[key] || key.replace(/_/g, ' ')
+}
+
+function formatFormValue(value: any): string {
+  if (value === null || value === undefined || value === '') return '(empty)'
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+  return String(value)
+}
+
 function formatPrayerDuration(seconds: number): string {
   if (seconds >= 60) {
     const mins = Math.round(seconds / 60)
@@ -1358,6 +1395,11 @@ onMounted(async () => {
   margin-top: 0.25rem;
   font-size: 0.8125rem;
   color: var(--color-neutral-600);
+}
+
+.activity-link {
+  color: var(--color-primary-500);
+  text-decoration: underline;
 }
 
 .activity-changes {

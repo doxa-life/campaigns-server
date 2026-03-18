@@ -37,8 +37,16 @@ export default defineEventHandler(async (event) => {
       status: body.status,
       show_publicly: body.show_publicly
     })
-    logUpdate('groups', String(groupId), event, { adoption_added: peopleGroup.name })
-    logUpdate('people_groups', String(body.people_group_id), event, { adoption_added: group.name })
+    logUpdate('groups', String(groupId), event, {
+      message: 'Adoption added:',
+      link_text: peopleGroup.name,
+      link_url: `/admin/people-groups/${body.people_group_id}`
+    })
+    logUpdate('people_groups', String(body.people_group_id), event, {
+      message: 'Adopted by',
+      link_text: group.name,
+      link_url: `/admin/groups/${groupId}`
+    })
     return { adoption }
   } catch (error: any) {
     if (error.code === '23505') {

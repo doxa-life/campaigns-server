@@ -21,24 +21,25 @@
           <template v-if="activity.userName">
             by {{ activity.userName }}
           </template>
+          <template v-else-if="activity.metadata?.source">
+            by {{ activity.metadata.source }}
+          </template>
         </div>
-        <div v-if="activity.metadata?.contact_added" class="activity-detail">
-          Contact added: {{ activity.metadata.contact_added }}
+        <div v-if="activity.metadata?.message" class="activity-detail">
+          {{ activity.metadata.message }}
+          <NuxtLink v-if="activity.metadata.link_url" :to="activity.metadata.link_url" class="activity-link">
+            {{ activity.metadata.link_text }}
+          </NuxtLink>
         </div>
-        <div v-if="activity.metadata?.contact_removed" class="activity-detail">
-          Contact removed: #{{ activity.metadata.contact_removed }}
-        </div>
-        <div v-if="activity.metadata?.added_to_group" class="activity-detail">
-          Added to group: {{ activity.metadata.added_to_group }}
-        </div>
-        <div v-if="activity.metadata?.removed_from_group" class="activity-detail">
-          Removed from group: {{ activity.metadata.removed_from_group }}
-        </div>
-        <div v-if="activity.metadata?.adoption_added" class="activity-detail">
-          Adoption added: {{ activity.metadata.adoption_added }}
-        </div>
-        <div v-if="activity.metadata?.adoption_removed" class="activity-detail">
-          Adoption removed: #{{ activity.metadata.adoption_removed }}
+        <div v-if="activity.metadata?.form_values" class="activity-changes">
+          <div
+            v-for="(value, key) in activity.metadata.form_values"
+            :key="key"
+            class="change-item"
+          >
+            <span class="change-field">{{ formatFormKey(key as string) }}:</span>
+            <span class="change-to">{{ formatFormValue(value) }}</span>
+          </div>
         </div>
         <div v-if="activity.metadata?.changes" class="activity-changes">
           <div
@@ -189,6 +190,28 @@ function formatValue(field: string, value: any): string {
 
   return String(value)
 }
+
+const FORM_KEY_LABELS: Record<string, string> = {
+  people_group: 'People Group',
+  email: 'Email',
+  phone: 'Phone',
+  church: 'Church',
+  role: 'Role',
+  country: 'Country',
+  language: 'Language',
+  public_display: 'Public Display',
+  permission_to_contact: 'Permission to Contact'
+}
+
+function formatFormKey(key: string): string {
+  return FORM_KEY_LABELS[key] || key.replace(/_/g, ' ')
+}
+
+function formatFormValue(value: any): string {
+  if (value === null || value === undefined || value === '') return '(empty)'
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+  return String(value)
+}
 </script>
 
 <style scoped>
@@ -235,6 +258,11 @@ function formatValue(field: string, value: any): string {
   margin-top: 0.25rem;
   font-size: 0.8125rem;
   color: var(--color-neutral-600);
+}
+
+.activity-link {
+  color: var(--color-primary-500);
+  text-decoration: underline;
 }
 
 .activity-changes {
