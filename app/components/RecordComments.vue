@@ -156,10 +156,20 @@ watch(() => props.recordId, () => {
     <div v-if="loading" class="comments-loading">Loading...</div>
 
     <div v-else class="comments-container">
-      <!-- Comment list -->
+      <!-- New comment form -->
+      <div class="new-comment">
+        <RichTextEditor v-model="newCommentContent" :mentions="true" />
+        <div class="new-comment-actions">
+          <UButton @click="addComment" :loading="submitting" :disabled="isEmptyDoc(newCommentContent)">
+            Add Comment
+          </UButton>
+        </div>
+      </div>
+
+      <!-- Comment list (newest first) -->
       <div v-if="comments.length > 0" class="comments-list">
         <div
-          v-for="comment in comments"
+          v-for="comment in [...comments].reverse()"
           :key="comment.id"
           class="comment"
           :class="{ 'comment-system': !comment.user_id }"
@@ -195,16 +205,6 @@ watch(() => props.recordId, () => {
 
       <div v-else-if="!loading" class="comments-empty">
         No comments yet
-      </div>
-
-      <!-- New comment form -->
-      <div class="new-comment">
-        <RichTextEditor v-model="newCommentContent" :mentions="true" />
-        <div class="new-comment-actions">
-          <UButton @click="addComment" :loading="submitting" :disabled="isEmptyDoc(newCommentContent)">
-            Add Comment
-          </UButton>
-        </div>
       </div>
     </div>
 
