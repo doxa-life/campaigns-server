@@ -2,31 +2,27 @@
  * GET /api/people-groups/statistics
  * Get aggregate prayer/adoption statistics
  */
-import { getDatabase } from '../../database/db'
+import { getSql } from '../../database/db'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
 import { setCacheHeaders } from '../../utils/app/cors'
 
 export default defineEventHandler(async (event) => {
   setCacheHeaders(event)
 
-  const db = getDatabase()
-
-  const stmt = db.prepare(`
-    SELECT
-      COUNT(*) FILTER (WHERE people_praying > 0) as total_with_prayer,
-      COUNT(*) FILTER (WHERE people_praying >= 144) as total_with_full_prayer
-    FROM people_groups
-  `)
-
-  const adoptedStmt = db.prepare(`
-    SELECT COUNT(DISTINCT people_group_id) as count
-    FROM people_group_adoptions
-    WHERE status = 'active'
-  `)
+  const sql = getSql()
 
   const [result, adoptedResult, commitmentStats] = await Promise.all([
-    stmt.get() as Promise<{ total_with_prayer: string | number; total_with_full_prayer: string | number }>,
-    adoptedStmt.get() as Promise<{ count: string | number }>,
+    sql`
+      SELECT
+        COUNT(*) FILTER (WHERE people_praying > 0) as total_with_prayer,
+        COUNT(*) FILTER (WHERE people_praying >= 144) as total_with_full_prayer
+      FROM people_groups
+    `.then(rows => rows[0] as { total_with_prayer: string | number; total_with_full_prayer: string | number }),
+    sql`
+      SELECT COUNT(DISTINCT people_group_id) as count
+      FROM people_group_adoptions
+      WHERE status = 'active'
+    `.then(rows => rows[0] as { count: string | number }),
     peopleGroupSubscriptionService.getGlobalCommitmentStats()
   ])
 

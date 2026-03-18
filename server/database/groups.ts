@@ -1,4 +1,6 @@
-import { getDatabase } from './db'
+import type { Fragment } from 'postgres'
+import { getSql } from './db'
+import { buildSet } from './sql-helpers'
 
 export interface Group {
   id: number
@@ -29,20 +31,20 @@ export interface UpdateGroupData {
 }
 
 class GroupService {
-  private db = getDatabase()
+  private sql = getSql()
 
   async create(data: CreateGroupData): Promise<Group> {
-    const stmt = this.db.prepare(`
+    const [row] = await this.sql`
       INSERT INTO groups (name, primary_subscriber_id, country)
-      VALUES (?, ?, ?)
-    `)
-    const result = await stmt.run(data.name, data.primary_subscriber_id || null, data.country || null)
-    return (await this.getById(result.lastInsertRowid as number))!
+      VALUES (${data.name}, ${data.primary_subscriber_id || null}, ${data.country || null})
+      RETURNING *
+    `
+    return row
   }
 
   async getById(id: number): Promise<Group | null> {
-    const stmt = this.db.prepare('SELECT * FROM groups WHERE id = ?')
-    return await stmt.get(id) as Group | null
+    const [row] = await this.sql`SELECT * FROM groups WHERE id = ${id}`
+    return row || null
   }
 
   async getAll(options?: {
@@ -50,7 +52,11 @@ class GroupService {
     limit?: number
     offset?: number
   }): Promise<GroupWithDetails[]> {
-    let query = `
+    const search = options?.search ? `%${options.search}%` : null
+    const limit = options?.limit || null
+    const offset = options?.offset || null
+
+    const baseQuery = this.sql`
       SELECT g.*,
         s.name as primary_subscriber_name,
         (SELECT cm.value FROM contact_methods cm WHERE cm.subscriber_id = s.id AND cm.type = 'email' ORDER BY cm.verified DESC, cm.created_at ASC LIMIT 1) as primary_subscriber_email,
@@ -59,39 +65,29 @@ class GroupService {
       FROM groups g
       LEFT JOIN subscribers s ON g.primary_subscriber_id = s.id
     `
-    const params: any[] = []
 
-    if (options?.search) {
-      query += ' WHERE g.name ILIKE ?'
-      params.push(`%${options.search}%`)
+    if (search && limit) {
+      return await this.sql`
+        ${baseQuery}
+        WHERE g.name ILIKE ${search}
+        ORDER BY g.created_at DESC LIMIT ${limit} OFFSET ${offset || 0}
+      `
     }
-
-    query += ' ORDER BY g.created_at DESC'
-
-    if (options?.limit) {
-      query += ' LIMIT ?'
-      params.push(options.limit)
-      if (options?.offset) {
-        query += ' OFFSET ?'
-        params.push(options.offset)
-      }
+    if (search) {
+      return await this.sql`${baseQuery} WHERE g.name ILIKE ${search} ORDER BY g.created_at DESC`
     }
-
-    const stmt = this.db.prepare(query)
-    return await stmt.all(...params) as GroupWithDetails[]
+    if (limit) {
+      return await this.sql`${baseQuery} ORDER BY g.created_at DESC LIMIT ${limit} OFFSET ${offset || 0}`
+    }
+    return await this.sql`${baseQuery} ORDER BY g.created_at DESC`
   }
 
   async count(search?: string): Promise<number> {
-    let query = 'SELECT COUNT(*) as count FROM groups'
-    const params: any[] = []
-
     if (search) {
-      query += ' WHERE name ILIKE ?'
-      params.push(`%${search}%`)
+      const [result] = await this.sql`SELECT COUNT(*) as count FROM groups WHERE name ILIKE ${`%${search}%`}`
+      return Number(result.count)
     }
-
-    const stmt = this.db.prepare(query)
-    const result = await stmt.get(...params) as { count: string | number }
+    const [result] = await this.sql`SELECT COUNT(*) as count FROM groups`
     return Number(result.count)
   }
 
@@ -99,48 +95,34 @@ class GroupService {
     const group = await this.getById(id)
     if (!group) return null
 
-    const updates: string[] = []
-    const values: any[] = []
+    const fields: Fragment[] = []
 
-    if (data.name !== undefined) {
-      updates.push('name = ?')
-      values.push(data.name)
-    }
-    if (data.primary_subscriber_id !== undefined) {
-      updates.push('primary_subscriber_id = ?')
-      values.push(data.primary_subscriber_id)
-    }
-    if (data.country !== undefined) {
-      updates.push('country = ?')
-      values.push(data.country)
-    }
+    if (data.name !== undefined) fields.push(this.sql`name = ${data.name}`)
+    if (data.primary_subscriber_id !== undefined) fields.push(this.sql`primary_subscriber_id = ${data.primary_subscriber_id}`)
+    if (data.country !== undefined) fields.push(this.sql`country = ${data.country}`)
 
-    if (updates.length === 0) return group
+    if (fields.length === 0) return group
 
-    updates.push("updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'")
-    values.push(id)
+    fields.push(this.sql`updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'`)
 
-    const stmt = this.db.prepare(`
-      UPDATE groups SET ${updates.join(', ')} WHERE id = ?
-    `)
-    await stmt.run(...values)
+    await this.sql`UPDATE groups SET ${buildSet(this.sql, fields)} WHERE id = ${id}`
     return this.getById(id)
   }
 
   async delete(id: number): Promise<boolean> {
-    return await this.db.transaction(async (tx) => {
-      await tx.prepare(`
+    return await this.sql.begin(async (tx) => {
+      await tx`
         DELETE FROM adoption_reports WHERE adoption_id IN (
-          SELECT id FROM people_group_adoptions WHERE group_id = ?
+          SELECT id FROM people_group_adoptions WHERE group_id = ${id}
         )
-      `).run(id)
-      await tx.prepare('DELETE FROM people_group_adoptions WHERE group_id = ?').run(id)
-      await tx.prepare(`
+      `
+      await tx`DELETE FROM people_group_adoptions WHERE group_id = ${id}`
+      await tx`
         DELETE FROM connections
-        WHERE (from_type = 'group' AND from_id = ?) OR (to_type = 'group' AND to_id = ?)
-      `).run(id, id)
-      const result = await tx.prepare('DELETE FROM groups WHERE id = ?').run(id)
-      return result.changes > 0
+        WHERE (from_type = 'group' AND from_id = ${id}) OR (to_type = 'group' AND to_id = ${id})
+      `
+      const result = await tx`DELETE FROM groups WHERE id = ${id}`
+      return result.count > 0
     })
   }
 }

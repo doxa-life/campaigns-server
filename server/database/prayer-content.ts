@@ -1,4 +1,3 @@
-import { getDatabase } from './db'
 import { appConfigService } from './app-config'
 import { libraryContentService } from './library-content'
 import { libraryService, PEOPLE_GROUP_LIBRARY_ID, DAILY_PEOPLE_GROUP_LIBRARY_ID, DAY_IN_LIFE_LIBRARY_ID } from './libraries'
@@ -48,7 +47,6 @@ export interface UpdatePrayerContentData {
 }
 
 export class PrayerContentService {
-  private db = getDatabase()
 
   /**
    * Convert a date string to a day number based on global start date

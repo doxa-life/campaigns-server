@@ -1,12 +1,12 @@
-import { getDatabase } from '#server/database/db'
+import { getSql } from '#server/database/db'
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
-  const db = getDatabase()
+  const sql = getSql()
 
   const [recordedRows, committedRows] = await Promise.all([
-    db.prepare(`
+    sql`
       SELECT
         TO_CHAR(DATE(timestamp), 'YYYY-MM-DD') as date,
         COALESCE(ROUND(SUM(duration) / 60.0), 0) as minutes,
@@ -15,8 +15,8 @@ export default defineEventHandler(async (event) => {
       WHERE timestamp >= NOW() - INTERVAL '30 days'
       GROUP BY DATE(timestamp)
       ORDER BY date ASC
-    `).all(),
-    db.prepare(`
+    `,
+    sql`
       SELECT
         TO_CHAR(d.date, 'YYYY-MM-DD') as date,
         COALESCE(SUM(cs.prayer_duration), 0) as committed,
@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
         AND cs.created_at::date <= d.date
       GROUP BY d.date
       ORDER BY d.date ASC
-    `).all()
+    `
   ])
 
   const recordedMap = new Map(recordedRows.map((r: any) => [r.date, r]))

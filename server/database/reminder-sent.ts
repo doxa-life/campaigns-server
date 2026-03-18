@@ -1,4 +1,4 @@
-import { getDatabase } from './db'
+import { getSql } from './db'
 
 export interface ReminderEmailSent {
   id: number
@@ -8,51 +8,43 @@ export interface ReminderEmailSent {
 }
 
 class ReminderSentService {
-  private db = getDatabase()
+  private sql = getSql()
 
-  // Record that a reminder email was sent
   async recordSent(subscriptionId: number, date: string): Promise<void> {
-    const stmt = this.db.prepare(`
+    await this.sql`
       INSERT INTO reminder_emails_sent (subscription_id, sent_date)
-      VALUES (?, ?)
+      VALUES (${subscriptionId}, ${date})
       ON CONFLICT (subscription_id, sent_date) DO NOTHING
-    `)
-    await stmt.run(subscriptionId, date)
+    `
   }
 
-  // Check if a reminder was already sent for this subscription on this date
   async wasSent(subscriptionId: number, date: string): Promise<boolean> {
-    const stmt = this.db.prepare(`
+    const [result] = await this.sql`
       SELECT 1 FROM reminder_emails_sent
-      WHERE subscription_id = ? AND sent_date = ?
-    `)
-    const result = await stmt.get(subscriptionId, date)
+      WHERE subscription_id = ${subscriptionId} AND sent_date = ${date}
+    `
     return !!result
   }
 
-  // Get all sent records for a subscription (for debugging/history)
   async getSentHistory(subscriptionId: number, limit: number = 30): Promise<ReminderEmailSent[]> {
-    const stmt = this.db.prepare(`
+    return await this.sql`
       SELECT * FROM reminder_emails_sent
-      WHERE subscription_id = ?
+      WHERE subscription_id = ${subscriptionId}
       ORDER BY sent_date DESC
-      LIMIT ?
-    `)
-    return await stmt.all(subscriptionId, limit) as ReminderEmailSent[]
+      LIMIT ${limit}
+    `
   }
 
-  // Clean up old records (older than specified days)
   async cleanupOldRecords(daysToKeep: number = 90): Promise<number> {
     const cutoffDate = new Date()
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep)
     const cutoffDateStr = cutoffDate.toISOString().split('T')[0]
 
-    const stmt = this.db.prepare(`
+    const result = await this.sql`
       DELETE FROM reminder_emails_sent
-      WHERE sent_date < ?
-    `)
-    const result = await stmt.run(cutoffDateStr)
-    return result.changes
+      WHERE sent_date < ${cutoffDateStr}
+    `
+    return result.count
   }
 }
 

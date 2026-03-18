@@ -1,4 +1,6 @@
-import { getDatabase } from './db'
+import type { Sql, Fragment } from 'postgres'
+import { getSql } from './db'
+import { buildSet } from './sql-helpers'
 
 export interface LibraryContent {
   id: number
@@ -10,30 +12,15 @@ export interface LibraryContent {
   updated_at: string
 }
 
-// Internal type for raw database rows
-interface LibraryContentRow {
-  id: number
-  library_id: number
-  day_number: number
-  language_code: string
-  content_json: string | null
-  created_at: string
-  updated_at: string
-}
-
-// Parse content_json from database string to object
-function parseContentRow(row: LibraryContentRow | null): LibraryContent | null {
-  if (!row) return null
-  return {
-    ...row,
-    content_json: row.content_json ? JSON.parse(row.content_json) : null
-  }
-}
-
-// Stringify content_json for database storage
 function stringifyContentJson(content: Record<string, any> | string | null): string | null {
   if (!content) return null
   return typeof content === 'string' ? content : JSON.stringify(content)
+}
+
+function parseContentJson(raw: string | Record<string, any> | null): Record<string, any> | null {
+  if (!raw) return null
+  if (typeof raw === 'string') return JSON.parse(raw)
+  return raw
 }
 
 export interface CreateLibraryContentData {
@@ -50,67 +37,51 @@ export interface UpdateLibraryContentData {
 }
 
 export class LibraryContentService {
-  private db = getDatabase()
+  private sql = getSql()
 
-  // Create library content
   async createLibraryContent(data: CreateLibraryContentData): Promise<LibraryContent> {
-    const {
-      library_id,
-      day_number,
-      language_code,
-      content_json = null
-    } = data
-
+    const { library_id, day_number, language_code, content_json = null } = data
     const contentJsonString = stringifyContentJson(content_json)
 
-    const stmt = this.db.prepare(`
-      INSERT INTO library_content (library_id, day_number, language_code, content_json)
-      VALUES (?, ?, ?, ?)
-    `)
-
     try {
-      const result = await stmt.run(library_id, day_number, language_code, contentJsonString)
-      const contentId = result.lastInsertRowid as number
-
-      return (await this.getLibraryContentById(contentId))!
+      const [row] = await this.sql`
+        INSERT INTO library_content (library_id, day_number, language_code, content_json)
+        VALUES (${library_id}, ${day_number}, ${language_code}, ${contentJsonString})
+        RETURNING *
+      `
+      return { ...row, content_json: parseContentJson(row.content_json) }
     } catch (error: any) {
-      if (error.code === '23505') { // PostgreSQL unique violation
+      if (error.code === '23505') {
         throw new Error('Content already exists for this library, day, and language')
       }
       throw error
     }
   }
 
-  // Get library content by ID
   async getLibraryContentById(id: number): Promise<LibraryContent | null> {
-    const contentStmt = this.db.prepare(`
-      SELECT * FROM library_content WHERE id = ?
-    `)
-    const row = await contentStmt.get(id) as LibraryContentRow | null
-    return parseContentRow(row)
+    const [row] = await this.sql`SELECT * FROM library_content WHERE id = ${id}`
+    if (!row) return null
+    return { ...row, content_json: parseContentJson(row.content_json) }
   }
 
-  // Get library content by day and language
   async getLibraryContentByDay(libraryId: number, dayNumber: number, languageCode: string = 'en'): Promise<LibraryContent | null> {
-    const contentStmt = this.db.prepare(`
-      SELECT * FROM library_content WHERE library_id = ? AND day_number = ? AND language_code = ?
-    `)
-    const row = await contentStmt.get(libraryId, dayNumber, languageCode) as LibraryContentRow | null
-    return parseContentRow(row)
+    const [row] = await this.sql`
+      SELECT * FROM library_content
+      WHERE library_id = ${libraryId} AND day_number = ${dayNumber} AND language_code = ${languageCode}
+    `
+    if (!row) return null
+    return { ...row, content_json: parseContentJson(row.content_json) }
   }
 
-  // Get all languages available for a specific library and day
   async getAvailableLanguages(libraryId: number, dayNumber: number): Promise<string[]> {
-    const stmt = this.db.prepare(`
+    const results = await this.sql`
       SELECT language_code FROM library_content
-      WHERE library_id = ? AND day_number = ?
+      WHERE library_id = ${libraryId} AND day_number = ${dayNumber}
       ORDER BY language_code
-    `)
-    const results = await stmt.all(libraryId, dayNumber) as Array<{ language_code: string }>
-    return results.map(r => r.language_code)
+    `
+    return results.map((r: any) => r.language_code)
   }
 
-  // Get all library content for a library
   async getLibraryContent(libraryId: number, options?: {
     startDay?: number
     endDay?: number
@@ -118,220 +89,162 @@ export class LibraryContentService {
     limit?: number
     offset?: number
   }): Promise<LibraryContent[]> {
-    let query = `
-      SELECT * FROM library_content WHERE library_id = ?
-    `
-    const params: any[] = [libraryId]
+    const conditions: Fragment[] = [this.sql`library_id = ${libraryId}`]
 
-    if (options?.startDay !== undefined) {
-      query += ' AND day_number >= ?'
-      params.push(options.startDay)
+    if (options?.startDay !== undefined) conditions.push(this.sql`day_number >= ${options.startDay}`)
+    if (options?.endDay !== undefined) conditions.push(this.sql`day_number <= ${options.endDay}`)
+    if (options?.language) conditions.push(this.sql`language_code = ${options.language}`)
+
+    let combined = conditions[0]
+    for (let i = 1; i < conditions.length; i++) {
+      combined = this.sql`${combined} AND ${conditions[i]}`
     }
 
-    if (options?.endDay !== undefined) {
-      query += ' AND day_number <= ?'
-      params.push(options.endDay)
+    const limit = options?.limit || null
+    const offset = options?.offset || null
+
+    let rows
+    if (limit) {
+      rows = await this.sql`
+        SELECT * FROM library_content WHERE ${combined}
+        ORDER BY day_number ASC, language_code
+        LIMIT ${limit} OFFSET ${offset || 0}
+      `
+    } else {
+      rows = await this.sql`
+        SELECT * FROM library_content WHERE ${combined}
+        ORDER BY day_number ASC, language_code
+      `
     }
 
-    if (options?.language) {
-      query += ' AND language_code = ?'
-      params.push(options.language)
-    }
-
-    query += ' ORDER BY day_number ASC, language_code'
-
-    if (options?.limit) {
-      query += ' LIMIT ?'
-      params.push(options.limit)
-
-      if (options?.offset) {
-        query += ' OFFSET ?'
-        params.push(options.offset)
-      }
-    }
-
-    const stmt = this.db.prepare(query)
-    const rows = await stmt.all(...params) as LibraryContentRow[]
-
-    return rows.map(row => parseContentRow(row)!)
+    return rows.map((row: any) => ({ ...row, content_json: parseContentJson(row.content_json) }))
   }
 
-  // Get library content grouped by day with language information
   async getLibraryContentGroupedByDay(libraryId: number, options?: {
     startDay?: number
     endDay?: number
     limit?: number
     offset?: number
   }): Promise<Array<{ dayNumber: number; languages: string[] }>> {
-    let query = `
-      SELECT day_number as "dayNumber", STRING_AGG(language_code, ',') as languages
-      FROM library_content
-      WHERE library_id = ?
-    `
-    const params: any[] = [libraryId]
+    const conditions: Fragment[] = [this.sql`library_id = ${libraryId}`]
 
-    if (options?.startDay !== undefined) {
-      query += ' AND day_number >= ?'
-      params.push(options.startDay)
+    if (options?.startDay !== undefined) conditions.push(this.sql`day_number >= ${options.startDay}`)
+    if (options?.endDay !== undefined) conditions.push(this.sql`day_number <= ${options.endDay}`)
+
+    let combined = conditions[0]
+    for (let i = 1; i < conditions.length; i++) {
+      combined = this.sql`${combined} AND ${conditions[i]}`
     }
 
-    if (options?.endDay !== undefined) {
-      query += ' AND day_number <= ?'
-      params.push(options.endDay)
+    const limit = options?.limit || null
+    const offset = options?.offset || null
+
+    let results
+    if (limit) {
+      results = await this.sql`
+        SELECT day_number as "dayNumber", STRING_AGG(language_code, ',') as languages
+        FROM library_content WHERE ${combined}
+        GROUP BY day_number ORDER BY day_number ASC
+        LIMIT ${limit} OFFSET ${offset || 0}
+      `
+    } else {
+      results = await this.sql`
+        SELECT day_number as "dayNumber", STRING_AGG(language_code, ',') as languages
+        FROM library_content WHERE ${combined}
+        GROUP BY day_number ORDER BY day_number ASC
+      `
     }
 
-    query += ' GROUP BY day_number ORDER BY day_number ASC'
-
-    if (options?.limit) {
-      query += ' LIMIT ?'
-      params.push(options.limit)
-
-      if (options?.offset) {
-        query += ' OFFSET ?'
-        params.push(options.offset)
-      }
-    }
-
-    const stmt = this.db.prepare(query)
-    const results = await stmt.all(...params) as Array<{ dayNumber: number; languages: string }>
-    return results.map(r => ({
+    return results.map((r: any) => ({
       dayNumber: r.dayNumber,
       languages: r.languages.split(',')
     }))
   }
 
-  // Get day range for library (min and max day numbers)
   async getDayRange(libraryId: number): Promise<{ minDay: number; maxDay: number } | null> {
-    const stmt = this.db.prepare(`
+    const [result] = await this.sql`
       SELECT MIN(day_number) as "minDay", MAX(day_number) as "maxDay"
-      FROM library_content
-      WHERE library_id = ?
-    `)
-    const result = await stmt.get(libraryId) as { minDay: number | null; maxDay: number | null } | null
+      FROM library_content WHERE library_id = ${libraryId}
+    `
 
-    if (!result || result.minDay === null || result.maxDay === null) {
-      return null
-    }
-
-    return {
-      minDay: result.minDay,
-      maxDay: result.maxDay
-    }
+    if (!result || result.minDay === null || result.maxDay === null) return null
+    return { minDay: result.minDay, maxDay: result.maxDay }
   }
 
-  // Update library content
   async updateLibraryContent(id: number, data: UpdateLibraryContentData): Promise<LibraryContent | null> {
     const content = await this.getLibraryContentById(id)
-    if (!content) {
-      return null
-    }
+    if (!content) return null
 
-    // If day or language is being updated, check for conflicts with other records
     if (data.day_number !== undefined || data.language_code !== undefined) {
       const checkDay = data.day_number !== undefined ? data.day_number : content.day_number
       const checkLanguage = data.language_code !== undefined ? data.language_code : content.language_code
 
-      const conflictStmt = this.db.prepare(`
+      const [conflict] = await this.sql`
         SELECT id FROM library_content
-        WHERE library_id = ? AND day_number = ? AND language_code = ? AND id != ?
-      `)
-      const conflict = await conflictStmt.get(content.library_id, checkDay, checkLanguage, id)
+        WHERE library_id = ${content.library_id} AND day_number = ${checkDay} AND language_code = ${checkLanguage} AND id != ${id}
+      `
 
       if (conflict) {
         throw new Error('Content already exists for this library, day, and language')
       }
     }
 
-    const updates: string[] = []
-    const values: any[] = []
+    const fields: Fragment[] = []
 
-    if (data.content_json !== undefined) {
-      updates.push('content_json = ?')
-      values.push(stringifyContentJson(data.content_json))
-    }
+    if (data.content_json !== undefined) fields.push(this.sql`content_json = ${stringifyContentJson(data.content_json)}`)
+    if (data.day_number !== undefined) fields.push(this.sql`day_number = ${data.day_number}`)
+    if (data.language_code !== undefined) fields.push(this.sql`language_code = ${data.language_code}`)
 
-    if (data.day_number !== undefined) {
-      updates.push('day_number = ?')
-      values.push(data.day_number)
-    }
+    if (fields.length === 0) return content
 
-    if (data.language_code !== undefined) {
-      updates.push('language_code = ?')
-      values.push(data.language_code)
-    }
+    fields.push(this.sql`updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'`)
 
-    if (updates.length === 0) {
-      return content
-    }
-
-    updates.push("updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'")
-    values.push(id)
-
-    const stmt = this.db.prepare(`
-      UPDATE library_content SET ${updates.join(', ')}
-      WHERE id = ?
-    `)
-
-    await stmt.run(...values)
+    await this.sql`UPDATE library_content SET ${buildSet(this.sql, fields)} WHERE id = ${id}`
     return this.getLibraryContentById(id)
   }
 
-  // Delete library content
   async deleteLibraryContent(id: number): Promise<boolean> {
-    const stmt = this.db.prepare('DELETE FROM library_content WHERE id = ?')
-    const result = await stmt.run(id)
-    return result.changes > 0
-  }
-
-  // Get content count for library
-  async getContentCount(libraryId: number): Promise<number> {
-    const stmt = this.db.prepare('SELECT COUNT(*) as count FROM library_content WHERE library_id = ?')
-    const result = await stmt.get(libraryId) as { count: number }
-    return result.count
-  }
-
-  // Check if content exists for specific day and language
-  async hasContentForDay(libraryId: number, dayNumber: number, languageCode?: string): Promise<boolean> {
-    let query = 'SELECT COUNT(*) as count FROM library_content WHERE library_id = ? AND day_number = ?'
-    const params: any[] = [libraryId, dayNumber]
-
-    if (languageCode) {
-      query += ' AND language_code = ?'
-      params.push(languageCode)
-    }
-
-    const stmt = this.db.prepare(query)
-    const result = await stmt.get(...params) as { count: number }
+    const result = await this.sql`DELETE FROM library_content WHERE id = ${id}`
     return result.count > 0
   }
 
-  // Get all content for export (no pagination)
+  async getContentCount(libraryId: number): Promise<number> {
+    const [result] = await this.sql`SELECT COUNT(*) as count FROM library_content WHERE library_id = ${libraryId}`
+    return result.count
+  }
+
+  async hasContentForDay(libraryId: number, dayNumber: number, languageCode?: string): Promise<boolean> {
+    if (languageCode) {
+      const [result] = await this.sql`
+        SELECT COUNT(*) as count FROM library_content
+        WHERE library_id = ${libraryId} AND day_number = ${dayNumber} AND language_code = ${languageCode}
+      `
+      return result.count > 0
+    }
+    const [result] = await this.sql`
+      SELECT COUNT(*) as count FROM library_content
+      WHERE library_id = ${libraryId} AND day_number = ${dayNumber}
+    `
+    return result.count > 0
+  }
+
   async getAllContentForExport(libraryId: number): Promise<Array<{
     day_number: number
     language_code: string
     content_json: Record<string, any> | null
   }>> {
-    const stmt = this.db.prepare(`
+    const rows = await this.sql`
       SELECT day_number, language_code, content_json
-      FROM library_content
-      WHERE library_id = ?
+      FROM library_content WHERE library_id = ${libraryId}
       ORDER BY day_number ASC, language_code ASC
-    `)
-    const rows = await stmt.all(libraryId) as Array<{
-      day_number: number
-      language_code: string
-      content_json: string | null
-    }>
-
-    return rows.map(row => ({
+    `
+    return rows.map((row: any) => ({
       day_number: row.day_number,
       language_code: row.language_code,
-      content_json: row.content_json ? JSON.parse(row.content_json) : null
+      content_json: parseContentJson(row.content_json)
     }))
   }
 
-  // Bulk create content for import
-  // Accepts optional db parameter for transaction support
   async bulkCreateContent(
     libraryId: number,
     items: Array<{
@@ -339,13 +252,12 @@ export class LibraryContentService {
       language_code: string
       content_json: Record<string, any> | null
     }>,
-    db?: ReturnType<typeof getDatabase>
+    db?: Sql
   ): Promise<{ inserted: number; skipped: number }> {
-    const database = db || this.db
+    const s = db || this.sql
     let inserted = 0
     let skipped = 0
 
-    // Process in batches
     const batchSize = 100
     for (let i = 0; i < items.length; i += batchSize) {
       const batch = items.slice(i, i + batchSize)
@@ -353,13 +265,12 @@ export class LibraryContentService {
       for (const item of batch) {
         try {
           const contentJsonString = stringifyContentJson(item.content_json)
-          const stmt = database.prepare(`
+          const result = await s`
             INSERT INTO library_content (library_id, day_number, language_code, content_json)
-            VALUES (?, ?, ?, ?)
+            VALUES (${libraryId}, ${item.day_number}, ${item.language_code}, ${contentJsonString})
             ON CONFLICT (library_id, day_number, language_code) DO NOTHING
-          `)
-          const result = await stmt.run(libraryId, item.day_number, item.language_code, contentJsonString)
-          if (result.changes > 0) {
+          `
+          if (result.count > 0) {
             inserted++
           } else {
             skipped++
@@ -373,7 +284,6 @@ export class LibraryContentService {
     return { inserted, skipped }
   }
 
-  // Bulk upsert content — inserts or overwrites translations in a single multi-row operation
   async bulkUpsertContent(
     libraryId: number,
     items: Array<{
@@ -382,7 +292,6 @@ export class LibraryContentService {
       content_json: Record<string, any> | null
     }>
   ): Promise<{ upserted: number }> {
-    const raw = this.db.rawSql
     let upserted = 0
     const batchSize = 100
 
@@ -395,8 +304,8 @@ export class LibraryContentService {
         content_json: stringifyContentJson(item.content_json),
       }))
 
-      const result = await raw`
-        INSERT INTO library_content ${raw(rows, 'library_id', 'day_number', 'language_code', 'content_json')}
+      const result = await this.sql`
+        INSERT INTO library_content ${this.sql(rows, 'library_id', 'day_number', 'language_code', 'content_json')}
         ON CONFLICT (library_id, day_number, language_code)
         DO UPDATE SET content_json = EXCLUDED.content_json,
                       updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
@@ -407,15 +316,11 @@ export class LibraryContentService {
     return { upserted }
   }
 
-  // Delete all content for a library (used before overwriting)
-  // Accepts optional db parameter for transaction support
-  async deleteAllLibraryContent(libraryId: number, db?: ReturnType<typeof getDatabase>): Promise<number> {
-    const database = db || this.db
-    const stmt = database.prepare('DELETE FROM library_content WHERE library_id = ?')
-    const result = await stmt.run(libraryId)
-    return result.changes
+  async deleteAllLibraryContent(libraryId: number, db?: Sql): Promise<number> {
+    const s = db || this.sql
+    const result = await s`DELETE FROM library_content WHERE library_id = ${libraryId}`
+    return result.count
   }
 }
 
-// Export singleton instance
 export const libraryContentService = new LibraryContentService()

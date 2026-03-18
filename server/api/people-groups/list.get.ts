@@ -3,7 +3,7 @@
  * List all people groups with summary data
  * Supports translated labels via ?lang= query param
  */
-import { getDatabase } from '../../database/db'
+import { getSql } from '../../database/db'
 import {
   formatPeopleGroupForList,
   formatPeopleGroupForListWithFields,
@@ -29,18 +29,16 @@ export default defineEventHandler(async (event) => {
       ? fieldsParam.split(',').map(f => f.trim()).filter(Boolean)
       : null
 
-  const db = getDatabase()
+  const sql = getSql()
 
   // Query all people groups with people_praying directly from people_groups table
-  const stmt = db.prepare(`
+  const peopleGroups = await sql`
     SELECT
       pg.*,
       COALESCE(pg.people_praying, 0)::INTEGER as total_people_praying
     FROM people_groups pg
     ORDER BY pg.name
-  `)
-
-  const peopleGroups = await stmt.all() as any[]
+  ` as any[]
 
   // Fetch commitment stats for all people groups
   const pgIds = peopleGroups.map((pg: any) => pg.id)

@@ -1,4 +1,4 @@
-import { getDatabase } from './db'
+import { getSql } from './db'
 
 export interface PendingAdoption {
   id: number
@@ -24,45 +24,38 @@ export interface CreatePendingAdoptionData {
 }
 
 class PendingAdoptionService {
-  private db = getDatabase()
+  private sql = getSql()
 
   async createOrUpdate(data: CreatePendingAdoptionData): Promise<PendingAdoption> {
-    const stmt = this.db.prepare(`
+    const [row] = await this.sql`
       INSERT INTO pending_adoptions (contact_method_id, people_group_id, group_id, people_group_slug, form_data)
-      VALUES (?, ?, ?, ?, ?)
+      VALUES (${data.contact_method_id}, ${data.people_group_id}, ${data.group_id}, ${data.people_group_slug}, ${this.sql.json(data.form_data)})
       ON CONFLICT (contact_method_id, people_group_id, group_id)
       DO UPDATE SET
         form_data = EXCLUDED.form_data,
         contact_method_id = EXCLUDED.contact_method_id,
         updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       RETURNING *
-    `)
-    return await stmt.get(
-      data.contact_method_id,
-      data.people_group_id,
-      data.group_id,
-      data.people_group_slug,
-      data.form_data
-    ) as PendingAdoption
+    `
+    return row
   }
 
   async getByContactMethodId(contactMethodId: number): Promise<PendingAdoption[]> {
-    const stmt = this.db.prepare(`
+    return await this.sql`
       SELECT * FROM pending_adoptions
-      WHERE contact_method_id = ?
+      WHERE contact_method_id = ${contactMethodId}
       ORDER BY created_at ASC
-    `)
-    return await stmt.all(contactMethodId) as PendingAdoption[]
+    `
   }
 
   async delete(id: number): Promise<boolean> {
-    const result = await this.db.prepare('DELETE FROM pending_adoptions WHERE id = ?').run(id)
-    return result.changes > 0
+    const result = await this.sql`DELETE FROM pending_adoptions WHERE id = ${id}`
+    return result.count > 0
   }
 
   async deleteByContactMethodId(contactMethodId: number): Promise<number> {
-    const result = await this.db.prepare('DELETE FROM pending_adoptions WHERE contact_method_id = ?').run(contactMethodId)
-    return result.changes
+    const result = await this.sql`DELETE FROM pending_adoptions WHERE contact_method_id = ${contactMethodId}`
+    return result.count
   }
 }
 

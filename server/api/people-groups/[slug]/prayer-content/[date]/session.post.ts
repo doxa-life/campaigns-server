@@ -3,7 +3,7 @@
  * Record a prayer session for analytics and tracking
  */
 import { peopleGroupService } from '#server/database/people-groups'
-import { getDatabase } from '#server/database/db'
+import { getSql } from '#server/database/db'
 import { handleApiError } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
@@ -59,18 +59,16 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const db = getDatabase()
+  const sql = getSql()
 
   try {
     // Upsert: Insert or update based on session_id
-    const stmt = db.prepare(`
+    await sql`
       INSERT INTO prayer_activity (people_group_id, session_id, tracking_id, duration, timestamp, content_date)
-      VALUES (?, ?, ?, ?, ?, ?)
+      VALUES (${peopleGroup.id}, ${sessionId}, ${trackingId || null}, ${duration}, ${timestamp}, ${dateParam})
       ON CONFLICT (session_id) WHERE session_id IS NOT NULL
       DO UPDATE SET duration = EXCLUDED.duration, timestamp = EXCLUDED.timestamp, content_date = EXCLUDED.content_date
-    `)
-
-    await stmt.run(peopleGroup.id, sessionId, trackingId || null, duration, timestamp, dateParam)
+    `
 
     return {
       message: 'Prayer session recorded'

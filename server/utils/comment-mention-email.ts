@@ -1,4 +1,4 @@
-import { getDatabase } from '#server/database/db'
+import { getSql } from '#server/database/db'
 
 function escapeHtml(str: string): string {
   return str
@@ -56,10 +56,8 @@ export async function sendCommentMentionEmails(
   const safeRecordName = escapeHtml(recordName)
 
   // Look up email addresses for mentioned users
-  const db = getDatabase()
-  const placeholders = mentionedUserIds.map(() => '?').join(',')
-  const stmt = db.prepare(`SELECT id, email, display_name FROM users WHERE id IN (${placeholders})`)
-  const users = await stmt.all(...mentionedUserIds) as Array<{ id: string; email: string; display_name: string }>
+  const sql = getSql()
+  const users = await sql`SELECT id, email, display_name FROM users WHERE id IN ${sql(mentionedUserIds)}` as Array<{ id: string; email: string; display_name: string }>
 
   for (const user of users) {
     if (!user.email) continue

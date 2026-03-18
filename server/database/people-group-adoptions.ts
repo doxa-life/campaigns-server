@@ -1,4 +1,6 @@
-import { getDatabase } from './db'
+import type { Fragment } from 'postgres'
+import { getSql } from './db'
+import { buildSet } from './sql-helpers'
 
 export interface PeopleGroupAdoption {
   id: number
@@ -33,82 +35,67 @@ export interface UpdateAdoptionData {
 }
 
 class PeopleGroupAdoptionService {
-  private db = getDatabase()
+  private sql = getSql()
 
   async create(data: CreateAdoptionData): Promise<PeopleGroupAdoption> {
     const status = data.status || 'active'
 
-    const stmt = this.db.prepare(`
+    const [row] = await this.sql`
       INSERT INTO people_group_adoptions (people_group_id, group_id, status, show_publicly, adopted_at)
-      VALUES (?, ?, ?, ?, ?)
-    `)
-    const result = await stmt.run(
-      data.people_group_id,
-      data.group_id,
-      status,
-      data.show_publicly ?? false,
-      status === 'active' ? new Date().toISOString() : null
-    )
-    return (await this.getById(result.lastInsertRowid as number))!
+      VALUES (${data.people_group_id}, ${data.group_id}, ${status}, ${data.show_publicly ?? false},
+              ${status === 'active' ? new Date().toISOString() : null})
+      RETURNING *
+    `
+    return row
   }
 
   async getById(id: number): Promise<PeopleGroupAdoption | null> {
-    const stmt = this.db.prepare('SELECT * FROM people_group_adoptions WHERE id = ?')
-    return await stmt.get(id) as PeopleGroupAdoption | null
+    const [row] = await this.sql`SELECT * FROM people_group_adoptions WHERE id = ${id}`
+    return row || null
   }
 
   async getByToken(token: string): Promise<AdoptionWithDetails | null> {
-    const stmt = this.db.prepare(`
-      SELECT a.*,
-        pg.name as people_group_name,
-        pg.slug as people_group_slug,
+    const [row] = await this.sql`
+      SELECT a.*, pg.name as people_group_name, pg.slug as people_group_slug,
         g.name as group_name,
         (SELECT COUNT(*) FROM adoption_reports WHERE adoption_id = a.id) as report_count
       FROM people_group_adoptions a
       JOIN people_groups pg ON a.people_group_id = pg.id
       JOIN groups g ON a.group_id = g.id
-      WHERE a.update_token = ?
-    `)
-    return await stmt.get(token) as AdoptionWithDetails | null
+      WHERE a.update_token = ${token}
+    `
+    return row || null
   }
 
   async getForGroup(groupId: number): Promise<AdoptionWithDetails[]> {
-    const stmt = this.db.prepare(`
-      SELECT a.*,
-        pg.name as people_group_name,
-        pg.slug as people_group_slug,
+    return await this.sql`
+      SELECT a.*, pg.name as people_group_name, pg.slug as people_group_slug,
         g.name as group_name,
         (SELECT COUNT(*) FROM adoption_reports WHERE adoption_id = a.id) as report_count
       FROM people_group_adoptions a
       JOIN people_groups pg ON a.people_group_id = pg.id
       JOIN groups g ON a.group_id = g.id
-      WHERE a.group_id = ?
+      WHERE a.group_id = ${groupId}
       ORDER BY a.created_at DESC
-    `)
-    return await stmt.all(groupId) as AdoptionWithDetails[]
+    `
   }
 
   async getForPeopleGroup(peopleGroupId: number): Promise<AdoptionWithDetails[]> {
-    const stmt = this.db.prepare(`
-      SELECT a.*,
-        pg.name as people_group_name,
-        pg.slug as people_group_slug,
+    return await this.sql`
+      SELECT a.*, pg.name as people_group_name, pg.slug as people_group_slug,
         g.name as group_name,
         (SELECT COUNT(*) FROM adoption_reports WHERE adoption_id = a.id) as report_count
       FROM people_group_adoptions a
       JOIN people_groups pg ON a.people_group_id = pg.id
       JOIN groups g ON a.group_id = g.id
-      WHERE a.people_group_id = ?
+      WHERE a.people_group_id = ${peopleGroupId}
       ORDER BY a.created_at DESC
-    `)
-    return await stmt.all(peopleGroupId) as AdoptionWithDetails[]
+    `
   }
 
   async getAllActive(): Promise<AdoptionWithDetails[]> {
-    const stmt = this.db.prepare(`
-      SELECT a.*,
-        pg.name as people_group_name,
-        pg.slug as people_group_slug,
+    return await this.sql`
+      SELECT a.*, pg.name as people_group_name, pg.slug as people_group_slug,
         g.name as group_name,
         (SELECT COUNT(*) FROM adoption_reports WHERE adoption_id = a.id) as report_count
       FROM people_group_adoptions a
@@ -116,64 +103,49 @@ class PeopleGroupAdoptionService {
       JOIN groups g ON a.group_id = g.id
       WHERE a.status = 'active'
       ORDER BY a.created_at DESC
-    `)
-    return await stmt.all() as AdoptionWithDetails[]
+    `
   }
 
   async update(id: number, data: UpdateAdoptionData): Promise<PeopleGroupAdoption | null> {
     const adoption = await this.getById(id)
     if (!adoption) return null
 
-    const updates: string[] = []
-    const values: any[] = []
+    const fields: Fragment[] = []
 
     if (data.status !== undefined) {
-      updates.push('status = ?')
-      values.push(data.status)
+      fields.push(this.sql`status = ${data.status}`)
       if (data.status === 'active' && !adoption.adopted_at) {
-        updates.push('adopted_at = ?')
-        values.push(new Date().toISOString())
+        fields.push(this.sql`adopted_at = ${new Date().toISOString()}`)
       }
     }
-    if (data.show_publicly !== undefined) {
-      updates.push('show_publicly = ?')
-      values.push(data.show_publicly)
-    }
-    if (data.adopted_at !== undefined) {
-      updates.push('adopted_at = ?')
-      values.push(data.adopted_at)
-    }
+    if (data.show_publicly !== undefined) fields.push(this.sql`show_publicly = ${data.show_publicly}`)
+    if (data.adopted_at !== undefined) fields.push(this.sql`adopted_at = ${data.adopted_at}`)
 
-    if (updates.length === 0) return adoption
+    if (fields.length === 0) return adoption
 
-    updates.push('updated_at = ?')
-    values.push(new Date().toISOString())
-    values.push(id)
+    fields.push(this.sql`updated_at = ${new Date().toISOString()}`)
 
-    const stmt = this.db.prepare(`
-      UPDATE people_group_adoptions SET ${updates.join(', ')} WHERE id = ?
-    `)
-    await stmt.run(...values)
+    await this.sql`UPDATE people_group_adoptions SET ${buildSet(this.sql, fields)} WHERE id = ${id}`
     return this.getById(id)
   }
 
   async delete(id: number): Promise<boolean> {
-    await this.db.prepare('DELETE FROM adoption_reports WHERE adoption_id = ?').run(id)
-    const result = await this.db.prepare('DELETE FROM people_group_adoptions WHERE id = ?').run(id)
-    return result.changes > 0
+    await this.sql`DELETE FROM adoption_reports WHERE adoption_id = ${id}`
+    const result = await this.sql`DELETE FROM people_group_adoptions WHERE id = ${id}`
+    return result.count > 0
   }
 
   async countForPeopleGroup(peopleGroupId: number, status?: string): Promise<number> {
-    let query = 'SELECT COUNT(*) as count FROM people_group_adoptions WHERE people_group_id = ?'
-    const params: any[] = [peopleGroupId]
-
     if (status) {
-      query += ' AND status = ?'
-      params.push(status)
+      const [result] = await this.sql`
+        SELECT COUNT(*) as count FROM people_group_adoptions
+        WHERE people_group_id = ${peopleGroupId} AND status = ${status}
+      `
+      return Number(result.count)
     }
-
-    const stmt = this.db.prepare(query)
-    const result = await stmt.get(...params) as { count: string | number }
+    const [result] = await this.sql`
+      SELECT COUNT(*) as count FROM people_group_adoptions WHERE people_group_id = ${peopleGroupId}
+    `
     return Number(result.count)
   }
 }

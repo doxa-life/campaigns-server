@@ -1,4 +1,4 @@
-import { getDatabase } from '#server/database/db'
+import { getSql } from '#server/database/db'
 import { jobQueueService, type TranslationBatchPayload } from '#server/database/job-queue'
 import { isDeepLConfigured, SUPPORTED_LANGUAGES } from '#server/utils/deepl'
 import { handleApiError } from '#server/utils/api-helpers'
@@ -28,17 +28,16 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     const overwrite = body?.overwrite ?? false
 
-    const db = getDatabase()
+    const sql = getSql()
 
     // Find all day_in_life libraries that have English content
-    const stmt = db.prepare(`
+    const libraries = await sql`
       SELECT DISTINCT l.id, l.name, l.people_group_id
       FROM libraries l
       INNER JOIN library_content lc ON lc.library_id = l.id AND lc.language_code = 'en'
       WHERE l.library_key = 'day_in_life'
       ORDER BY l.id
-    `)
-    const libraries = await stmt.all() as Array<{ id: number; name: string; people_group_id: number | null }>
+    ` as Array<{ id: number; name: string; people_group_id: number | null }>
 
     if (libraries.length === 0) {
       throw createError({
