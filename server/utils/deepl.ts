@@ -313,13 +313,16 @@ export async function batchTranslateTiptapContents(
  * in the target language. If fetching fails or no bibleId is configured,
  * the verse content is left untouched.
  */
-export async function translateVerseNodes(node: TiptapNode, targetLanguage: string, warnings: VerseWarning[]): Promise<void> {
+export async function translateVerseNodes(node: TiptapNode, targetLanguage: string, warnings: VerseWarning[], options?: { onlyApiFetched?: boolean }): Promise<void> {
   if (!node.content) return
 
   for (const child of node.content) {
     if (child.type === 'verse') {
       const reference = child.attrs?.reference
       if (!reference) continue
+
+      // Skip manually entered verses (no translation attr) when onlyApiFetched is set
+      if (options?.onlyApiFetched && !child.attrs?.translation) continue
 
       const bibleId = getBibleId(targetLanguage)
       if (!isBollsBibleConfigured(bibleId)) {
@@ -363,7 +366,7 @@ export async function translateVerseNodes(node: TiptapNode, targetLanguage: stri
         warnings.push({ reference, language: targetLanguage, reason })
       }
     } else {
-      await translateVerseNodes(child, targetLanguage, warnings)
+      await translateVerseNodes(child, targetLanguage, warnings, options)
     }
   }
 }
