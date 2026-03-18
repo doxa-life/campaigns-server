@@ -21,11 +21,13 @@ export default defineEventHandler(async (event) => {
 
   await peopleGroupAdoptionService.delete(adoptionId)
   logUpdate('groups', String(groupId), event, {
+    badge: 'Unlinked',
     message: 'Adoption removed:',
     link_text: peopleGroup?.name || `#${adoption.people_group_id}`,
     link_url: `/admin/people-groups/${adoption.people_group_id}`
   })
   logUpdate('people_groups', String(adoption.people_group_id), event, {
+    badge: 'Unlinked',
     message: 'Adoption removed by',
     link_text: group?.name || `#${groupId}`,
     link_url: `/admin/groups/${groupId}`

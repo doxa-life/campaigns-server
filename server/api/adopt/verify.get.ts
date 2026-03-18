@@ -74,12 +74,14 @@ export default defineEventHandler(async (event) => {
 
     if (peopleGroup && group) {
       logUpdate('people_groups', String(peopleGroup.id), event, {
+        badge: 'Linked',
         source: 'Adoption Form',
         message: 'Adopted by',
         link_text: group.name,
         link_url: `/admin/groups/${group.id}`
       })
       logUpdate('groups', String(group.id), event, {
+        badge: 'Linked',
         source: 'Adoption Form',
         message: 'Adoption added:',
         link_text: peopleGroup.name,

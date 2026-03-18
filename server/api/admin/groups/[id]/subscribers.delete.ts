@@ -21,11 +21,13 @@ export default defineEventHandler(async (event) => {
 
   await connectionService.deleteByEntities('subscriber', subscriberId, 'group', groupId)
   logUpdate('groups', String(groupId), event, {
+    badge: 'Unlinked',
     message: 'Contact removed:',
     link_text: subscriber?.name || `#${subscriberId}`,
     link_url: `/admin/subscribers/${subscriberId}`
   })
   logUpdate('subscribers', String(subscriberId), event, {
+    badge: 'Unlinked',
     message: 'Removed from group:',
     link_text: group?.name || `#${groupId}`,
     link_url: `/admin/groups/${groupId}`

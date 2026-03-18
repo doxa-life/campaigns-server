@@ -328,9 +328,9 @@
               <div v-for="activity in activityLog" :key="activity.id" class="activity-item">
                 <div class="activity-header">
                   <UBadge
-                    :label="formatEventType(activity.eventType)"
-                    :color="getEventColor(activity.eventType)"
-                    :icon="getEventIcon(activity.eventType)"
+                    :label="formatEventType(activity.metadata?.badge || activity.eventType)"
+                    :color="getEventColor(activity.metadata?.badge || activity.eventType)"
+                    :icon="getEventIcon(activity.metadata?.badge || activity.eventType)"
                     size="xs"
                   />
                   <span class="activity-time">{{ formatTimestamp(activity.timestamp) }}</span>
@@ -830,22 +830,18 @@ async function loadActivityLog(subscriber: GeneralSubscriber) {
     loadingActivityLog.value = true
     const allActivities: ActivityLogEntry[] = []
 
-    // Subscriber-level activity (field edits, group connections)
-    try {
-      const response = await $fetch<{ activities: ActivityLogEntry[] }>(`/api/admin/activity/subscribers/${subscriber.id}`)
-      allActivities.push(...response.activities)
-    } catch (err) {
-      console.error('Failed to load subscriber activity:', err)
-    }
-
-    // Subscription-level activity (reminders, prayer, emails)
-    for (const subscription of subscriber.subscriptions) {
-      try {
-        const response = await $fetch<{ activities: ActivityLogEntry[] }>(`/api/admin/subscriptions/${subscription.id}/activity`)
-        allActivities.push(...response.activities)
-      } catch (err) {
-        console.error(`Failed to load activity for subscription ${subscription.id}:`, err)
-      }
+    // Fetch subscriber-level and all subscription-level activity in parallel
+    const fetches = [
+      $fetch<{ activities: ActivityLogEntry[] }>(`/api/admin/activity/subscribers/${subscriber.id}`)
+        .catch((err) => { console.error('Failed to load subscriber activity:', err); return { activities: [] as ActivityLogEntry[] } }),
+      ...subscriber.subscriptions.map(sub =>
+        $fetch<{ activities: ActivityLogEntry[] }>(`/api/admin/subscriptions/${sub.id}/activity`)
+          .catch((err) => { console.error(`Failed to load activity for subscription ${sub.id}:`, err); return { activities: [] as ActivityLogEntry[] } })
+      )
+    ]
+    const results = await Promise.all(fetches)
+    for (const result of results) {
+      allActivities.push(...result.activities)
     }
 
     activityLog.value = allActivities
@@ -1093,7 +1089,9 @@ function formatEventType(eventType: string): string {
     'DELETE': 'Deleted',
     'PRAYER': 'Prayed',
     'EMAIL': 'Email Sent',
-    'FOLLOWUP_RESPONSE': 'Check-in Response'
+    'FOLLOWUP_RESPONSE': 'Check-in Response',
+    'Linked': 'Linked',
+    'Unlinked': 'Unlinked'
   }
   return types[eventType] || eventType
 }
@@ -1105,7 +1103,9 @@ function getEventColor(eventType: string): 'success' | 'warning' | 'error' | 'ne
     'DELETE': 'error',
     'PRAYER': 'primary',
     'EMAIL': 'neutral',
-    'FOLLOWUP_RESPONSE': 'primary'
+    'FOLLOWUP_RESPONSE': 'primary',
+    'Linked': 'success',
+    'Unlinked': 'error'
   }
   return colors[eventType] || 'neutral'
 }
@@ -1115,7 +1115,9 @@ function getEventIcon(eventType: string): string | undefined {
     'UPDATE': 'i-lucide-pencil',
     'PRAYER': 'i-lucide-hand-helping',
     'EMAIL': 'i-lucide-mail',
-    'FOLLOWUP_RESPONSE': 'i-lucide-message-circle'
+    'FOLLOWUP_RESPONSE': 'i-lucide-message-circle',
+    'Linked': 'i-lucide-link',
+    'Unlinked': 'i-lucide-link-2-off'
   }
   return icons[eventType]
 }
@@ -1143,27 +1145,6 @@ function formatValue(value: any): string {
   return String(value)
 }
 
-const FORM_KEY_LABELS: Record<string, string> = {
-  people_group: 'People Group',
-  email: 'Email',
-  phone: 'Phone',
-  church: 'Church',
-  role: 'Role',
-  country: 'Country',
-  language: 'Language',
-  public_display: 'Public Display',
-  permission_to_contact: 'Permission to Contact'
-}
-
-function formatFormKey(key: string): string {
-  return FORM_KEY_LABELS[key] || key.replace(/_/g, ' ')
-}
-
-function formatFormValue(value: any): string {
-  if (value === null || value === undefined || value === '') return '(empty)'
-  if (typeof value === 'boolean') return value ? 'Yes' : 'No'
-  return String(value)
-}
 
 function formatPrayerDuration(seconds: number): string {
   if (seconds >= 60) {

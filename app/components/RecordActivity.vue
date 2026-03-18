@@ -10,9 +10,9 @@
       <div v-for="activity in activities" :key="activity.id" class="activity-item">
         <div class="activity-header">
           <UBadge
-            :label="formatEventType(activity.eventType)"
-            :color="getEventColor(activity.eventType)"
-            :icon="getEventIcon(activity.eventType)"
+            :label="activity.metadata?.badge || formatEventType(activity.eventType)"
+            :color="getEventColor(activity.metadata?.badge || activity.eventType)"
+            :icon="getEventIcon(activity.metadata?.badge || activity.eventType)"
             size="xs"
           />
           <span class="activity-time">{{ formatTimestamp(activity.timestamp) }}</span>
@@ -115,31 +115,37 @@ function formatTimestamp(timestamp: number): string {
   return new Date(timestamp).toLocaleString()
 }
 
-function formatEventType(eventType: string): string {
+function formatEventType(label: string): string {
   const types: Record<string, string> = {
     'CREATE': 'Created',
     'UPDATE': 'Updated',
-    'DELETE': 'Deleted'
+    'DELETE': 'Deleted',
+    'Linked': 'Linked',
+    'Unlinked': 'Unlinked'
   }
-  return types[eventType] || eventType
+  return types[label] || label
 }
 
-function getEventColor(eventType: string): 'success' | 'warning' | 'error' | 'neutral' {
+function getEventColor(label: string): 'success' | 'warning' | 'error' | 'neutral' {
   const colors: Record<string, 'success' | 'warning' | 'error' | 'neutral'> = {
     'CREATE': 'success',
     'UPDATE': 'warning',
-    'DELETE': 'error'
+    'DELETE': 'error',
+    'Linked': 'success',
+    'Unlinked': 'error'
   }
-  return colors[eventType] || 'neutral'
+  return colors[label] || 'neutral'
 }
 
-function getEventIcon(eventType: string): string | undefined {
+function getEventIcon(label: string): string | undefined {
   const icons: Record<string, string> = {
     'CREATE': 'i-lucide-plus',
     'UPDATE': 'i-lucide-pencil',
-    'DELETE': 'i-lucide-trash'
+    'DELETE': 'i-lucide-trash',
+    'Linked': 'i-lucide-link',
+    'Unlinked': 'i-lucide-link-2-off'
   }
-  return icons[eventType]
+  return icons[label]
 }
 
 const NON_FIELD_LABELS: Record<string, string> = {
@@ -191,27 +197,7 @@ function formatValue(field: string, value: any): string {
   return String(value)
 }
 
-const FORM_KEY_LABELS: Record<string, string> = {
-  people_group: 'People Group',
-  email: 'Email',
-  phone: 'Phone',
-  church: 'Church',
-  role: 'Role',
-  country: 'Country',
-  language: 'Language',
-  public_display: 'Public Display',
-  permission_to_contact: 'Permission to Contact'
-}
 
-function formatFormKey(key: string): string {
-  return FORM_KEY_LABELS[key] || key.replace(/_/g, ' ')
-}
-
-function formatFormValue(value: any): string {
-  if (value === null || value === undefined || value === '') return '(empty)'
-  if (typeof value === 'boolean') return value ? 'Yes' : 'No'
-  return String(value)
-}
 </script>
 
 <style scoped>

@@ -53,6 +53,9 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    watchOptions: {
+      ignored: ['**/node_modules/.c12/**']
+    },
     imports: {
       // Exclude server/utils/app from auto-imports to avoid conflicts with base layer
       // These utilities are accessed through server/utils re-exports only
@@ -76,7 +79,16 @@ export default defineNuxtConfig({
     }
   },
 
+  watch: {
+    exclude: ['node_modules/.c12/**']
+  },
+
   vite: {
+    server: {
+      watch: {
+        ignored: ['**/node_modules/.c12/**']
+      }
+    },
     optimizeDeps: {
       include: [
         '@tiptap/pm/state',

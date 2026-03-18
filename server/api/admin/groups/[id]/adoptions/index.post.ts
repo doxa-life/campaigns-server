@@ -38,11 +38,13 @@ export default defineEventHandler(async (event) => {
       show_publicly: body.show_publicly
     })
     logUpdate('groups', String(groupId), event, {
+      badge: 'Linked',
       message: 'Adoption added:',
       link_text: peopleGroup.name,
       link_url: `/admin/people-groups/${body.people_group_id}`
     })
     logUpdate('people_groups', String(body.people_group_id), event, {
+      badge: 'Linked',
       message: 'Adopted by',
       link_text: group.name,
       link_url: `/admin/groups/${groupId}`

@@ -107,6 +107,7 @@ export default defineEventHandler(async (event) => {
         link_url: `/admin/subscribers/${subscriber.id}`
       })
       logUpdate('subscribers', String(subscriber.id), event, {
+        badge: 'Linked',
         source: 'Adoption Form',
         message: 'Connected to group:',
         link_text: group.name,
@@ -187,12 +188,14 @@ export default defineEventHandler(async (event) => {
     }
 
     logUpdate('people_groups', String(peopleGroup.id), event, {
+      badge: 'Linked',
       source: 'Adoption Form',
       message: 'Adopted by',
       link_text: groupName,
       link_url: `/admin/groups/${group.id}`
     })
     logUpdate('groups', String(group.id), event, {
+      badge: 'Linked',
       source: 'Adoption Form',
       message: 'Adoption added:',
       link_text: peopleGroup.name,
