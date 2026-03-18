@@ -158,7 +158,7 @@ watch(() => props.recordId, () => {
     <div v-else class="comments-container">
       <!-- New comment form -->
       <div class="new-comment">
-        <RichTextEditor v-model="newCommentContent" :mentions="true" />
+        <CommentEditor v-model="newCommentContent" :mentions="true" />
         <div class="new-comment-actions">
           <UButton @click="addComment" :loading="submitting" :disabled="isEmptyDoc(newCommentContent)">
             Add Comment
@@ -189,7 +189,7 @@ watch(() => props.recordId, () => {
 
           <!-- Edit mode -->
           <div v-if="editingId === comment.id" class="comment-edit">
-            <RichTextEditor v-model="editContent" :mentions="true" />
+            <CommentEditor v-model="editContent" :mentions="true" />
             <div class="comment-edit-actions">
               <UButton size="xs" variant="outline" @click="cancelEdit">Cancel</UButton>
               <UButton size="xs" @click="saveEdit">Save</UButton>
@@ -314,15 +314,6 @@ watch(() => props.recordId, () => {
   gap: 0.5rem;
 }
 
-.comment-edit :deep(.editor-wrapper) {
-  min-height: auto;
-}
-
-.comment-edit :deep(.editor-content) {
-  padding: 16px;
-  min-height: 80px;
-}
-
 .comment-edit-actions {
   display: flex;
   justify-content: flex-end;
@@ -333,15 +324,6 @@ watch(() => props.recordId, () => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-.new-comment :deep(.editor-wrapper) {
-  min-height: auto;
-}
-
-.new-comment :deep(.editor-content) {
-  padding: 16px;
-  min-height: 80px;
 }
 
 .new-comment-actions {
