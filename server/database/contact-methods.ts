@@ -31,12 +31,12 @@ class ContactMethodService {
       VALUES (${subscriberId}, ${type}, ${value})
       RETURNING *
     `
-    return row
+    return row as ContactMethod
   }
 
   async getById(id: number): Promise<ContactMethod | null> {
     const [row] = await this.sql`SELECT * FROM contact_methods WHERE id = ${id}`
-    return row || null
+    return (row as ContactMethod) ?? null
   }
 
   async getByValue(type: 'email' | 'phone', value: string): Promise<ContactMethod | null> {
@@ -44,7 +44,7 @@ class ContactMethodService {
       SELECT * FROM contact_methods
       WHERE type = ${type} AND LOWER(value) = LOWER(${value})
     `
-    return row || null
+    return (row as ContactMethod) ?? null
   }
 
   async getSubscriberContactMethods(subscriberId: number): Promise<ContactMethod[]> {
@@ -52,7 +52,7 @@ class ContactMethodService {
       SELECT * FROM contact_methods
       WHERE subscriber_id = ${subscriberId}
       ORDER BY type, created_at
-    `
+    ` as any
   }
 
   async getPrimaryEmail(subscriberId: number): Promise<ContactMethod | null> {
@@ -61,14 +61,14 @@ class ContactMethodService {
       WHERE subscriber_id = ${subscriberId} AND type = 'email' AND verified = true
       ORDER BY created_at ASC LIMIT 1
     `
-    if (verified) return verified
+    if (verified) return verified as ContactMethod
 
-    const [any] = await this.sql`
+    const [fallback] = await this.sql`
       SELECT * FROM contact_methods
       WHERE subscriber_id = ${subscriberId} AND type = 'email'
       ORDER BY created_at ASC LIMIT 1
     `
-    return any || null
+    return (fallback as ContactMethod) ?? null
   }
 
   async getPrimaryPhone(subscriberId: number): Promise<ContactMethod | null> {
@@ -77,7 +77,7 @@ class ContactMethodService {
       WHERE subscriber_id = ${subscriberId} AND type = 'phone'
       ORDER BY verified DESC, created_at ASC LIMIT 1
     `
-    return row || null
+    return (row as ContactMethod) ?? null
   }
 
   async updateContactMethod(
@@ -119,7 +119,7 @@ class ContactMethodService {
 
   async getByVerificationToken(token: string): Promise<ContactMethod | null> {
     const [row] = await this.sql`SELECT * FROM contact_methods WHERE verification_token = ${token}`
-    return row || null
+    return (row as ContactMethod) ?? null
   }
 
   isTokenExpired(contactMethod: ContactMethod): boolean {

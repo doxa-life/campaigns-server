@@ -23,8 +23,6 @@ export interface CreateUserData {
 
 const SALT_ROUNDS = 12
 
-const USER_COLUMNS = `id, email, display_name, verified, superadmin, role, token_key, created, updated, activity_email_preferences`
-
 export class UserService {
   private sql = getSql()
 
@@ -49,31 +47,33 @@ export class UserService {
   }
 
   async getUserById(id: string): Promise<User | null> {
-    const rows = await this.sql.unsafe(
-      `SELECT ${USER_COLUMNS} FROM users WHERE id = $1`,
-      [id]
-    )
-    return rows[0] || null
+    const [row] = await this.sql`
+      SELECT id, email, display_name, verified, superadmin, role, token_key, created, updated, activity_email_preferences
+      FROM users WHERE id = ${id}
+    `
+    return (row as User) ?? null
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
-    const rows = await this.sql.unsafe(
-      `SELECT ${USER_COLUMNS} FROM users WHERE email = $1`,
-      [email]
-    )
-    return rows[0] || null
+    const [row] = await this.sql`
+      SELECT id, email, display_name, verified, superadmin, role, token_key, created, updated, activity_email_preferences
+      FROM users WHERE email = ${email}
+    `
+    return (row as User) ?? null
   }
 
   async getAllUsers(): Promise<User[]> {
-    return await this.sql.unsafe(
-      `SELECT ${USER_COLUMNS} FROM users ORDER BY created DESC`
-    )
+    return await this.sql`
+      SELECT id, email, display_name, verified, superadmin, role, token_key, created, updated, activity_email_preferences
+      FROM users ORDER BY created DESC
+    ` as any
   }
 
   async getAdminUsers(): Promise<User[]> {
-    return await this.sql.unsafe(
-      `SELECT ${USER_COLUMNS} FROM users WHERE role = 'admin' OR superadmin = TRUE ORDER BY created DESC`
-    )
+    return await this.sql`
+      SELECT id, email, display_name, verified, superadmin, role, token_key, created, updated, activity_email_preferences
+      FROM users WHERE role = 'admin' OR superadmin = TRUE ORDER BY created DESC
+    ` as any
   }
 
   async verifyUser(id: string): Promise<boolean> {
