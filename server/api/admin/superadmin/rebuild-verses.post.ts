@@ -75,15 +75,13 @@ export default defineEventHandler(async (event) => {
 
       try {
         const originalJson = JSON.stringify(row.content_json)
-        const doc: TiptapNode = JSON.parse(originalJson)
+        const doc: TiptapNode = structuredClone(row.content_json) as TiptapNode
         const warnings: VerseWarning[] = []
 
         await translateVerseNodes(doc, row.language_code, warnings, { onlyApiFetched: true })
         allWarnings.push(...warnings)
 
-        const newJson = JSON.stringify(doc)
-
-        if (newJson !== originalJson) {
+        if (JSON.stringify(doc) !== originalJson) {
           const versesInDoc = countVerseNodes(doc)
           stats.versesRebuilt += versesInDoc
 

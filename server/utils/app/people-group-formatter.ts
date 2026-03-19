@@ -104,13 +104,8 @@ function getFieldValue(pg: PeopleGroupRecord, fieldKey: string): string | null {
   // Otherwise look in metadata
   if (!pg.metadata) return null
 
-  try {
-    const meta = pg.metadata
-    const val = meta[fieldKey]
-    return val !== null && val !== undefined ? String(val) : null
-  } catch {
-    return null
-  }
+  const val = pg.metadata[fieldKey]
+  return val !== null && val !== undefined ? String(val) : null
 }
 
 /**
