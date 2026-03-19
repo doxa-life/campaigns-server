@@ -1226,7 +1226,7 @@ onMounted(async () => {
 
 .subscriber-meta {
   display: flex;
-  justify-content: space-between;
+  gap: 0.5rem;
   align-items: center;
   font-size: 0.75rem;
 }
