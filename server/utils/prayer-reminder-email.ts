@@ -10,7 +10,7 @@ export interface PrayerReminderEmailData {
   subscriptionId: number
   prayerDuration: number
   prayerContent: Array<{
-    content_json: string | null
+    content_json: Record<string, any> | null
   }> | null
   locale?: string
 }
@@ -19,17 +19,9 @@ export interface PrayerReminderEmailData {
  * Convert Tiptap JSON content to plain HTML for email.
  * This is a simplified converter that handles common Tiptap node types.
  */
-function tiptapToHtml(contentJson: string | null): string {
-  if (!contentJson) return ''
-
-  try {
-    const doc = JSON.parse(contentJson)
-    if (!doc || !doc.content) return ''
-
-    return renderNodes(doc.content)
-  } catch {
-    return ''
-  }
+function tiptapToHtml(contentJson: Record<string, any> | null): string {
+  if (!contentJson || !contentJson.content) return ''
+  return renderNodes(contentJson.content)
 }
 
 function renderNodes(nodes: any[]): string {
@@ -121,42 +113,6 @@ function escapeHtml(text: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;')
-}
-
-/**
- * Convert Tiptap JSON content to plain text for email.
- */
-function tiptapToText(contentJson: string | null): string {
-  if (!contentJson) return ''
-
-  try {
-    const doc = JSON.parse(contentJson)
-    if (!doc || !doc.content) return ''
-
-    return extractText(doc.content).trim()
-  } catch {
-    return ''
-  }
-}
-
-function extractText(nodes: any[]): string {
-  return nodes.map(node => {
-    if (node.type === 'text') {
-      return node.text || ''
-    }
-    if (node.content) {
-      const text = extractText(node.content)
-      // Add newlines for block elements
-      if (['paragraph', 'heading', 'listItem', 'blockquote'].includes(node.type)) {
-        return text + '\n'
-      }
-      return text
-    }
-    if (node.type === 'hardBreak') {
-      return '\n'
-    }
-    return ''
-  }).join('')
 }
 
 export async function sendPrayerReminderEmail(data: PrayerReminderEmailData): Promise<boolean> {

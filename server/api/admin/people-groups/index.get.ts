@@ -37,8 +37,8 @@ export default defineEventHandler(async (event) => {
   // Parse metadata and descriptions for each group, attach stats
   const groupsWithParsedMetadata = peopleGroups.map(group => ({
     ...group,
-    metadata: group.metadata ? JSON.parse(group.metadata) : {},
-    descriptions: group.descriptions ? (typeof group.descriptions === 'string' ? JSON.parse(group.descriptions) : group.descriptions) : {},
+    metadata: group.metadata || {},
+    descriptions: group.descriptions || {},
     people_committed: commitmentStats.get(group.id)?.people_committed ?? 0,
     committed_duration: commitmentStats.get(group.id)?.committed_duration ?? 0,
     adoption_count: adoptionCounts.get(group.id) ?? 0

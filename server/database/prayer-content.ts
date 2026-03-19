@@ -25,7 +25,7 @@ export interface PrayerContent {
   content_date: string
   language_code: string
   title: string
-  content_json: string | null
+  content_json: Record<string, any> | null
   content_type: 'static' | 'people_group'
   people_group_data?: PeopleGroupData | null
   created_at: string
@@ -271,33 +271,26 @@ export class PrayerContentService {
     let pictureCredit: Array<{ text: string; link: string | null }> | null = null
 
     if (peopleGroup.metadata) {
-      try {
-        const metadata = JSON.parse(peopleGroup.metadata)
-        // Use generated description with locale support
-        description = generatePeopleGroupDescription({
-          name: peopleGroup.name,
-          descriptions: peopleGroup.descriptions,
-          metadata
-        }, languageCode)
-        population = metadata.imb_population ? parseInt(metadata.imb_population, 10) : null
+      const metadata = peopleGroup.metadata
+      description = generatePeopleGroupDescription({
+        name: peopleGroup.name,
+        descriptions: peopleGroup.descriptions,
+        metadata
+      }, languageCode)
+      population = metadata.imb_population ? parseInt(metadata.imb_population, 10) : null
 
-        // Look up labels from field options
-        const langCode = metadata.imb_reg_of_language
-        const religionCode = metadata.imb_reg_of_religion_3
-        const countryCode = metadata.imb_isoalpha3
+      const langCode = metadata.imb_reg_of_language
+      const religionCode = metadata.imb_reg_of_religion_3
+      const countryCode = metadata.imb_isoalpha3
 
-        language = langCode ? (getFieldOptionLabel('imb_reg_of_language', langCode, languageCode) || langCode) : null
-        religion = religionCode ? (getReligionLabel(religionCode, languageCode) || religionCode) : null
-        country = countryCode ? (getCountryLabel(countryCode, languageCode) || countryCode) : null
+      language = langCode ? (getFieldOptionLabel('imb_reg_of_language', langCode, languageCode) || langCode) : null
+      religion = religionCode ? (getReligionLabel(religionCode, languageCode) || religionCode) : null
+      country = countryCode ? (getCountryLabel(countryCode, languageCode) || countryCode) : null
 
-        // Extract coordinates
-        lat = metadata.imb_lat ? parseFloat(metadata.imb_lat) : null
-        lng = metadata.imb_lng ? parseFloat(metadata.imb_lng) : null
+      lat = metadata.imb_lat ? parseFloat(metadata.imb_lat) : null
+      lng = metadata.imb_lng ? parseFloat(metadata.imb_lng) : null
 
-        pictureCredit = metadata.picture_credit || null
-      } catch (e) {
-        // Ignore parse errors
-      }
+      pictureCredit = metadata.picture_credit || null
     }
 
     const now = new Date().toISOString()
@@ -365,33 +358,26 @@ export class PrayerContentService {
     let pictureCredit: Array<{ text: string; link: string | null }> | null = null
 
     if (peopleGroup.metadata) {
-      try {
-        const metadata = JSON.parse(peopleGroup.metadata)
-        // Use generated description with locale support
-        description = generatePeopleGroupDescription({
-          name: peopleGroup.name,
-          descriptions: peopleGroup.descriptions,
-          metadata
-        }, languageCode)
-        population = metadata.imb_population ? parseInt(metadata.imb_population, 10) : null
+      const metadata = peopleGroup.metadata
+      description = generatePeopleGroupDescription({
+        name: peopleGroup.name,
+        descriptions: peopleGroup.descriptions,
+        metadata
+      }, languageCode)
+      population = metadata.imb_population ? parseInt(metadata.imb_population, 10) : null
 
-        // Look up labels from field options
-        const langCode = metadata.imb_reg_of_language
-        const religionCode = metadata.imb_reg_of_religion_3
-        const countryCode = metadata.imb_isoalpha3
+      const langCode = metadata.imb_reg_of_language
+      const religionCode = metadata.imb_reg_of_religion_3
+      const countryCode = metadata.imb_isoalpha3
 
-        language = langCode ? (getFieldOptionLabel('imb_reg_of_language', langCode, languageCode) || langCode) : null
-        religion = religionCode ? (getReligionLabel(religionCode, languageCode) || religionCode) : null
-        country = countryCode ? (getCountryLabel(countryCode, languageCode) || countryCode) : null
+      language = langCode ? (getFieldOptionLabel('imb_reg_of_language', langCode, languageCode) || langCode) : null
+      religion = religionCode ? (getReligionLabel(religionCode, languageCode) || religionCode) : null
+      country = countryCode ? (getCountryLabel(countryCode, languageCode) || countryCode) : null
 
-        // Extract coordinates
-        lat = metadata.imb_lat ? parseFloat(metadata.imb_lat) : null
-        lng = metadata.imb_lng ? parseFloat(metadata.imb_lng) : null
+      lat = metadata.imb_lat ? parseFloat(metadata.imb_lat) : null
+      lng = metadata.imb_lng ? parseFloat(metadata.imb_lng) : null
 
-        pictureCredit = metadata.picture_credit || null
-      } catch (e) {
-        // Ignore parse errors
-      }
+      pictureCredit = metadata.picture_credit || null
     }
 
     const now = new Date().toISOString()
@@ -461,9 +447,7 @@ export class PrayerContentService {
         content_date: date,
         language_code: languageCode,
         title: '', // Title handled via translation in frontend
-        content_json: typeof content.content_json === 'string'
-          ? content.content_json
-          : JSON.stringify(content.content_json),
+        content_json: content.content_json,
         content_type: 'static',
         created_at: now,
         updated_at: now

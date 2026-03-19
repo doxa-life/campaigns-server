@@ -6,7 +6,7 @@ interface PeopleGroupRecord {
   name: string
   slug: string | null
   image_url: string | null
-  metadata: string | null
+  metadata: Record<string, any> | null
   population: number | null
   country_code: string | null
   latitude: number | null
@@ -104,25 +104,15 @@ function getFieldValue(pg: PeopleGroupRecord, fieldKey: string): string | null {
   // Otherwise look in metadata
   if (!pg.metadata) return null
 
-  try {
-    const meta = typeof pg.metadata === 'string' ? JSON.parse(pg.metadata) : pg.metadata
-    const val = meta[fieldKey]
-    return val !== null && val !== undefined ? String(val) : null
-  } catch {
-    return null
-  }
+  const val = pg.metadata[fieldKey]
+  return val !== null && val !== undefined ? String(val) : null
 }
 
 /**
  * Parse metadata JSON safely
  */
-function parseMetadata(metadata: string | null): Record<string, unknown> {
-  if (!metadata) return {}
-  try {
-    return typeof metadata === 'string' ? JSON.parse(metadata) : metadata
-  } catch {
-    return {}
-  }
+function parseMetadata(metadata: Record<string, any> | null): Record<string, unknown> {
+  return metadata || {}
 }
 
 /**
