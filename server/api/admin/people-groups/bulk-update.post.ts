@@ -131,7 +131,7 @@ export default defineEventHandler(async (event) => {
       if (item.name !== undefined) { updateData.name = item.name; hasFields = true }
       if (item.image_url !== undefined) { updateData.image_url = item.image_url; hasFields = true }
       if (item.joshua_project_id !== undefined) { updateData.joshua_project_id = item.joshua_project_id; hasFields = true }
-      if (item.metadata !== undefined) { updateData.metadata = JSON.stringify(item.metadata); hasFields = true }
+      if (item.metadata !== undefined) { updateData.metadata = item.metadata; hasFields = true }
       if (item.country_code !== undefined) { updateData.country_code = item.country_code; hasFields = true }
       if (item.region !== undefined) { updateData.region = item.region; hasFields = true }
       if (item.latitude !== undefined) { updateData.latitude = item.latitude; hasFields = true }

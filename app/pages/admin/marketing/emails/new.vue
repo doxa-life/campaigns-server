@@ -223,7 +223,7 @@ async function saveEmail() {
       method: 'POST',
       body: {
         subject: form.value.subject,
-        content_json: JSON.stringify(form.value.content),
+        content_json: form.value.content,
         audience_type: form.value.audience_type,
         people_group_id: form.value.people_group_id
       }
@@ -259,7 +259,7 @@ async function sendEmail() {
       method: 'POST',
       body: {
         subject: form.value.subject,
-        content_json: JSON.stringify(form.value.content),
+        content_json: form.value.content,
         audience_type: form.value.audience_type,
         people_group_id: form.value.people_group_id
       }
@@ -301,7 +301,7 @@ async function previewEmail() {
       method: 'POST',
       body: {
         subject: form.value.subject,
-        content_json: JSON.stringify(form.value.content),
+        content_json: form.value.content,
         audience_type: form.value.audience_type || 'doxa',
         people_group_id: form.value.people_group_id
       }

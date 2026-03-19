@@ -1416,6 +1416,7 @@ onMounted(async () => {
 
 .change-to {
   font-weight: 500;
+  white-space: pre-line;
 }
 
 /* Profile Link Styles */

@@ -79,7 +79,7 @@ const mobileTabs = computed(() => [
 
 .desktop-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 1.5rem;
   height: 100%;
 }

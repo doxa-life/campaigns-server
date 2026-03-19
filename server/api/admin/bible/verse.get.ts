@@ -1,5 +1,5 @@
 import { parseReference, localizeReference } from '../../../../config/bible-books'
-import { fetchVerseText, isBollsBibleConfigured } from '#server/utils/app/bolls-bible'
+import { fetchVerseData, isBollsBibleConfigured } from '#server/utils/app/bolls-bible'
 import { getBibleId, getBibleLabel } from '~/utils/languages'
 
 /**
@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const text = await fetchVerseText({
+  const verses = await fetchVerseData({
     bibleId: bibleId!,
     bookId: parsed.bookId,
     chapter: parsed.chapter,
@@ -47,7 +47,8 @@ export default defineEventHandler(async (event) => {
 
   return {
     reference: localizeReference(parsed, 'en'),
-    text,
+    text: verses.map(v => v.text).join(' ').trim(),
+    verses,
     language,
     translation: getBibleLabel(language)
   }

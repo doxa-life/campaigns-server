@@ -61,27 +61,15 @@ export default defineEventHandler(async (event) => {
   // Get available languages for this date
   const availableLanguages = await prayerContentService.getAvailableLanguages(peopleGroup.id, date)
 
-  // Parse content_json for each content item
-  const parsedContent = allContent.map(content => {
-    let contentJson = content.content_json
-    if (typeof contentJson === 'string') {
-      try {
-        contentJson = JSON.parse(contentJson)
-      } catch (e) {
-        console.error('Failed to parse content_json:', e)
-      }
-    }
-
-    return {
-      id: content.id,
-      title: content.title,
-      language_code: content.language_code,
-      content_json: contentJson,
-      content_date: content.content_date,
-      content_type: content.content_type || 'static',
-      people_group_data: content.people_group_data || null
-    }
-  })
+  const parsedContent = allContent.map(content => ({
+    id: content.id,
+    title: content.title,
+    language_code: content.language_code,
+    content_json: content.content_json,
+    content_date: content.content_date,
+    content_type: content.content_type || 'static',
+    people_group_data: content.people_group_data || null
+  }))
 
   // Get global start date
   const globalStartDate = await appConfigService.getConfig<string>('global_campaign_start_date')

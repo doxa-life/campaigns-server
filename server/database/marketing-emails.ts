@@ -7,7 +7,7 @@ import { peopleGroupAccessService } from './people-group-access'
 export interface MarketingEmail {
   id: number
   subject: string
-  content_json: string
+  content_json: Record<string, any>
   audience_type: 'doxa' | 'people_group'
   people_group_id: number | null
   status: 'draft' | 'queued' | 'sending' | 'sent' | 'failed'
@@ -35,7 +35,7 @@ export interface MarketingEmailWithPeopleGroup extends MarketingEmail {
 
 export interface CreateMarketingEmailData {
   subject: string
-  content_json: string
+  content_json: Record<string, any>
   audience_type: 'doxa' | 'people_group'
   people_group_id?: number | null
   created_by: string
@@ -43,7 +43,7 @@ export interface CreateMarketingEmailData {
 
 export interface UpdateMarketingEmailData {
   subject?: string
-  content_json?: string
+  content_json?: Record<string, any>
   audience_type?: 'doxa' | 'people_group'
   people_group_id?: number | null
   updated_by: string

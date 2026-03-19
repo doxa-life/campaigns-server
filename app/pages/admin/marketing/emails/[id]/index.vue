@@ -307,7 +307,7 @@ async function loadEmail() {
         subject: response.email.subject,
         audience_type: response.email.audience_type,
         people_group_id: response.email.people_group_id ?? undefined,
-        content: JSON.parse(response.email.content_json)
+        content: response.email.content_json
       }
       originalForm.value = JSON.stringify(form.value)
 
@@ -367,7 +367,7 @@ async function saveEmail() {
       method: 'PUT',
       body: {
         subject: form.value.subject,
-        content_json: JSON.stringify(form.value.content),
+        content_json: form.value.content,
         audience_type: form.value.audience_type,
         people_group_id: form.value.people_group_id
       }
@@ -404,7 +404,7 @@ async function sendEmail() {
       method: 'PUT',
       body: {
         subject: form.value.subject,
-        content_json: JSON.stringify(form.value.content),
+        content_json: form.value.content,
         audience_type: form.value.audience_type,
         people_group_id: form.value.people_group_id
       }
@@ -446,7 +446,7 @@ async function previewEmail() {
       method: 'PUT',
       body: {
         subject: form.value.subject,
-        content_json: JSON.stringify(form.value.content),
+        content_json: form.value.content,
         audience_type: form.value.audience_type || 'doxa',
         people_group_id: form.value.people_group_id
       }
