@@ -41,7 +41,7 @@ export interface CreateMarketingEmailData {
 
 export interface UpdateMarketingEmailData {
   subject?: string
-  content_json?: string
+  content_json?: Record<string, any>
   audience_type?: 'doxa' | 'people_group'
   people_group_id?: number | null
   updated_by: string

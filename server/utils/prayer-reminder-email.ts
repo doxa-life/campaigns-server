@@ -115,42 +115,6 @@ function escapeHtml(text: string): string {
     .replace(/'/g, '&#039;')
 }
 
-/**
- * Convert Tiptap JSON content to plain text for email.
- */
-function tiptapToText(contentJson: string | null): string {
-  if (!contentJson) return ''
-
-  try {
-    const doc = JSON.parse(contentJson)
-    if (!doc || !doc.content) return ''
-
-    return extractText(doc.content).trim()
-  } catch {
-    return ''
-  }
-}
-
-function extractText(nodes: any[]): string {
-  return nodes.map(node => {
-    if (node.type === 'text') {
-      return node.text || ''
-    }
-    if (node.content) {
-      const text = extractText(node.content)
-      // Add newlines for block elements
-      if (['paragraph', 'heading', 'listItem', 'blockquote'].includes(node.type)) {
-        return text + '\n'
-      }
-      return text
-    }
-    if (node.type === 'hardBreak') {
-      return '\n'
-    }
-    return ''
-  }).join('')
-}
-
 export async function sendPrayerReminderEmail(data: PrayerReminderEmailData): Promise<boolean> {
   const config = useRuntimeConfig()
   const baseUrl = config.public.siteUrl || 'http://localhost:3000'
