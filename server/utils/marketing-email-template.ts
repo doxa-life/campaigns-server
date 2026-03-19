@@ -3,17 +3,9 @@ import { t } from './translations'
 /**
  * Convert Tiptap JSON content to plain HTML for email.
  */
-export function tiptapToHtml(contentJson: string | null): string {
-  if (!contentJson) return ''
-
-  try {
-    const doc = JSON.parse(contentJson)
-    if (!doc || !doc.content) return ''
-
-    return renderNodes(doc.content)
-  } catch {
-    return ''
-  }
+export function tiptapToHtml(contentJson: Record<string, any> | null): string {
+  if (!contentJson || !contentJson.content) return ''
+  return renderNodes(contentJson.content)
 }
 
 function renderNodes(nodes: any[]): string {
@@ -132,17 +124,9 @@ function escapeHtml(text: string): string {
 /**
  * Convert Tiptap JSON content to plain text for email.
  */
-export function tiptapToText(contentJson: string | null): string {
-  if (!contentJson) return ''
-
-  try {
-    const doc = JSON.parse(contentJson)
-    if (!doc || !doc.content) return ''
-
-    return extractText(doc.content).trim()
-  } catch {
-    return ''
-  }
+export function tiptapToText(contentJson: Record<string, any> | null): string {
+  if (!contentJson || !contentJson.content) return ''
+  return extractText(contentJson.content).trim()
 }
 
 function extractText(nodes: any[]): string {
@@ -168,7 +152,7 @@ function extractText(nodes: any[]): string {
  * Render a complete marketing email HTML with header and footer.
  */
 export function renderMarketingEmailHtml(
-  contentJson: string,
+  contentJson: Record<string, any>,
   peopleGroupName?: string,
   unsubscribeUrl?: string,
   locale: string = 'en'

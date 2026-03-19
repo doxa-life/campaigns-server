@@ -1,3 +1,4 @@
+// @ts-expect-error - postgres module uses export= syntax
 import postgres from 'postgres'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -62,7 +63,6 @@ export async function cleanupTestData(sql: ReturnType<typeof postgres>) {
   await sql`DELETE FROM contact_methods WHERE subscriber_id IN (SELECT id FROM subscribers WHERE name LIKE 'Test %')`
 
   // Clean other tables with people_group_id FK
-  await sql`DELETE FROM prayer_content WHERE people_group_id IN (SELECT id FROM people_groups WHERE slug LIKE 'test-%')`
   await sql`DELETE FROM prayer_activity WHERE people_group_id IN (SELECT id FROM people_groups WHERE slug LIKE 'test-%')`
   await sql`DELETE FROM marketing_emails WHERE people_group_id IN (SELECT id FROM people_groups WHERE slug LIKE 'test-%')`
 
@@ -501,7 +501,7 @@ export async function createTestLibraryContent(
 
   const result = await sql`
     INSERT INTO library_content (library_id, day_number, language_code, content_json)
-    VALUES (${libraryId}, ${day_number}, ${language_code}, ${JSON.stringify(content_json)})
+    VALUES (${libraryId}, ${day_number}, ${language_code}, ${sql.json(content_json)})
     RETURNING id, library_id, day_number, language_code, content_json
   `
 

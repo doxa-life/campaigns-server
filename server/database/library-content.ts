@@ -10,31 +10,6 @@ export interface LibraryContent {
   updated_at: string
 }
 
-// Internal type for raw database rows
-interface LibraryContentRow {
-  id: number
-  library_id: number
-  day_number: number
-  language_code: string
-  content_json: string | null
-  created_at: string
-  updated_at: string
-}
-
-// Parse content_json from database string to object
-function parseContentRow(row: LibraryContentRow | null): LibraryContent | null {
-  if (!row) return null
-  return {
-    ...row,
-    content_json: row.content_json ? JSON.parse(row.content_json) : null
-  }
-}
-
-// Stringify content_json for database storage
-function stringifyContentJson(content: Record<string, any> | string | null): string | null {
-  if (!content) return null
-  return typeof content === 'string' ? content : JSON.stringify(content)
-}
 
 export interface CreateLibraryContentData {
   library_id: number
@@ -61,15 +36,13 @@ export class LibraryContentService {
       content_json = null
     } = data
 
-    const contentJsonString = stringifyContentJson(content_json)
-
     const stmt = this.db.prepare(`
       INSERT INTO library_content (library_id, day_number, language_code, content_json)
       VALUES (?, ?, ?, ?)
     `)
 
     try {
-      const result = await stmt.run(library_id, day_number, language_code, contentJsonString)
+      const result = await stmt.run(library_id, day_number, language_code, content_json)
       const contentId = result.lastInsertRowid as number
 
       return (await this.getLibraryContentById(contentId))!
@@ -86,8 +59,7 @@ export class LibraryContentService {
     const contentStmt = this.db.prepare(`
       SELECT * FROM library_content WHERE id = ?
     `)
-    const row = await contentStmt.get(id) as LibraryContentRow | null
-    return parseContentRow(row)
+    return await contentStmt.get(id) as LibraryContent | null
   }
 
   // Get library content by day and language
@@ -95,8 +67,7 @@ export class LibraryContentService {
     const contentStmt = this.db.prepare(`
       SELECT * FROM library_content WHERE library_id = ? AND day_number = ? AND language_code = ?
     `)
-    const row = await contentStmt.get(libraryId, dayNumber, languageCode) as LibraryContentRow | null
-    return parseContentRow(row)
+    return await contentStmt.get(libraryId, dayNumber, languageCode) as LibraryContent | null
   }
 
   // Get all languages available for a specific library and day
@@ -151,9 +122,7 @@ export class LibraryContentService {
     }
 
     const stmt = this.db.prepare(query)
-    const rows = await stmt.all(...params) as LibraryContentRow[]
-
-    return rows.map(row => parseContentRow(row)!)
+    return await stmt.all(...params) as LibraryContent[]
   }
 
   // Get library content grouped by day with language information
@@ -247,7 +216,7 @@ export class LibraryContentService {
 
     if (data.content_json !== undefined) {
       updates.push('content_json = ?')
-      values.push(stringifyContentJson(data.content_json))
+      values.push(data.content_json)
     }
 
     if (data.day_number !== undefined) {
@@ -317,17 +286,11 @@ export class LibraryContentService {
       WHERE library_id = ?
       ORDER BY day_number ASC, language_code ASC
     `)
-    const rows = await stmt.all(libraryId) as Array<{
+    return await stmt.all(libraryId) as Array<{
       day_number: number
       language_code: string
-      content_json: string | null
+      content_json: Record<string, any> | null
     }>
-
-    return rows.map(row => ({
-      day_number: row.day_number,
-      language_code: row.language_code,
-      content_json: row.content_json ? JSON.parse(row.content_json) : null
-    }))
   }
 
   // Bulk create content for import
@@ -352,13 +315,12 @@ export class LibraryContentService {
 
       for (const item of batch) {
         try {
-          const contentJsonString = stringifyContentJson(item.content_json)
           const stmt = database.prepare(`
             INSERT INTO library_content (library_id, day_number, language_code, content_json)
             VALUES (?, ?, ?, ?)
             ON CONFLICT (library_id, day_number, language_code) DO NOTHING
           `)
-          const result = await stmt.run(libraryId, item.day_number, item.language_code, contentJsonString)
+          const result = await stmt.run(libraryId, item.day_number, item.language_code, item.content_json)
           if (result.changes > 0) {
             inserted++
           } else {
@@ -392,7 +354,7 @@ export class LibraryContentService {
         library_id: libraryId,
         day_number: item.day_number,
         language_code: item.language_code,
-        content_json: stringifyContentJson(item.content_json),
+        content_json: item.content_json,
       }))
 
       const result = await raw`

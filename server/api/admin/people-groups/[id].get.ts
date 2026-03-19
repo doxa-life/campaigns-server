@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   return {
     peopleGroup: {
       ...peopleGroup,
-      metadata: peopleGroup.metadata ? JSON.parse(peopleGroup.metadata) : {}
+      metadata: peopleGroup.metadata || {}
     },
     adoptions
   }

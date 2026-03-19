@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
   }
 
   if (body.metadata !== undefined) {
-    updateData.metadata = JSON.stringify(body.metadata)
+    updateData.metadata = body.metadata
   }
 
   // Handle normalized columns
@@ -114,9 +114,7 @@ export default defineEventHandler(async (event) => {
     }
   }
   if (body.metadata !== undefined) {
-    const oldMeta: Record<string, any> = oldRecord.metadata
-      ? (typeof oldRecord.metadata === 'string' ? JSON.parse(oldRecord.metadata) : oldRecord.metadata)
-      : {}
+    const oldMeta: Record<string, any> = oldRecord.metadata || {}
     const newMeta = body.metadata || {}
     const allKeys = new Set([...Object.keys(oldMeta), ...Object.keys(newMeta)])
     for (const key of allKeys) {
@@ -126,9 +124,7 @@ export default defineEventHandler(async (event) => {
     }
   }
   if (body.descriptions !== undefined) {
-    const oldDescs: Record<string, string> = oldRecord.descriptions
-      ? (typeof oldRecord.descriptions === 'string' ? JSON.parse(oldRecord.descriptions) : oldRecord.descriptions)
-      : {}
+    const oldDescs: Record<string, string> = oldRecord.descriptions || {}
     const newDescs = body.descriptions || {}
     const descKeys = new Set([...Object.keys(oldDescs), ...Object.keys(newDescs)])
     for (const lang of descKeys) {
@@ -144,8 +140,8 @@ export default defineEventHandler(async (event) => {
   return {
     peopleGroup: {
       ...updated,
-      metadata: updated.metadata ? JSON.parse(updated.metadata) : {},
-      descriptions: updated.descriptions ? (typeof updated.descriptions === 'string' ? JSON.parse(updated.descriptions) : updated.descriptions) : {}
+      metadata: updated.metadata || {},
+      descriptions: updated.descriptions || {}
     }
   }
 })

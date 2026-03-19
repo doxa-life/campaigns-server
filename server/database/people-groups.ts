@@ -8,7 +8,7 @@ export interface PeopleGroup {
   name: string
   slug: string | null
   image_url: string | null
-  metadata: string | null
+  metadata: Record<string, any> | null
   random_order: number | null
   people_praying: number
   daily_prayer_duration: number
@@ -30,7 +30,7 @@ export interface PeopleGroup {
 export interface CreatePeopleGroupData {
   name: string
   image_url?: string | null
-  metadata?: string | null
+  metadata?: Record<string, any> | null
 }
 
 export interface UpdatePeopleGroupData {
@@ -38,7 +38,7 @@ export interface UpdatePeopleGroupData {
   name?: string
   slug?: string
   image_url?: string | null
-  metadata?: string | null
+  metadata?: Record<string, any> | null
   people_praying?: number
   daily_prayer_duration?: number
   // Normalized columns

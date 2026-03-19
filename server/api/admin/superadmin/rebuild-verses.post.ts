@@ -50,7 +50,7 @@ export default defineEventHandler(async (event) => {
 
     // Query all library_content rows for selected languages with non-null content
     const placeholders = languages.map((_, i) => `$${i + 1}`).join(', ')
-    const rows: Array<{ id: number; language_code: string; content_json: string }> = await db.rawSql.unsafe(
+    const rows: Array<{ id: number; language_code: string; content_json: Record<string, any> }> = await db.rawSql.unsafe(
       `SELECT id, language_code, content_json
        FROM library_content
        WHERE language_code IN (${placeholders})
@@ -71,10 +71,10 @@ export default defineEventHandler(async (event) => {
     const allWarnings: VerseWarning[] = []
 
     for (let i = 0; i < rows.length; i++) {
-      const row = rows[i] as { id: number; language_code: string; content_json: string }
+      const row = rows[i] as { id: number; language_code: string; content_json: Record<string, any> }
 
       try {
-        const originalJson = row.content_json
+        const originalJson = JSON.stringify(row.content_json)
         const doc: TiptapNode = JSON.parse(originalJson)
         const warnings: VerseWarning[] = []
 
@@ -87,9 +87,10 @@ export default defineEventHandler(async (event) => {
           const versesInDoc = countVerseNodes(doc)
           stats.versesRebuilt += versesInDoc
 
-          await db.rawSql`
+          const raw = db.rawSql
+          await raw`
             UPDATE library_content
-            SET content_json = ${newJson},
+            SET content_json = ${raw.json(doc as any)},
                 updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
             WHERE id = ${row.id}
           `
