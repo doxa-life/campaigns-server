@@ -16,6 +16,7 @@ This project consumes the base layer: https://github.com/corsacca/nuxt-base
 - **Never use `alert()` or `confirm()`** - Use toasts and modals instead
 - **Reference `documentation/nuxt-ui-modals.md`** when building modals
 - **Use Nuxt UI components** - See https://ui.nuxt.com/llms.txt for documentation
+- **Type-check after editing `.ts`/`.vue` files** — Run `npx nuxi typecheck` to catch type errors you introduced. Fix any you caused; do not fix pre-existing ones unless asked.
 
 ## Nuxt Routing Rules (CRITICAL)
 
@@ -245,6 +246,18 @@ await doAction('record.delete', 'subscriber', id)
 
 **Current hooks**:
 - `record.delete(recordType, recordId)` — fired before a record is deleted. Used by comments cleanup.
+
+## Record Types (CRM Pattern)
+
+Three record types share the CRM list/detail slideover pattern with comments and activity logging:
+
+- **People Groups** — `people_groups` table, pages at `/admin/people-groups/`, components use `record_type: "people_group"`, `table_name: "people_groups"`
+- **Groups** — `groups` table, pages at `/admin/groups/`, components use `record_type: "group"`, `table_name: "groups"`
+- **Subscribers** — `subscribers` table, pages at `/admin/subscribers/`, components use `record_type: "subscriber"`, `table_name: "subscribers"`
+
+All three use: `CrmLayout`, `CrmDetailPanel` with side tabs, `RecordComments`, `RecordActivity`.
+
+**When making UI or API changes to one record type, verify the change applies correctly to all three.** They share components in `app/components/crm/` — a fix to one often needs the same fix on the others.
 
 ## Documentation
 
