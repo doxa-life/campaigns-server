@@ -1,4 +1,4 @@
-import { getDatabase } from '../../../database/db'
+import { getSql } from '../../../database/db'
 import { formatPeopleGroupForDetail } from '../../../utils/app/people-group-formatter'
 import { allFields } from '../../../utils/app/field-options'
 
@@ -18,13 +18,12 @@ function flattenValue(val: unknown): string {
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
-  const db = getDatabase()
-  const stmt = db.prepare(`
+  const sql = getSql()
+  const peopleGroups = await sql`
     SELECT pg.*
     FROM people_groups pg
     ORDER BY pg.name
-  `)
-  const peopleGroups = await stmt.all() as any[]
+  ` as any[]
 
   const fields = ['id', 'name', 'slug', ...allFields.map(f => f.key)]
 

@@ -1,4 +1,4 @@
-import { getDatabase } from './db'
+import { getSql } from './db'
 
 export interface PeopleGroupAccess {
   people_group_id: number
@@ -7,49 +7,45 @@ export interface PeopleGroupAccess {
 }
 
 export class PeopleGroupAccessService {
-  private db = getDatabase()
+  private sql = getSql()
 
   async assignUserToPeopleGroup(userId: string, peopleGroupId: number): Promise<void> {
-    const stmt = this.db.prepare(`
+    await this.sql`
       INSERT INTO campaign_users (user_id, people_group_id)
-      VALUES (?, ?)
+      VALUES (${userId}, ${peopleGroupId})
       ON CONFLICT DO NOTHING
-    `)
-    await stmt.run(userId, peopleGroupId)
+    `
   }
 
   async removeUserFromPeopleGroup(userId: string, peopleGroupId: number): Promise<void> {
-    const stmt = this.db.prepare('DELETE FROM campaign_users WHERE user_id = ? AND people_group_id = ?')
-    await stmt.run(userId, peopleGroupId)
+    await this.sql`DELETE FROM campaign_users WHERE user_id = ${userId} AND people_group_id = ${peopleGroupId}`
   }
 
   async userHasAccess(userId: string, peopleGroupId: number): Promise<boolean> {
-    const stmt = this.db.prepare(`
+    const [row] = await this.sql`
       SELECT 1 FROM campaign_users
-      WHERE user_id = ? AND people_group_id = ?
+      WHERE user_id = ${userId} AND people_group_id = ${peopleGroupId}
       LIMIT 1
-    `)
-    return !!(await stmt.get(userId, peopleGroupId))
+    `
+    return !!row
   }
 
   async getUserPeopleGroups(userId: string): Promise<number[]> {
-    const stmt = this.db.prepare(`
+    const results = await this.sql`
       SELECT people_group_id FROM campaign_users
-      WHERE user_id = ?
+      WHERE user_id = ${userId}
       ORDER BY created_at DESC
-    `)
-    const results = await stmt.all(userId) as Array<{ people_group_id: number }>
-    return results.map(r => r.people_group_id)
+    `
+    return results.map((r: any) => r.people_group_id)
   }
 
   async getPeopleGroupUsers(peopleGroupId: number): Promise<string[]> {
-    const stmt = this.db.prepare(`
+    const results = await this.sql`
       SELECT user_id FROM campaign_users
-      WHERE people_group_id = ?
+      WHERE people_group_id = ${peopleGroupId}
       ORDER BY created_at DESC
-    `)
-    const results = await stmt.all(peopleGroupId) as Array<{ user_id: string }>
-    return results.map(r => r.user_id)
+    `
+    return results.map((r: any) => r.user_id)
   }
 
   async assignUsersToPeopleGroup(userIds: string[], peopleGroupId: number): Promise<void> {
@@ -65,24 +61,20 @@ export class PeopleGroupAccessService {
   }
 
   async removeAllUsersFromPeopleGroup(peopleGroupId: number): Promise<void> {
-    const stmt = this.db.prepare('DELETE FROM campaign_users WHERE people_group_id = ?')
-    await stmt.run(peopleGroupId)
+    await this.sql`DELETE FROM campaign_users WHERE people_group_id = ${peopleGroupId}`
   }
 
   async removeUserFromAllPeopleGroups(userId: string): Promise<void> {
-    const stmt = this.db.prepare('DELETE FROM campaign_users WHERE user_id = ?')
-    await stmt.run(userId)
+    await this.sql`DELETE FROM campaign_users WHERE user_id = ${userId}`
   }
 
   async getUserPeopleGroupCount(userId: string): Promise<number> {
-    const stmt = this.db.prepare('SELECT COUNT(*) as count FROM campaign_users WHERE user_id = ?')
-    const result = await stmt.get(userId) as { count: number }
+    const [result] = await this.sql`SELECT COUNT(*) as count FROM campaign_users WHERE user_id = ${userId}`
     return result.count
   }
 
   async getPeopleGroupUserCount(peopleGroupId: number): Promise<number> {
-    const stmt = this.db.prepare('SELECT COUNT(*) as count FROM campaign_users WHERE people_group_id = ?')
-    const result = await stmt.get(peopleGroupId) as { count: number }
+    const [result] = await this.sql`SELECT COUNT(*) as count FROM campaign_users WHERE people_group_id = ${peopleGroupId}`
     return result.count
   }
 }

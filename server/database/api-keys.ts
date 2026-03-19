@@ -1,4 +1,4 @@
-import { getDatabase } from './db'
+import { getSql } from './db'
 import { randomBytes, createHash, timingSafeEqual } from 'crypto'
 
 const KEY_PREFIX = 'dxk_'
@@ -24,10 +24,10 @@ function sha256(input: string): string {
 }
 
 export class ApiKeyService {
-  private db = getDatabase()
+  private sql = getSql()
 
   generateKey(): { key: string; keyPrefix: string; keyHash: string } {
-    const raw = randomBytes(20).toString('hex') // 40 hex chars
+    const raw = randomBytes(20).toString('hex')
     const key = `${KEY_PREFIX}${raw}`
     const keyPrefix = key.substring(0, 8)
     const keyHash = sha256(key)
@@ -37,40 +37,30 @@ export class ApiKeyService {
   async createApiKey(userId: string, name: string): Promise<{ apiKey: ApiKey; plaintextKey: string }> {
     const { key, keyPrefix, keyHash } = this.generateKey()
 
-    const stmt = this.db.prepare(`
+    const [apiKey] = await this.sql`
       INSERT INTO api_keys (user_id, name, key_hash, key_prefix)
-      VALUES (?, ?, ?, ?)
-    `)
-
-    const result = await stmt.run(userId, name, keyHash, keyPrefix)
-
-    const apiKey = await this.db.prepare(`
-      SELECT id, user_id, name, key_prefix, created_at, last_used_at, revoked_at
-      FROM api_keys WHERE id = ?
-    `).get(result.lastInsertRowid)
+      VALUES (${userId}, ${name}, ${keyHash}, ${keyPrefix})
+      RETURNING id, user_id, name, key_prefix, created_at, last_used_at, revoked_at
+    `
 
     return { apiKey: apiKey as ApiKey, plaintextKey: key }
   }
 
   async getUserApiKeys(userId: string): Promise<ApiKey[]> {
-    const stmt = this.db.prepare(`
+    return await this.sql`
       SELECT id, user_id, name, key_prefix, created_at, last_used_at, revoked_at
       FROM api_keys
-      WHERE user_id = ? AND revoked_at IS NULL
+      WHERE user_id = ${userId} AND revoked_at IS NULL
       ORDER BY created_at DESC
-    `)
-
-    return await stmt.all(userId) as ApiKey[]
+    `
   }
 
   async findActiveKeysByPrefix(prefix: string): Promise<ApiKeyCandidate[]> {
-    const stmt = this.db.prepare(`
+    return await this.sql`
       SELECT id, user_id, key_hash
       FROM api_keys
-      WHERE key_prefix = ? AND revoked_at IS NULL
-    `)
-
-    return await stmt.all(prefix) as ApiKeyCandidate[]
+      WHERE key_prefix = ${prefix} AND revoked_at IS NULL
+    `
   }
 
   verifyKey(rawKey: string, keyHash: string): boolean {
@@ -81,21 +71,18 @@ export class ApiKeyService {
   }
 
   async updateLastUsed(id: number): Promise<void> {
-    const stmt = this.db.prepare(`
+    await this.sql`
       UPDATE api_keys SET last_used_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
-      WHERE id = ?
-    `)
-    await stmt.run(id)
+      WHERE id = ${id}
+    `
   }
 
   async revokeApiKey(id: number, userId: string): Promise<boolean> {
-    const stmt = this.db.prepare(`
+    const result = await this.sql`
       UPDATE api_keys SET revoked_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
-      WHERE id = ? AND user_id = ? AND revoked_at IS NULL
-    `)
-
-    const result = await stmt.run(id, userId)
-    return result.changes > 0
+      WHERE id = ${id} AND user_id = ${userId} AND revoked_at IS NULL
+    `
+    return result.count > 0
   }
 }
 

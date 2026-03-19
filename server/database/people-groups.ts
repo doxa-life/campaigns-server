@@ -1,4 +1,6 @@
-import { getDatabase } from './db'
+import type { Sql } from 'postgres'
+import { getSql } from './db'
+import { buildSet } from './sql-helpers'
 import { roleService } from './roles'
 import { peopleGroupAccessService } from './people-group-access'
 
@@ -12,7 +14,6 @@ export interface PeopleGroup {
   random_order: number | null
   people_praying: number
   daily_prayer_duration: number
-  // Normalized columns
   country_code: string | null
   region: string | null
   latitude: number | null
@@ -41,7 +42,6 @@ export interface UpdatePeopleGroupData {
   metadata?: Record<string, any> | null
   people_praying?: number
   daily_prayer_duration?: number
-  // Normalized columns
   country_code?: string | null
   region?: string | null
   latitude?: number | null
@@ -55,47 +55,32 @@ export interface UpdatePeopleGroupData {
 }
 
 export class PeopleGroupService {
-  private db = getDatabase()
+  private sql = getSql()
 
   async createPeopleGroup(data: CreatePeopleGroupData): Promise<PeopleGroup> {
     const { name, image_url = null, metadata = null } = data
 
-    const stmt = this.db.prepare(`
+    const [row] = await this.sql`
       INSERT INTO people_groups (name, image_url, metadata)
-      VALUES (?, ?, ?)
-    `)
-
-    try {
-      const result = await stmt.run(name, image_url, metadata)
-      const id = result.lastInsertRowid as number
-      return (await this.getPeopleGroupById(id))!
-    } catch (error: any) {
-      throw error
-    }
+      VALUES (${name}, ${image_url}, ${metadata})
+      RETURNING *
+    `
+    return row
   }
 
   async getPeopleGroupById(id: number): Promise<PeopleGroup | null> {
-    const stmt = this.db.prepare(`
-      SELECT * FROM people_groups WHERE id = ?
-    `)
-    const peopleGroup = await stmt.get(id) as PeopleGroup | null
-    return peopleGroup
+    const [row] = await this.sql`SELECT * FROM people_groups WHERE id = ${id}`
+    return row || null
   }
 
   async getPeopleGroupByRandomOrder(randomOrder: number): Promise<PeopleGroup | null> {
-    const stmt = this.db.prepare(`
-      SELECT * FROM people_groups WHERE random_order = ?
-    `)
-    const peopleGroup = await stmt.get(randomOrder) as PeopleGroup | null
-    return peopleGroup
+    const [row] = await this.sql`SELECT * FROM people_groups WHERE random_order = ${randomOrder}`
+    return row || null
   }
 
   async getPeopleGroupBySlug(slug: string): Promise<PeopleGroup | null> {
-    const stmt = this.db.prepare(`
-      SELECT * FROM people_groups WHERE slug = ?
-    `)
-    const peopleGroup = await stmt.get(slug) as PeopleGroup | null
-    return peopleGroup
+    const [row] = await this.sql`SELECT * FROM people_groups WHERE slug = ${slug}`
+    return row || null
   }
 
   async getAllPeopleGroups(options?: {
@@ -103,146 +88,76 @@ export class PeopleGroupService {
     limit?: number
     offset?: number
   }): Promise<PeopleGroup[]> {
-    let query = `SELECT * FROM people_groups`
-    const params: any[] = []
+    const search = options?.search ? `%${options.search}%` : null
+    const limit = options?.limit || null
+    const offset = options?.offset || null
 
-    if (options?.search) {
-      query += ' WHERE name ILIKE ?'
-      params.push(`%${options.search}%`)
+    if (search && limit) {
+      return await this.sql`
+        SELECT * FROM people_groups
+        WHERE name ILIKE ${search}
+        ORDER BY name
+        LIMIT ${limit} OFFSET ${offset || 0}
+      `
     }
-
-    query += ' ORDER BY name'
-
-    if (options?.limit) {
-      query += ' LIMIT ?'
-      params.push(options.limit)
-
-      if (options?.offset) {
-        query += ' OFFSET ?'
-        params.push(options.offset)
-      }
+    if (search) {
+      return await this.sql`
+        SELECT * FROM people_groups
+        WHERE name ILIKE ${search}
+        ORDER BY name
+      `
     }
-
-    const stmt = this.db.prepare(query)
-    const peopleGroups = await stmt.all(...params) as PeopleGroup[]
-    return peopleGroups
+    if (limit) {
+      return await this.sql`
+        SELECT * FROM people_groups
+        ORDER BY name
+        LIMIT ${limit} OFFSET ${offset || 0}
+      `
+    }
+    return await this.sql`SELECT * FROM people_groups ORDER BY name`
   }
 
   async updatePeopleGroup(id: number, data: UpdatePeopleGroupData): Promise<PeopleGroup | null> {
     const peopleGroup = await this.getPeopleGroupById(id)
-    if (!peopleGroup) {
-      return null
-    }
-
-    const updates: string[] = []
-    const values: any[] = []
-
-    if (data.joshua_project_id !== undefined) {
-      updates.push('joshua_project_id = ?')
-      values.push(data.joshua_project_id)
-    }
-
-    if (data.name !== undefined) {
-      updates.push('name = ?')
-      values.push(data.name)
-    }
+    if (!peopleGroup) return null
 
     if (data.slug !== undefined) {
       if (!(await this.isSlugUnique(data.slug, id))) {
         throw new Error('Slug already exists')
       }
-      updates.push('slug = ?')
-      values.push(data.slug)
     }
 
-    if (data.image_url !== undefined) {
-      updates.push('image_url = ?')
-      values.push(data.image_url)
-    }
+    const fields: ReturnType<typeof this.sql>[] = []
 
-    if (data.metadata !== undefined) {
-      updates.push('metadata = ?')
-      values.push(data.metadata)
-    }
-
-    if (data.people_praying !== undefined) {
-      updates.push('people_praying = ?')
-      values.push(data.people_praying)
-    }
-
-    if (data.daily_prayer_duration !== undefined) {
-      updates.push('daily_prayer_duration = ?')
-      values.push(data.daily_prayer_duration)
-    }
-
-    // Normalized columns
-    if (data.country_code !== undefined) {
-      updates.push('country_code = ?')
-      values.push(data.country_code)
-    }
-
-    if (data.region !== undefined) {
-      updates.push('region = ?')
-      values.push(data.region)
-    }
-
-    if (data.latitude !== undefined) {
-      updates.push('latitude = ?')
-      values.push(data.latitude)
-    }
-
-    if (data.longitude !== undefined) {
-      updates.push('longitude = ?')
-      values.push(data.longitude)
-    }
-
-    if (data.population !== undefined) {
-      updates.push('population = ?')
-      values.push(data.population)
-    }
-
-    if (data.evangelical_pct !== undefined) {
-      updates.push('evangelical_pct = ?')
-      values.push(data.evangelical_pct)
-    }
-
-    if (data.engagement_status !== undefined) {
-      updates.push('engagement_status = ?')
-      values.push(data.engagement_status)
-    }
-
-    if (data.primary_religion !== undefined) {
-      updates.push('primary_religion = ?')
-      values.push(data.primary_religion)
-    }
-
-    if (data.primary_language !== undefined) {
-      updates.push('primary_language = ?')
-      values.push(data.primary_language)
-    }
-
+    if (data.joshua_project_id !== undefined) fields.push(this.sql`joshua_project_id = ${data.joshua_project_id}`)
+    if (data.name !== undefined) fields.push(this.sql`name = ${data.name}`)
+    if (data.slug !== undefined) fields.push(this.sql`slug = ${data.slug}`)
+    if (data.image_url !== undefined) fields.push(this.sql`image_url = ${data.image_url}`)
+    if (data.metadata !== undefined) fields.push(this.sql`metadata = ${data.metadata}`)
+    if (data.people_praying !== undefined) fields.push(this.sql`people_praying = ${data.people_praying}`)
+    if (data.daily_prayer_duration !== undefined) fields.push(this.sql`daily_prayer_duration = ${data.daily_prayer_duration}`)
+    if (data.country_code !== undefined) fields.push(this.sql`country_code = ${data.country_code}`)
+    if (data.region !== undefined) fields.push(this.sql`region = ${data.region}`)
+    if (data.latitude !== undefined) fields.push(this.sql`latitude = ${data.latitude}`)
+    if (data.longitude !== undefined) fields.push(this.sql`longitude = ${data.longitude}`)
+    if (data.population !== undefined) fields.push(this.sql`population = ${data.population}`)
+    if (data.evangelical_pct !== undefined) fields.push(this.sql`evangelical_pct = ${data.evangelical_pct}`)
+    if (data.engagement_status !== undefined) fields.push(this.sql`engagement_status = ${data.engagement_status}`)
+    if (data.primary_religion !== undefined) fields.push(this.sql`primary_religion = ${data.primary_religion}`)
+    if (data.primary_language !== undefined) fields.push(this.sql`primary_language = ${data.primary_language}`)
     if (data.descriptions !== undefined) {
-      updates.push('descriptions = ?')
       const desc = typeof data.descriptions === 'string'
         ? JSON.parse(data.descriptions)
         : data.descriptions
-      values.push(desc)
+      fields.push(this.sql`descriptions = ${this.sql.json(desc)}`)
     }
 
-    if (updates.length === 0) {
-      return peopleGroup
-    }
+    if (fields.length === 0) return peopleGroup
 
-    updates.push("updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'")
-    values.push(id)
-
-    const stmt = this.db.prepare(`
-      UPDATE people_groups SET ${updates.join(', ')}
-      WHERE id = ?
-    `)
+    fields.push(this.sql`updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'`)
 
     try {
-      await stmt.run(...values)
+      await this.sql`UPDATE people_groups SET ${buildSet(this.sql, fields)} WHERE id = ${id}`
       return this.getPeopleGroupById(id)
     } catch (error: any) {
       if (error.code === '23505') {
@@ -253,22 +168,16 @@ export class PeopleGroupService {
   }
 
   async deletePeopleGroup(id: number): Promise<boolean> {
-    const stmt = this.db.prepare('DELETE FROM people_groups WHERE id = ?')
-    const result = await stmt.run(id)
-    return result.changes > 0
+    const result = await this.sql`DELETE FROM people_groups WHERE id = ${id}`
+    return result.count > 0
   }
 
   async countPeopleGroups(search?: string): Promise<number> {
-    let query = 'SELECT COUNT(*) as count FROM people_groups'
-    const params: any[] = []
-
     if (search) {
-      query += ' WHERE name ILIKE ?'
-      params.push(`%${search}%`)
+      const [result] = await this.sql`SELECT COUNT(*) as count FROM people_groups WHERE name ILIKE ${`%${search}%`}`
+      return Number(result.count)
     }
-
-    const stmt = this.db.prepare(query)
-    const result = await stmt.get(...params) as { count: string | number }
+    const [result] = await this.sql`SELECT COUNT(*) as count FROM people_groups`
     return Number(result.count)
   }
 
@@ -282,10 +191,11 @@ export class PeopleGroupService {
   }
 
   async isSlugUnique(slug: string, excludeId?: number): Promise<boolean> {
-    const stmt = this.db.prepare(`
-      SELECT id FROM people_groups WHERE slug = ? ${excludeId ? 'AND id != ?' : ''}
-    `)
-    const result = excludeId ? await stmt.get(slug, excludeId) : await stmt.get(slug)
+    if (excludeId) {
+      const [result] = await this.sql`SELECT id FROM people_groups WHERE slug = ${slug} AND id != ${excludeId}`
+      return !result
+    }
+    const [result] = await this.sql`SELECT id FROM people_groups WHERE slug = ${slug}`
     return !result
   }
 
@@ -303,39 +213,30 @@ export class PeopleGroupService {
 
   async userCanAccessPeopleGroup(userId: string, peopleGroupId: number): Promise<boolean> {
     const isAdmin = await roleService.isAdmin(userId)
-    if (isAdmin) {
-      return true
-    }
+    if (isAdmin) return true
     return await peopleGroupAccessService.userHasAccess(userId, peopleGroupId)
   }
 
   async getRemainingUnadoptedCount(): Promise<number> {
-    const [totalRow, adoptedRow] = await Promise.all([
-      this.db.prepare('SELECT COUNT(*) as count FROM people_groups').get() as Promise<{ count: string | number }>,
-      this.db.prepare("SELECT COUNT(DISTINCT people_group_id) as count FROM people_group_adoptions WHERE status = 'active'").get() as Promise<{ count: string | number }>,
+    const [[totalRow], [adoptedRow]] = await Promise.all([
+      this.sql`SELECT COUNT(*) as count FROM people_groups`,
+      this.sql`SELECT COUNT(DISTINCT people_group_id) as count FROM people_group_adoptions WHERE status = 'active'`,
     ])
     return Number(totalRow.count) - Number(adoptedRow.count)
   }
 
   async getPeopleGroupsForUser(userId: string): Promise<PeopleGroup[]> {
     const isAdmin = await roleService.isAdmin(userId)
-    if (isAdmin) {
-      return this.getAllPeopleGroups()
-    }
+    if (isAdmin) return this.getAllPeopleGroups()
 
     const peopleGroupIds = await peopleGroupAccessService.getUserPeopleGroups(userId)
-    if (peopleGroupIds.length === 0) {
-      return []
-    }
+    if (peopleGroupIds.length === 0) return []
 
-    const placeholders = peopleGroupIds.map(() => '?').join(',')
-    const stmt = this.db.prepare(`
+    return await this.sql`
       SELECT * FROM people_groups
-      WHERE id IN (${placeholders})
+      WHERE id IN ${this.sql(peopleGroupIds)}
       ORDER BY name
-    `)
-
-    return await stmt.all(...peopleGroupIds) as PeopleGroup[]
+    `
   }
 }
 

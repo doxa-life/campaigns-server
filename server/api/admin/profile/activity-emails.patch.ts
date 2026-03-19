@@ -2,7 +2,7 @@
  * Update the current user's activity email subscription preferences (daily/weekly/monthly/yearly).
  * Used by the admin profile page to opt in/out of scheduled activity summary emails.
  */
-import { getDatabase } from '#server/database/db'
+import { getSql } from '#server/database/db'
 import { handleApiError } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
@@ -24,19 +24,18 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const db = getDatabase()
-    const rawSql = db.rawSql
+    const sql = getSql()
 
     // Read current prefs
-    const [current] = await rawSql`SELECT activity_email_preferences FROM users WHERE id = ${user.userId}`
+    const [current] = await sql`SELECT activity_email_preferences FROM users WHERE id = ${user.userId}`
     const currentPrefs = (typeof current?.activity_email_preferences === 'object' && current.activity_email_preferences)
       ? current.activity_email_preferences
       : { daily: true, weekly: true, monthly: true, yearly: true }
     const merged = { ...currentPrefs, ...preferences }
 
-    await rawSql`
+    await sql`
       UPDATE users
-      SET activity_email_preferences = ${rawSql.json(merged)},
+      SET activity_email_preferences = ${sql.json(merged)},
           updated = NOW()
       WHERE id = ${user.userId}
     `

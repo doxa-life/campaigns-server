@@ -4,7 +4,7 @@
  * Use ?fields=field1,field2 for custom fields or ?fields=all for everything
  * Useful for map widgets and engagement data
  */
-import { getDatabase } from '../../database/db'
+import { getSql } from '../../database/db'
 import { formatPeopleGroupRaw, DEFAULT_ALL_FIELDS } from '../../utils/app/people-group-formatter'
 import { allFields } from '../../utils/app/field-options'
 import { setCacheHeaders } from '../../utils/app/cors'
@@ -33,16 +33,14 @@ export default defineEventHandler(async (event) => {
     requestedFields = DEFAULT_ALL_FIELDS
   }
 
-  const db = getDatabase()
+  const sql = getSql()
 
   // Query all people groups
-  const stmt = db.prepare(`
+  const peopleGroups = await sql`
     SELECT *
     FROM people_groups
     ORDER BY name
-  `)
-
-  const peopleGroups = await stmt.all() as any[]
+  ` as any[]
 
   // Format the response with raw values
   const posts = peopleGroups.map(pg => formatPeopleGroupRaw(pg, requestedFields, lang))

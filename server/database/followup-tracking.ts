@@ -1,4 +1,4 @@
-import { getDatabase } from './db'
+import { getSql } from './db'
 
 export interface FollowupResponse {
   id: number
@@ -20,7 +20,6 @@ export interface SubscriptionForFollowup {
   followup_count: number
   followup_reminder_count: number
   created_at: string
-  // Joined fields
   subscriber_name: string
   subscriber_tracking_id: string
   subscriber_profile_id: string
@@ -28,41 +27,24 @@ export interface SubscriptionForFollowup {
   email_value: string
   people_group_slug: string
   people_group_name: string
-  // Calculated
   last_activity_at: string | null
 }
 
 class FollowupTrackingService {
-  private db = getDatabase()
+  private sql = getSql()
 
-  /**
-   * Get the last prayer activity timestamp for a subscriber on a people group.
-   * Returns null if no activity found.
-   */
   async getLastActivityAt(subscriberId: number, peopleGroupId: number): Promise<string | null> {
-    const stmt = this.db.prepare(`
+    const [result] = await this.sql`
       SELECT MAX(pa.timestamp) as last_activity_at
       FROM prayer_activity pa
       JOIN subscribers s ON pa.tracking_id = s.tracking_id
-      WHERE s.id = ? AND pa.people_group_id = ?
-    `)
-    const result = await stmt.get(subscriberId, peopleGroupId) as { last_activity_at: string | null }
+      WHERE s.id = ${subscriberId} AND pa.people_group_id = ${peopleGroupId}
+    `
     return result?.last_activity_at || null
   }
 
-  /**
-   * Get all active subscriptions that are due for a follow-up check.
-   * This returns subscriptions where:
-   * - status = 'active'
-   * - delivery_method = 'email'
-   * - subscriber has a verified email
-   *
-   * The scheduler will then calculate if each subscription is due based on:
-   * - last_activity_at (from prayer_activity)
-   * - followup_count (determines 1-month vs 3-month interval)
-   */
   async getActiveSubscriptionsForFollowup(): Promise<SubscriptionForFollowup[]> {
-    const stmt = this.db.prepare(`
+    return await this.sql`
       SELECT
         cs.id,
         cs.people_group_id,
@@ -94,69 +76,52 @@ class FollowupTrackingService {
         AND cs.delivery_method = 'email'
         AND cm.verified = true
       ORDER BY cs.created_at ASC
-    `)
-    return await stmt.all() as SubscriptionForFollowup[]
+    `
   }
 
-  /**
-   * Record a follow-up response from a subscriber.
-   */
   async recordResponse(
     subscriptionId: number,
     response: 'committed' | 'sometimes' | 'not_praying',
     followupSentAt: Date
   ): Promise<FollowupResponse> {
-    const stmt = this.db.prepare(`
+    const [row] = await this.sql`
       INSERT INTO followup_responses (subscription_id, response, followup_sent_at)
-      VALUES (?, ?, ?)
-    `)
-    const result = await stmt.run(subscriptionId, response, followupSentAt.toISOString())
-
-    const getStmt = this.db.prepare('SELECT * FROM followup_responses WHERE id = ?')
-    return await getStmt.get(result.lastInsertRowid as number) as FollowupResponse
+      VALUES (${subscriptionId}, ${response}, ${followupSentAt.toISOString()})
+      RETURNING *
+    `
+    return row
   }
 
-  /**
-   * Get the most recent follow-up response for a subscription.
-   */
   async getLatestResponse(subscriptionId: number): Promise<FollowupResponse | null> {
-    const stmt = this.db.prepare(`
+    const [row] = await this.sql`
       SELECT * FROM followup_responses
-      WHERE subscription_id = ?
+      WHERE subscription_id = ${subscriptionId}
       ORDER BY created_at DESC
       LIMIT 1
-    `)
-    return await stmt.get(subscriptionId) as FollowupResponse | null
+    `
+    return row || null
   }
 
-  /**
-   * Get all follow-up responses for a subscription.
-   */
   async getResponseHistory(subscriptionId: number): Promise<FollowupResponse[]> {
-    const stmt = this.db.prepare(`
+    return await this.sql`
       SELECT * FROM followup_responses
-      WHERE subscription_id = ?
+      WHERE subscription_id = ${subscriptionId}
       ORDER BY created_at DESC
-    `)
-    return await stmt.all(subscriptionId) as FollowupResponse[]
+    `
   }
 
-  /**
-   * Check if there's been any prayer activity since the last follow-up was sent.
-   */
   async hasActivitySinceLastFollowup(subscriptionId: number): Promise<boolean> {
-    const stmt = this.db.prepare(`
+    const [result] = await this.sql`
       SELECT EXISTS (
         SELECT 1
         FROM prayer_activity pa
         JOIN subscribers s ON pa.tracking_id = s.tracking_id
         JOIN campaign_subscriptions cs ON cs.subscriber_id = s.id AND cs.people_group_id = pa.people_group_id
-        WHERE cs.id = ?
+        WHERE cs.id = ${subscriptionId}
           AND cs.last_followup_at IS NOT NULL
           AND pa.timestamp > cs.last_followup_at
       ) as has_activity
-    `)
-    const result = await stmt.get(subscriptionId) as { has_activity: boolean }
+    `
     return result?.has_activity || false
   }
 }

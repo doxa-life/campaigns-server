@@ -3,7 +3,7 @@
  * Get detailed information for a single people group
  * Supports translated labels via ?locale= query param
  */
-import { getDatabase } from '../../../database/db'
+import { getSql } from '../../../database/db'
 import { formatPeopleGroupForDetail } from '../../../utils/app/people-group-formatter'
 import { setCacheHeaders } from '../../../utils/app/cors'
 import { LANGUAGE_CODES } from '../../../../config/languages'
@@ -29,17 +29,15 @@ export default defineEventHandler(async (event) => {
   const rawLocale = (query.locale as string) || (query.lang as string) || acceptLanguage?.split(',')[0]?.split('-')[0] || 'en'
   const lang = LANGUAGE_CODES.includes(rawLocale) ? rawLocale : 'en'
 
-  const db = getDatabase()
+  const sql = getSql()
 
-  const stmt = db.prepare(`
+  const [peopleGroup] = await sql`
     SELECT
       pg.*,
       pg.people_praying as total_people_praying
     FROM people_groups pg
-    WHERE pg.slug = ?
-  `)
-
-  const peopleGroup = await stmt.get(slug) as any
+    WHERE pg.slug = ${slug}
+  ` as any[]
 
   if (!peopleGroup) {
     throw createError({

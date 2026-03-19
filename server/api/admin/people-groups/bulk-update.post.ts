@@ -1,5 +1,5 @@
 import { peopleGroupService, UpdatePeopleGroupData } from '../../../database/people-groups'
-import { getDatabase } from '#server/database/db'
+import { getSql } from '#server/database/db'
 import { handleApiError, getErrorMessage } from '#server/utils/api-helpers'
 
 const CONCURRENCY_LIMIT = 10
@@ -83,10 +83,8 @@ export default defineEventHandler(async (event) => {
 
     if (slugsToResolve.length > 0) {
       const uniqueSlugs = [...new Set(slugsToResolve)]
-      const db = getDatabase()
-      const placeholders = uniqueSlugs.map(() => '?').join(',')
-      const stmt = db.prepare(`SELECT id, slug FROM people_groups WHERE slug IN (${placeholders})`)
-      const rows = await stmt.all(...uniqueSlugs) as { id: number; slug: string }[]
+      const sql = getSql()
+      const rows = await sql`SELECT id, slug FROM people_groups WHERE slug IN ${sql(uniqueSlugs)}` as { id: number; slug: string }[]
       for (const row of rows) {
         slugToIdMap.set(row.slug, row.id)
       }

@@ -1,20 +1,20 @@
-import { getDatabase } from '#server/database/db'
+import { getSql } from '#server/database/db'
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
-  const db = getDatabase()
+  const sql = getSql()
 
   const now = new Date()
   const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
 
   const [engagementRow, totalRow, prayerRow, prayerTimeAllRow, prayerTime24hRow, prayerCommittedRow, dailyCommittedRow, adoptedRow] = await Promise.all([
-    db.prepare(`SELECT COUNT(*) as count FROM people_groups WHERE engagement_status = 'engaged' OR (metadata::jsonb->>'imb_engagement_status') = 'engaged'`).get(),
-    db.prepare(`SELECT COUNT(*) as count FROM people_groups`).get(),
-    db.prepare(`SELECT COUNT(DISTINCT people_group_id) as count FROM campaign_subscriptions WHERE status = 'active'`).get(),
-    db.prepare(`SELECT COALESCE(ROUND(SUM(duration) / 60.0), 0) as total FROM prayer_activity`).get(),
-    db.prepare(`SELECT COALESCE(ROUND(SUM(duration) / 60.0), 0) as total FROM prayer_activity WHERE timestamp >= ?`).get(twentyFourHoursAgo),
-    db.prepare(`
+    sql`SELECT COUNT(*) as count FROM people_groups WHERE engagement_status = 'engaged' OR (metadata::jsonb->>'imb_engagement_status') = 'engaged'`.then(rows => rows[0]),
+    sql`SELECT COUNT(*) as count FROM people_groups`.then(rows => rows[0]),
+    sql`SELECT COUNT(DISTINCT people_group_id) as count FROM campaign_subscriptions WHERE status = 'active'`.then(rows => rows[0]),
+    sql`SELECT COALESCE(ROUND(SUM(duration) / 60.0), 0) as total FROM prayer_activity`.then(rows => rows[0]),
+    sql`SELECT COALESCE(ROUND(SUM(duration) / 60.0), 0) as total FROM prayer_activity WHERE timestamp >= ${twentyFourHoursAgo}`.then(rows => rows[0]),
+    sql`
       SELECT COALESCE(SUM(
         prayer_duration * GREATEST(0,
           FLOOR(EXTRACT(EPOCH FROM (NOW() - created_at)) / 86400)
@@ -22,9 +22,9 @@ export default defineEventHandler(async (event) => {
       ), 0) as total
       FROM campaign_subscriptions
       WHERE status = 'active'
-    `).get(),
-    db.prepare(`SELECT COALESCE(SUM(prayer_duration), 0) as total FROM campaign_subscriptions WHERE status = 'active'`).get(),
-    db.prepare(`SELECT COUNT(DISTINCT people_group_id) as count FROM people_group_adoptions WHERE status = 'active'`).get(),
+    `.then(rows => rows[0]),
+    sql`SELECT COALESCE(SUM(prayer_duration), 0) as total FROM campaign_subscriptions WHERE status = 'active'`.then(rows => rows[0]),
+    sql`SELECT COUNT(DISTINCT people_group_id) as count FROM people_group_adoptions WHERE status = 'active'`.then(rows => rows[0]),
   ])
 
   const total = Number(totalRow.count)

@@ -1,4 +1,6 @@
-import { getDatabase } from './db'
+import type { Fragment } from 'postgres'
+import { getSql } from './db'
+import { buildSet } from './sql-helpers'
 import { calculateNextReminderUtc, calculateNextReminderAfterSend } from '../utils/next-reminder-calculator'
 import { contactMethodService } from './contact-methods'
 import { appConfigService } from './app-config'
@@ -50,125 +52,92 @@ export interface CreateSubscriptionInput {
 }
 
 class PeopleGroupSubscriptionService {
-  private db = getDatabase()
+  private sql = getSql()
 
   async createSubscription(input: CreateSubscriptionInput): Promise<PeopleGroupSubscription> {
     const days_of_week_json = input.days_of_week ? JSON.stringify(input.days_of_week) : null
     const timezone = input.timezone || 'UTC'
 
-    const stmt = this.db.prepare(`
+    const [row] = await this.sql`
       INSERT INTO campaign_subscriptions (
         people_group_id, subscriber_id, delivery_method, frequency, days_of_week,
         time_preference, timezone, prayer_duration, status
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
-    `)
+      VALUES (
+        ${input.people_group_id}, ${input.subscriber_id}, ${input.delivery_method},
+        ${input.frequency}, ${days_of_week_json}, ${input.time_preference},
+        ${timezone}, ${input.prayer_duration || 10}, 'active'
+      )
+      RETURNING *
+    `
 
-    const result = await stmt.run(
-      input.people_group_id,
-      input.subscriber_id,
-      input.delivery_method,
-      input.frequency,
-      days_of_week_json,
-      input.time_preference,
-      timezone,
-      input.prayer_duration || 10
-    )
-
-    const subscription = (await this.getById(result.lastInsertRowid as number))!
-
-    // Set initial next reminder time
-    await this.setInitialNextReminder(subscription.id)
-
-    return (await this.getById(subscription.id))!
+    await this.setInitialNextReminder(row.id)
+    return (await this.getById(row.id))!
   }
 
   async getById(id: number): Promise<PeopleGroupSubscription | null> {
-    const stmt = this.db.prepare('SELECT * FROM campaign_subscriptions WHERE id = ?')
-    return await stmt.get(id) as PeopleGroupSubscription | null
+    const [row] = await this.sql`SELECT * FROM campaign_subscriptions WHERE id = ${id}`
+    return row || null
   }
 
   async getBySubscriberAndPeopleGroup(
     subscriberId: number,
     peopleGroupId: number
   ): Promise<PeopleGroupSubscription | null> {
-    const stmt = this.db.prepare(`
+    const [row] = await this.sql`
       SELECT * FROM campaign_subscriptions
-      WHERE subscriber_id = ? AND people_group_id = ?
-    `)
-    return await stmt.get(subscriberId, peopleGroupId) as PeopleGroupSubscription | null
+      WHERE subscriber_id = ${subscriberId} AND people_group_id = ${peopleGroupId}
+    `
+    return row || null
   }
 
-  /**
-   * Get all subscriptions for a subscriber on a specific people group
-   */
   async getAllBySubscriberAndPeopleGroup(
     subscriberId: number,
     peopleGroupId: number
   ): Promise<PeopleGroupSubscription[]> {
-    const stmt = this.db.prepare(`
+    return await this.sql`
       SELECT * FROM campaign_subscriptions
-      WHERE subscriber_id = ? AND people_group_id = ?
+      WHERE subscriber_id = ${subscriberId} AND people_group_id = ${peopleGroupId}
       ORDER BY created_at ASC
-    `)
-    return await stmt.all(subscriberId, peopleGroupId) as PeopleGroupSubscription[]
+    `
   }
 
-  /**
-   * Count subscriptions for a subscriber on a specific people group
-   */
   async countBySubscriberAndPeopleGroup(
     subscriberId: number,
     peopleGroupId: number
   ): Promise<number> {
-    const stmt = this.db.prepare(`
+    const [result] = await this.sql`
       SELECT COUNT(*) as count FROM campaign_subscriptions
-      WHERE subscriber_id = ? AND people_group_id = ?
-    `)
-    const result = await stmt.get(subscriberId, peopleGroupId) as { count: number }
+      WHERE subscriber_id = ${subscriberId} AND people_group_id = ${peopleGroupId}
+    `
     return result.count
   }
 
-  /**
-   * Unsubscribe from all subscriptions for a subscriber on a people group
-   */
   async unsubscribeAllForPeopleGroup(
     subscriberId: number,
     peopleGroupId: number
   ): Promise<number> {
-    const stmt = this.db.prepare(`
+    const result = await this.sql`
       UPDATE campaign_subscriptions
       SET status = 'unsubscribed', updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE subscriber_id = ? AND people_group_id = ?
-    `)
-    const result = await stmt.run(subscriberId, peopleGroupId)
-    return result.changes
+      WHERE subscriber_id = ${subscriberId} AND people_group_id = ${peopleGroupId}
+    `
+    return result.count
   }
 
-  /**
-   * Get all subscriptions for a subscriber (with people group details)
-   */
   async getSubscriberSubscriptions(subscriberId: number): Promise<PeopleGroupSubscriptionWithDetails[]> {
-    const stmt = this.db.prepare(`
-      SELECT
-        cs.*,
-        pg.name as people_group_name,
-        pg.slug as people_group_slug,
-        s.name as subscriber_name,
-        s.tracking_id as subscriber_tracking_id,
+    return await this.sql`
+      SELECT cs.*, pg.name as people_group_name, pg.slug as people_group_slug,
+        s.name as subscriber_name, s.tracking_id as subscriber_tracking_id,
         s.profile_id as subscriber_profile_id
       FROM campaign_subscriptions cs
       JOIN people_groups pg ON pg.id = cs.people_group_id
       JOIN subscribers s ON s.id = cs.subscriber_id
-      WHERE cs.subscriber_id = ?
+      WHERE cs.subscriber_id = ${subscriberId}
       ORDER BY cs.created_at DESC
-    `)
-    return await stmt.all(subscriberId) as PeopleGroupSubscriptionWithDetails[]
+    `
   }
 
-  /**
-   * Get all subscriptions for a people group (with subscriber details)
-   */
   async getPeopleGroupSubscriptions(
     peopleGroupId: number,
     options?: {
@@ -177,52 +146,63 @@ class PeopleGroupSubscriptionService {
       offset?: number
     }
   ): Promise<PeopleGroupSubscriptionWithDetails[]> {
-    let query = `
-      SELECT
-        cs.*,
-        pg.name as people_group_name,
-        pg.slug as people_group_slug,
-        s.name as subscriber_name,
-        s.tracking_id as subscriber_tracking_id,
+    const status = options?.status || null
+    const limit = options?.limit || null
+    const offset = options?.offset || null
+
+    if (status && limit) {
+      return await this.sql`
+        SELECT cs.*, pg.name as people_group_name, pg.slug as people_group_slug,
+          s.name as subscriber_name, s.tracking_id as subscriber_tracking_id,
+          s.profile_id as subscriber_profile_id
+        FROM campaign_subscriptions cs
+        JOIN people_groups pg ON pg.id = cs.people_group_id
+        JOIN subscribers s ON s.id = cs.subscriber_id
+        WHERE cs.people_group_id = ${peopleGroupId} AND cs.status = ${status}
+        ORDER BY cs.created_at DESC LIMIT ${limit} OFFSET ${offset || 0}
+      `
+    }
+    if (status) {
+      return await this.sql`
+        SELECT cs.*, pg.name as people_group_name, pg.slug as people_group_slug,
+          s.name as subscriber_name, s.tracking_id as subscriber_tracking_id,
+          s.profile_id as subscriber_profile_id
+        FROM campaign_subscriptions cs
+        JOIN people_groups pg ON pg.id = cs.people_group_id
+        JOIN subscribers s ON s.id = cs.subscriber_id
+        WHERE cs.people_group_id = ${peopleGroupId} AND cs.status = ${status}
+        ORDER BY cs.created_at DESC
+      `
+    }
+    if (limit) {
+      return await this.sql`
+        SELECT cs.*, pg.name as people_group_name, pg.slug as people_group_slug,
+          s.name as subscriber_name, s.tracking_id as subscriber_tracking_id,
+          s.profile_id as subscriber_profile_id
+        FROM campaign_subscriptions cs
+        JOIN people_groups pg ON pg.id = cs.people_group_id
+        JOIN subscribers s ON s.id = cs.subscriber_id
+        WHERE cs.people_group_id = ${peopleGroupId}
+        ORDER BY cs.created_at DESC LIMIT ${limit} OFFSET ${offset || 0}
+      `
+    }
+    return await this.sql`
+      SELECT cs.*, pg.name as people_group_name, pg.slug as people_group_slug,
+        s.name as subscriber_name, s.tracking_id as subscriber_tracking_id,
         s.profile_id as subscriber_profile_id
       FROM campaign_subscriptions cs
       JOIN people_groups pg ON pg.id = cs.people_group_id
       JOIN subscribers s ON s.id = cs.subscriber_id
-      WHERE cs.people_group_id = ?
+      WHERE cs.people_group_id = ${peopleGroupId}
+      ORDER BY cs.created_at DESC
     `
-    const params: any[] = [peopleGroupId]
-
-    if (options?.status) {
-      query += ' AND cs.status = ?'
-      params.push(options.status)
-    }
-
-    query += ' ORDER BY cs.created_at DESC'
-
-    if (options?.limit) {
-      query += ' LIMIT ?'
-      params.push(options.limit)
-
-      if (options?.offset) {
-        query += ' OFFSET ?'
-        params.push(options.offset)
-      }
-    }
-
-    const stmt = this.db.prepare(query)
-    return await stmt.all(...params) as PeopleGroupSubscriptionWithDetails[]
   }
 
-  /**
-   * Get active subscription count for a people group
-   */
   async getActiveSubscriptionCount(peopleGroupId: number): Promise<number> {
-    const stmt = this.db.prepare(`
-      SELECT COUNT(*) as count
-      FROM campaign_subscriptions
-      WHERE people_group_id = ? AND status = 'active'
-    `)
-    const result = await stmt.get(peopleGroupId) as { count: number }
+    const [result] = await this.sql`
+      SELECT COUNT(*) as count FROM campaign_subscriptions
+      WHERE people_group_id = ${peopleGroupId} AND status = 'active'
+    `
     return result.count
   }
 
@@ -237,95 +217,54 @@ class PeopleGroupSubscriptionService {
       prayer_duration?: number
     }
   ): Promise<PeopleGroupSubscription | null> {
-    const fields: string[] = []
-    const values: any[] = []
+    const fields: Fragment[] = []
     let scheduleChanged = false
 
-    if (updates.delivery_method !== undefined) {
-      fields.push('delivery_method = ?')
-      values.push(updates.delivery_method)
-    }
-    if (updates.frequency !== undefined) {
-      fields.push('frequency = ?')
-      values.push(updates.frequency)
-      scheduleChanged = true
-    }
-    if (updates.days_of_week !== undefined) {
-      fields.push('days_of_week = ?')
-      values.push(JSON.stringify(updates.days_of_week))
-      scheduleChanged = true
-    }
-    if (updates.time_preference !== undefined) {
-      fields.push('time_preference = ?')
-      values.push(updates.time_preference)
-      scheduleChanged = true
-    }
-    if (updates.timezone !== undefined) {
-      fields.push('timezone = ?')
-      values.push(updates.timezone)
-      scheduleChanged = true
-    }
-    if (updates.prayer_duration !== undefined) {
-      fields.push('prayer_duration = ?')
-      values.push(updates.prayer_duration)
-    }
+    if (updates.delivery_method !== undefined) fields.push(this.sql`delivery_method = ${updates.delivery_method}`)
+    if (updates.frequency !== undefined) { fields.push(this.sql`frequency = ${updates.frequency}`); scheduleChanged = true }
+    if (updates.days_of_week !== undefined) { fields.push(this.sql`days_of_week = ${JSON.stringify(updates.days_of_week)}`); scheduleChanged = true }
+    if (updates.time_preference !== undefined) { fields.push(this.sql`time_preference = ${updates.time_preference}`); scheduleChanged = true }
+    if (updates.timezone !== undefined) { fields.push(this.sql`timezone = ${updates.timezone}`); scheduleChanged = true }
+    if (updates.prayer_duration !== undefined) fields.push(this.sql`prayer_duration = ${updates.prayer_duration}`)
 
-    if (fields.length === 0) {
-      return this.getById(id)
-    }
+    if (fields.length === 0) return this.getById(id)
 
-    fields.push("updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'")
-    values.push(id)
+    fields.push(this.sql`updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'`)
 
-    const stmt = this.db.prepare(`
-      UPDATE campaign_subscriptions
-      SET ${fields.join(', ')}
-      WHERE id = ?
-    `)
-    await stmt.run(...values)
+    await this.sql`UPDATE campaign_subscriptions SET ${buildSet(this.sql, fields)} WHERE id = ${id}`
 
-    // Recalculate next reminder if schedule changed
-    if (scheduleChanged) {
-      await this.setInitialNextReminder(id)
-    }
+    if (scheduleChanged) await this.setInitialNextReminder(id)
 
     return this.getById(id)
   }
 
-  async updateStatus(
-    id: number,
-    status: 'active' | 'inactive' | 'unsubscribed'
-  ): Promise<PeopleGroupSubscription | null> {
-    const stmt = this.db.prepare(`
+  async updateStatus(id: number, status: 'active' | 'inactive' | 'unsubscribed'): Promise<PeopleGroupSubscription | null> {
+    await this.sql`
       UPDATE campaign_subscriptions
-      SET status = ?, updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ?
-    `)
-    await stmt.run(status, id)
+      SET status = ${status}, updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${id}
+    `
     return this.getById(id)
   }
 
   async unsubscribe(id: number): Promise<boolean> {
-    const stmt = this.db.prepare(`
+    const result = await this.sql`
       UPDATE campaign_subscriptions
       SET status = 'unsubscribed', updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ?
-    `)
-    const result = await stmt.run(id)
-    return result.changes > 0
+      WHERE id = ${id}
+    `
+    return result.count > 0
   }
 
   async resubscribe(id: number): Promise<boolean> {
-    const stmt = this.db.prepare(`
+    const result = await this.sql`
       UPDATE campaign_subscriptions
       SET status = 'active', updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ?
-    `)
-    const result = await stmt.run(id)
+      WHERE id = ${id}
+    `
 
-    if (result.changes > 0) {
+    if (result.count > 0) {
       await this.setInitialNextReminder(id)
-      // Reset follow-up tracking on reactivation
       await this.resetFollowupTracking(id)
       return true
     }
@@ -333,38 +272,23 @@ class PeopleGroupSubscriptionService {
   }
 
   async deleteSubscription(id: number): Promise<boolean> {
-    const stmt = this.db.prepare('DELETE FROM campaign_subscriptions WHERE id = ?')
-    const result = await stmt.run(id)
-    return result.changes > 0
+    const result = await this.sql`DELETE FROM campaign_subscriptions WHERE id = ${id}`
+    return result.count > 0
   }
 
-  /**
-   * Claim a batch of subscriptions due for a reminder using row-level locking.
-   * Uses FOR UPDATE SKIP LOCKED so multiple instances can process different batches concurrently.
-   * Sets claimed_at inside the transaction. The caller is responsible for advancing
-   * next_reminder_utc after successful send, so failed sends can be retried.
-   */
   async claimSubscriptionsDueForReminder(batchSize: number = 50): Promise<SubscriptionDueForReminder[]> {
     const globalStartDate = await appConfigService.getConfig<string>('global_campaign_start_date')
     if (globalStartDate) {
       const today = new Date().toISOString().split('T')[0]
-      if (today! < globalStartDate) {
-        return []
-      }
+      if (today! < globalStartDate) return []
     }
 
-    return await this.db.transaction(async (tx) => {
-      const selectStmt = tx.prepare(`
-        SELECT
-          cs.*,
-          s.name as subscriber_name,
-          s.tracking_id as subscriber_tracking_id,
-          s.profile_id as subscriber_profile_id,
-          s.preferred_language as subscriber_language,
-          cm.value as email_value,
-          cm.verified as email_verified,
-          pg.slug as people_group_slug,
-          pg.name as people_group_name
+    return await this.sql.begin(async (tx) => {
+      const claimed = await tx`
+        SELECT cs.*, s.name as subscriber_name, s.tracking_id as subscriber_tracking_id,
+          s.profile_id as subscriber_profile_id, s.preferred_language as subscriber_language,
+          cm.value as email_value, cm.verified as email_verified,
+          pg.slug as people_group_slug, pg.name as people_group_name
         FROM campaign_subscriptions cs
         JOIN subscribers s ON s.id = cs.subscriber_id
         JOIN people_groups pg ON pg.id = cs.people_group_id
@@ -376,56 +300,34 @@ class PeopleGroupSubscriptionService {
           AND (cs.claimed_at IS NULL OR cs.claimed_at < CURRENT_TIMESTAMP AT TIME ZONE 'UTC' - INTERVAL '5 minutes')
         ORDER BY cs.next_reminder_utc ASC
         FOR UPDATE OF cs SKIP LOCKED
-        LIMIT ?
-      `)
-      const claimed = await selectStmt.all(batchSize) as SubscriptionDueForReminder[]
+        LIMIT ${batchSize}
+      ` as SubscriptionDueForReminder[]
 
-      if (claimed.length === 0) {
-        return []
-      }
+      if (claimed.length === 0) return []
 
       const ids = claimed.map(s => s.id)
-      const placeholders = ids.map(() => '?').join(', ')
-      const updateStmt = tx.prepare(`
+      await tx`
         UPDATE campaign_subscriptions
         SET claimed_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-        WHERE id IN (${placeholders})
-      `)
-      await updateStmt.run(...ids)
+        WHERE id IN ${tx(ids)}
+      `
 
       return claimed
     })
   }
 
-  /**
-   * Get subscriptions that are due for a reminder.
-   * Only returns subscriptions where:
-   * - next_reminder_utc <= now
-   * - status = 'active'
-   * - delivery_method = 'email' (for now)
-   * - The subscriber has a verified email
-   * - The global start date has been reached (if configured)
-   */
   async getSubscriptionsDueForReminder(): Promise<SubscriptionDueForReminder[]> {
     const globalStartDate = await appConfigService.getConfig<string>('global_campaign_start_date')
     if (globalStartDate) {
       const today = new Date().toISOString().split('T')[0]
-      if (today! < globalStartDate) {
-        return []
-      }
+      if (today! < globalStartDate) return []
     }
 
-    const stmt = this.db.prepare(`
-      SELECT
-        cs.*,
-        s.name as subscriber_name,
-        s.tracking_id as subscriber_tracking_id,
-        s.profile_id as subscriber_profile_id,
-        s.preferred_language as subscriber_language,
-        cm.value as email_value,
-        cm.verified as email_verified,
-        pg.slug as people_group_slug,
-        pg.name as people_group_name
+    return await this.sql`
+      SELECT cs.*, s.name as subscriber_name, s.tracking_id as subscriber_tracking_id,
+        s.profile_id as subscriber_profile_id, s.preferred_language as subscriber_language,
+        cm.value as email_value, cm.verified as email_verified,
+        pg.slug as people_group_slug, pg.name as people_group_name
       FROM campaign_subscriptions cs
       JOIN subscribers s ON s.id = cs.subscriber_id
       JOIN people_groups pg ON pg.id = cs.people_group_id
@@ -435,17 +337,16 @@ class PeopleGroupSubscriptionService {
         AND cs.delivery_method = 'email'
         AND cm.verified = true
       ORDER BY cs.next_reminder_utc ASC
-    `)
-    return await stmt.all() as SubscriptionDueForReminder[]
+    `
   }
 
   async updateNextReminderUtc(subscriptionId: number, nextUtc: Date): Promise<void> {
-    const stmt = this.db.prepare(`
+    await this.sql`
       UPDATE campaign_subscriptions
-      SET next_reminder_utc = ?, claimed_at = NULL, updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ?
-    `)
-    await stmt.run(nextUtc.toISOString(), subscriptionId)
+      SET next_reminder_utc = ${nextUtc.toISOString()}, claimed_at = NULL,
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${subscriptionId}
+    `
   }
 
   async setInitialNextReminder(subscriptionId: number): Promise<void> {
@@ -480,176 +381,97 @@ class PeopleGroupSubscriptionService {
     await this.updateNextReminderUtc(subscriptionId, nextUtc)
   }
 
-  /**
-   * Set initial next reminder for all active email subscriptions of a subscriber.
-   * Called after a contact method is verified.
-   */
   async setNextRemindersForSubscriber(subscriberId: number): Promise<void> {
-    const stmt = this.db.prepare(`
+    const subscriptions = await this.sql`
       SELECT id FROM campaign_subscriptions
-      WHERE subscriber_id = ? AND status = 'active' AND delivery_method = 'email'
-    `)
-    const subscriptions = await stmt.all(subscriberId) as { id: number }[]
+      WHERE subscriber_id = ${subscriberId} AND status = 'active' AND delivery_method = 'email'
+    ` as { id: number }[]
 
     for (const sub of subscriptions) {
       await this.setInitialNextReminder(sub.id)
     }
   }
 
-  /**
-   * Get commitment stats for a single people group.
-   * Returns count of active subscriptions and total committed prayer minutes.
-   */
   async getCommitmentStats(peopleGroupId: number): Promise<{ people_committed: number; committed_duration: number }> {
-    const stmt = this.db.prepare(`
-      SELECT
-        COUNT(*) as people_committed,
-        COALESCE(SUM(prayer_duration), 0) as committed_duration
+    const [result] = await this.sql`
+      SELECT COUNT(*) as people_committed, COALESCE(SUM(prayer_duration), 0) as committed_duration
       FROM campaign_subscriptions
-      WHERE people_group_id = ? AND status = 'active'
-    `)
-    const result = await stmt.get(peopleGroupId) as { people_committed: number; committed_duration: number }
-    return {
-      people_committed: result.people_committed,
-      committed_duration: result.committed_duration
-    }
+      WHERE people_group_id = ${peopleGroupId} AND status = 'active'
+    `
+    return { people_committed: result.people_committed, committed_duration: result.committed_duration }
   }
 
-  /**
-   * Get commitment stats for multiple people groups in a single query.
-   * Returns a Map of people_group_id to stats.
-   */
   async getCommitmentStatsForPeopleGroups(peopleGroupIds: number[]): Promise<Map<number, { people_committed: number; committed_duration: number }>> {
-    if (peopleGroupIds.length === 0) {
-      return new Map()
-    }
+    if (peopleGroupIds.length === 0) return new Map()
 
-    const placeholders = peopleGroupIds.map(() => '?').join(', ')
-    const stmt = this.db.prepare(`
-      SELECT
-        people_group_id,
-        COUNT(*) as people_committed,
-        COALESCE(SUM(prayer_duration), 0) as committed_duration
+    const results = await this.sql`
+      SELECT people_group_id, COUNT(*) as people_committed, COALESCE(SUM(prayer_duration), 0) as committed_duration
       FROM campaign_subscriptions
-      WHERE people_group_id IN (${placeholders}) AND status = 'active'
+      WHERE people_group_id IN ${this.sql(peopleGroupIds)} AND status = 'active'
       GROUP BY people_group_id
-    `)
-    const results = await stmt.all(...peopleGroupIds) as Array<{
-      people_group_id: number
-      people_committed: number
-      committed_duration: number
-    }>
+    ` as Array<{ people_group_id: number; people_committed: number; committed_duration: number }>
 
     const statsMap = new Map<number, { people_committed: number; committed_duration: number }>()
-
-    // Initialize all IDs with zeros
     for (const id of peopleGroupIds) {
       statsMap.set(id, { people_committed: 0, committed_duration: 0 })
     }
-
-    // Fill in actual values
     for (const row of results) {
-      statsMap.set(row.people_group_id, {
-        people_committed: row.people_committed,
-        committed_duration: row.committed_duration
-      })
+      statsMap.set(row.people_group_id, { people_committed: row.people_committed, committed_duration: row.committed_duration })
     }
-
     return statsMap
   }
 
-  /**
-   * Get global commitment stats across all people groups (active subscriptions).
-   */
   async getGlobalCommitmentStats(): Promise<{ people_committed: number; committed_duration: number }> {
-    const stmt = this.db.prepare(`
-      SELECT
-        COUNT(*) as people_committed,
-        COALESCE(SUM(prayer_duration), 0) as committed_duration
-      FROM campaign_subscriptions
-      WHERE status = 'active'
-    `)
-    const result = await stmt.get() as { people_committed: number; committed_duration: number }
-    return {
-      people_committed: result.people_committed,
-      committed_duration: result.committed_duration
-    }
+    const [result] = await this.sql`
+      SELECT COUNT(*) as people_committed, COALESCE(SUM(prayer_duration), 0) as committed_duration
+      FROM campaign_subscriptions WHERE status = 'active'
+    `
+    return { people_committed: result.people_committed, committed_duration: result.committed_duration }
   }
 
-  /**
-   * Mark that a follow-up email was sent for a subscription.
-   * Increments followup_reminder_count and sets last_followup_at.
-   */
   async markFollowupSent(subscriptionId: number): Promise<void> {
-    const stmt = this.db.prepare(`
+    await this.sql`
       UPDATE campaign_subscriptions
-      SET
-        last_followup_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
-        followup_reminder_count = followup_reminder_count + 1,
-        updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ?
-    `)
-    await stmt.run(subscriptionId)
+      SET last_followup_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
+          followup_reminder_count = followup_reminder_count + 1,
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${subscriptionId}
+    `
   }
 
-  /**
-   * Complete a follow-up cycle (subscriber responded or activity detected).
-   * Increments followup_count and resets followup_reminder_count.
-   */
   async completeFollowupCycle(subscriptionId: number): Promise<void> {
-    const stmt = this.db.prepare(`
+    await this.sql`
       UPDATE campaign_subscriptions
-      SET
-        followup_count = followup_count + 1,
-        followup_reminder_count = 0,
-        updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ?
-    `)
-    await stmt.run(subscriptionId)
+      SET followup_count = followup_count + 1, followup_reminder_count = 0,
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${subscriptionId}
+    `
   }
 
-  /**
-   * Reset follow-up reminders when activity is detected during escalation.
-   */
   async resetFollowupReminders(subscriptionId: number): Promise<void> {
-    const stmt = this.db.prepare(`
+    await this.sql`
       UPDATE campaign_subscriptions
-      SET
-        followup_reminder_count = 0,
-        updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ?
-    `)
-    await stmt.run(subscriptionId)
+      SET followup_reminder_count = 0, updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${subscriptionId}
+    `
   }
 
-  /**
-   * Reset all follow-up tracking when reactivating a subscription.
-   */
   async resetFollowupTracking(subscriptionId: number): Promise<void> {
-    const stmt = this.db.prepare(`
+    await this.sql`
       UPDATE campaign_subscriptions
-      SET
-        followup_count = 0,
-        followup_reminder_count = 0,
-        last_followup_at = NULL,
-        updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ?
-    `)
-    await stmt.run(subscriptionId)
+      SET followup_count = 0, followup_reminder_count = 0, last_followup_at = NULL,
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${subscriptionId}
+    `
   }
 
-  /**
-   * Get subscription with follow-up details for the API response.
-   */
   async getSubscriptionWithFollowupDetails(subscriptionId: number): Promise<PeopleGroupSubscription & {
     last_followup_at: string | null
     followup_count: number
     followup_reminder_count: number
   } | null> {
-    const stmt = this.db.prepare(`
-      SELECT * FROM campaign_subscriptions WHERE id = ?
-    `)
-    return await stmt.get(subscriptionId) as any
+    const [row] = await this.sql`SELECT * FROM campaign_subscriptions WHERE id = ${subscriptionId}`
+    return row || null
   }
 }
 

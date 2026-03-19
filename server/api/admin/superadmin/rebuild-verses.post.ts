@@ -1,6 +1,6 @@
 import { translateVerseNodes, type TiptapNode, type VerseWarning } from '#server/utils/deepl'
 import { getBibleId } from '~/utils/languages'
-import { getDatabase } from '#server/database/db'
+import { getSql } from '#server/database/db'
 import { getErrorMessage } from '#server/utils/api-helpers'
 
 /**
@@ -46,18 +46,16 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const db = getDatabase()
+    const sql = getSql()
 
     // Query all library_content rows for selected languages with non-null content
-    const placeholders = languages.map((_, i) => `$${i + 1}`).join(', ')
-    const rows: Array<{ id: number; language_code: string; content_json: Record<string, any> }> = await db.rawSql.unsafe(
-      `SELECT id, language_code, content_json
-       FROM library_content
-       WHERE language_code IN (${placeholders})
-       AND content_json IS NOT NULL
-       ORDER BY language_code, library_id, day_number`,
-      languages
-    )
+    const rows: Array<{ id: number; language_code: string; content_json: Record<string, any> }> = await sql`
+      SELECT id, language_code, content_json
+      FROM library_content
+      WHERE language_code IN ${sql(languages)}
+      AND content_json IS NOT NULL
+      ORDER BY language_code, library_id, day_number
+    `
 
     const total = rows.length
     sendEvent('progress', {
@@ -85,10 +83,9 @@ export default defineEventHandler(async (event) => {
           const versesInDoc = countVerseNodes(doc)
           stats.versesRebuilt += versesInDoc
 
-          const raw = db.rawSql
-          await raw`
+          await sql`
             UPDATE library_content
-            SET content_json = ${raw.json(doc as any)},
+            SET content_json = ${sql.json(doc as any)},
                 updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
             WHERE id = ${row.id}
           `

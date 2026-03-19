@@ -1,4 +1,4 @@
-import { getDatabase } from '../database/db'
+import { getSql } from '../database/db'
 
 /**
  * Update the people_praying and daily_prayer_duration columns for all people groups
@@ -6,9 +6,9 @@ import { getDatabase } from '../database/db'
  * - daily_prayer_duration: average total prayer duration per day over the last 7 days (in seconds)
  */
 export async function updatePrayerStats(): Promise<void> {
-  const db = getDatabase()
+  const sql = getSql()
 
-  const stmt = db.prepare(`
+  await sql`
     UPDATE people_groups pg
     SET
       people_praying = COALESCE(stats.avg_daily_count, 0),
@@ -31,12 +31,10 @@ export async function updatePrayerStats(): Promise<void> {
       GROUP BY people_group_id
     ) stats
     WHERE pg.id = stats.people_group_id
-  `)
-
-  await stmt.run()
+  `
 
   // Reset people groups with no recent activity to 0
-  const resetStmt = db.prepare(`
+  await sql`
     UPDATE people_groups
     SET people_praying = 0, daily_prayer_duration = 0
     WHERE id NOT IN (
@@ -45,7 +43,5 @@ export async function updatePrayerStats(): Promise<void> {
       WHERE timestamp >= NOW() - INTERVAL '7 days'
         AND people_group_id IS NOT NULL
     )
-  `)
-
-  await resetStmt.run()
+  `
 }

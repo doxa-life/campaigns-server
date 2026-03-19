@@ -1,4 +1,4 @@
-import { getDatabase } from '#server/database/db'
+import { getSql } from '#server/database/db'
 import { handleApiError } from '#server/utils/api-helpers'
 
 interface ImportResult {
@@ -65,7 +65,7 @@ export default defineEventHandler(async (event): Promise<ImportResult> => {
       })
     }
 
-    const db = getDatabase()
+    const sql = getSql()
     let matched = 0
     let updated = 0
     let notFound = 0
@@ -95,11 +95,10 @@ export default defineEventHandler(async (event): Promise<ImportResult> => {
         }
 
         // Find people group by imb_peid in metadata (metadata is stored as text, cast to jsonb)
-        const stmt = db.prepare(`
+        const [result] = await sql`
           SELECT id FROM people_groups
-          WHERE metadata::jsonb->>'imb_peid' = ?
-        `)
-        const result = await stmt.get(peid) as { id: number } | null
+          WHERE metadata::jsonb->>'imb_peid' = ${peid}
+        ` as { id: number }[]
 
         if (!result) {
           notFound++
@@ -115,13 +114,12 @@ export default defineEventHandler(async (event): Promise<ImportResult> => {
           if (updated < 3) {
             console.log(`  Found PEID ${peid} -> updating with description (${desc.substring(0, 50)}...)`)
           }
-          const updateStmt = db.prepare(`
+          await sql`
             UPDATE people_groups
-            SET descriptions = COALESCE(descriptions, '{}'::jsonb) || jsonb_build_object('en', ?::text),
+            SET descriptions = COALESCE(descriptions, '{}'::jsonb) || jsonb_build_object('en', ${desc}::text),
                 updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-            WHERE id = ?
-          `)
-          await updateStmt.run(desc, result.id)
+            WHERE id = ${result.id}
+          `
           updated++
         }
       } catch (err) {

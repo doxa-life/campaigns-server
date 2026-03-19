@@ -1,8 +1,9 @@
-import { getDatabase } from './db'
+import type { Sql, Fragment } from 'postgres'
+import { getSql } from './db'
+import { buildSet } from './sql-helpers'
 
 export type LibraryType = 'static' | 'people_group'
 
-// Virtual People Group library - not stored in database
 export const PEOPLE_GROUP_LIBRARY_ID = -1
 export const PEOPLE_GROUP_LIBRARY: Library = {
   id: PEOPLE_GROUP_LIBRARY_ID,
@@ -16,7 +17,6 @@ export const PEOPLE_GROUP_LIBRARY: Library = {
   updated_at: '2025-01-01T00:00:00.000Z'
 }
 
-// Virtual Daily People Group library - rotates through all people groups
 export const DAILY_PEOPLE_GROUP_LIBRARY_ID = -2
 export const DAILY_PEOPLE_GROUP_LIBRARY: Library = {
   id: DAILY_PEOPLE_GROUP_LIBRARY_ID,
@@ -30,7 +30,6 @@ export const DAILY_PEOPLE_GROUP_LIBRARY: Library = {
   updated_at: '2025-01-01T00:00:00.000Z'
 }
 
-// Virtual Day in the Life library - displays people group's day_in_life library content
 export const DAY_IN_LIFE_LIBRARY_ID = -3
 export const DAY_IN_LIFE_LIBRARY: Library = {
   id: DAY_IN_LIFE_LIBRARY_ID,
@@ -95,242 +94,161 @@ export interface LibraryExportData {
 }
 
 export class LibraryService {
-  private db = getDatabase()
+  private sql = getSql()
 
-  // Create library
-  // Accepts optional db parameter for transaction support
-  async createLibrary(data: CreateLibraryData, db?: ReturnType<typeof getDatabase>): Promise<Library> {
-    const database = db || this.db
+  async createLibrary(data: CreateLibraryData, db?: Sql): Promise<Library> {
+    const s = db || this.sql
     const { name, description = '', repeating = false, people_group_id = null, library_key = null } = data
 
-    const stmt = database.prepare(`
-      INSERT INTO libraries (name, description, repeating, people_group_id, library_key)
-      VALUES (?, ?, ?, ?, ?)
-    `)
-
     try {
-      const result = await stmt.run(name, description, repeating, people_group_id, library_key)
-      const libraryId = result.lastInsertRowid as number
-      return (await this.getLibraryById(libraryId, db))!
+      const [row] = await s`
+        INSERT INTO libraries (name, description, repeating, people_group_id, library_key)
+        VALUES (${name}, ${description}, ${repeating}, ${people_group_id}, ${library_key})
+        RETURNING *
+      `
+      return row
     } catch (error: any) {
-      if (error.code === '23505') { // PostgreSQL unique violation
+      if (error.code === '23505') {
         throw new Error('A library with this name already exists')
       }
       throw error
     }
   }
 
-  // Get library by ID
-  // Accepts optional db parameter for transaction support
-  async getLibraryById(id: number, db?: ReturnType<typeof getDatabase>): Promise<Library | null> {
-    const database = db || this.db
+  async getLibraryById(id: number, db?: Sql): Promise<Library | null> {
+    const s = db || this.sql
 
-    // Return virtual libraries for special IDs
-    if (id === PEOPLE_GROUP_LIBRARY_ID) {
-      return PEOPLE_GROUP_LIBRARY
-    }
-    if (id === DAILY_PEOPLE_GROUP_LIBRARY_ID) {
-      return DAILY_PEOPLE_GROUP_LIBRARY
-    }
-    if (id === DAY_IN_LIFE_LIBRARY_ID) {
-      return DAY_IN_LIFE_LIBRARY
-    }
+    if (id === PEOPLE_GROUP_LIBRARY_ID) return PEOPLE_GROUP_LIBRARY
+    if (id === DAILY_PEOPLE_GROUP_LIBRARY_ID) return DAILY_PEOPLE_GROUP_LIBRARY
+    if (id === DAY_IN_LIFE_LIBRARY_ID) return DAY_IN_LIFE_LIBRARY
 
-    const stmt = database.prepare(`
-      SELECT * FROM libraries WHERE id = ?
-    `)
-    const library = await stmt.get(id) as Library | null
-    return library
+    const [row] = await s`SELECT * FROM libraries WHERE id = ${id}`
+    return row || null
   }
 
-  // Get people-group-specific library by key
   async getPeopleGroupLibraryByKey(peopleGroupId: number, libraryKey: string): Promise<Library | null> {
-    const stmt = this.db.prepare(`
-      SELECT * FROM libraries WHERE people_group_id = ? AND library_key = ?
-    `)
-    const library = await stmt.get(peopleGroupId, libraryKey) as Library | null
-    return library
+    const [row] = await this.sql`
+      SELECT * FROM libraries WHERE people_group_id = ${peopleGroupId} AND library_key = ${libraryKey}
+    `
+    return row || null
   }
 
-  // Get all libraries for a people group
   async getPeopleGroupLibraries(peopleGroupId: number): Promise<Library[]> {
-    const stmt = this.db.prepare(`
-      SELECT * FROM libraries WHERE people_group_id = ? ORDER BY name
-    `)
-    const libraries = await stmt.all(peopleGroupId) as Library[]
-    return libraries
+    return await this.sql`
+      SELECT * FROM libraries WHERE people_group_id = ${peopleGroupId} ORDER BY name
+    `
   }
 
-  // Get all global libraries (excludes people-group-specific libraries)
   async getAllLibraries(options?: {
     search?: string
     limit?: number
     offset?: number
   }): Promise<Library[]> {
-    let query = `SELECT * FROM libraries WHERE people_group_id IS NULL`
-    const params: any[] = []
+    const search = options?.search ? `%${options.search}%` : null
+    const limit = options?.limit || null
+    const offset = options?.offset || null
 
-    if (options?.search) {
-      query += ' AND name ILIKE ?'
-      params.push(`%${options.search}%`)
+    if (search && limit) {
+      return await this.sql`
+        SELECT * FROM libraries WHERE people_group_id IS NULL AND name ILIKE ${search}
+        ORDER BY name LIMIT ${limit} OFFSET ${offset || 0}
+      `
     }
-
-    query += ' ORDER BY name'
-
-    if (options?.limit) {
-      query += ' LIMIT ?'
-      params.push(options.limit)
-
-      if (options?.offset) {
-        query += ' OFFSET ?'
-        params.push(options.offset)
-      }
+    if (search) {
+      return await this.sql`
+        SELECT * FROM libraries WHERE people_group_id IS NULL AND name ILIKE ${search}
+        ORDER BY name
+      `
     }
-
-    const stmt = this.db.prepare(query)
-    const libraries = await stmt.all(...params) as Library[]
-    return libraries
+    if (limit) {
+      return await this.sql`
+        SELECT * FROM libraries WHERE people_group_id IS NULL
+        ORDER BY name LIMIT ${limit} OFFSET ${offset || 0}
+      `
+    }
+    return await this.sql`SELECT * FROM libraries WHERE people_group_id IS NULL ORDER BY name`
   }
 
-  // Update library
   async updateLibrary(id: number, data: UpdateLibraryData): Promise<Library | null> {
     const library = await this.getLibraryById(id)
-    if (!library) {
-      return null
-    }
+    if (!library) return null
 
-    const updates: string[] = []
-    const values: any[] = []
+    const fields: Fragment[] = []
 
-    if (data.name !== undefined) {
-      updates.push('name = ?')
-      values.push(data.name)
-    }
+    if (data.name !== undefined) fields.push(this.sql`name = ${data.name}`)
+    if (data.description !== undefined) fields.push(this.sql`description = ${data.description}`)
+    if (data.repeating !== undefined) fields.push(this.sql`repeating = ${data.repeating}`)
+    if (data.people_group_id !== undefined) fields.push(this.sql`people_group_id = ${data.people_group_id}`)
+    if (data.library_key !== undefined) fields.push(this.sql`library_key = ${data.library_key}`)
 
-    if (data.description !== undefined) {
-      updates.push('description = ?')
-      values.push(data.description)
-    }
+    if (fields.length === 0) return library
 
-    if (data.repeating !== undefined) {
-      updates.push('repeating = ?')
-      values.push(data.repeating)
-    }
-
-    if (data.people_group_id !== undefined) {
-      updates.push('people_group_id = ?')
-      values.push(data.people_group_id)
-    }
-
-    if (data.library_key !== undefined) {
-      updates.push('library_key = ?')
-      values.push(data.library_key)
-    }
-
-    if (updates.length === 0) {
-      return library
-    }
-
-    updates.push("updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'")
-    values.push(id)
-
-    const stmt = this.db.prepare(`
-      UPDATE libraries SET ${updates.join(', ')}
-      WHERE id = ?
-    `)
+    fields.push(this.sql`updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'`)
 
     try {
-      await stmt.run(...values)
+      await this.sql`UPDATE libraries SET ${buildSet(this.sql, fields)} WHERE id = ${id}`
       return this.getLibraryById(id)
     } catch (error: any) {
-      if (error.code === '23505') { // PostgreSQL unique violation
+      if (error.code === '23505') {
         throw new Error('A library with this name already exists')
       }
       throw error
     }
   }
 
-  // Delete library
   async deleteLibrary(id: number): Promise<boolean> {
-    const stmt = this.db.prepare('DELETE FROM libraries WHERE id = ?')
-    const result = await stmt.run(id)
-    return result.changes > 0
-  }
-
-  // Get distinct library keys (for people-group-specific libraries)
-  async getDistinctLibraryKeys(): Promise<string[]> {
-    const stmt = this.db.prepare(`
-      SELECT DISTINCT library_key FROM libraries
-      WHERE library_key IS NOT NULL
-      ORDER BY library_key
-    `)
-    const results = await stmt.all() as Array<{ library_key: string }>
-    return results.map(r => r.library_key)
-  }
-
-  // Get library statistics
-  // Accepts optional db parameter for transaction support
-  async getLibraryStats(id: number, db?: ReturnType<typeof getDatabase>): Promise<{
-    totalDays: number
-    languageStats: { [key: string]: number }
-  }> {
-    const database = db || this.db
-
-    // Virtual libraries have "infinite" days
-    if (id === PEOPLE_GROUP_LIBRARY_ID || id === DAILY_PEOPLE_GROUP_LIBRARY_ID || id === DAY_IN_LIFE_LIBRARY_ID) {
-      return {
-        totalDays: -1, // -1 indicates continuous/infinite
-        languageStats: {}
-      }
-    }
-
-    // Check if this is a people_group library (shouldn't happen anymore, but keep for safety)
-    const library = await this.getLibraryById(id, db)
-    if (library?.type === 'people_group') {
-      return {
-        totalDays: -1,
-        languageStats: {}
-      }
-    }
-
-    // Get total unique days
-    const daysStmt = database.prepare(`
-      SELECT COUNT(DISTINCT day_number) as count
-      FROM library_content
-      WHERE library_id = ?
-    `)
-    const daysResult = await daysStmt.get(id) as { count: number }
-
-    // Get content count by language
-    const langStmt = database.prepare(`
-      SELECT language_code, COUNT(*) as count
-      FROM library_content
-      WHERE library_id = ?
-      GROUP BY language_code
-    `)
-    const langResults = await langStmt.all(id) as Array<{ language_code: string; count: number }>
-
-    const languageStats: { [key: string]: number } = {}
-    langResults.forEach(r => {
-      languageStats[r.language_code] = r.count
-    })
-
-    return {
-      totalDays: daysResult.count,
-      languageStats
-    }
-  }
-
-  // Check if library name exists
-  async libraryNameExists(name: string): Promise<boolean> {
-    const stmt = this.db.prepare(`
-      SELECT COUNT(*) as count FROM libraries WHERE name = ?
-    `)
-    const result = await stmt.get(name) as { count: number }
+    const result = await this.sql`DELETE FROM libraries WHERE id = ${id}`
     return result.count > 0
   }
 
-  // Generate a unique library name by appending (1), (2), etc.
+  async getDistinctLibraryKeys(): Promise<string[]> {
+    const results = await this.sql`
+      SELECT DISTINCT library_key FROM libraries
+      WHERE library_key IS NOT NULL
+      ORDER BY library_key
+    `
+    return results.map((r: any) => r.library_key)
+  }
+
+  async getLibraryStats(id: number, db?: Sql): Promise<{
+    totalDays: number
+    languageStats: { [key: string]: number }
+  }> {
+    const s = db || this.sql
+
+    if (id === PEOPLE_GROUP_LIBRARY_ID || id === DAILY_PEOPLE_GROUP_LIBRARY_ID || id === DAY_IN_LIFE_LIBRARY_ID) {
+      return { totalDays: -1, languageStats: {} }
+    }
+
+    const library = await this.getLibraryById(id, db)
+    if (library?.type === 'people_group') {
+      return { totalDays: -1, languageStats: {} }
+    }
+
+    const [daysResult] = await s`
+      SELECT COUNT(DISTINCT day_number) as count
+      FROM library_content WHERE library_id = ${id}
+    `
+
+    const langResults = await s`
+      SELECT language_code, COUNT(*) as count
+      FROM library_content WHERE library_id = ${id}
+      GROUP BY language_code
+    `
+
+    const languageStats: { [key: string]: number } = {}
+    langResults.forEach((r: any) => {
+      languageStats[r.language_code] = r.count
+    })
+
+    return { totalDays: daysResult.count, languageStats }
+  }
+
+  async libraryNameExists(name: string): Promise<boolean> {
+    const [result] = await this.sql`SELECT COUNT(*) as count FROM libraries WHERE name = ${name}`
+    return result.count > 0
+  }
+
   async generateUniqueName(baseName: string): Promise<string> {
     let name = baseName
     let counter = 1
@@ -342,8 +260,6 @@ export class LibraryService {
 
     return name
   }
-
 }
 
-// Export singleton instance
 export const libraryService = new LibraryService()

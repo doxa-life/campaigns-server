@@ -1,4 +1,4 @@
-import { getDatabase } from './db'
+import { getSql } from './db'
 
 export interface NotificationRecipient {
   id: number
@@ -9,36 +9,34 @@ export interface NotificationRecipient {
 }
 
 class NotificationRecipientService {
-  private db = getDatabase()
+  private sql = getSql()
 
   async getByGroup(groupKey: string): Promise<NotificationRecipient[]> {
-    const stmt = this.db.prepare(
-      'SELECT * FROM notification_recipients WHERE group_key = ? ORDER BY created_at'
-    )
-    return await stmt.all(groupKey) as NotificationRecipient[]
+    return await this.sql`
+      SELECT * FROM notification_recipients WHERE group_key = ${groupKey} ORDER BY created_at
+    `
   }
 
   async getAll(): Promise<NotificationRecipient[]> {
-    const stmt = this.db.prepare(
-      'SELECT * FROM notification_recipients ORDER BY group_key, created_at'
-    )
-    return await stmt.all() as NotificationRecipient[]
+    return await this.sql`
+      SELECT * FROM notification_recipients ORDER BY group_key, created_at
+    `
   }
 
   async add(groupKey: string, email: string, name?: string): Promise<NotificationRecipient> {
-    const stmt = this.db.prepare(`
+    const [row] = await this.sql`
       INSERT INTO notification_recipients (group_key, email, name)
-      VALUES (?, ?, ?)
+      VALUES (${groupKey}, ${email}, ${name || null})
       RETURNING *
-    `)
-    return await stmt.get(groupKey, email, name || null) as NotificationRecipient
+    `
+    return row
   }
 
   async remove(id: number): Promise<boolean> {
-    const result = await this.db.prepare(
-      'DELETE FROM notification_recipients WHERE id = ?'
-    ).run(id)
-    return result.changes > 0
+    const result = await this.sql`
+      DELETE FROM notification_recipients WHERE id = ${id}
+    `
+    return result.count > 0
   }
 }
 
