@@ -223,6 +223,10 @@ export function parseReference(reference: string): ParsedReference | null {
     .replace(/^III\s+/i, '3 ')
     .replace(/^II\s+/i, '2 ')
     .replace(/^I\s+/i, '1 ')
+    // Strip letter suffixes from verse numbers: "6:10c" → "6:10", "53:5a" → "53:5"
+    .replace(/(\d)[a-z](?=\s*[-–—]|\s*$)/gi, '$1')
+    // Normalize spaces around colon: "107: 23" → "107:23"
+    .replace(/:\s+/g, ':')
 
   // Regex: optional numeric prefix + book name (Unicode letters), then chapter, then optional :verse(-verse)
   // Examples: "John 3:16", "1 Cor 13:4-7", "Psalm 23", "3 John 1:4"
