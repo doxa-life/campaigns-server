@@ -7,7 +7,7 @@
 
 import { LANGUAGE_CODES, getDeeplTargetCode, getDeeplSourceCode, getBibleId, getBibleLabel, getGlossaryId } from '~/utils/languages'
 import { parseReference, localizeReference } from '../../config/bible-books'
-import { fetchVerseData, isBollsBibleConfigured } from './app/bolls-bible'
+import { fetchVerseData, isBollsBibleConfigured, BibleUnavailableError } from './app/bolls-bible'
 
 // Re-export for convenience
 export const SUPPORTED_LANGUAGES = LANGUAGE_CODES
@@ -361,6 +361,7 @@ export async function translateVerseNodes(node: TiptapNode, targetLanguage: stri
         child.attrs!.reference = localizeReference(parsed, 'en')
         child.attrs!.translation = getBibleLabel(targetLanguage)
       } catch (e: any) {
+        if (e instanceof BibleUnavailableError) throw e
         const reason = e?.message || 'Unknown error'
         console.warn(`[Bolls Bible] Failed to fetch verse "${reference}" for "${targetLanguage}": ${reason}`)
         warnings.push({ reference, language: targetLanguage, reason })

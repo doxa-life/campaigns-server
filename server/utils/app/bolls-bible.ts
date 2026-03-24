@@ -12,6 +12,13 @@ import { existsSync } from 'node:fs'
 import { mkdir, readFile, writeFile, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
 
+export class BibleUnavailableError extends Error {
+  constructor(bibleId: string, reason: string) {
+    super(`Bible translation "${bibleId}" is unavailable: ${reason}`)
+    this.name = 'BibleUnavailableError'
+  }
+}
+
 export interface VerseData { verse: number; text: string }
 
 export interface FetchVerseParams {
@@ -185,6 +192,7 @@ const BIBLES_DIR = join(process.cwd(), 'data', 'bibles')
 
 const memoryIndex = new Map<string, ChapterIndex>()
 const pendingLoads = new Map<string, Promise<ChapterIndex>>()
+const failedTranslations = new Map<string, string>()
 
 function buildIndex(verses: BollsRawVerse[]): ChapterIndex {
   const index: ChapterIndex = new Map()
@@ -256,6 +264,9 @@ function ensureTranslationLoaded(bibleId: string): Promise<ChapterIndex> {
   const existing = memoryIndex.get(bibleId)
   if (existing) return Promise.resolve(existing)
 
+  const failureMsg = failedTranslations.get(bibleId)
+  if (failureMsg) return Promise.reject(new BibleUnavailableError(bibleId, failureMsg))
+
   // Promise coalescing: if another request is already loading this translation, reuse it
   const pending = pendingLoads.get(bibleId)
   if (pending) return pending
@@ -264,6 +275,10 @@ function ensureTranslationLoaded(bibleId: string): Promise<ChapterIndex> {
     .then(index => {
       memoryIndex.set(bibleId, index)
       return index
+    })
+    .catch(err => {
+      failedTranslations.set(bibleId, err.message)
+      throw new BibleUnavailableError(bibleId, err.message)
     })
     .finally(() => {
       pendingLoads.delete(bibleId)
