@@ -120,6 +120,7 @@ export default defineEventHandler(async (event) => {
       source: 'Adoption Form',
       message: 'Adoption form submitted',
       form_values: {
+        name: fullName,
         people_group: peopleGroup.name,
         email,
         phone: phone || null,

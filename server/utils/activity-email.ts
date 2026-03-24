@@ -58,6 +58,11 @@ function buildStatRows(stats: ActivityStats, previousStats: ActivityStats | null
       change: null
     },
     {
+      label: 'Total subscribers',
+      value: String(stats.totalSubscribers),
+      change: previousStats?.totalSubscribers != null ? formatChange(stats.totalSubscribers, previousStats.totalSubscribers) : null
+    },
+    {
       label: 'Prayer time committed',
       value: formatDuration(stats.prayerCommitted),
       change: previousStats ? formatChange(stats.prayerCommitted, previousStats.prayerCommitted) : null
