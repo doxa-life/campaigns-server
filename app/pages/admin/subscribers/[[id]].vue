@@ -46,22 +46,31 @@
           {{ subscriber.primary_email || subscriber.primary_phone || 'No contact' }}
         </div>
         <div class="subscriber-meta">
+          <template v-if="isEmailVerified(subscriber)">
+            <UBadge
+              v-for="(count, groupName) in getSubscriptionsByGroup(subscriber.subscriptions)"
+              :key="groupName"
+              :label="`${groupName} (${count})`"
+              variant="subtle"
+              size="xs"
+            />
+            <UBadge
+              v-if="subscriber.consents?.doxa_general"
+              label="Doxa"
+              color="success"
+              size="xs"
+            />
+            <span v-if="subscriber.total_prayer_minutes > 0" class="prayer-time">
+              <UIcon name="i-lucide-timer" />{{ formatMinutes(subscriber.total_prayer_minutes) }}
+            </span>
+          </template>
           <UBadge
-            v-for="(count, groupName) in getSubscriptionsByGroup(subscriber.subscriptions)"
-            :key="groupName"
-            :label="`${groupName} (${count})`"
+            v-else
+            label="Unverified"
+            color="error"
             variant="subtle"
             size="xs"
           />
-          <UBadge
-            v-if="subscriber.consents?.doxa_general"
-            label="Doxa"
-            color="success"
-            size="xs"
-          />
-          <span v-if="subscriber.total_prayer_minutes > 0" class="prayer-time">
-            <UIcon name="i-lucide-timer" />{{ formatMinutes(subscriber.total_prayer_minutes) }}
-          </span>
           <span class="date">{{ formatDate(subscriber.created_at) }}</span>
         </div>
       </CrmListItem>
@@ -659,6 +668,11 @@ const sendingReminder = ref<Record<number, boolean>>({})
 const sendingFollowup = ref<Record<number, boolean>>({})
 
 // Helpers
+function isEmailVerified(subscriber: GeneralSubscriber): boolean {
+  const emailContact = subscriber.contacts?.find(c => c.type === 'email' && c.value === subscriber.primary_email)
+  return emailContact?.verified ?? false
+}
+
 function getSubscriptionsByGroup(subscriptions: any[]) {
   const grouped: Record<string, number> = {}
   for (const sub of subscriptions) {
