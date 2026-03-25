@@ -4,6 +4,7 @@
  */
 import { peopleGroupService } from '#server/database/people-groups'
 import { subscriberService } from '#server/database/subscribers'
+import { contactMethodService } from '#server/database/contact-methods'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
 
 export default defineEventHandler(async (event) => {
@@ -71,8 +72,8 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // Check if already active
-  if (subscription.status === 'active') {
+  // Check if already active or pending
+  if (subscription.status === 'active' || subscription.status === 'pending') {
     return {
       message: 'Subscription is already active',
       already_active: true,
@@ -81,8 +82,18 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  // Determine status based on email verification
+  let resubscribeStatus: 'active' | 'pending' = 'active'
+  if (subscription.delivery_method === 'email') {
+    const contacts = await contactMethodService.getSubscriberContactMethods(subscriber.id)
+    const emailContact = contacts.find(c => c.type === 'email')
+    if (!emailContact?.verified) {
+      resubscribeStatus = 'pending'
+    }
+  }
+
   // Reactivate the subscription
-  const result = await peopleGroupSubscriptionService.resubscribe(subscription.id)
+  const result = await peopleGroupSubscriptionService.resubscribe(subscription.id, resubscribeStatus)
 
   if (!result) {
     throw createError({

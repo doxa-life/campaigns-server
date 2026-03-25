@@ -15,7 +15,7 @@ export interface SubscriptionForFollowup {
   subscriber_id: number
   frequency: string
   days_of_week: string | null
-  status: 'active' | 'inactive' | 'unsubscribed'
+  status: 'active' | 'inactive' | 'unsubscribed' | 'pending'
   last_followup_at: string | null
   followup_count: number
   followup_reminder_count: number

@@ -131,7 +131,7 @@ export default defineEventHandler(async (event) => {
 
     const MAX_SUBSCRIPTIONS_PER_PEOPLE_GROUP = 5
 
-    const activeCount = existingSubscriptions.filter(s => s.status === 'active').length
+    const activeCount = existingSubscriptions.filter(s => s.status === 'active' || s.status === 'pending').length
     if (activeCount >= MAX_SUBSCRIPTIONS_PER_PEOPLE_GROUP) {
       // At limit - send welcome email to prevent email enumeration
       if (body.delivery_method === 'email' && body.email) {
@@ -154,7 +154,7 @@ export default defineEventHandler(async (event) => {
 
     // Check for duplicate (same frequency + time_preference)
     const duplicate = existingSubscriptions.find(
-      s => s.status === 'active' &&
+      s => (s.status === 'active' || s.status === 'pending') &&
            s.frequency === body.frequency &&
            s.time_preference === body.reminder_time
     )
@@ -194,22 +194,36 @@ export default defineEventHandler(async (event) => {
         timezone,
         prayer_duration: body.prayer_duration
       })
-      await peopleGroupSubscriptionService.resubscribe(unsubscribedMatch.id)
 
-      // For email delivery, send appropriate email
+      // For email delivery, check verification to determine status
       if (body.delivery_method === 'email') {
         const emailContact = await contactMethodService.getByValue('email', body.email)
+        const resubscribeStatus = emailContact?.verified ? 'active' : 'pending'
+        await peopleGroupSubscriptionService.resubscribe(unsubscribedMatch.id, resubscribeStatus)
+
         if (emailContact && !emailContact.verified) {
           const token = await contactMethodService.generateVerificationToken(emailContact.id)
           await sendSignupVerificationEmail(body.email, token, slug, peopleGroup.name, body.name, language)
         } else if (emailContact?.verified) {
           await sendWelcomeEmail(body.email, body.name, peopleGroup.name, slug, subscriber.profile_id, language, subscriber.tracking_id, body.reminder_time)
         }
+      } else {
+        await peopleGroupSubscriptionService.resubscribe(unsubscribedMatch.id)
       }
 
       // Return same response for privacy
       return {
         message: 'Please check your email to complete your signup'
+      }
+    }
+
+    // Determine subscription status based on email verification
+    let subscriptionStatus: 'active' | 'pending' = 'active'
+    let emailContact = null
+    if (body.delivery_method === 'email') {
+      emailContact = await contactMethodService.getByValue('email', body.email)
+      if (!emailContact?.verified) {
+        subscriptionStatus = 'pending'
       }
     }
 
@@ -222,16 +236,14 @@ export default defineEventHandler(async (event) => {
       days_of_week: body.days_of_week,
       time_preference: body.reminder_time,
       timezone,
-      prayer_duration: body.prayer_duration
+      prayer_duration: body.prayer_duration,
+      status: subscriptionStatus
     })
 
     // For email delivery, handle verification
     if (body.delivery_method === 'email') {
-      const emailContact = await contactMethodService.getByValue('email', body.email)
-
       if (emailContact?.verified) {
-        // Email already verified - set next reminder and send welcome
-        await peopleGroupSubscriptionService.setInitialNextReminder(subscription.id)
+        // Email already verified - send welcome
         await sendWelcomeEmail(body.email, body.name, peopleGroup.name, slug, subscriber.profile_id, language, subscriber.tracking_id, body.reminder_time)
       } else if (emailContact) {
         // Email not verified - send verification email

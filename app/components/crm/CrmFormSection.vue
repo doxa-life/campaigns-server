@@ -88,5 +88,8 @@ watch(() => props.defaultOpen, (val) => {
 
 .section-content {
   padding: 0 0 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 </style>

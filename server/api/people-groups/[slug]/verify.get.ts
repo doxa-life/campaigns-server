@@ -50,9 +50,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Set initial next reminder for all email subscriptions of this subscriber
+  // Activate pending subscriptions and set reminders
   let subscriber = null
   if (result.contactMethod) {
+    await peopleGroupSubscriptionService.activatePendingSubscriptions(result.contactMethod.subscriber_id)
     await peopleGroupSubscriptionService.setNextRemindersForSubscriber(result.contactMethod.subscriber_id)
     subscriber = await subscriberService.getSubscriberById(result.contactMethod.subscriber_id)
 

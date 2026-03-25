@@ -38,6 +38,7 @@ export interface SubscriberWithSubscriptions extends SubscriberWithContacts {
   subscriptions: PeopleGroupSubscriptionWithDetails[]
   consents: SubscriberConsents
   total_prayer_minutes: number
+  prayer_session_count: number
 }
 
 class SubscriberService {
@@ -226,10 +227,10 @@ class SubscriberService {
 
     // Fetch prayer time totals for all subscribers in one query
     const prayerTimes = await this.sql`
-      SELECT tracking_id, COALESCE(ROUND(SUM(duration) / 60.0), 0) as total_minutes
+      SELECT tracking_id, COALESCE(ROUND(SUM(duration) / 60.0), 0) as total_minutes, COUNT(*) as session_count
       FROM prayer_activity WHERE tracking_id IS NOT NULL GROUP BY tracking_id
-    ` as { tracking_id: string; total_minutes: number }[]
-    const prayerTimeMap = new Map(prayerTimes.map(pt => [pt.tracking_id, Number(pt.total_minutes)]))
+    ` as { tracking_id: string; total_minutes: number; session_count: number }[]
+    const prayerTimeMap = new Map(prayerTimes.map(pt => [pt.tracking_id, { minutes: Number(pt.total_minutes), sessions: Number(pt.session_count) }]))
 
     const enrichedSubscribers: SubscriberWithSubscriptions[] = []
 
@@ -276,7 +277,8 @@ class SubscriberService {
           people_group_ids: consentedPeopleGroupIds,
           people_group_names: peopleGroupNames
         },
-        total_prayer_minutes: prayerTimeMap.get(subscriber.tracking_id) || 0
+        total_prayer_minutes: prayerTimeMap.get(subscriber.tracking_id)?.minutes || 0,
+        prayer_session_count: prayerTimeMap.get(subscriber.tracking_id)?.sessions || 0
       })
     }
 

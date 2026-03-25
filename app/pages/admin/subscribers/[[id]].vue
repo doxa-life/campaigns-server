@@ -80,13 +80,47 @@
       <CrmDetailPanel v-if="selectedSubscriber" :side-tabs="sideTabs">
 
         <template #details>
+          <div class="stats-grid">
+            <div class="stat-block">
+              <span class="stat-label">Status</span>
+              <UBadge
+                :label="subscriberStatus"
+                :color="subscriberStatus === 'Active' ? 'success' : 'error'"
+                variant="subtle"
+              />
+            </div>
+            <div class="stat-block">
+              <span class="stat-label">Subscriptions</span>
+              <span class="stat-value">{{ activeSubscriptionCount }}</span>
+            </div>
+            <div class="stat-block">
+              <span class="stat-label">Prayer Sessions</span>
+              <span class="stat-value">{{ selectedSubscriber.prayer_session_count }}</span>
+            </div>
+            <div class="stat-block">
+              <span class="stat-label">Prayer Time</span>
+              <span class="stat-value">{{ selectedSubscriber.total_prayer_minutes }}m</span>
+            </div>
+          </div>
+
           <form @submit.prevent="saveChanges">
             <CrmFormSection title="Contact Information">
               <UFormField label="Name" required>
                 <UInput v-model="subscriberForm.name" type="text" class="w-full" />
               </UFormField>
 
-              <UFormField label="Email">
+              <UFormField>
+                <template #label>
+                  <span class="inline-flex items-center gap-1">
+                    Email
+                    <UBadge
+                      :label="emailVerified ? 'Verified' : 'Unverified'"
+                      :color="emailVerified ? 'success' : 'error'"
+                      variant="subtle"
+                      size="xs"
+                    />
+                  </span>
+                </template>
                 <UInput v-model="subscriberForm.email" type="email" class="w-full" />
               </UFormField>
 
@@ -135,14 +169,18 @@
             </CrmFormSection>
 
             <CrmFormSection title="Marketing Consents">
-              <div class="consents-list">
+              <div v-if="!emailVerified" class="unverified-notice">
+                <UIcon name="i-lucide-info" />
+                <span>Email not verified — consents are not active</span>
+              </div>
+              <div class="consents-list" :class="{ 'consents-disabled': !emailVerified }">
                 <div class="consent-item">
                   <div class="consent-label">
                     <span class="consent-name">Doxa General Updates</span>
                     <UBadge
                       :label="selectedSubscriber.consents.doxa_general ? 'Opted In' : 'Not Opted In'"
-                      :color="selectedSubscriber.consents.doxa_general ? 'success' : 'neutral'"
-                      :variant="selectedSubscriber.consents.doxa_general ? 'solid' : 'outline'"
+                      :color="selectedSubscriber.consents.doxa_general && emailVerified ? 'success' : 'neutral'"
+                      :variant="selectedSubscriber.consents.doxa_general && emailVerified ? 'solid' : 'outline'"
                       size="xs"
                     />
                   </div>
@@ -193,7 +231,7 @@
                       <UBadge
                         :label="subscription.status"
                         variant="outline"
-                        :color="subscription.status === 'active' ? 'success' : 'error'"
+                        :color="subscription.status === 'active' ? 'success' : subscription.status === 'pending' ? 'warning' : 'error'"
                         size="xs"
                       />
                     </div>
@@ -481,7 +519,7 @@ interface Subscription {
   timezone: string
   prayer_duration: number
   next_reminder_utc: string | null
-  status: 'active' | 'inactive' | 'unsubscribed'
+  status: 'active' | 'inactive' | 'unsubscribed' | 'pending'
   created_at: string
   updated_at: string
 }
@@ -508,6 +546,7 @@ interface GeneralSubscriber {
   subscriptions: Subscription[]
   consents: SubscriberConsents
   total_prayer_minutes: number
+  prayer_session_count: number
 }
 
 interface PeopleGroup {
@@ -519,7 +558,7 @@ interface PeopleGroup {
 interface SubscriptionForm {
   frequency: string
   time_preference: string
-  status: 'active' | 'inactive' | 'unsubscribed'
+  status: 'active' | 'inactive' | 'unsubscribed' | 'pending'
 }
 
 const router = useRouter()
@@ -567,6 +606,18 @@ const deleting = ref(false)
 const slideoverOpen = ref(false)
 
 const commentCount = ref(0)
+const emailVerified = computed(() => {
+  const contacts = selectedSubscriber.value?.contacts
+  if (!contacts) return false
+  const emailContact = contacts.find(c => c.type === 'email' && c.value === subscriberForm.value.email)
+  return emailContact?.verified ?? false
+})
+const activeSubscriptionCount = computed(() => {
+  return selectedSubscriber.value?.subscriptions.filter(s => s.status === 'active').length ?? 0
+})
+const subscriberStatus = computed(() => {
+  return emailVerified.value && activeSubscriptionCount.value > 0 ? 'Active' : 'Inactive'
+})
 const sideTabs = computed(() => [
   { label: 'Activity', slot: 'activity', icon: 'i-lucide-activity' },
   { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square', badge: commentCount.value || undefined }
@@ -620,6 +671,8 @@ function getSubscriptionsByGroup(subscriptions: any[]) {
 // Options
 const statusOptions = [
   { label: 'Active', value: 'active' },
+  { label: 'Pending', value: 'pending' },
+  { label: 'Inactive', value: 'inactive' },
   { label: 'Unsubscribed', value: 'unsubscribed' }
 ]
 
@@ -1203,6 +1256,37 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+}
+
+.stat-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border: 1px solid var(--ui-border);
+  border-radius: 6px;
+  background-color: var(--ui-bg);
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--ui-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
 .filter-select {
   width: 100%;
 }
@@ -1455,6 +1539,19 @@ onMounted(async () => {
 }
 
 /* Consent Styles */
+.unverified-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8rem;
+  color: var(--ui-text-muted);
+}
+
+.consents-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .consents-list {
   display: flex;
   flex-direction: column;

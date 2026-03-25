@@ -16,7 +16,7 @@ export interface PeopleGroupSubscription {
   timezone: string
   prayer_duration: number
   next_reminder_utc: string | null
-  status: 'active' | 'inactive' | 'unsubscribed'
+  status: 'active' | 'inactive' | 'unsubscribed' | 'pending'
   created_at: string
   updated_at: string
 }
@@ -54,9 +54,10 @@ export interface CreateSubscriptionInput {
 class PeopleGroupSubscriptionService {
   private sql = getSql()
 
-  async createSubscription(input: CreateSubscriptionInput): Promise<PeopleGroupSubscription> {
+  async createSubscription(input: CreateSubscriptionInput & { status?: 'active' | 'pending' }): Promise<PeopleGroupSubscription> {
     const days_of_week_json = input.days_of_week ? JSON.stringify(input.days_of_week) : null
     const timezone = input.timezone || 'UTC'
+    const status = input.status || 'active'
 
     const [row] = await this.sql`
       INSERT INTO campaign_subscriptions (
@@ -66,12 +67,14 @@ class PeopleGroupSubscriptionService {
       VALUES (
         ${input.people_group_id}, ${input.subscriber_id}, ${input.delivery_method},
         ${input.frequency}, ${days_of_week_json}, ${input.time_preference},
-        ${timezone}, ${input.prayer_duration || 10}, 'active'
+        ${timezone}, ${input.prayer_duration || 10}, ${status}
       )
       RETURNING *
     `
 
-    await this.setInitialNextReminder(row.id)
+    if (status === 'active') {
+      await this.setInitialNextReminder(row.id)
+    }
     return (await this.getById(row.id))!
   }
 
@@ -141,7 +144,7 @@ class PeopleGroupSubscriptionService {
   async getPeopleGroupSubscriptions(
     peopleGroupId: number,
     options?: {
-      status?: 'active' | 'inactive' | 'unsubscribed'
+      status?: 'active' | 'inactive' | 'unsubscribed' | 'pending'
       limit?: number
       offset?: number
     }
@@ -238,7 +241,7 @@ class PeopleGroupSubscriptionService {
     return this.getById(id)
   }
 
-  async updateStatus(id: number, status: 'active' | 'inactive' | 'unsubscribed'): Promise<PeopleGroupSubscription | null> {
+  async updateStatus(id: number, status: 'active' | 'inactive' | 'unsubscribed' | 'pending'): Promise<PeopleGroupSubscription | null> {
     await this.sql`
       UPDATE campaign_subscriptions
       SET status = ${status}, updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
@@ -256,15 +259,17 @@ class PeopleGroupSubscriptionService {
     return result.count > 0
   }
 
-  async resubscribe(id: number): Promise<boolean> {
+  async resubscribe(id: number, status: 'active' | 'pending' = 'active'): Promise<boolean> {
     const result = await this.sql`
       UPDATE campaign_subscriptions
-      SET status = 'active', updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      SET status = ${status}, updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE id = ${id}
     `
 
     if (result.count > 0) {
-      await this.setInitialNextReminder(id)
+      if (status === 'active') {
+        await this.setInitialNextReminder(id)
+      }
       await this.resetFollowupTracking(id)
       return true
     }
@@ -379,6 +384,15 @@ class PeopleGroupSubscriptionService {
     })
 
     await this.updateNextReminderUtc(subscriptionId, nextUtc)
+  }
+
+  async activatePendingSubscriptions(subscriberId: number): Promise<number> {
+    const result = await this.sql`
+      UPDATE campaign_subscriptions
+      SET status = 'active', updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE subscriber_id = ${subscriberId} AND status = 'pending'
+    `
+    return result.count
   }
 
   async setNextRemindersForSubscriber(subscriberId: number): Promise<void> {
