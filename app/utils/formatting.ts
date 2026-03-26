@@ -14,20 +14,17 @@ export function formatMinutes(minutes: number): string {
   return `${hours.toLocaleString()}h ${remaining}m`
 }
 
-const FORM_KEY_LABELS: Record<string, string> = {
-  people_group: 'People Group',
-  email: 'Email',
-  phone: 'Phone',
-  church: 'Church',
-  role: 'Role',
-  country: 'Country',
-  language: 'Language',
-  public_display: 'Public Display',
-  permission_to_contact: 'Permission to Contact'
-}
+import { getSubscriberFieldLabel } from './subscriber-fields'
+import { getGroupFieldLabel } from './group-fields'
 
 export function formatFormKey(key: string): string {
-  return FORM_KEY_LABELS[key] || key.replace(/_/g, ' ')
+  const subscriberLabel = getSubscriberFieldLabel(key)
+  if (subscriberLabel !== key) return subscriberLabel
+
+  const groupLabel = getGroupFieldLabel(key)
+  if (groupLabel !== key) return groupLabel
+
+  return key
 }
 
 export function formatFormValue(value: any): string {

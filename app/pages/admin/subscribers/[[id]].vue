@@ -114,14 +114,14 @@
 
           <form @submit.prevent="saveChanges">
             <CrmFormSection title="Contact Information">
-              <UFormField label="Name" required>
+              <UFormField :label="getSubscriberFieldLabel('name')" required>
                 <UInput v-model="subscriberForm.name" type="text" class="w-full" />
               </UFormField>
 
               <UFormField>
                 <template #label>
                   <span class="inline-flex items-center gap-1">
-                    Email
+                    {{ getSubscriberFieldLabel('email') }}
                     <UBadge
                       :label="emailVerified ? 'Verified' : 'Unverified'"
                       :color="emailVerified ? 'success' : 'error'"
@@ -133,15 +133,15 @@
                 <UInput v-model="subscriberForm.email" type="email" class="w-full" />
               </UFormField>
 
-              <UFormField label="Phone">
+              <UFormField :label="getSubscriberFieldLabel('phone')">
                 <UInput v-model="subscriberForm.phone" type="tel" class="w-full" />
               </UFormField>
 
-              <UFormField label="Role">
+              <UFormField :label="getSubscriberFieldLabel('role')">
                 <UInput v-model="subscriberForm.role" type="text" class="w-full" placeholder="e.g. Pastor, Missions Pastor" />
               </UFormField>
 
-              <UFormField label="Preferred Language">
+              <UFormField :label="getSubscriberFieldLabel('preferred_language')">
                 <USelectMenu
                   v-model="subscriberForm.preferred_language"
                   :items="languageOptions"
@@ -251,7 +251,7 @@
                   </div>
 
                   <div v-if="expandedSubscriptions.has(subscription.id)" class="subscription-details">
-                    <UFormField label="Delivery Method">
+                    <UFormField :label="getSubscriberFieldLabel('delivery_method')">
                       <div class="field-display">
                         <UBadge
                           :label="subscription.delivery_method"
@@ -262,7 +262,7 @@
                       </div>
                     </UFormField>
 
-                    <UFormField label="Frequency">
+                    <UFormField :label="getSubscriberFieldLabel('frequency')">
                       <USelect
                         v-model="getSubscriptionForm(subscription.id).frequency"
                         :items="frequencyOptions"
@@ -271,11 +271,11 @@
                       />
                     </UFormField>
 
-                    <UFormField v-if="subscription.frequency !== 'daily' && subscription.days_of_week" label="Days of Week">
+                    <UFormField v-if="subscription.frequency !== 'daily' && subscription.days_of_week" :label="getSubscriberFieldLabel('days_of_week')">
                       <div class="field-display">{{ formatDaysOfWeek(subscription.days_of_week) }}</div>
                     </UFormField>
 
-                    <UFormField label="Time Preference">
+                    <UFormField :label="getSubscriberFieldLabel('time_preference')">
                       <UInput
                         v-model="getSubscriptionForm(subscription.id).time_preference"
                         type="time"
@@ -283,19 +283,19 @@
                       />
                     </UFormField>
 
-                    <UFormField v-if="subscription.timezone" label="Timezone">
+                    <UFormField v-if="subscription.timezone" :label="getSubscriberFieldLabel('timezone')">
                       <div class="field-display">{{ subscription.timezone }}</div>
                     </UFormField>
 
-                    <UFormField label="Prayer Duration">
+                    <UFormField :label="getSubscriberFieldLabel('prayer_duration')">
                       <div class="field-display">{{ formatDuration(subscription.prayer_duration) }}</div>
                     </UFormField>
 
-                    <UFormField v-if="subscription.next_reminder_utc" label="Next Reminder">
+                    <UFormField v-if="subscription.next_reminder_utc" :label="getSubscriberFieldLabel('next_reminder_utc')">
                       <div class="field-display">{{ formatDateTime(subscription.next_reminder_utc) }}</div>
                     </UFormField>
 
-                    <UFormField label="Status">
+                    <UFormField :label="getSubscriberFieldLabel('status')">
                       <USelect
                         v-model="getSubscriptionForm(subscription.id).status"
                         :items="statusOptions"

@@ -58,6 +58,8 @@
 
 <script setup lang="ts">
 import { allFields } from '~/utils/people-group-fields'
+import { getGroupFieldLabel } from '~/utils/group-fields'
+import { getSubscriberFieldLabel } from '~/utils/subscriber-fields'
 import { LANGUAGES } from '~~/config/languages'
 
 interface Activity {
@@ -148,16 +150,6 @@ function getEventIcon(label: string): string | undefined {
   return icons[label]
 }
 
-const NON_FIELD_LABELS: Record<string, string> = {
-  'primary_subscriber_id': 'Primary Contact',
-  'country': 'Country',
-  'description': 'Description',
-  'repeating': 'Repeating',
-  'role': 'Role',
-  'status': 'Status',
-  'show_publicly': 'Show Publicly'
-}
-
 function formatFieldName(field: string): string {
   // Description per language: description_en → "Description (English)"
   const descMatch = field.match(/^description_(.+)$/)
@@ -170,7 +162,14 @@ function formatFieldName(field: string): string {
   const def = fieldByKey.value.get(field)
   if (def) return t(def.labelKey)
 
-  return NON_FIELD_LABELS[field] || field.replace(/_/g, ' ')
+  // Group and subscriber field definitions
+  const groupLabel = getGroupFieldLabel(field)
+  if (groupLabel !== field) return groupLabel
+
+  const subscriberLabel = getSubscriberFieldLabel(field)
+  if (subscriberLabel !== field) return subscriberLabel
+
+  return field.replace(/_/g, ' ')
 }
 
 function formatValue(field: string, value: any): string {

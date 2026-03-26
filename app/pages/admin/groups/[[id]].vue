@@ -56,10 +56,10 @@
         <template #details>
           <form @submit.prevent="saveGroupChanges">
             <CrmFormSection title="Group Information">
-              <UFormField label="Name" required>
+              <UFormField :label="getGroupFieldLabel('name')" required>
                 <UInput v-model="groupForm.name" type="text" class="w-full" />
               </UFormField>
-              <UFormField label="Primary Contact">
+              <UFormField :label="getGroupFieldLabel('primary_subscriber_id')">
                 <USelectMenu
                   v-model="groupForm.primary_subscriber_id"
                   :items="primarySubscriberOptions"
@@ -68,7 +68,7 @@
                   class="w-full"
                 />
               </UFormField>
-              <UFormField label="Country">
+              <UFormField :label="getGroupFieldLabel('country')">
                 <USelectMenu
                   v-model="groupForm.country"
                   :items="countryOptions"

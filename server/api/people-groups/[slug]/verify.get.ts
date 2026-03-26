@@ -57,6 +57,14 @@ export default defineEventHandler(async (event) => {
     await peopleGroupSubscriptionService.setNextRemindersForSubscriber(result.contactMethod.subscriber_id)
     subscriber = await subscriberService.getSubscriberById(result.contactMethod.subscriber_id)
 
+    // Log email verification
+    if (!result.alreadyVerified && subscriber) {
+      logUpdate('subscribers', String(subscriber.id), event, {
+        source: 'Email Verification',
+        message: `Email verified: ${result.contactMethod.value}`
+      })
+    }
+
     // Send welcome email (only if this was a new verification, not already verified)
     if (!result.alreadyVerified && subscriber) {
       const subscriptions = await peopleGroupSubscriptionService.getAllBySubscriberAndPeopleGroup(

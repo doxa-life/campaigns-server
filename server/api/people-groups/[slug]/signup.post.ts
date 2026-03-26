@@ -211,6 +211,22 @@ export default defineEventHandler(async (event) => {
         await peopleGroupSubscriptionService.resubscribe(unsubscribedMatch.id)
       }
 
+      logCreate('subscribers', String(subscriber.id), event, {
+        source: 'Signup Form',
+        message: 'Resubscribed to',
+        link_text: peopleGroup.name,
+        link_url: `/admin/people-groups/${peopleGroup.id}`,
+        form_values: {
+          name: body.name,
+          delivery_method: body.delivery_method,
+          frequency: body.frequency,
+          reminder_time: body.reminder_time,
+          timezone,
+          people_group_updates: body.consent_people_group_updates ?? false,
+          doxa_general_updates: body.consent_doxa_general ?? false
+        }
+      })
+
       // Return same response for privacy
       return {
         message: 'Please check your email to complete your signup'
@@ -238,6 +254,24 @@ export default defineEventHandler(async (event) => {
       timezone,
       prayer_duration: body.prayer_duration,
       status: subscriptionStatus
+    })
+
+    logCreate('subscribers', String(subscriber.id), event, {
+      source: 'Signup Form',
+      message: 'Subscribed to',
+      link_text: peopleGroup.name,
+      link_url: `/admin/people-groups/${peopleGroup.id}`,
+      form_values: {
+        name: body.name,
+        email: body.email || null,
+        language,
+        delivery_method: body.delivery_method,
+        frequency: body.frequency,
+        reminder_time: body.reminder_time,
+        timezone,
+        people_group_updates: body.consent_people_group_updates ?? false,
+        doxa_general_updates: body.consent_doxa_general ?? false
+      }
     })
 
     // For email delivery, handle verification
