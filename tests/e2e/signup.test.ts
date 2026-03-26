@@ -146,7 +146,7 @@ describe('POST /api/people-groups/[slug]/signup', async () => {
       expect(subscription!.frequency).toBe('daily')
       expect(subscription!.time_preference).toBe('09:00')
       expect(subscription!.timezone).toBe('America/New_York')
-      expect(subscription!.status).toBe('active')
+      expect(subscription!.status).toBe('pending')
     })
 
     it('stores email lowercase (case-insensitive)', async () => {
