@@ -47,6 +47,18 @@
       "championedBy": "جماعة عرقية تدعمها {link}.",
       "doxaFoundation": "Doxa.Life"
     },
+    "share": {
+      "button": "مشاركة",
+      "qrCode": "رمز QR",
+      "shareLink": "مشاركة الرابط",
+      "copyLink": "نسخ الرابط",
+      "copied": "تم نسخ الرابط!",
+      "copiedDescription": "تم نسخ رابط الصفحة إلى الحافظة.",
+      "copyFailed": "فشل نسخ الرابط",
+      "qrTitle": "امسح للزيارة",
+      "qrDescription": "امسح رمز QR هذا لفتح هذه الصفحة على جهاز آخر.",
+      "close": "إغلاق"
+    },
     "pageTitle": "الحملة",
     "signupButton": "سجّل للصلاة",
     "loading": "جارٍ تحميل الحملة...",

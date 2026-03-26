@@ -47,6 +47,18 @@
       "championedBy": "一个由{link}支持的族群。",
       "doxaFoundation": "Doxa.Life"
     },
+    "share": {
+      "button": "分享",
+      "qrCode": "二维码",
+      "shareLink": "分享链接",
+      "copyLink": "复制链接",
+      "copied": "链接已复制！",
+      "copiedDescription": "页面链接已复制到剪贴板。",
+      "copyFailed": "复制链接失败",
+      "qrTitle": "扫码访问",
+      "qrDescription": "扫描此二维码以在其他设备上打开此页面。",
+      "close": "关闭"
+    },
     "pageTitle": "活动",
     "signupButton": "注册祷告",
     "loading": "正在加载活动...",

@@ -47,6 +47,18 @@
       "championedBy": "Un grup etnic susținut de {link}.",
       "doxaFoundation": "Doxa.Life"
     },
+    "share": {
+      "button": "Distribuie",
+      "qrCode": "Cod QR",
+      "shareLink": "Distribuie linkul",
+      "copyLink": "Copiază linkul",
+      "copied": "Link copiat!",
+      "copiedDescription": "Linkul paginii a fost copiat în clipboard.",
+      "copyFailed": "Nu s-a putut copia linkul",
+      "qrTitle": "Scanează pentru a vizita",
+      "qrDescription": "Scanează acest cod QR pentru a deschide această pagină pe alt dispozitiv.",
+      "close": "Închide"
+    },
     "pageTitle": "Campanie",
     "signupButton": "Înscrie-te pentru rugăciune",
     "loading": "Se încarcă campania...",

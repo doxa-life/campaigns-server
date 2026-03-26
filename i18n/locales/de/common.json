@@ -47,6 +47,18 @@
       "championedBy": "Eine Volksgruppe, unterstützt von {link}.",
       "doxaFoundation": "Doxa.Life"
     },
+    "share": {
+      "button": "Teilen",
+      "qrCode": "QR-Code",
+      "shareLink": "Link teilen",
+      "copyLink": "Link kopieren",
+      "copied": "Link kopiert!",
+      "copiedDescription": "Der Seitenlink wurde in die Zwischenablage kopiert.",
+      "copyFailed": "Link konnte nicht kopiert werden",
+      "qrTitle": "Scannen zum Besuchen",
+      "qrDescription": "Scannen Sie diesen QR-Code, um diese Seite auf einem anderen Gerät zu öffnen.",
+      "close": "Schließen"
+    },
     "pageTitle": "Kampagne",
     "signupButton": "Anmelden zum Beten",
     "loading": "Kampagne wird geladen...",

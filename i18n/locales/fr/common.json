@@ -47,6 +47,18 @@
       "championedBy": "Un groupe ethnique soutenu par {link}.",
       "doxaFoundation": "Doxa.Life"
     },
+    "share": {
+      "button": "Partager",
+      "qrCode": "Code QR",
+      "shareLink": "Partager le lien",
+      "copyLink": "Copier le lien",
+      "copied": "Lien copié !",
+      "copiedDescription": "Le lien de la page a été copié dans le presse-papiers.",
+      "copyFailed": "Échec de la copie du lien",
+      "qrTitle": "Scanner pour visiter",
+      "qrDescription": "Scannez ce code QR pour ouvrir cette page sur un autre appareil.",
+      "close": "Fermer"
+    },
     "pageTitle": "Campagne",
     "signupButton": "Inscrivez-vous pour prier",
     "loading": "Chargement de la campagne...",

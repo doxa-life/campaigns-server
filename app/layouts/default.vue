@@ -29,6 +29,7 @@
               <span>DOXA</span>
               <UIcon name="i-lucide-external-link" class="w-4 h-4" />
             </a>
+            <SharePopover v-if="isPeopleGroupPage" />
             <LanguageSwitcher />
             <ThemeToggle />
             <template v-if="isHomePage">

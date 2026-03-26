@@ -47,6 +47,18 @@
       "championedBy": "A people group championed by {link}.",
       "doxaFoundation": "Doxa.Life"
     },
+    "share": {
+      "button": "Share",
+      "qrCode": "QR Code",
+      "shareLink": "Share Link",
+      "copyLink": "Copy Link",
+      "copied": "Link Copied!",
+      "copiedDescription": "The page link has been copied to your clipboard.",
+      "copyFailed": "Failed to copy link",
+      "qrTitle": "Scan to Visit",
+      "qrDescription": "Scan this QR code to open this page on another device.",
+      "close": "Close"
+    },
     "pageTitle": "Campaign",
     "signupButton": "Sign up to pray",
     "loading": "Loading campaign...",
