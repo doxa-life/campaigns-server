@@ -6,6 +6,7 @@ import { peopleGroupSubscriptionService } from '#server/database/people-group-su
 import { subscriberService } from '#server/database/subscribers'
 import { peopleGroupService } from '#server/database/people-groups'
 import { generateIcsContent } from '#server/utils/calendar-links'
+import { t } from '#server/utils/translations'
 
 export default defineEventHandler(async (event) => {
   const idParam = getRouterParam(event, 'id')
@@ -36,15 +37,13 @@ export default defineEventHandler(async (event) => {
   const baseUrl = config.public.siteUrl || 'http://localhost:3000'
   const prayerUrl = `${baseUrl}/${peopleGroup.slug}/prayer?uid=${subscriber.tracking_id}`
 
-  const daysOfWeek = subscription.days_of_week
-    ? (typeof subscription.days_of_week === 'string' ? JSON.parse(subscription.days_of_week) : subscription.days_of_week)
-    : undefined
+  const locale = subscriber.preferred_language || 'en'
 
   const ics = generateIcsContent({
-    title: `Prayer for the ${peopleGroup.name}`,
-    description: `${subscription.prayer_duration}-minute prayer session for the ${peopleGroup.name}`,
+    title: t('calendar.eventTitle', locale, { campaign: peopleGroup.name }),
+    description: t('calendar.eventDescription', locale, { duration: subscription.prayer_duration, campaign: peopleGroup.name }),
     frequency: subscription.frequency,
-    daysOfWeek,
+    daysOfWeek: subscription.days_of_week.length > 0 ? subscription.days_of_week : undefined,
     timePreference: subscription.time_preference,
     timezone: subscription.timezone,
     durationMinutes: subscription.prayer_duration,

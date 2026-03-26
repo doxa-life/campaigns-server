@@ -205,7 +205,7 @@ export default defineEventHandler(async (event) => {
       id: updatedSubscription.id,
       delivery_method: updatedSubscription.delivery_method,
       frequency: updatedSubscription.frequency,
-      days_of_week: updatedSubscription.days_of_week ? JSON.parse(updatedSubscription.days_of_week) : [],
+      days_of_week: updatedSubscription.days_of_week,
       time_preference: updatedSubscription.time_preference,
       timezone: updatedSubscription.timezone,
       prayer_duration: updatedSubscription.prayer_duration,

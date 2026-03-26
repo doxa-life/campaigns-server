@@ -224,16 +224,9 @@
 
                   <!-- Add to Calendar -->
                   <AddToCalendar
-                    v-if="reminder.status === 'active'"
-                    :subscription-id="reminder.id"
-                    :profile-id="profileId"
-                    :campaign-name="pgGroup.title"
-                    :campaign-slug="pgGroup.slug"
-                    :frequency="reminder.frequency"
-                    :days-of-week="reminder.days_of_week"
-                    :time-preference="reminder.time_preference"
-                    :timezone="reminder.timezone"
-                    :duration-minutes="reminder.prayer_duration"
+                    v-if="reminder.calendar_urls"
+                    :google-url="reminder.calendar_urls.google"
+                    :ics-url="reminder.calendar_urls.ics"
                     class="pt-2"
                   />
 
@@ -376,6 +369,7 @@ interface ProfileResponse {
       timezone: string
       prayer_duration: number
       status: string
+      calendar_urls: { google: string; ics: string } | null
     }>
   }>
   consents: {

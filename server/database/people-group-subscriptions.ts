@@ -11,7 +11,7 @@ export interface PeopleGroupSubscription {
   subscriber_id: number
   delivery_method: 'email' | 'whatsapp' | 'app'
   frequency: string
-  days_of_week: string | null
+  days_of_week: number[]
   time_preference: string
   timezone: string
   prayer_duration: number
@@ -19,6 +19,12 @@ export interface PeopleGroupSubscription {
   status: 'active' | 'inactive' | 'unsubscribed' | 'pending'
   created_at: string
   updated_at: string
+}
+
+function parseDaysOfWeek(row: any): void {
+  row.days_of_week = row.days_of_week
+    ? (typeof row.days_of_week === 'string' ? JSON.parse(row.days_of_week) : row.days_of_week)
+    : []
 }
 
 export interface PeopleGroupSubscriptionWithDetails extends PeopleGroupSubscription {
@@ -80,7 +86,9 @@ class PeopleGroupSubscriptionService {
 
   async getById(id: number): Promise<PeopleGroupSubscription | null> {
     const [row] = await this.sql`SELECT * FROM campaign_subscriptions WHERE id = ${id}`
-    return row || null
+    if (!row) return null
+    parseDaysOfWeek(row)
+    return row
   }
 
   async getBySubscriberAndPeopleGroup(
@@ -91,18 +99,22 @@ class PeopleGroupSubscriptionService {
       SELECT * FROM campaign_subscriptions
       WHERE subscriber_id = ${subscriberId} AND people_group_id = ${peopleGroupId}
     `
-    return row || null
+    if (!row) return null
+    parseDaysOfWeek(row)
+    return row
   }
 
   async getAllBySubscriberAndPeopleGroup(
     subscriberId: number,
     peopleGroupId: number
   ): Promise<PeopleGroupSubscription[]> {
-    return await this.sql`
+    const rows = await this.sql`
       SELECT * FROM campaign_subscriptions
       WHERE subscriber_id = ${subscriberId} AND people_group_id = ${peopleGroupId}
       ORDER BY created_at ASC
     `
+    rows.forEach(parseDaysOfWeek)
+    return rows
   }
 
   async countBySubscriberAndPeopleGroup(
@@ -129,7 +141,7 @@ class PeopleGroupSubscriptionService {
   }
 
   async getSubscriberSubscriptions(subscriberId: number): Promise<PeopleGroupSubscriptionWithDetails[]> {
-    return await this.sql`
+    const rows = await this.sql`
       SELECT cs.*, pg.name as people_group_name, pg.slug as people_group_slug,
         s.name as subscriber_name, s.tracking_id as subscriber_tracking_id,
         s.profile_id as subscriber_profile_id
@@ -139,6 +151,8 @@ class PeopleGroupSubscriptionService {
       WHERE cs.subscriber_id = ${subscriberId}
       ORDER BY cs.created_at DESC
     `
+    rows.forEach(parseDaysOfWeek)
+    return rows
   }
 
   async getPeopleGroupSubscriptions(
@@ -153,8 +167,9 @@ class PeopleGroupSubscriptionService {
     const limit = options?.limit || null
     const offset = options?.offset || null
 
+    let rows
     if (status && limit) {
-      return await this.sql`
+      rows = await this.sql`
         SELECT cs.*, pg.name as people_group_name, pg.slug as people_group_slug,
           s.name as subscriber_name, s.tracking_id as subscriber_tracking_id,
           s.profile_id as subscriber_profile_id
@@ -164,9 +179,8 @@ class PeopleGroupSubscriptionService {
         WHERE cs.people_group_id = ${peopleGroupId} AND cs.status = ${status}
         ORDER BY cs.created_at DESC LIMIT ${limit} OFFSET ${offset || 0}
       `
-    }
-    if (status) {
-      return await this.sql`
+    } else if (status) {
+      rows = await this.sql`
         SELECT cs.*, pg.name as people_group_name, pg.slug as people_group_slug,
           s.name as subscriber_name, s.tracking_id as subscriber_tracking_id,
           s.profile_id as subscriber_profile_id
@@ -176,9 +190,8 @@ class PeopleGroupSubscriptionService {
         WHERE cs.people_group_id = ${peopleGroupId} AND cs.status = ${status}
         ORDER BY cs.created_at DESC
       `
-    }
-    if (limit) {
-      return await this.sql`
+    } else if (limit) {
+      rows = await this.sql`
         SELECT cs.*, pg.name as people_group_name, pg.slug as people_group_slug,
           s.name as subscriber_name, s.tracking_id as subscriber_tracking_id,
           s.profile_id as subscriber_profile_id
@@ -188,17 +201,20 @@ class PeopleGroupSubscriptionService {
         WHERE cs.people_group_id = ${peopleGroupId}
         ORDER BY cs.created_at DESC LIMIT ${limit} OFFSET ${offset || 0}
       `
+    } else {
+      rows = await this.sql`
+        SELECT cs.*, pg.name as people_group_name, pg.slug as people_group_slug,
+          s.name as subscriber_name, s.tracking_id as subscriber_tracking_id,
+          s.profile_id as subscriber_profile_id
+        FROM campaign_subscriptions cs
+        JOIN people_groups pg ON pg.id = cs.people_group_id
+        JOIN subscribers s ON s.id = cs.subscriber_id
+        WHERE cs.people_group_id = ${peopleGroupId}
+        ORDER BY cs.created_at DESC
+      `
     }
-    return await this.sql`
-      SELECT cs.*, pg.name as people_group_name, pg.slug as people_group_slug,
-        s.name as subscriber_name, s.tracking_id as subscriber_tracking_id,
-        s.profile_id as subscriber_profile_id
-      FROM campaign_subscriptions cs
-      JOIN people_groups pg ON pg.id = cs.people_group_id
-      JOIN subscribers s ON s.id = cs.subscriber_id
-      WHERE cs.people_group_id = ${peopleGroupId}
-      ORDER BY cs.created_at DESC
-    `
+    rows.forEach(parseDaysOfWeek)
+    return rows
   }
 
   async getActiveSubscriptionCount(peopleGroupId: number): Promise<number> {
@@ -317,6 +333,7 @@ class PeopleGroupSubscriptionService {
         WHERE id IN ${tx(ids)}
       `
 
+      claimed.forEach(parseDaysOfWeek)
       return claimed
     })
   }
@@ -328,7 +345,7 @@ class PeopleGroupSubscriptionService {
       if (today! < globalStartDate) return []
     }
 
-    return await this.sql`
+    const rows = await this.sql`
       SELECT cs.*, s.name as subscriber_name, s.tracking_id as subscriber_tracking_id,
         s.profile_id as subscriber_profile_id, s.preferred_language as subscriber_language,
         cm.value as email_value, cm.verified as email_verified,
@@ -343,6 +360,8 @@ class PeopleGroupSubscriptionService {
         AND cm.verified = true
       ORDER BY cs.next_reminder_utc ASC
     `
+    rows.forEach(parseDaysOfWeek)
+    return rows
   }
 
   async updateNextReminderUtc(subscriptionId: number, nextUtc: Date): Promise<void> {
@@ -358,13 +377,11 @@ class PeopleGroupSubscriptionService {
     const subscription = await this.getById(subscriptionId)
     if (!subscription) return
 
-    const daysOfWeek = subscription.days_of_week ? JSON.parse(subscription.days_of_week) : undefined
-
     const nextUtc = await calculateNextReminderUtc({
       timezone: subscription.timezone || 'UTC',
       timePreference: subscription.time_preference,
       frequency: subscription.frequency,
-      daysOfWeek
+      daysOfWeek: subscription.days_of_week.length > 0 ? subscription.days_of_week : undefined
     })
 
     await this.updateNextReminderUtc(subscriptionId, nextUtc)
@@ -374,13 +391,11 @@ class PeopleGroupSubscriptionService {
     const subscription = await this.getById(subscriptionId)
     if (!subscription) return
 
-    const daysOfWeek = subscription.days_of_week ? JSON.parse(subscription.days_of_week) : undefined
-
     const nextUtc = calculateNextReminderAfterSend({
       timezone: subscription.timezone || 'UTC',
       timePreference: subscription.time_preference,
       frequency: subscription.frequency,
-      daysOfWeek
+      daysOfWeek: subscription.days_of_week.length > 0 ? subscription.days_of_week : undefined
     })
 
     await this.updateNextReminderUtc(subscriptionId, nextUtc)
@@ -485,7 +500,9 @@ class PeopleGroupSubscriptionService {
     followup_reminder_count: number
   } | null> {
     const [row] = await this.sql`SELECT * FROM campaign_subscriptions WHERE id = ${subscriptionId}`
-    return row || null
+    if (!row) return null
+    parseDaysOfWeek(row)
+    return row
   }
 }
 

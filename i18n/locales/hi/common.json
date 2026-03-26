@@ -536,6 +536,7 @@
     "addToCalendar": "अपने कैलेंडर में जोड़ें",
     "googleCalendar": "Google कैलेंडर",
     "downloadIcs": "अन्य कैलेंडर",
+    "eventTitle": "{campaign} के लिए प्रार्थना",
     "eventDescription": "{campaign} के लिए {duration}-मिनट का प्रार्थना सत्र"
   }
 }

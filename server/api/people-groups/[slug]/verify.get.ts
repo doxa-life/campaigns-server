@@ -4,12 +4,14 @@
  */
 import { peopleGroupService } from '#server/database/people-groups'
 import { contactMethodService } from '#server/database/contact-methods'
-import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
+import { peopleGroupSubscriptionService, type PeopleGroupSubscription } from '#server/database/people-group-subscriptions'
 import { subscriberService } from '#server/database/subscribers'
 import { sendWelcomeEmail } from '#server/utils/welcome-email'
 import { pendingAdoptionService } from '#server/database/pending-adoptions'
 import { peopleGroupAdoptionService } from '#server/database/people-group-adoptions'
 import { sendAdoptionWelcomeEmail } from '#server/utils/adoption-welcome-email'
+import { generateGoogleCalendarUrl, getIcsDownloadUrl } from '#server/utils/calendar-links'
+import { t, localePath } from '#server/utils/translations'
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
@@ -52,7 +54,7 @@ export default defineEventHandler(async (event) => {
 
   // Activate pending subscriptions and set reminders
   let subscriber = null
-  let latestActive: any = null
+  let latestActive: PeopleGroupSubscription | null = null
   if (result.contactMethod) {
     await peopleGroupSubscriptionService.activatePendingSubscriptions(result.contactMethod.subscriber_id)
     await peopleGroupSubscriptionService.setNextRemindersForSubscriber(result.contactMethod.subscriber_id)
@@ -71,14 +73,10 @@ export default defineEventHandler(async (event) => {
       result.contactMethod.subscriber_id,
       peopleGroup.id
     )
-    latestActive = subscriptions.filter(s => s.status === 'active').pop()
+    latestActive = subscriptions.filter(s => s.status === 'active').pop() ?? null
 
     // Send welcome email (only if this was a new verification, not already verified)
     if (!result.alreadyVerified && subscriber) {
-      const daysOfWeek = latestActive?.days_of_week
-        ? (typeof latestActive.days_of_week === 'string' ? JSON.parse(latestActive.days_of_week) : latestActive.days_of_week)
-        : undefined
-
       sendWelcomeEmail(
         result.contactMethod.value,
         subscriber.name,
@@ -91,7 +89,7 @@ export default defineEventHandler(async (event) => {
         latestActive ? {
           subscriptionId: latestActive.id,
           frequency: latestActive.frequency,
-          daysOfWeek,
+          daysOfWeek: latestActive.days_of_week.length > 0 ? latestActive.days_of_week : undefined,
           timezone: latestActive.timezone,
           prayerDuration: latestActive.prayer_duration
         } : undefined
@@ -141,22 +139,38 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  // Generate calendar URLs server-side so we don't expose profile_id to the client
+  let calendarUrls = null
+  if (latestActive && subscriber) {
+    const config = useRuntimeConfig()
+    const baseUrl = config.public.siteUrl || 'http://localhost:3000'
+    const locale = subscriber.preferred_language || 'en'
+    const prayerPath = localePath(`/${slug}/prayer`, locale)
+    const prayerUrl = `${baseUrl}${prayerPath}?uid=${subscriber.tracking_id}`
+
+    const calendarOptions = {
+      title: t('calendar.eventTitle', locale, { campaign: peopleGroup.name }),
+      description: t('calendar.eventDescription', locale, { duration: latestActive.prayer_duration, campaign: peopleGroup.name }),
+      frequency: latestActive.frequency,
+      daysOfWeek: latestActive.days_of_week.length > 0 ? latestActive.days_of_week : undefined,
+      timePreference: latestActive.time_preference,
+      timezone: latestActive.timezone,
+      durationMinutes: latestActive.prayer_duration,
+      url: prayerUrl
+    }
+
+    calendarUrls = {
+      google: generateGoogleCalendarUrl(calendarOptions),
+      ics: getIcsDownloadUrl(latestActive.id, subscriber.profile_id, baseUrl)
+    }
+  }
+
   return {
     message: 'Email verified successfully',
     people_group_name: peopleGroup.name,
     people_group_slug: slug,
     tracking_id: subscriber?.tracking_id,
-    profile_id: subscriber?.profile_id,
     already_verified: result.alreadyVerified === true,
-    subscription: latestActive ? {
-      id: latestActive.id,
-      frequency: latestActive.frequency,
-      days_of_week: latestActive.days_of_week
-        ? (typeof latestActive.days_of_week === 'string' ? JSON.parse(latestActive.days_of_week) : latestActive.days_of_week)
-        : [],
-      time_preference: latestActive.time_preference,
-      timezone: latestActive.timezone,
-      prayer_duration: latestActive.prayer_duration
-    } : null
+    calendar_urls: calendarUrls
   }
 })

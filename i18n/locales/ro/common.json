@@ -532,6 +532,7 @@
     "addToCalendar": "Adaugă în calendarul tău",
     "googleCalendar": "Google Calendar",
     "downloadIcs": "Alte calendare",
+    "eventTitle": "Rugăciune pentru {campaign}",
     "eventDescription": "Sesiune de rugăciune de {duration} minute pentru {campaign}"
   }
 }

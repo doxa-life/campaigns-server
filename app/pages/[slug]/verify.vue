@@ -25,17 +25,9 @@
         <p class="message">{{ data?.already_verified ? $t('campaign.verify.alreadyVerified.message', { campaign: peopleGroupTitle }) : $t('campaign.verify.success.message', { campaign: peopleGroupTitle }) }}</p>
 
         <AddToCalendar
-          v-if="data?.subscription && data?.profile_id && !data?.already_verified"
-          :subscription-id="data.subscription.id"
-          :profile-id="data.profile_id"
-          :campaign-name="peopleGroupTitle"
-          :campaign-slug="slug"
-          :tracking-id="data.tracking_id"
-          :frequency="data.subscription.frequency"
-          :days-of-week="data.subscription.days_of_week"
-          :time-preference="data.subscription.time_preference"
-          :timezone="data.subscription.timezone"
-          :duration-minutes="data.subscription.prayer_duration"
+          v-if="data?.calendar_urls && !data?.already_verified"
+          :google-url="data.calendar_urls.google"
+          :ics-url="data.calendar_urls.ics"
           class="mb-6 justify-center"
         />
 
@@ -57,15 +49,10 @@ interface VerifyResponse {
   people_group_name: string
   people_group_slug: string
   tracking_id?: string
-  profile_id?: string
   already_verified: boolean
-  subscription: {
-    id: number
-    frequency: string
-    days_of_week: number[]
-    time_preference: string
-    timezone: string
-    prayer_duration: number
+  calendar_urls: {
+    google: string
+    ics: string
   } | null
 }
 

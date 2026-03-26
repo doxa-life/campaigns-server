@@ -536,6 +536,7 @@
     "addToCalendar": "أضف إلى تقويمك",
     "googleCalendar": "تقويم Google",
     "downloadIcs": "تقويمات أخرى",
+    "eventTitle": "صلاة من أجل {campaign}",
     "eventDescription": "جلسة صلاة مدتها {duration} دقيقة من أجل {campaign}"
   }
 }

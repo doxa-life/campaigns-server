@@ -51,7 +51,7 @@ export async function sendWelcomeEmail(
     const icsLabel = t('email.welcome.otherCalendars', locale)
 
     const googleUrl = generateGoogleCalendarUrl({
-      title: `Prayer for the ${peopleGroupName}`,
+      title: t('calendar.eventTitle', locale, { campaign: peopleGroupName }),
       description: t('calendar.eventDescription', locale, { duration: calendarOptions.prayerDuration, campaign: peopleGroupName }),
       frequency: calendarOptions.frequency,
       daysOfWeek: calendarOptions.daysOfWeek,

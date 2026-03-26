@@ -536,6 +536,7 @@
     "addToCalendar": "添加到您的日历",
     "googleCalendar": "Google 日历",
     "downloadIcs": "其他日历",
+    "eventTitle": "为{campaign}祷告",
     "eventDescription": "为{campaign}进行{duration}分钟的祷告"
   }
 }

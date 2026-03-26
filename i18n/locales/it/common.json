@@ -536,6 +536,7 @@
     "addToCalendar": "Aggiungi al tuo calendario",
     "googleCalendar": "Google Calendar",
     "downloadIcs": "Altri calendari",
+    "eventTitle": "Preghiera per i {campaign}",
     "eventDescription": "Sessione di preghiera di {duration} minuti per i {campaign}"
   }
 }

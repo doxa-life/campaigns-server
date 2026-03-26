@@ -536,6 +536,7 @@
     "addToCalendar": "Добавить в календарь",
     "googleCalendar": "Google Календарь",
     "downloadIcs": "Другие календари",
+    "eventTitle": "Молитва за {campaign}",
     "eventDescription": "{duration}-минутное молитвенное время за {campaign}"
   }
 }

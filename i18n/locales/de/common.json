@@ -536,6 +536,7 @@
     "addToCalendar": "Zum Kalender hinzufügen",
     "googleCalendar": "Google Calendar",
     "downloadIcs": "Andere Kalender",
+    "eventTitle": "Gebet für die {campaign}",
     "eventDescription": "{duration}-minütige Gebetszeit für die {campaign}"
   }
 }

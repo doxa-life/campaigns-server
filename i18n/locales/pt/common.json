@@ -536,6 +536,7 @@
     "addToCalendar": "Adicionar ao seu calendário",
     "googleCalendar": "Google Calendar",
     "downloadIcs": "Outros calendários",
+    "eventTitle": "Oração pelos {campaign}",
     "eventDescription": "Sessão de oração de {duration} minutos pelos {campaign}"
   }
 }
