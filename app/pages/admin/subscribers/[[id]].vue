@@ -63,6 +63,14 @@
               size="xs"
             />
             <UBadge
+              v-for="source in subscriber.sources"
+              :key="source"
+              :label="getFieldOptionLabel('sources', source)"
+              variant="subtle"
+              color="info"
+              size="xs"
+            />
+            <UBadge
               v-if="subscriber.consents?.doxa_general"
               label="Doxa"
               color="success"
