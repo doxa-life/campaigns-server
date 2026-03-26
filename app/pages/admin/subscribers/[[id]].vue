@@ -747,7 +747,7 @@ const peopleGroupOptions = computed(() => {
   ]
 })
 
-const sourceEditOptions = SOURCES.map(s => ({ label: s.label, value: s.key }))
+const sourceEditOptions = getFieldOptions('sources').map(o => ({ label: o.label, value: o.key }))
 
 const sourceOptions = [
   { label: 'All Sources', value: null },

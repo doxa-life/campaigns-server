@@ -1,21 +1,9 @@
-// Subscriber sources — keys stored in DB, labels for display
-export interface Source {
+export type FieldType = 'text' | 'email' | 'tel' | 'number' | 'time' | 'select' | 'boolean' | 'textarea'
+
+export interface FieldOption {
   key: string
   label: string
 }
-
-export const SOURCES: Source[] = [
-  { key: 'contact', label: 'Contact Form' },
-  { key: 'adoption', label: 'Adoption Form' },
-  { key: 'signup', label: 'Signup Form' },
-]
-
-export function getSourceLabel(key: string): string {
-  return SOURCES.find(s => s.key === key)?.label ?? key
-}
-
-// Subscriber field definitions
-export type FieldType = 'text' | 'email' | 'tel' | 'number' | 'time' | 'select' | 'boolean' | 'textarea'
 
 export interface SubscriberFieldDefinition {
   key: string
@@ -24,6 +12,7 @@ export interface SubscriberFieldDefinition {
   description?: string
   readOnly?: boolean
   category: 'contact' | 'subscription' | 'consent' | 'form'
+  options?: FieldOption[]
 }
 
 // Contact information fields
@@ -35,7 +24,11 @@ export const subscriberFields: SubscriberFieldDefinition[] = [
   { key: 'role', label: 'Role', type: 'text', category: 'contact', description: 'Role within their church or organization' },
   { key: 'preferred_language', label: 'Preferred Language', type: 'select', category: 'contact', description: 'Language for prayer content and emails' },
   { key: 'country', label: 'Country', type: 'select', category: 'contact', description: 'Country of the subscriber' },
-  { key: 'sources', label: 'Sources', type: 'select', category: 'contact', description: 'How this contact entered the system (contact form, adoption form, signup form)' },
+  { key: 'sources', label: 'Sources', type: 'select', category: 'contact', description: 'How this contact entered the system (contact form, adoption form, signup form)', options: [
+    { key: 'contact', label: 'Contact Form' },
+    { key: 'adoption', label: 'Adoption Form' },
+    { key: 'signup', label: 'Signup Form' },
+  ]},
 
   // Subscription fields
   { key: 'delivery_method', label: 'Delivery Method', type: 'select', category: 'subscription', description: 'How reminders are delivered (email, WhatsApp, app)' },
@@ -74,4 +67,13 @@ export function getSubscriberFieldLabel(key: string): string {
 
 export function getSubscriberFieldsByCategory(category: SubscriberFieldDefinition['category']): SubscriberFieldDefinition[] {
   return subscriberFields.filter(f => f.category === category)
+}
+
+export function getFieldOptionLabel(fieldKey: string, optionKey: string): string {
+  const field = fieldMap.get(fieldKey)
+  return field?.options?.find(o => o.key === optionKey)?.label ?? optionKey
+}
+
+export function getFieldOptions(fieldKey: string): FieldOption[] {
+  return fieldMap.get(fieldKey)?.options ?? []
 }
