@@ -50,8 +50,9 @@
             <UBadge
               v-for="(count, groupName) in getSubscriptionsByGroup(subscriber.subscriptions)"
               :key="groupName"
-              :label="`${groupName} (${count})`"
-              variant="subtle"
+              :label="count > 1 ? `${groupName} x${count}` : `${groupName}`"
+              variant="outline"
+              color="neutral"
               size="xs"
             />
             <UBadge
@@ -62,6 +63,9 @@
             />
             <span v-if="subscriber.total_prayer_minutes > 0" class="prayer-time">
               <UIcon name="i-lucide-timer" />{{ formatMinutes(subscriber.total_prayer_minutes) }}
+            </span>
+            <span v-if="subscriber.comment_count > 0" class="comment-count">
+              <UIcon name="i-lucide-message-square" />{{ subscriber.comment_count }}
             </span>
           </template>
           <UBadge
@@ -556,6 +560,7 @@ interface GeneralSubscriber {
   consents: SubscriberConsents
   total_prayer_minutes: number
   prayer_session_count: number
+  comment_count: number
 }
 
 interface PeopleGroup {
@@ -1329,7 +1334,8 @@ onMounted(async () => {
   font-size: 0.75rem;
 }
 
-.prayer-time {
+.prayer-time,
+.comment-count {
   display: inline-flex;
   align-items: center;
   gap: 2px;

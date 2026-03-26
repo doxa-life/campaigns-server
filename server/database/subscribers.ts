@@ -39,6 +39,7 @@ export interface SubscriberWithSubscriptions extends SubscriberWithContacts {
   consents: SubscriberConsents
   total_prayer_minutes: number
   prayer_session_count: number
+  comment_count: number
 }
 
 class SubscriberService {
@@ -232,6 +233,13 @@ class SubscriberService {
     ` as { tracking_id: string; total_minutes: number; session_count: number }[]
     const prayerTimeMap = new Map(prayerTimes.map(pt => [pt.tracking_id, { minutes: Number(pt.total_minutes), sessions: Number(pt.session_count) }]))
 
+    // Fetch comment counts for all subscribers in one query
+    const commentCounts = await this.sql`
+      SELECT record_id, COUNT(*) as count
+      FROM comments WHERE record_type = 'subscriber' GROUP BY record_id
+    ` as { record_id: number; count: number }[]
+    const commentCountMap = new Map(commentCounts.map(c => [c.record_id, Number(c.count)]))
+
     const enrichedSubscribers: SubscriberWithSubscriptions[] = []
 
     for (const subscriber of subscribers) {
@@ -278,7 +286,8 @@ class SubscriberService {
           people_group_names: peopleGroupNames
         },
         total_prayer_minutes: prayerTimeMap.get(subscriber.tracking_id)?.minutes || 0,
-        prayer_session_count: prayerTimeMap.get(subscriber.tracking_id)?.sessions || 0
+        prayer_session_count: prayerTimeMap.get(subscriber.tracking_id)?.sessions || 0,
+        comment_count: commentCountMap.get(subscriber.id) || 0
       })
     }
 

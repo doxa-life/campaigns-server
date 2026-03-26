@@ -1,4 +1,4 @@
-export type FieldType = 'text' | 'select' | 'boolean'
+import type { FieldType } from './subscriber-fields'
 
 export interface GroupFieldDefinition {
   key: string
