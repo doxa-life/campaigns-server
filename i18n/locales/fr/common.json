@@ -441,7 +441,10 @@
       "closing": "Nous sommes profondément reconnaissants de nous joindre à toute l'Église dans notre quête d'apporter tout l'Évangile au monde entier.",
       "reminderTimeNote": "Votre rappel quotidien est programmé à {time}.",
       "startPraying": "Commencer à Prier",
-      "profileInstructions": "Vous pouvez mettre à jour les détails de votre profil et vos notifications ici :"
+      "profileInstructions": "Vous pouvez mettre à jour les détails de votre profil et vos notifications ici :",
+      "addToCalendar": "Ajoutez ce rappel à votre calendrier :",
+      "googleCalendar": "Google Calendar",
+      "otherCalendars": "Autres calendriers (.ics)"
     },
     "reminder": {
       "subject": "Rappel de Prière - {campaign}",
@@ -528,5 +531,11 @@
       "signoff": "Pour la gloire de Dieu,",
       "teamName": "L'équipe DOXA"
     }
+  },
+  "calendar": {
+    "addToCalendar": "Ajouter à votre calendrier",
+    "googleCalendar": "Google Calendar",
+    "downloadIcs": "Autres calendriers",
+    "eventDescription": "Session de prière de {duration} minutes pour les {campaign}"
   }
 }

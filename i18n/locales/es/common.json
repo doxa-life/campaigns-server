@@ -441,7 +441,10 @@
       "closing": "Estamos profundamente agradecidos de unirnos con toda la Iglesia mientras buscamos llevar todo el Evangelio a todo el mundo.",
       "reminderTimeNote": "Tu recordatorio diario está programado para las {time}.",
       "startPraying": "Comenzar a Orar",
-      "profileInstructions": "Puedes actualizar los detalles de tu perfil y tus notificaciones aquí:"
+      "profileInstructions": "Puedes actualizar los detalles de tu perfil y tus notificaciones aquí:",
+      "addToCalendar": "Añade este recordatorio a tu calendario:",
+      "googleCalendar": "Google Calendar",
+      "otherCalendars": "Otros calendarios (.ics)"
     },
     "reminder": {
       "subject": "Recordatorio de Oración - {campaign}",
@@ -528,5 +531,11 @@
       "signoff": "Para la gloria de Dios,",
       "teamName": "El equipo DOXA"
     }
+  },
+  "calendar": {
+    "addToCalendar": "Añadir a tu calendario",
+    "googleCalendar": "Google Calendar",
+    "downloadIcs": "Otros calendarios",
+    "eventDescription": "Sesión de oración de {duration} minutos por los {campaign}"
   }
 }

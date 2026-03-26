@@ -23,6 +23,22 @@
           <h1>{{ data?.already_verified ? $t('campaign.verify.alreadyVerified.title') : $t('campaign.verify.success.title') }}</h1>
         </div>
         <p class="message">{{ data?.already_verified ? $t('campaign.verify.alreadyVerified.message', { campaign: peopleGroupTitle }) : $t('campaign.verify.success.message', { campaign: peopleGroupTitle }) }}</p>
+
+        <AddToCalendar
+          v-if="data?.subscription && data?.profile_id && !data?.already_verified"
+          :subscription-id="data.subscription.id"
+          :profile-id="data.profile_id"
+          :campaign-name="peopleGroupTitle"
+          :campaign-slug="slug"
+          :tracking-id="data.tracking_id"
+          :frequency="data.subscription.frequency"
+          :days-of-week="data.subscription.days_of_week"
+          :time-preference="data.subscription.time_preference"
+          :timezone="data.subscription.timezone"
+          :duration-minutes="data.subscription.prayer_duration"
+          class="mb-6 justify-center"
+        />
+
         <NuxtLink :to="prayerLink" class="btn-grey">
           {{ $t('campaign.verify.startPraying') }}
         </NuxtLink>
@@ -36,6 +52,23 @@ definePageMeta({
   layout: 'default'
 })
 
+interface VerifyResponse {
+  message: string
+  people_group_name: string
+  people_group_slug: string
+  tracking_id?: string
+  profile_id?: string
+  already_verified: boolean
+  subscription: {
+    id: number
+    frequency: string
+    days_of_week: number[]
+    time_preference: string
+    timezone: string
+    prayer_duration: number
+  } | null
+}
+
 const route = useRoute()
 const { t } = useI18n()
 const localePath = useLocalePath()
@@ -44,7 +77,7 @@ const slug = route.params.slug as string
 const token = route.query.token as string
 
 // Verify the token
-const { data, pending, error } = await useFetch(`/api/people-groups/${slug}/verify`, {
+const { data, pending, error } = await useFetch<VerifyResponse>(`/api/people-groups/${slug}/verify`, {
   query: { token }
 })
 

@@ -207,7 +207,13 @@ export default defineEventHandler(async (event) => {
           const token = await contactMethodService.generateVerificationToken(emailContact.id)
           await sendSignupVerificationEmail(body.email, token, slug, peopleGroup.name, body.name, language)
         } else if (emailContact?.verified) {
-          await sendWelcomeEmail(body.email, body.name, peopleGroup.name, slug, subscriber.profile_id, language, subscriber.tracking_id, body.reminder_time)
+          await sendWelcomeEmail(body.email, body.name, peopleGroup.name, slug, subscriber.profile_id, language, subscriber.tracking_id, body.reminder_time, {
+            subscriptionId: unsubscribedMatch.id,
+            frequency: body.frequency,
+            daysOfWeek: body.days_of_week,
+            timezone,
+            prayerDuration: body.prayer_duration
+          })
         }
       } else {
         await peopleGroupSubscriptionService.resubscribe(unsubscribedMatch.id)
@@ -280,7 +286,13 @@ export default defineEventHandler(async (event) => {
     if (body.delivery_method === 'email') {
       if (emailContact?.verified) {
         // Email already verified - send welcome
-        await sendWelcomeEmail(body.email, body.name, peopleGroup.name, slug, subscriber.profile_id, language, subscriber.tracking_id, body.reminder_time)
+        await sendWelcomeEmail(body.email, body.name, peopleGroup.name, slug, subscriber.profile_id, language, subscriber.tracking_id, body.reminder_time, {
+          subscriptionId: subscription.id,
+          frequency: body.frequency,
+          daysOfWeek: body.days_of_week,
+          timezone,
+          prayerDuration: body.prayer_duration
+        })
       } else if (emailContact) {
         // Email not verified - send verification email
         const token = await contactMethodService.generateVerificationToken(emailContact.id)

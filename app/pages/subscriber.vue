@@ -222,6 +222,21 @@
                     <span>{{ reminder.prayer_duration }} {{ $t('common.minutes') }}</span>
                   </div>
 
+                  <!-- Add to Calendar -->
+                  <AddToCalendar
+                    v-if="reminder.status === 'active'"
+                    :subscription-id="reminder.id"
+                    :profile-id="profileId"
+                    :campaign-name="pgGroup.title"
+                    :campaign-slug="pgGroup.slug"
+                    :frequency="reminder.frequency"
+                    :days-of-week="reminder.days_of_week"
+                    :time-preference="reminder.time_preference"
+                    :timezone="reminder.timezone"
+                    :duration-minutes="reminder.prayer_duration"
+                    class="pt-2"
+                  />
+
                   <!-- Resubscribe button for unsubscribed reminders -->
                   <div v-if="reminder.status === 'unsubscribed'" class="pt-2">
                     <UButton

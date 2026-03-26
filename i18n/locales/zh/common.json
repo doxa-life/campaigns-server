@@ -441,7 +441,10 @@
       "closing": "我们深深感恩能与全体教会一同努力，将完整的福音带到全世界。",
       "reminderTimeNote": "您的每日提醒已设置为{time}。",
       "startPraying": "开始祷告",
-      "profileInstructions": "您可以在这里更新您的个人资料和通知设置："
+      "profileInstructions": "您可以在这里更新您的个人资料和通知设置：",
+      "addToCalendar": "将此提醒添加到您的日历：",
+      "googleCalendar": "Google 日历",
+      "otherCalendars": "其他日历（.ics）"
     },
     "reminder": {
       "subject": "祷告提醒 - {campaign}",
@@ -528,5 +531,11 @@
       "signoff": "愿荣耀归于神，",
       "teamName": "DOXA团队"
     }
+  },
+  "calendar": {
+    "addToCalendar": "添加到您的日历",
+    "googleCalendar": "Google 日历",
+    "downloadIcs": "其他日历",
+    "eventDescription": "为{campaign}进行{duration}分钟的祷告"
   }
 }

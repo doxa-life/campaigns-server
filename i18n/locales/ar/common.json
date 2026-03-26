@@ -441,7 +441,10 @@
       "closing": "نحن ممتنون بعمق للانضمام إلى الكنيسة بأكملها في سعينا لإيصال الإنجيل الكامل إلى العالم بأسره.",
       "reminderTimeNote": "تم ضبط تذكيرك اليومي على الساعة {time}.",
       "startPraying": "ابدأ الصلاة",
-      "profileInstructions": "يمكنك تحديث تفاصيل ملفك الشخصي وإشعاراتك هنا:"
+      "profileInstructions": "يمكنك تحديث تفاصيل ملفك الشخصي وإشعاراتك هنا:",
+      "addToCalendar": "أضف هذا التذكير إلى تقويمك:",
+      "googleCalendar": "تقويم Google",
+      "otherCalendars": "تقويمات أخرى (.ics)"
     },
     "reminder": {
       "subject": "تذكير بالصلاة - {campaign}",
@@ -528,5 +531,11 @@
       "signoff": "لمجد الله،",
       "teamName": "فريق DOXA"
     }
+  },
+  "calendar": {
+    "addToCalendar": "أضف إلى تقويمك",
+    "googleCalendar": "تقويم Google",
+    "downloadIcs": "تقويمات أخرى",
+    "eventDescription": "جلسة صلاة مدتها {duration} دقيقة من أجل {campaign}"
   }
 }

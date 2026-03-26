@@ -437,7 +437,10 @@
       "header": "Bun venit la {appName}",
       "thankYou": "Mulțumim că te-ai înscris pentru rugăciune. Emailul tău a fost verificat și ești pregătit să primești memento-uri de rugăciune pentru {campaign}.",
       "startPraying": "Începe rugăciunea",
-      "profileInstructions": "Poți actualiza detaliile profilului și notificările aici:"
+      "profileInstructions": "Poți actualiza detaliile profilului și notificările aici:",
+      "addToCalendar": "Adaugă acest memento în calendarul tău:",
+      "googleCalendar": "Google Calendar",
+      "otherCalendars": "Alte calendare (.ics)"
     },
     "reminder": {
       "subject": "Memento de rugăciune - {campaign}",
@@ -524,5 +527,11 @@
       "signoff": "Pentru slava lui Dumnezeu,",
       "teamName": "Echipa DOXA"
     }
+  },
+  "calendar": {
+    "addToCalendar": "Adaugă în calendarul tău",
+    "googleCalendar": "Google Calendar",
+    "downloadIcs": "Alte calendare",
+    "eventDescription": "Sesiune de rugăciune de {duration} minute pentru {campaign}"
   }
 }

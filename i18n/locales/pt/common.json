@@ -441,7 +441,10 @@
       "closing": "Somos profundamente gratos por nos unirmos a toda a Igreja enquanto buscamos levar todo o evangelho a todo o mundo.",
       "reminderTimeNote": "Seu lembrete diário está programado para {time}.",
       "startPraying": "Comecar a Orar",
-      "profileInstructions": "Voce pode atualizar os detalhes do seu perfil e suas notificacoes aqui:"
+      "profileInstructions": "Voce pode atualizar os detalhes do seu perfil e suas notificacoes aqui:",
+      "addToCalendar": "Adicione este lembrete ao seu calendário:",
+      "googleCalendar": "Google Calendar",
+      "otherCalendars": "Outros calendários (.ics)"
     },
     "reminder": {
       "subject": "Lembrete de Oracao - {campaign}",
@@ -528,5 +531,11 @@
       "signoff": "Para a glória de Deus,",
       "teamName": "A equipe DOXA"
     }
+  },
+  "calendar": {
+    "addToCalendar": "Adicionar ao seu calendário",
+    "googleCalendar": "Google Calendar",
+    "downloadIcs": "Outros calendários",
+    "eventDescription": "Sessão de oração de {duration} minutos pelos {campaign}"
   }
 }

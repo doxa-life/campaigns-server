@@ -52,6 +52,7 @@ export default defineEventHandler(async (event) => {
 
   // Activate pending subscriptions and set reminders
   let subscriber = null
+  let latestActive: any = null
   if (result.contactMethod) {
     await peopleGroupSubscriptionService.activatePendingSubscriptions(result.contactMethod.subscriber_id)
     await peopleGroupSubscriptionService.setNextRemindersForSubscriber(result.contactMethod.subscriber_id)
@@ -65,13 +66,18 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // Fetch subscriptions (needed for welcome email and response)
+    const subscriptions = await peopleGroupSubscriptionService.getAllBySubscriberAndPeopleGroup(
+      result.contactMethod.subscriber_id,
+      peopleGroup.id
+    )
+    latestActive = subscriptions.filter(s => s.status === 'active').pop()
+
     // Send welcome email (only if this was a new verification, not already verified)
     if (!result.alreadyVerified && subscriber) {
-      const subscriptions = await peopleGroupSubscriptionService.getAllBySubscriberAndPeopleGroup(
-        result.contactMethod.subscriber_id,
-        peopleGroup.id
-      )
-      const latestActive = subscriptions.filter(s => s.status === 'active').pop()
+      const daysOfWeek = latestActive?.days_of_week
+        ? (typeof latestActive.days_of_week === 'string' ? JSON.parse(latestActive.days_of_week) : latestActive.days_of_week)
+        : undefined
 
       sendWelcomeEmail(
         result.contactMethod.value,
@@ -81,7 +87,14 @@ export default defineEventHandler(async (event) => {
         subscriber.profile_id,
         subscriber.preferred_language || 'en',
         subscriber.tracking_id,
-        latestActive?.time_preference
+        latestActive?.time_preference,
+        latestActive ? {
+          subscriptionId: latestActive.id,
+          frequency: latestActive.frequency,
+          daysOfWeek,
+          timezone: latestActive.timezone,
+          prayerDuration: latestActive.prayer_duration
+        } : undefined
       ).catch(err => console.error('Failed to send welcome email:', err))
     }
 
@@ -133,6 +146,17 @@ export default defineEventHandler(async (event) => {
     people_group_name: peopleGroup.name,
     people_group_slug: slug,
     tracking_id: subscriber?.tracking_id,
-    already_verified: result.alreadyVerified === true
+    profile_id: subscriber?.profile_id,
+    already_verified: result.alreadyVerified === true,
+    subscription: latestActive ? {
+      id: latestActive.id,
+      frequency: latestActive.frequency,
+      days_of_week: latestActive.days_of_week
+        ? (typeof latestActive.days_of_week === 'string' ? JSON.parse(latestActive.days_of_week) : latestActive.days_of_week)
+        : [],
+      time_preference: latestActive.time_preference,
+      timezone: latestActive.timezone,
+      prayer_duration: latestActive.prayer_duration
+    } : null
   }
 })
