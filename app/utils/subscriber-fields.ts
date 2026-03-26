@@ -1,3 +1,20 @@
+// Subscriber sources — keys stored in DB, labels for display
+export interface Source {
+  key: string
+  label: string
+}
+
+export const SOURCES: Source[] = [
+  { key: 'contact', label: 'Contact Form' },
+  { key: 'adoption', label: 'Adoption Form' },
+  { key: 'signup', label: 'Signup Form' },
+]
+
+export function getSourceLabel(key: string): string {
+  return SOURCES.find(s => s.key === key)?.label ?? key
+}
+
+// Subscriber field definitions
 export type FieldType = 'text' | 'email' | 'tel' | 'number' | 'time' | 'select' | 'boolean' | 'textarea'
 
 export interface SubscriberFieldDefinition {
@@ -18,6 +35,7 @@ export const subscriberFields: SubscriberFieldDefinition[] = [
   { key: 'role', label: 'Role', type: 'text', category: 'contact', description: 'Role within their church or organization' },
   { key: 'preferred_language', label: 'Preferred Language', type: 'select', category: 'contact', description: 'Language for prayer content and emails' },
   { key: 'country', label: 'Country', type: 'select', category: 'contact', description: 'Country of the subscriber' },
+  { key: 'sources', label: 'Sources', type: 'select', category: 'contact', description: 'How this contact entered the system (contact form, adoption form, signup form)' },
 
   // Subscription fields
   { key: 'delivery_method', label: 'Delivery Method', type: 'select', category: 'subscription', description: 'How reminders are delivered (email, WhatsApp, app)' },

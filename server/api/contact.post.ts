@@ -41,6 +41,8 @@ export default defineEventHandler(async (event) => {
       await subscriberService.updateSubscriber(subscriber.id, { country })
     }
 
+    await subscriberService.addSource(subscriber.id, 'contact')
+
     logCreate('subscribers', String(subscriber.id), event, {
       source: 'Contact Form',
       message: 'Contact form submitted',

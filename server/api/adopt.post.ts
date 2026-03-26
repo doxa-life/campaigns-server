@@ -70,6 +70,8 @@ export default defineEventHandler(async (event) => {
       await subscriberService.updateSubscriber(subscriber.id, { role })
     }
 
+    await subscriberService.addSource(subscriber.id, 'adoption')
+
     // Find a group this subscriber is already connected to with the same name,
     // or create a new one. This avoids collisions between different churches
     // that happen to share a name.

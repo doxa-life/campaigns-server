@@ -19,11 +19,12 @@ export default defineEventHandler(async (event) => {
     preferred_language?: string
     role?: string | null
     country?: string | null
+    sources?: string[]
   }>(event)
 
   const changes: Record<string, { from: any; to: any }> = {}
 
-  const subscriberUpdates: { name?: string; preferred_language?: string; role?: string | null; country?: string | null } = {}
+  const subscriberUpdates: { name?: string; preferred_language?: string; role?: string | null; country?: string | null; sources?: string[] } = {}
   if (body.name !== undefined && body.name !== subscriber.name) {
     subscriberUpdates.name = body.name
     changes.name = { from: subscriber.name, to: body.name }
@@ -40,6 +41,14 @@ export default defineEventHandler(async (event) => {
     if (newCountry !== subscriber.country) {
       subscriberUpdates.country = newCountry
       changes.country = { from: subscriber.country, to: newCountry }
+    }
+  }
+  if (body.sources !== undefined) {
+    const sorted = [...body.sources].sort()
+    const currentSorted = [...subscriber.sources].sort()
+    if (JSON.stringify(sorted) !== JSON.stringify(currentSorted)) {
+      subscriberUpdates.sources = body.sources
+      changes.sources = { from: subscriber.sources, to: body.sources }
     }
   }
 

@@ -9,6 +9,7 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const search = query.search as string | undefined
   const peopleGroupId = query.people_group_id ? parseInt(query.people_group_id as string) : undefined
+  const source = query.source as string | undefined
 
   try {
     // Determine accessible people groups for non-admin users
@@ -35,7 +36,8 @@ export default defineEventHandler(async (event) => {
     const subscribers = await subscriberService.getAllSubscribersWithSubscriptions({
       search,
       peopleGroupId: peopleGroupId,
-      accessiblePeopleGroupIds: accessiblePeopleGroupIds
+      accessiblePeopleGroupIds: accessiblePeopleGroupIds,
+      source
     })
 
     return {

@@ -13,6 +13,7 @@ export interface Subscriber {
   preferred_language: string
   role: string | null
   country: string | null
+  sources: string[]
   created_at: string
   updated_at: string
 }
@@ -96,13 +97,14 @@ class SubscriberService {
     }
   }
 
-  async updateSubscriber(id: number, updates: { name?: string; preferred_language?: string; role?: string | null; country?: string | null }): Promise<Subscriber | null> {
+  async updateSubscriber(id: number, updates: { name?: string; preferred_language?: string; role?: string | null; country?: string | null; sources?: string[] }): Promise<Subscriber | null> {
     const fields: Fragment[] = []
 
     if (updates.name !== undefined) fields.push(this.sql`name = ${updates.name}`)
     if (updates.preferred_language !== undefined) fields.push(this.sql`preferred_language = ${updates.preferred_language}`)
     if (updates.role !== undefined) fields.push(this.sql`role = ${updates.role}`)
     if (updates.country !== undefined) fields.push(this.sql`country = ${updates.country}`)
+    if (updates.sources !== undefined) fields.push(this.sql`sources = ${updates.sources}`)
 
     if (fields.length === 0) return this.getSubscriberById(id)
 
@@ -110,6 +112,15 @@ class SubscriberService {
 
     await this.sql`UPDATE subscribers SET ${buildSet(this.sql, fields)} WHERE id = ${id}`
     return this.getSubscriberById(id)
+  }
+
+  async addSource(id: number, source: string): Promise<void> {
+    await this.sql`
+      UPDATE subscribers
+      SET sources = array_append(sources, ${source}),
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${id} AND NOT (${source} = ANY(sources))
+    `
   }
 
   async deleteSubscriber(id: number): Promise<boolean> {
@@ -192,6 +203,7 @@ class SubscriberService {
     search?: string
     peopleGroupId?: number
     accessiblePeopleGroupIds?: number[]
+    source?: string
   }): Promise<SubscriberWithSubscriptions[]> {
     const conditions: Fragment[] = []
     let needsJoin = false
@@ -204,6 +216,10 @@ class SubscriberService {
     if (options?.peopleGroupId) {
       needsJoin = true
       conditions.push(this.sql`cs.people_group_id = ${options.peopleGroupId}`)
+    }
+
+    if (options?.source) {
+      conditions.push(this.sql`${options.source} = ANY(s.sources)`)
     }
 
     if (options?.search) {

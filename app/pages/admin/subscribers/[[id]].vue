@@ -26,6 +26,13 @@
             virtualize
             class="filter-select"
           />
+          <USelectMenu
+            v-model="filterSource"
+            :items="sourceOptions"
+            value-key="value"
+            placeholder="All Sources"
+            class="filter-select"
+          />
         </template>
       </CrmListPanel>
     </template>
@@ -161,6 +168,17 @@
                   value-key="value"
                   placeholder="Select country..."
                   searchable
+                  class="w-full"
+                />
+              </UFormField>
+
+              <UFormField :label="getSubscriberFieldLabel('sources')">
+                <USelectMenu
+                  v-model="subscriberForm.sources"
+                  :items="sourceEditOptions"
+                  value-key="value"
+                  multiple
+                  placeholder="No sources"
                   class="w-full"
                 />
               </UFormField>
@@ -568,6 +586,7 @@ interface GeneralSubscriber {
   primary_phone: string | null
   role?: string | null
   country?: string | null
+  sources: string[]
   subscriptions: Subscription[]
   consents: SubscriberConsents
   total_prayer_minutes: number
@@ -605,9 +624,10 @@ const saving = ref(false)
 // Filters
 const searchQuery = ref('')
 const filterPeopleGroupId = ref<number | null>(null)
+const filterSource = ref<string | null>(null)
 
 // Form state
-const subscriberForm = ref({ name: '', email: '', phone: '', role: '', preferred_language: 'en', country: undefined as string | undefined })
+const subscriberForm = ref({ name: '', email: '', phone: '', role: '', preferred_language: 'en', country: undefined as string | undefined, sources: [] as string[] })
 const subscriptionForms = ref<Map<number, SubscriptionForm>>(new Map())
 
 // Expansion state for subscription cards
@@ -727,6 +747,13 @@ const peopleGroupOptions = computed(() => {
   ]
 })
 
+const sourceEditOptions = SOURCES.map(s => ({ label: s.label, value: s.key }))
+
+const sourceOptions = [
+  { label: 'All Sources', value: null },
+  ...sourceEditOptions
+]
+
 const availableGroupOptions = computed(() => {
   const linkedIds = new Set(subscriberGroups.value.map(g => g.group_id))
   return allGroups.value
@@ -752,6 +779,10 @@ const filteredSubscribers = computed(() => {
     filtered = filtered.filter(s =>
       s.subscriptions.some(sub => sub.people_group_id === filterPeopleGroupId.value)
     )
+  }
+
+  if (filterSource.value) {
+    filtered = filtered.filter(s => s.sources.includes(filterSource.value!))
   }
 
   return filtered
@@ -844,7 +875,7 @@ async function selectSubscriber(subscriber: GeneralSubscriber, updateUrl = true)
 
   selectedSubscriber.value = subscriber
   slideoverOpen.value = true
-  subscriberForm.value = { name: subscriber.name, email: subscriber.primary_email || '', phone: subscriber.primary_phone || '', role: subscriber.role || '', preferred_language: subscriber.preferred_language, country: subscriber.country || undefined }
+  subscriberForm.value = { name: subscriber.name, email: subscriber.primary_email || '', phone: subscriber.primary_phone || '', role: subscriber.role || '', preferred_language: subscriber.preferred_language, country: subscriber.country || undefined, sources: subscriber.sources || [] }
   if (updateUrl && import.meta.client) {
     const params = new URLSearchParams()
     if (filterPeopleGroupId.value) params.set('peopleGroup', String(filterPeopleGroupId.value))
@@ -1015,8 +1046,9 @@ async function saveChanges() {
     const roleChanged = subscriberForm.value.role !== (subscriber.role || '')
     const langChanged = subscriberForm.value.preferred_language !== subscriber.preferred_language
     const countryChanged = (subscriberForm.value.country || null) !== (subscriber.country || null)
+    const sourcesChanged = JSON.stringify([...subscriberForm.value.sources].sort()) !== JSON.stringify([...subscriber.sources].sort())
 
-    if (nameChanged || emailChanged || phoneChanged || roleChanged || langChanged || countryChanged) {
+    if (nameChanged || emailChanged || phoneChanged || roleChanged || langChanged || countryChanged || sourcesChanged) {
       await $fetch(`/api/admin/subscribers/${subscriber.id}`, {
         method: 'PUT',
         body: {
@@ -1025,7 +1057,8 @@ async function saveChanges() {
           phone: subscriberForm.value.phone,
           role: subscriberForm.value.role || null,
           preferred_language: subscriberForm.value.preferred_language,
-          country: subscriberForm.value.country || null
+          country: subscriberForm.value.country || null,
+          sources: subscriberForm.value.sources
         }
       })
     }

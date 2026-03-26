@@ -89,6 +89,8 @@ export default defineEventHandler(async (event) => {
       language
     })
 
+    await subscriberService.addSource(subscriber.id, 'signup')
+
     // Update name and language if subscriber exists
     if (!isNew) {
       const updates: { name?: string; preferred_language?: string } = {}
