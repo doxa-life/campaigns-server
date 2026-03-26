@@ -80,7 +80,7 @@ export default defineEventHandler(async (event) => {
   const formatReminder = (s: typeof peopleGroupSubscriptions[0]): ReminderInfo => ({
     id: s.id,
     frequency: s.frequency,
-    days_of_week: s.days_of_week ? JSON.parse(s.days_of_week) : [],
+    days_of_week: s.days_of_week,
     time_preference: s.time_preference,
     timezone: s.timezone
   })

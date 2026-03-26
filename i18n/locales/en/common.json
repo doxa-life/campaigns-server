@@ -441,7 +441,10 @@
       "closing": "We are deeply grateful to join with the whole Church as we seek to take the whole gospel to the whole world.",
       "reminderTimeNote": "Your daily reminder is set for {time}.",
       "startPraying": "Start Praying",
-      "profileInstructions": "You can update your profile details and your notifications here:"
+      "profileInstructions": "You can update your profile details and your notifications here:",
+      "addToCalendar": "Add this reminder to your calendar:",
+      "googleCalendar": "Google Calendar",
+      "otherCalendars": "Other Calendars (.ics)"
     },
     "reminder": {
       "subject": "Prayer Reminder - {campaign}",
@@ -528,5 +531,12 @@
       "signoff": "To the Glory of God,",
       "teamName": "The DOXA Team"
     }
+  },
+  "calendar": {
+    "addToCalendar": "Add to your calendar",
+    "googleCalendar": "Google Calendar",
+    "downloadIcs": "Other calendars",
+    "eventTitle": "Prayer for the {campaign}",
+    "eventDescription": "{duration}-minute prayer session for the {campaign}"
   }
 }

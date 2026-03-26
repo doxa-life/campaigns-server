@@ -441,7 +441,10 @@
       "closing": "Мы глубоко благодарны за возможность присоединиться ко всей Церкви в стремлении донести всё Евангелие до всего мира.",
       "reminderTimeNote": "Ваше ежедневное напоминание установлено на {time}.",
       "startPraying": "Начать молиться",
-      "profileInstructions": "Вы можете обновить данные профиля и настройки уведомлений здесь:"
+      "profileInstructions": "Вы можете обновить данные профиля и настройки уведомлений здесь:",
+      "addToCalendar": "Добавьте это напоминание в свой календарь:",
+      "googleCalendar": "Google Календарь",
+      "otherCalendars": "Другие календари (.ics)"
     },
     "reminder": {
       "subject": "Напоминание о молитве - {campaign}",
@@ -528,5 +531,12 @@
       "signoff": "Во славу Божию,",
       "teamName": "Команда DOXA"
     }
+  },
+  "calendar": {
+    "addToCalendar": "Добавить в календарь",
+    "googleCalendar": "Google Календарь",
+    "downloadIcs": "Другие календари",
+    "eventTitle": "Молитва за {campaign}",
+    "eventDescription": "{duration}-минутное молитвенное время за {campaign}"
   }
 }

@@ -1,6 +1,8 @@
 import { subscriberService } from '#server/database/subscribers'
 import { contactMethodService } from '#server/database/contact-methods'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
+import { generateGoogleCalendarUrl, getIcsDownloadUrl } from '#server/utils/calendar-links'
+import { t } from '#server/utils/translations'
 
 export default defineEventHandler(async (event) => {
   const profileId = getRouterParam(event, 'id')
@@ -39,24 +41,47 @@ export default defineEventHandler(async (event) => {
     subscriptionsByPeopleGroup.get(sub.people_group_id)!.push(sub)
   }
 
-  // Build people groups array with reminders
+  // Build people groups array with reminders and calendar URLs
+  const config = useRuntimeConfig()
+  const baseUrl = config.public.siteUrl || 'http://localhost:3000'
+  const locale = subscriber.preferred_language || 'en'
+
   const peopleGroups = Array.from(subscriptionsByPeopleGroup.entries())
     .filter(([, subs]) => subs.length > 0)
-    .map(([peopleGroupId, subs]) => ({
-      id: peopleGroupId,
-      title: subs[0]!.people_group_name,
-      slug: subs[0]!.people_group_slug,
-      reminders: subs.map(sub => ({
-        id: sub.id,
-        delivery_method: sub.delivery_method,
-        frequency: sub.frequency,
-        days_of_week: sub.days_of_week ? JSON.parse(sub.days_of_week) : [],
-        time_preference: sub.time_preference,
-        timezone: sub.timezone,
-        prayer_duration: sub.prayer_duration,
-        status: sub.status
-      }))
-    }))
+    .map(([peopleGroupId, subs]) => {
+      const pgName = subs[0]!.people_group_name
+      const pgSlug = subs[0]!.people_group_slug
+      const prayerUrl = `${baseUrl}/${pgSlug}/prayer?uid=${subscriber.tracking_id}`
+
+      return {
+        id: peopleGroupId,
+        title: pgName,
+        slug: pgSlug,
+        reminders: subs.map(sub => ({
+          id: sub.id,
+          delivery_method: sub.delivery_method,
+          frequency: sub.frequency,
+          days_of_week: sub.days_of_week,
+          time_preference: sub.time_preference,
+          timezone: sub.timezone,
+          prayer_duration: sub.prayer_duration,
+          status: sub.status,
+          calendar_urls: sub.status === 'active' ? {
+            google: generateGoogleCalendarUrl({
+              title: t('calendar.eventTitle', locale, { campaign: pgName }),
+              description: t('calendar.eventDescription', locale, { duration: sub.prayer_duration, campaign: pgName }),
+              frequency: sub.frequency,
+              daysOfWeek: sub.days_of_week.length > 0 ? sub.days_of_week : undefined,
+              timePreference: sub.time_preference,
+              timezone: sub.timezone,
+              durationMinutes: sub.prayer_duration,
+              url: prayerUrl
+            }),
+            ics: getIcsDownloadUrl(sub.id, profileId!, baseUrl)
+          } : null
+        }))
+      }
+    })
 
   // Build consent information (from primary contact method)
   const consents = {

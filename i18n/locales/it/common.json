@@ -441,7 +441,10 @@
       "closing": "Siamo profondamente grati di unirci a tutta la Chiesa mentre cerchiamo di portare tutto il Vangelo a tutto il mondo.",
       "reminderTimeNote": "Il tuo promemoria giornaliero è impostato per le {time}.",
       "startPraying": "Inizia a Pregare",
-      "profileInstructions": "Puoi aggiornare i dettagli del tuo profilo e le tue notifiche qui:"
+      "profileInstructions": "Puoi aggiornare i dettagli del tuo profilo e le tue notifiche qui:",
+      "addToCalendar": "Aggiungi questo promemoria al tuo calendario:",
+      "googleCalendar": "Google Calendar",
+      "otherCalendars": "Altri calendari (.ics)"
     },
     "reminder": {
       "subject": "Promemoria di Preghiera - {campaign}",
@@ -528,5 +531,12 @@
       "signoff": "Per la gloria di Dio,",
       "teamName": "Il team DOXA"
     }
+  },
+  "calendar": {
+    "addToCalendar": "Aggiungi al tuo calendario",
+    "googleCalendar": "Google Calendar",
+    "downloadIcs": "Altri calendari",
+    "eventTitle": "Preghiera per i {campaign}",
+    "eventDescription": "Sessione di preghiera di {duration} minuti per i {campaign}"
   }
 }

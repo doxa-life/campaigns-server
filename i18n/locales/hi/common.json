@@ -441,7 +441,10 @@
       "closing": "हम पूरी कलीसिया के साथ मिलकर पूरी दुनिया में पूरा सुसमाचार ले जाने के प्रयास में शामिल होने के लिए गहराई से आभारी हैं।",
       "reminderTimeNote": "आपका दैनिक रिमाइंडर {time} के लिए सेट है।",
       "startPraying": "प्रार्थना शुरू करें",
-      "profileInstructions": "आप अपनी प्रोफाइल विवरण और सूचनाएं यहां अपडेट कर सकते हैं:"
+      "profileInstructions": "आप अपनी प्रोफाइल विवरण और सूचनाएं यहां अपडेट कर सकते हैं:",
+      "addToCalendar": "इस रिमाइंडर को अपने कैलेंडर में जोड़ें:",
+      "googleCalendar": "Google कैलेंडर",
+      "otherCalendars": "अन्य कैलेंडर (.ics)"
     },
     "reminder": {
       "subject": "प्रार्थना रिमाइंडर - {campaign}",
@@ -528,5 +531,12 @@
       "signoff": "परमेश्वर की महिमा के लिए,",
       "teamName": "DOXA टीम"
     }
+  },
+  "calendar": {
+    "addToCalendar": "अपने कैलेंडर में जोड़ें",
+    "googleCalendar": "Google कैलेंडर",
+    "downloadIcs": "अन्य कैलेंडर",
+    "eventTitle": "{campaign} के लिए प्रार्थना",
+    "eventDescription": "{campaign} के लिए {duration}-मिनट का प्रार्थना सत्र"
   }
 }

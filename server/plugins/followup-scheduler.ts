@@ -168,7 +168,7 @@ async function processSubscription(
       subscriptionId,
       profileId: subscriber_profile_id,
       frequency,
-      daysOfWeek: days_of_week ? JSON.parse(days_of_week) : undefined,
+      daysOfWeek: days_of_week?.length > 0 ? days_of_week : undefined,
       isReminder: false,
       locale: subscriber_language || 'en'
     })
@@ -199,7 +199,7 @@ async function processSubscription(
       subscriptionId,
       profileId: subscriber_profile_id,
       frequency,
-      daysOfWeek: days_of_week ? JSON.parse(days_of_week) : undefined,
+      daysOfWeek: days_of_week?.length > 0 ? days_of_week : undefined,
       isReminder: true,
       locale: subscriber_language || 'en'
     })

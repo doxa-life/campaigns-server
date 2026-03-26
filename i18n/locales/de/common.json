@@ -441,7 +441,10 @@
       "closing": "Wir sind zutiefst dankbar, uns mit der gesamten Kirche zusammenzuschließen, um das ganze Evangelium in die ganze Welt zu tragen.",
       "reminderTimeNote": "Ihre tägliche Erinnerung ist auf {time} eingestellt.",
       "startPraying": "Mit dem Beten beginnen",
-      "profileInstructions": "Sie können Ihre Profildaten und Benachrichtigungen hier aktualisieren:"
+      "profileInstructions": "Sie können Ihre Profildaten und Benachrichtigungen hier aktualisieren:",
+      "addToCalendar": "Fügen Sie diese Erinnerung Ihrem Kalender hinzu:",
+      "googleCalendar": "Google Calendar",
+      "otherCalendars": "Andere Kalender (.ics)"
     },
     "reminder": {
       "subject": "Gebetserinnerung - {campaign}",
@@ -528,5 +531,12 @@
       "signoff": "Zur Ehre Gottes,",
       "teamName": "Das DOXA-Team"
     }
+  },
+  "calendar": {
+    "addToCalendar": "Zum Kalender hinzufügen",
+    "googleCalendar": "Google Calendar",
+    "downloadIcs": "Andere Kalender",
+    "eventTitle": "Gebet für die {campaign}",
+    "eventDescription": "{duration}-minütige Gebetszeit für die {campaign}"
   }
 }

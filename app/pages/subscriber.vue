@@ -222,6 +222,14 @@
                     <span>{{ reminder.prayer_duration }} {{ $t('common.minutes') }}</span>
                   </div>
 
+                  <!-- Add to Calendar -->
+                  <AddToCalendar
+                    v-if="reminder.calendar_urls"
+                    :google-url="reminder.calendar_urls.google"
+                    :ics-url="reminder.calendar_urls.ics"
+                    class="pt-2"
+                  />
+
                   <!-- Resubscribe button for unsubscribed reminders -->
                   <div v-if="reminder.status === 'unsubscribed'" class="pt-2">
                     <UButton
@@ -361,6 +369,7 @@ interface ProfileResponse {
       timezone: string
       prayer_duration: number
       status: string
+      calendar_urls: { google: string; ics: string } | null
     }>
   }>
   consents: {

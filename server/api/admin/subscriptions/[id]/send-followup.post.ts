@@ -76,10 +76,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Parse days of week if present
-    const daysOfWeek = subscription.days_of_week
-      ? JSON.parse(subscription.days_of_week)
-      : undefined
+    const daysOfWeek = subscription.days_of_week.length > 0 ? subscription.days_of_week : undefined
 
     // Send the follow-up email
     const success = await sendFollowupEmail({
