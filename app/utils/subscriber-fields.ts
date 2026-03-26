@@ -17,6 +17,7 @@ export const subscriberFields: SubscriberFieldDefinition[] = [
   { key: 'phone', label: 'Phone', type: 'tel', category: 'contact', description: 'Phone number for WhatsApp delivery' },
   { key: 'role', label: 'Role', type: 'text', category: 'contact', description: 'Role within their church or organization' },
   { key: 'preferred_language', label: 'Preferred Language', type: 'select', category: 'contact', description: 'Language for prayer content and emails' },
+  { key: 'country', label: 'Country', type: 'select', category: 'contact', description: 'Country of the subscriber' },
 
   // Subscription fields
   { key: 'delivery_method', label: 'Delivery Method', type: 'select', category: 'subscription', description: 'How reminders are delivered (email, WhatsApp, app)' },

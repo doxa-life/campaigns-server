@@ -38,7 +38,7 @@
             class="change-item"
           >
             <span class="change-field">{{ formatFormKey(key as string) }}:</span>
-            <span class="change-to">{{ formatFormValue(value) }}</span>
+            <span class="change-to">{{ formatFormValue(value, key as string) }}</span>
           </div>
         </div>
         <div v-if="activity.metadata?.changes" class="activity-changes">
@@ -172,6 +172,8 @@ function formatFieldName(field: string): string {
   return field.replace(/_/g, ' ')
 }
 
+const { getCountryName } = useLocalizedOptions()
+
 function formatValue(field: string, value: any): string {
   if (value === null || value === undefined || value === '') {
     return '(empty)'
@@ -181,6 +183,10 @@ function formatValue(field: string, value: any): string {
   }
   if (typeof value === 'object') {
     return JSON.stringify(value)
+  }
+
+  if (field === 'country') {
+    return getCountryName(String(value))
   }
 
   // Try to resolve an option label from the field definition

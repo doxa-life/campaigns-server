@@ -153,6 +153,17 @@
                   class="w-full"
                 />
               </UFormField>
+
+              <UFormField :label="getSubscriberFieldLabel('country')">
+                <USelectMenu
+                  v-model="subscriberForm.country"
+                  :items="countryOptions"
+                  value-key="value"
+                  placeholder="Select country..."
+                  searchable
+                  class="w-full"
+                />
+              </UFormField>
             </CrmFormSection>
 
             <CrmFormSection title="Groups">
@@ -428,7 +439,7 @@
                     class="change-item"
                   >
                     <span class="change-field">{{ formatFormKey(key as string) }}:</span>
-                    <span class="change-to">{{ formatFormValue(value) }}</span>
+                    <span class="change-to">{{ formatFormValue(value, key as string) }}</span>
                   </div>
                 </div>
                 <div v-if="activity.metadata?.changes" class="activity-changes">
@@ -438,9 +449,9 @@
                     class="change-item"
                   >
                     <span class="change-field">{{ formatFieldName(field as string) }}:</span>
-                    <span class="change-from">{{ formatValue(change.from) }}</span>
+                    <span class="change-from">{{ formatValue(change.from, field as string) }}</span>
                     <span class="change-arrow">→</span>
-                    <span class="change-to">{{ formatValue(change.to) }}</span>
+                    <span class="change-to">{{ formatValue(change.to, field as string) }}</span>
                   </div>
                 </div>
               </div>
@@ -556,6 +567,7 @@ interface GeneralSubscriber {
   primary_email: string | null
   primary_phone: string | null
   role?: string | null
+  country?: string | null
   subscriptions: Subscription[]
   consents: SubscriberConsents
   total_prayer_minutes: number
@@ -595,7 +607,7 @@ const searchQuery = ref('')
 const filterPeopleGroupId = ref<number | null>(null)
 
 // Form state
-const subscriberForm = ref({ name: '', email: '', phone: '', role: '', preferred_language: 'en' })
+const subscriberForm = ref({ name: '', email: '', phone: '', role: '', preferred_language: 'en', country: undefined as string | undefined })
 const subscriptionForms = ref<Map<number, SubscriptionForm>>(new Map())
 
 // Expansion state for subscription cards
@@ -603,7 +615,7 @@ const expandedSubscriptions = ref<Set<number>>(new Set())
 
 // Add to group modal state
 const showAddGroupModal = ref(false)
-const addGroupId = ref<number | null>(null)
+const addGroupId = ref<number | undefined>(undefined)
 const allGroups = ref<{ id: number; name: string }[]>([])
 
 // Create person modal state
@@ -652,6 +664,7 @@ interface ActivityLogEntry {
   userId: string | null
   userName: string | null
   metadata: {
+    badge?: string
     changes?: Record<string, { from: any; to: any }>
     deletedRecord?: Record<string, any>
     source?: string
@@ -704,6 +717,8 @@ const languageOptions = LANGUAGES.map(lang => ({
   label: lang.name,
   value: lang.code
 }))
+
+const { countryOptions, getCountryName } = useLocalizedOptions()
 
 const peopleGroupOptions = computed(() => {
   return [
@@ -778,7 +793,7 @@ async function addToGroup() {
       body: { subscriber_id: selectedSubscriber.value.id }
     })
     showAddGroupModal.value = false
-    addGroupId.value = null
+    addGroupId.value = undefined
     const res = await $fetch<{ groups: { group_id: number; name: string }[] }>(`/api/admin/subscribers/${selectedSubscriber.value.id}/groups`)
     subscriberGroups.value = res.groups
     toast.add({ title: 'Added to group', color: 'success' })
@@ -829,7 +844,7 @@ async function selectSubscriber(subscriber: GeneralSubscriber, updateUrl = true)
 
   selectedSubscriber.value = subscriber
   slideoverOpen.value = true
-  subscriberForm.value = { name: subscriber.name, email: subscriber.primary_email || '', phone: subscriber.primary_phone || '', role: subscriber.role || '', preferred_language: subscriber.preferred_language }
+  subscriberForm.value = { name: subscriber.name, email: subscriber.primary_email || '', phone: subscriber.primary_phone || '', role: subscriber.role || '', preferred_language: subscriber.preferred_language, country: subscriber.country || undefined }
   if (updateUrl && import.meta.client) {
     const params = new URLSearchParams()
     if (filterPeopleGroupId.value) params.set('peopleGroup', String(filterPeopleGroupId.value))
@@ -999,8 +1014,9 @@ async function saveChanges() {
     const phoneChanged = subscriberForm.value.phone !== (subscriber.primary_phone || '')
     const roleChanged = subscriberForm.value.role !== (subscriber.role || '')
     const langChanged = subscriberForm.value.preferred_language !== subscriber.preferred_language
+    const countryChanged = (subscriberForm.value.country || null) !== (subscriber.country || null)
 
-    if (nameChanged || emailChanged || phoneChanged || roleChanged || langChanged) {
+    if (nameChanged || emailChanged || phoneChanged || roleChanged || langChanged || countryChanged) {
       await $fetch(`/api/admin/subscribers/${subscriber.id}`, {
         method: 'PUT',
         body: {
@@ -1008,7 +1024,8 @@ async function saveChanges() {
           email: subscriberForm.value.email,
           phone: subscriberForm.value.phone,
           role: subscriberForm.value.role || null,
-          preferred_language: subscriberForm.value.preferred_language
+          preferred_language: subscriberForm.value.preferred_language,
+          country: subscriberForm.value.country || null
         }
       })
     }
@@ -1211,9 +1228,12 @@ function formatFieldName(field: string): string {
   return names[field] || field.replace(/_/g, ' ')
 }
 
-function formatValue(value: any): string {
+function formatValue(value: any, field?: string): string {
   if (value === null || value === undefined || value === '') {
     return '(empty)'
+  }
+  if (field === 'country') {
+    return getCountryName(String(value))
   }
   return String(value)
 }

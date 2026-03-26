@@ -12,6 +12,7 @@ export interface Subscriber {
   name: string
   preferred_language: string
   role: string | null
+  country: string | null
   created_at: string
   updated_at: string
 }
@@ -45,31 +46,31 @@ export interface SubscriberWithSubscriptions extends SubscriberWithContacts {
 class SubscriberService {
   private sql = getSql()
 
-  async createSubscriber(name: string, language: string = 'en'): Promise<Subscriber> {
+  async createSubscriber(name: string, language: string = 'en', country: string | null = null): Promise<Subscriber> {
     const tracking_id = randomUUID()
     const profile_id = randomUUID()
 
-    const [row] = await this.sql`
-      INSERT INTO subscribers (tracking_id, profile_id, name, preferred_language)
-      VALUES (${tracking_id}, ${profile_id}, ${name}, ${language})
+    const [row] = await this.sql<Subscriber[]>`
+      INSERT INTO subscribers (tracking_id, profile_id, name, preferred_language, country)
+      VALUES (${tracking_id}, ${profile_id}, ${name}, ${language}, ${country})
       RETURNING *
     `
-    return row
+    return row!
   }
 
   async getSubscriberById(id: number): Promise<Subscriber | null> {
-    const [row] = await this.sql`SELECT * FROM subscribers WHERE id = ${id}`
-    return row || null
+    const [row] = await this.sql<Subscriber[]>`SELECT * FROM subscribers WHERE id = ${id}`
+    return row ?? null
   }
 
   async getSubscriberByTrackingId(trackingId: string): Promise<Subscriber | null> {
-    const [row] = await this.sql`SELECT * FROM subscribers WHERE tracking_id = ${trackingId}`
-    return row || null
+    const [row] = await this.sql<Subscriber[]>`SELECT * FROM subscribers WHERE tracking_id = ${trackingId}`
+    return row ?? null
   }
 
   async getSubscriberByProfileId(profileId: string): Promise<Subscriber | null> {
-    const [row] = await this.sql`SELECT * FROM subscribers WHERE profile_id = ${profileId}`
-    return row || null
+    const [row] = await this.sql<Subscriber[]>`SELECT * FROM subscribers WHERE profile_id = ${profileId}`
+    return row ?? null
   }
 
   async getSubscriberByContactMethodId(contactMethodId: number): Promise<Subscriber | null> {
@@ -95,12 +96,13 @@ class SubscriberService {
     }
   }
 
-  async updateSubscriber(id: number, updates: { name?: string; preferred_language?: string; role?: string | null }): Promise<Subscriber | null> {
+  async updateSubscriber(id: number, updates: { name?: string; preferred_language?: string; role?: string | null; country?: string | null }): Promise<Subscriber | null> {
     const fields: Fragment[] = []
 
     if (updates.name !== undefined) fields.push(this.sql`name = ${updates.name}`)
     if (updates.preferred_language !== undefined) fields.push(this.sql`preferred_language = ${updates.preferred_language}`)
     if (updates.role !== undefined) fields.push(this.sql`role = ${updates.role}`)
+    if (updates.country !== undefined) fields.push(this.sql`country = ${updates.country}`)
 
     if (fields.length === 0) return this.getSubscriberById(id)
 
@@ -121,6 +123,7 @@ class SubscriberService {
     name: string
     language?: string
     role?: string | null
+    country?: string | null
   }): Promise<{ subscriber: Subscriber; isNew: boolean }> {
     if (input.email) {
       const emailContact = await contactMethodService.getByValue('email', input.email)
@@ -138,7 +141,7 @@ class SubscriberService {
       }
     }
 
-    const subscriber = await this.createSubscriber(input.name, input.language)
+    const subscriber = await this.createSubscriber(input.name, input.language, input.country || null)
 
     if (input.email) {
       await contactMethodService.addContactMethod(subscriber.id, 'email', input.email)
@@ -181,8 +184,8 @@ class SubscriberService {
   }
 
   async getSubscriberCount(): Promise<number> {
-    const [result] = await this.sql`SELECT COUNT(*) as count FROM subscribers`
-    return result.count
+    const [result] = await this.sql<{ count: number }[]>`SELECT COUNT(*) as count FROM subscribers`
+    return result!.count
   }
 
   async getAllSubscribersWithSubscriptions(options?: {

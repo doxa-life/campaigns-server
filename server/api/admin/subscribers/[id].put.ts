@@ -18,11 +18,12 @@ export default defineEventHandler(async (event) => {
     phone?: string
     preferred_language?: string
     role?: string | null
+    country?: string | null
   }>(event)
 
   const changes: Record<string, { from: any; to: any }> = {}
 
-  const subscriberUpdates: { name?: string; preferred_language?: string; role?: string | null } = {}
+  const subscriberUpdates: { name?: string; preferred_language?: string; role?: string | null; country?: string | null } = {}
   if (body.name !== undefined && body.name !== subscriber.name) {
     subscriberUpdates.name = body.name
     changes.name = { from: subscriber.name, to: body.name }
@@ -33,6 +34,13 @@ export default defineEventHandler(async (event) => {
   }
   if (body.role !== undefined) {
     subscriberUpdates.role = body.role
+  }
+  if (body.country !== undefined) {
+    const newCountry = body.country?.trim()?.toUpperCase() || null
+    if (newCountry !== subscriber.country) {
+      subscriberUpdates.country = newCountry
+      changes.country = { from: subscriber.country, to: newCountry }
+    }
   }
 
   if (Object.keys(subscriberUpdates).length > 0) {

@@ -16,6 +16,9 @@ export function formatMinutes(minutes: number): string {
 
 import { getSubscriberFieldLabel } from './subscriber-fields'
 import { getGroupFieldLabel } from './group-fields'
+import countries from 'i18n-iso-countries'
+import countriesEn from 'i18n-iso-countries/langs/en.json'
+countries.registerLocale(countriesEn)
 
 export function formatFormKey(key: string): string {
   const subscriberLabel = getSubscriberFieldLabel(key)
@@ -27,8 +30,11 @@ export function formatFormKey(key: string): string {
   return key
 }
 
-export function formatFormValue(value: any): string {
+export function formatFormValue(value: any, key?: string): string {
   if (value === null || value === undefined || value === '') return '(empty)'
   if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+  if (key === 'country' && value) {
+    return countries.getName(String(value), 'en', { select: 'official' }) || String(value)
+  }
   return String(value)
 }
