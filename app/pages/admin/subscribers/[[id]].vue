@@ -227,11 +227,10 @@
                 <div class="consent-item">
                   <div class="consent-label">
                     <span class="consent-name">Doxa General Updates</span>
-                    <UBadge
-                      :label="selectedSubscriber.consents.doxa_general ? 'Opted In' : 'Not Opted In'"
-                      :color="selectedSubscriber.consents.doxa_general && emailVerified ? 'success' : 'neutral'"
-                      :variant="selectedSubscriber.consents.doxa_general && emailVerified ? 'solid' : 'outline'"
-                      size="xs"
+                    <USwitch
+                      :model-value="selectedSubscriber.consents.doxa_general"
+                      :disabled="!emailVerified"
+                      @update:model-value="toggleDoxaConsent"
                     />
                   </div>
                   <span v-if="selectedSubscriber.consents.doxa_general && selectedSubscriber.consents.doxa_general_at" class="consent-date">
@@ -239,11 +238,11 @@
                   </span>
                 </div>
 
-                <div v-if="selectedSubscriber.consents.people_group_names.length > 0" class="consent-item">
+                <div class="consent-item">
                   <div class="consent-label">
                     <span class="consent-name">People Group Marketing</span>
                   </div>
-                  <div class="people-group-consents">
+                  <div v-if="selectedSubscriber.consents.people_group_names.length > 0" class="people-group-consents">
                     <UBadge
                       v-for="(name, idx) in selectedSubscriber.consents.people_group_names"
                       :key="selectedSubscriber.consents.people_group_ids[idx]"
@@ -251,15 +250,20 @@
                       color="primary"
                       variant="subtle"
                       size="xs"
+                      :trailing-icon="emailVerified ? 'i-lucide-x' : undefined"
+                      :class="{ 'cursor-pointer': emailVerified }"
+                      @click="emailVerified && removePeopleGroupConsent(selectedSubscriber.consents.people_group_ids[idx]!)"
                     />
                   </div>
-                </div>
-
-                <div v-else class="consent-item">
-                  <div class="consent-label">
-                    <span class="consent-name">People Group Marketing</span>
-                    <UBadge label="None" color="neutral" variant="outline" size="xs" />
-                  </div>
+                  <div v-else class="consent-empty">None</div>
+                  <USelectMenu
+                    v-if="emailVerified && availablePeopleGroupConsentOptions.length > 0"
+                    :items="availablePeopleGroupConsentOptions"
+                    value-key="value"
+                    placeholder="Add people group..."
+                    class="mt-2"
+                    @update:model-value="addPeopleGroupConsent"
+                  />
                 </div>
               </div>
             </CrmFormSection>
@@ -854,6 +858,78 @@ async function removeFromGroup(groupId: number) {
   }
 }
 
+const availablePeopleGroupConsentOptions = computed(() => {
+  if (!selectedSubscriber.value) return []
+  const consentedIds = new Set(selectedSubscriber.value.consents.people_group_ids)
+  return peopleGroups.value
+    .filter(pg => !consentedIds.has(pg.id))
+    .map(pg => ({ label: pg.name, value: pg.id }))
+})
+
+async function toggleDoxaConsent(granted: boolean) {
+  if (!selectedSubscriber.value) return
+  const prev = selectedSubscriber.value.consents.doxa_general
+  selectedSubscriber.value.consents.doxa_general = granted
+  try {
+    const res = await $fetch<{ consents: typeof selectedSubscriber.value.consents }>(`/api/admin/subscribers/${selectedSubscriber.value.id}/consents`, {
+      method: 'PUT',
+      body: { type: 'doxa_general', granted }
+    })
+    selectedSubscriber.value.consents = res.consents
+    toast.add({ title: granted ? 'Opted in to Doxa General Updates' : 'Opted out of Doxa General Updates', color: 'success' })
+    await loadActivityLog(selectedSubscriber.value)
+  } catch (err: any) {
+    selectedSubscriber.value.consents.doxa_general = prev
+    toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to update consent', color: 'error' })
+  }
+}
+
+async function addPeopleGroupConsent(pgId: number) {
+  if (!selectedSubscriber.value) return
+  const pg = peopleGroups.value.find(p => p.id === pgId)
+  const prevIds = [...selectedSubscriber.value.consents.people_group_ids]
+  const prevNames = [...selectedSubscriber.value.consents.people_group_names]
+  selectedSubscriber.value.consents.people_group_ids.push(pgId)
+  selectedSubscriber.value.consents.people_group_names.push(pg?.name || `People Group ${pgId}`)
+  try {
+    const res = await $fetch<{ consents: typeof selectedSubscriber.value.consents }>(`/api/admin/subscribers/${selectedSubscriber.value.id}/consents`, {
+      method: 'PUT',
+      body: { type: 'people_group', people_group_id: pgId, granted: true }
+    })
+    selectedSubscriber.value.consents = res.consents
+    toast.add({ title: `Opted in to ${pg?.name || 'people group'} marketing`, color: 'success' })
+    await loadActivityLog(selectedSubscriber.value)
+  } catch (err: any) {
+    selectedSubscriber.value.consents.people_group_ids = prevIds
+    selectedSubscriber.value.consents.people_group_names = prevNames
+    toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to update consent', color: 'error' })
+  }
+}
+
+async function removePeopleGroupConsent(pgId: number) {
+  if (!selectedSubscriber.value) return
+  const idx = selectedSubscriber.value.consents.people_group_ids.indexOf(pgId)
+  if (idx === -1) return
+  const pgName = selectedSubscriber.value.consents.people_group_names[idx]
+  const prevIds = [...selectedSubscriber.value.consents.people_group_ids]
+  const prevNames = [...selectedSubscriber.value.consents.people_group_names]
+  selectedSubscriber.value.consents.people_group_ids.splice(idx, 1)
+  selectedSubscriber.value.consents.people_group_names.splice(idx, 1)
+  try {
+    const res = await $fetch<{ consents: typeof selectedSubscriber.value.consents }>(`/api/admin/subscribers/${selectedSubscriber.value.id}/consents`, {
+      method: 'PUT',
+      body: { type: 'people_group', people_group_id: pgId, granted: false }
+    })
+    selectedSubscriber.value.consents = res.consents
+    toast.add({ title: `Opted out of ${pgName} marketing`, color: 'success' })
+    await loadActivityLog(selectedSubscriber.value)
+  } catch (err: any) {
+    selectedSubscriber.value.consents.people_group_ids = prevIds
+    selectedSubscriber.value.consents.people_group_names = prevNames
+    toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to update consent', color: 'error' })
+  }
+}
+
 async function loadData() {
   try {
     loading.value = true
@@ -1264,7 +1340,9 @@ function formatFieldName(field: string): string {
     'delivery_method': 'Delivery Method',
     'prayer_duration': 'Prayer Duration',
     'timezone': 'Timezone',
-    'days_of_week': 'Days of Week'
+    'days_of_week': 'Days of Week',
+    'consent_doxa_general': 'Doxa General Consent',
+    'consent_people_group': 'People Group Consent'
   }
   return names[field] || field.replace(/_/g, ' ')
 }
@@ -1275,6 +1353,9 @@ function formatValue(value: any, field?: string): string {
   }
   if (field === 'country') {
     return getCountryName(String(value))
+  }
+  if (field === 'consent_doxa_general' || field === 'consent_people_group') {
+    return value ? 'Opted In' : 'Opted Out'
   }
   return String(value)
 }
@@ -1630,7 +1711,6 @@ onMounted(async () => {
 
 .consents-disabled {
   opacity: 0.4;
-  pointer-events: none;
 }
 
 .consents-list {
@@ -1660,6 +1740,12 @@ onMounted(async () => {
 
 .consent-date {
   font-size: 0.75rem;
+  color: var(--ui-text-muted);
+  margin-top: 0.25rem;
+}
+
+.consent-empty {
+  font-size: 0.8rem;
   color: var(--ui-text-muted);
   margin-top: 0.25rem;
 }
