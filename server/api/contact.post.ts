@@ -1,7 +1,9 @@
 import { subscriberService } from '../database/subscribers'
+import { contactMethodService } from '../database/contact-methods'
 import { requireFormApiKey } from '../utils/form-api-key'
 import { handleApiError } from '#server/utils/api-helpers'
 import { notifyContactRecipients } from '../utils/contact-notification-email'
+import { sendContactVerificationEmail } from '../utils/contact-verification-email'
 import countries from 'i18n-iso-countries'
 
 export default defineEventHandler(async (event) => {
@@ -12,6 +14,7 @@ export default defineEventHandler(async (event) => {
     email: string
     message: string
     country?: string
+    consent_doxa_general?: boolean
   }>(event)
 
   const name = body.name?.trim() || ''
@@ -43,10 +46,23 @@ export default defineEventHandler(async (event) => {
 
     await subscriberService.addSource(subscriber.id, 'contact')
 
+    if (body.consent_doxa_general) {
+      const emailContact = await contactMethodService.getByValue('email', email)
+      if (emailContact) {
+        await contactMethodService.updateDoxaConsent(emailContact.id, true)
+
+        if (!emailContact.verified) {
+          const token = await contactMethodService.generateVerificationToken(emailContact.id)
+          sendContactVerificationEmail(email, token, name || email)
+            .catch(err => console.error('Failed to send contact verification email:', err))
+        }
+      }
+    }
+
     logCreate('subscribers', String(subscriber.id), event, {
       source: 'Contact Form',
       message: 'Contact form submitted',
-      form_values: { name, email, message, country },
+      form_values: { name, email, message, country, consent_doxa_general: body.consent_doxa_general ?? false },
     })
 
     notifyContactRecipients({

@@ -363,6 +363,24 @@
     "yes": "Ja",
     "no": "Nein"
   },
+  "contact": {
+    "verify": {
+      "pageTitle": "E-Mail Bestätigen",
+      "verifying": "Ihre E-Mail wird bestätigt...",
+      "success": {
+        "title": "E-Mail Bestätigt!",
+        "message": "Ihre E-Mail wurde bestätigt. Vielen Dank für Ihr Interesse an der DOXA-Partnerschaft."
+      },
+      "alreadyVerified": {
+        "title": "Bereits Bestätigt",
+        "message": "Ihre E-Mail wurde bereits bestätigt."
+      },
+      "error": {
+        "title": "Bestätigung Fehlgeschlagen",
+        "generic": "Ihre E-Mail konnte nicht bestätigt werden. Dieser Link wurde möglicherweise bereits verwendet oder ist abgelaufen."
+      }
+    }
+  },
   "adoption": {
     "verify": {
       "pageTitle": "Adoption Bestätigen",
@@ -483,6 +501,17 @@
       "thursday": "Donnerstag",
       "friday": "Freitag",
       "saturday": "Samstag"
+    },
+    "contactVerification": {
+      "subject": "Bestätigen Sie Ihre E-Mail, um DOXA-Updates zu erhalten",
+      "header": "Bestätigen Sie Ihre E-Mail",
+      "thankYou": "Vielen Dank, dass Sie DOXA kontaktiert haben. Sie haben sich dafür entschieden, E-Mail-Updates von der DOXA-Partnerschaft zu erhalten.",
+      "pleaseVerify": "Um Updates zu erhalten, bestätigen Sie bitte Ihre E-Mail-Adresse, indem Sie auf die Schaltfläche unten klicken:",
+      "verifyButton": "E-Mail Bestätigen",
+      "linkInstructions": "Wenn die Schaltfläche nicht funktioniert, können Sie auch diesen Link kopieren und in Ihren Browser einfügen:",
+      "note": "Hinweis:",
+      "expiration": "Dieser Bestätigungslink läuft in 7 Tagen ab.",
+      "ignoreMessage": "Wenn Sie kein Kontaktformular eingereicht haben, können Sie diese E-Mail ignorieren."
     },
     "adoptionVerification": {
       "subject": "Bestätigen Sie Ihre E-Mail, um die {peopleGroupName} zu adoptieren",
