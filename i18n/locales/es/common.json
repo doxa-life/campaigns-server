@@ -363,6 +363,24 @@
     "yes": "Sí",
     "no": "No"
   },
+  "contact": {
+    "verify": {
+      "pageTitle": "Verificar Correo Electrónico",
+      "verifying": "Verificando su correo electrónico...",
+      "success": {
+        "title": "¡Correo Verificado!",
+        "message": "Su correo electrónico ha sido verificado. Gracias por su interés en la asociación DOXA."
+      },
+      "alreadyVerified": {
+        "title": "Ya Verificado",
+        "message": "Su correo electrónico ya fue verificado."
+      },
+      "error": {
+        "title": "Verificación Fallida",
+        "generic": "No se pudo verificar su correo electrónico. Este enlace puede haber sido usado o ha expirado."
+      }
+    }
+  },
   "adoption": {
     "verify": {
       "pageTitle": "Verificar Adopción",
@@ -483,6 +501,17 @@
       "thursday": "Jueves",
       "friday": "Viernes",
       "saturday": "Sábado"
+    },
+    "contactVerification": {
+      "subject": "Verifica tu correo electrónico para recibir actualizaciones de DOXA",
+      "header": "Verifica Tu Correo Electrónico",
+      "thankYou": "Gracias por contactar a DOXA. Optaste por recibir actualizaciones por correo electrónico de la asociación DOXA.",
+      "pleaseVerify": "Para comenzar a recibir actualizaciones, por favor verifica tu dirección de correo electrónico haciendo clic en el botón de abajo:",
+      "verifyButton": "Verificar Correo Electrónico",
+      "linkInstructions": "Si el botón no funciona, también puedes copiar y pegar este enlace en tu navegador:",
+      "note": "Nota:",
+      "expiration": "Este enlace de verificación expirará en 7 días.",
+      "ignoreMessage": "Si no enviaste un formulario de contacto, puedes ignorar este correo con seguridad."
     },
     "adoptionVerification": {
       "subject": "Verifica tu correo para adoptar a los {peopleGroupName}",
