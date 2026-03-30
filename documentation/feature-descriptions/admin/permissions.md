@@ -10,9 +10,9 @@ The permissions system controls what logged-in users can see and do. Users are a
 
 **People Group Editor** can create and manage content, but only within people groups they've been granted access to. They can also view and manage subscribers who are subscribed to their people groups. They cannot see other people groups, manage users, or access system settings.
 
-**No Role** is the default for new users. They can log in but have no admin capabilities until an admin assigns them a role.
+**No Role** is the default for new users. They can log in but see a "Pending Approval" page with no admin capabilities until an admin assigns them a role. Users who registered via invitation may already have a role pre-assigned.
 
-**Superadmin** is a separate designation for technical administrators who need access to system-level operations like manual backups.
+**Superadmin** is a separate designation layered on top of the regular role system. It is not a role itself — it's a flag that can be added to any user. Superadmins have access to system-level operations like manual backups, bulk translations, notification recipient configuration, and diagnostics.
 
 ## Granting Access
 

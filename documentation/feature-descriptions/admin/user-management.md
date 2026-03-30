@@ -12,7 +12,7 @@ The Users page in the admin area shows two sections:
 
 **Active Users** lists everyone who has accepted an invitation and created an account. For each user you can see their email, display name, current role, whether their email is verified, and when they joined.
 
-**Invitations** lists all invitations that have been sent, whether pending, accepted, expired, or revoked. You can see who was invited, who invited them, the invitation status, and when it expires.
+**Invitations** lists all invitations that have been sent, whether pending, accepted, expired, or revoked. You can see who was invited, the inviter's name, the invitation status, and when it expires.
 
 ## Inviting New Users
 

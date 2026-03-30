@@ -30,7 +30,7 @@ Before any reminders are sent, users must verify their email address. When someo
 
 1. The system creates their subscription in a pending state
 2. A verification email is sent with a unique link
-3. The link expires after 24 hours
+3. The link expires after 7 days
 4. Once clicked, the email is marked verified and a welcome email is sent
 5. The first reminder is scheduled based on their preferences
 
@@ -50,7 +50,7 @@ The scheduler recalculates `next_reminder_utc` after every sent reminder, accoun
 
 ## The Reminder Scheduler
 
-A background process runs every 5 minutes checking for reminders that are due. It:
+A background process runs every minute checking for reminders that are due. It:
 
 1. Queries all active subscriptions where `next_reminder_utc` is in the past
 2. Groups them by people group to efficiently fetch prayer content
@@ -132,7 +132,7 @@ Administrators can:
 
 **UTC storage** - All scheduled times are stored in UTC. The conversion from user's local time happens when calculating next send. This avoids timezone complexity in the scheduler and handles daylight saving changes correctly.
 
-**5-minute granularity** - The scheduler runs every 5 minutes, so reminders may arrive up to 5 minutes after the requested time. This is a reasonable tradeoff for system simplicity.
+**1-minute granularity** - The scheduler runs every minute, so reminders may arrive up to 1 minute after the requested time. This provides near-real-time delivery while keeping the system simple.
 
 **Date-based duplicate prevention** - We track sends by date, not exact time. This means if the scheduler fails and recovers, it won't send duplicate reminders for the same day.
 

@@ -111,9 +111,9 @@ The email is translated into the submitter's preferred language and supports rig
 
 ## How update reports are collected
 
-### Monthly automated reminders
+### Monthly automated reminders (currently disabled)
 
-On the 1st of each month, the system automatically emails the primary contact of every group that has at least one active adoption. The email lists all of the group's adopted people groups, each with its own "Submit Update" link.
+The system is designed to automatically email the primary contact of every group with active adoptions on the 1st of each month. The email lists all of the group's adopted people groups, each with its own "Submit Update" link. This scheduler is currently disabled while the adoption system matures.
 
 ### Manual reminders
 
@@ -199,6 +199,6 @@ If a church submits the adoption form for a second people group, the system matc
 - Adoption reports are collected but not yet displayed publicly anywhere
 - The public people group pages do not yet render adoption counts or group names, even though the data is available
 - No bulk operations for managing adoptions across multiple groups
-- The monthly reminder schedule is fixed to the 1st of each month and cannot be configured
+- The monthly automated reminder scheduler is currently disabled; admins can still send reminders manually
 - No tracking of whether reminder emails are opened or update links are clicked
 - The public form group matching is name-based, so slight variations in church name (e.g., "First Baptist" vs "First Baptist Church") would create separate groups

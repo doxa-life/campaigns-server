@@ -4,7 +4,7 @@
 
 The translation feature lets you automatically translate prayer content into multiple languages using DeepL, a professional translation service. Rather than manually translating each day's content, you can translate individual items or entire libraries with a few clicks.
 
-This dramatically reduces the effort needed to make content available in all ten supported languages: English, Spanish, French, Portuguese, German, Italian, Chinese, Arabic, Russian, and Hindi.
+This dramatically reduces the effort needed to make content available in all eleven supported languages: English, Spanish, French, Portuguese, German, Italian, Chinese, Arabic, Russian, Hindi, and Romanian.
 
 ## Two Ways to Translate
 
@@ -42,12 +42,15 @@ When you click any translate button, a dialog opens asking you to choose options
 
 **Overwrite existing translations** - If the target language already has content, this checkbox appears. Check it to replace existing translations with fresh ones. Leave it unchecked to skip languages that already have translations.
 
+**Retranslate verses** - When content includes Bible verses, you can choose whether to re-fetch them in the target language. Unchecking this skips verse translation, which is useful if verses have already been manually reviewed or if you only want to update the surrounding text.
+
 ### Watching Bulk Translation Progress
 
 For bulk translations, a progress window opens showing:
 
 - A progress bar with how many translations are complete
 - Status breakdown: Pending (waiting), Processing (in progress), Completed, Failed
+- Verse warnings listing any Bible verse references that couldn't be found in the target language
 - A Cancel button to stop remaining translations
 
 The window polls for updates automatically. When all translations finish, you can close the window and the page will reload to show your new content.
@@ -65,6 +68,8 @@ The translator handles rich text content intelligently:
 **Formatting is preserved** - Bold, italic, links, lists, headings, and other formatting carry over to the translated version. The structure of your content stays intact.
 
 **Media is kept as-is** - Images, videos, and other embedded media aren't translated (they don't need to be) and remain in the translated version.
+
+**Bible verses** - Verses embedded in the content can optionally be re-fetched in the target language from a Bible API. If a verse isn't available in a particular language, the system records a warning so you know which verses need attention.
 
 ## Translation Quality
 
@@ -114,4 +119,4 @@ Translation requires content editing permissions. Admins can translate any libra
 - Bulk translation progress is lost if you navigate away and return (translations continue, but you won't see the progress window)
 - Cannot resume or retry specific failed translations from the progress window—close and start a new translation
 - Very large content items may time out on individual translation (use bulk translation instead)
-- No translation memory or glossary support for consistent terminology across translations
+- Translation uses DeepL glossaries for consistent terminology, but custom glossary edits require updating the glossary files manually

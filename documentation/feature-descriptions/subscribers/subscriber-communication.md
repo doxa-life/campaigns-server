@@ -27,6 +27,17 @@ The welcome email includes:
 - Confirmation that their email is verified and reminders are set up
 - A "Start Praying" button linking directly to the prayer content page
 - A "Manage Preferences" button linking to their profile page where they can update settings
+- Calendar links to add the prayer reminder to Google Calendar or download an ICS file
+
+## Adoption Emails
+
+When someone adopts a people group, the system sends a separate set of automated emails:
+
+**Adoption Verification Email** — Sent to new users who haven't verified their email. Contains a link to confirm their address and activate the adoption.
+
+**Adoption Welcome Email** — Sent when an adoption becomes active (either after verification or immediately for returning users). Includes links to the people group profile, external resources, a getting started guide, and a count of remaining unadopted groups. Translated into the adopter's preferred language, with right-to-left layout for Arabic.
+
+**Adoption Reminder Email** — Periodic emails to the primary contact of each adopting group, listing their adopted people groups with links to submit prayer updates.
 
 ## Current Limitations
 

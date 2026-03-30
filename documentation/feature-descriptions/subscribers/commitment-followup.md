@@ -45,8 +45,8 @@ The email includes a note that if we don't hear back, we'll pause their reminder
 
 The escalation process:
 1. Initial check-in email sent
-2. If no response after 1 week, send a reminder
-3. If still no response after another week, automatically pause their subscription
+2. If no response after 1 week, a reminder email is sent
+3. If still no response 1 week after the reminder, automatically pause their subscription (roughly 2 weeks total from the initial check-in)
 
 Subscribers can always reactivate from their profile page.
 

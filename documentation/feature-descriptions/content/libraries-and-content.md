@@ -10,6 +10,8 @@ The key benefit is that content only needs to be written once. If you have a "40
 
 Each library has a name and description, plus content organized by day number (Day 1, Day 2, etc.). A library can have up to 365 days of content.
 
+Libraries can be marked as **repeating**, which means they cycle back to Day 1 after the last day. This is useful for content that should run continuously without an end date.
+
 Each day can have translations in multiple languages. Languages can be added or removed as needed. You don't need all languages for every day—you can start with one and add translations over time.
 
 ## Creating and Managing Content
@@ -19,6 +21,14 @@ The Libraries section in the admin shows all libraries with a quick view of how 
 Inside a library, you see a calendar view of all the days. Days are color-coded: green means all languages are translated, orange means some languages are done, and gray means no content yet. You can filter by language to see which days still need translation work.
 
 Click any day to see all its translations. From there you can add a new translation, edit an existing one, or view what's there. The content editor supports rich formatting including text styles, headings, links, images, and video.
+
+### Bible Verses
+
+The content editor has a dedicated verse block for embedding Bible passages. To insert one, use the "Turn into" menu or the slash command menu and select "Verse." A reference field appears where you type a Bible reference (e.g., "John 3:16" or "Psalm 23:1-6") and press Enter. The system fetches the verse text automatically and displays it in a styled block with the citation.
+
+Verses are fetched from a Bible API in the language matching the content being edited. When you translate content to other languages, you can choose whether to re-fetch verses in the target language's Bible translation or keep the original. If a verse isn't available in a particular language, the system logs a warning so you know which ones need attention.
+
+Each language uses a specific Bible translation — for example, NKJV for English, NVI for Spanish, and LSG for French.
 
 ## How Libraries Connect to People Groups
 
@@ -54,6 +64,18 @@ A typical workflow for translating content:
 4. Use the calendar view filtered by language to track progress
 
 The system shows completion stats so you can see at a glance how much translation work remains.
+
+## Virtual Libraries
+
+In addition to regular libraries that contain authored content, the system has built-in virtual libraries that generate content dynamically:
+
+**People Group** — Displays information about a specific linked people group every day. Used for focused campaigns where subscribers are praying for one group.
+
+**Daily People Group** — Rotates through all people groups in the system, showing a different one each day. Each people group's subscribers see a different rotation based on an offset, ensuring variety. The rotation order is deterministic so everyone sees the same group on the same day.
+
+**Day in the Life** — Displays contextual content about daily life in the region of the people group being prayed for.
+
+Virtual libraries cannot be edited, exported, or imported — their content is generated automatically.
 
 ## Current Limitations
 

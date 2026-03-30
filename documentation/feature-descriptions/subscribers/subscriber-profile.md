@@ -59,6 +59,10 @@ If a subscriber previously unsubscribed from a reminder, it still appears on the
 
 This is different from deletion—unsubscribed reminders are paused, not removed.
 
+### Add to Calendar
+
+Active reminders include calendar links — subscribers can add their prayer schedule to Google Calendar or download an ICS file for other calendar apps (Apple Calendar, Outlook, etc.). This creates calendar events matching their reminder frequency, time, and duration.
+
 ### Navigate to Campaigns
 
 Each people group section includes a "View Campaign" link that goes to the people group's public prayer page. This helps subscribers who want to pray outside their scheduled times.

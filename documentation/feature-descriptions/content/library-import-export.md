@@ -87,7 +87,7 @@ The system validates the content during import to ensure it's safe and properly 
 
 ### Languages
 
-The import supports all ten languages available in the system: English, Spanish, French, Portuguese, German, Italian, Chinese, Arabic, Russian, and Hindi.
+The import supports all eleven languages available in the system: English, Spanish, French, Portuguese, German, Italian, Chinese, Arabic, Russian, Hindi, and Romanian.
 
 If the export file contains content in an unsupported language code, the import will fail with an error message listing the problematic languages.
 
