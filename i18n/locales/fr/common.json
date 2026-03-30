@@ -363,6 +363,24 @@
     "yes": "Oui",
     "no": "Non"
   },
+  "contact": {
+    "verify": {
+      "pageTitle": "Vérifier l'E-mail",
+      "verifying": "Vérification de votre e-mail...",
+      "success": {
+        "title": "E-mail Vérifié !",
+        "message": "Votre e-mail a été vérifié. Merci pour votre intérêt pour le partenariat DOXA."
+      },
+      "alreadyVerified": {
+        "title": "Déjà Vérifié",
+        "message": "Votre e-mail a déjà été vérifié."
+      },
+      "error": {
+        "title": "Échec de la Vérification",
+        "generic": "Impossible de vérifier votre e-mail. Ce lien a peut-être déjà été utilisé ou a expiré."
+      }
+    }
+  },
   "adoption": {
     "verify": {
       "pageTitle": "Vérifier l'Adoption",
@@ -483,6 +501,17 @@
       "thursday": "Jeudi",
       "friday": "Vendredi",
       "saturday": "Samedi"
+    },
+    "contactVerification": {
+      "subject": "Vérifiez votre e-mail pour recevoir les mises à jour de DOXA",
+      "header": "Vérifiez Votre E-mail",
+      "thankYou": "Merci d'avoir contacté DOXA. Vous avez choisi de recevoir des mises à jour par e-mail du partenariat DOXA.",
+      "pleaseVerify": "Pour commencer à recevoir des mises à jour, veuillez vérifier votre adresse e-mail en cliquant sur le bouton ci-dessous :",
+      "verifyButton": "Vérifier l'E-mail",
+      "linkInstructions": "Si le bouton ne fonctionne pas, vous pouvez également copier et coller ce lien dans votre navigateur :",
+      "note": "Note :",
+      "expiration": "Ce lien de vérification expirera dans 7 jours.",
+      "ignoreMessage": "Si vous n'avez pas soumis de formulaire de contact, vous pouvez ignorer cet e-mail."
     },
     "adoptionVerification": {
       "subject": "Vérifiez votre e-mail pour adopter les {peopleGroupName}",

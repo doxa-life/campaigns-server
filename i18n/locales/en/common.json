@@ -363,6 +363,24 @@
     "yes": "Yes",
     "no": "No"
   },
+  "contact": {
+    "verify": {
+      "pageTitle": "Verify Email",
+      "verifying": "Verifying your email...",
+      "success": {
+        "title": "Email Verified!",
+        "message": "Your email has been verified. Thank you for your interest in the DOXA partnership."
+      },
+      "alreadyVerified": {
+        "title": "Already Verified",
+        "message": "Your email was already verified."
+      },
+      "error": {
+        "title": "Verification Failed",
+        "generic": "Unable to verify your email. This link may have already been used or has expired."
+      }
+    }
+  },
   "adoption": {
     "verify": {
       "pageTitle": "Verify Adoption",
@@ -483,6 +501,17 @@
       "thursday": "Thursday",
       "friday": "Friday",
       "saturday": "Saturday"
+    },
+    "contactVerification": {
+      "subject": "Verify your email to receive DOXA updates",
+      "header": "Verify Your Email",
+      "thankYou": "Thank you for contacting DOXA. You opted in to receive email updates from the DOXA partnership.",
+      "pleaseVerify": "To start receiving updates, please verify your email address by clicking the button below:",
+      "verifyButton": "Verify Email",
+      "linkInstructions": "If the button doesn't work, you can also copy and paste this link into your browser:",
+      "note": "Note:",
+      "expiration": "This verification link will expire in 7 days.",
+      "ignoreMessage": "If you didn't submit a contact form, you can safely ignore this email."
     },
     "adoptionVerification": {
       "subject": "Verify your email to adopt the {peopleGroupName}",
