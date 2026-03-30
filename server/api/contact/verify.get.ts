@@ -2,7 +2,7 @@
  * GET /api/contact/verify
  * Verify email address from contact form
  */
-import { contactMethodService } from '#server/database/contact-methods'
+import { contactMethodService } from '../../database/contact-methods'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)

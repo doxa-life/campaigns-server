@@ -1,4 +1,4 @@
-import { t } from './translations'
+import { t, localePath } from './translations'
 
 export async function sendContactVerificationEmail(
   to: string,
@@ -9,7 +9,7 @@ export async function sendContactVerificationEmail(
   const config = useRuntimeConfig()
   const baseUrl = config.public.siteUrl || 'http://localhost:3000'
   const appName = config.appName || 'DOXA Prayer'
-  const verificationUrl = `${baseUrl}/contact/verify?token=${verificationToken}`
+  const verificationUrl = `${baseUrl}${localePath('/contact/verify', locale)}?token=${verificationToken}`
 
   const subject = t('email.contactVerification.subject', locale)
   const header = t('email.contactVerification.header', locale)

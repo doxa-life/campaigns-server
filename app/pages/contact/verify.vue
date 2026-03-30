@@ -36,7 +36,8 @@ const { t } = useI18n()
 const token = route.query.token as string
 
 const { data, pending, error } = await useFetch('/api/contact/verify', {
-  query: { token }
+  query: { token },
+  immediate: !!token
 })
 
 useHead(() => ({

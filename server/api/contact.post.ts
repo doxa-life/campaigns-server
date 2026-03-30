@@ -15,8 +15,10 @@ export default defineEventHandler(async (event) => {
     message: string
     country?: string
     consent_doxa_general?: boolean
+    language?: string
   }>(event)
 
+  const language = body.language?.trim() || 'en'
   const name = body.name?.trim() || ''
   const email = body.email?.trim().toLowerCase()
   const message = body.message?.trim()
@@ -53,7 +55,7 @@ export default defineEventHandler(async (event) => {
 
         if (!emailContact.verified) {
           const token = await contactMethodService.generateVerificationToken(emailContact.id)
-          sendContactVerificationEmail(email, token, name || email)
+          sendContactVerificationEmail(email, token, name || email, language)
             .catch(err => console.error('Failed to send contact verification email:', err))
         }
       }
