@@ -242,6 +242,19 @@
         "NSE": "Unaffiliated - Secularism",
         "U": "Unknown"
       },
+      "religionAlternates": {
+        "buddhist": "Buddhist",
+        "animist": "Animist",
+        "daoist": "Daoist",
+        "taoist": "Taoist",
+        "polytheist": "Polytheist",
+        "muslim": "Muslim",
+        "shiite": "Shiite",
+        "jewish": "Jewish",
+        "mandaean": "Mandaean",
+        "parsi": "Parsi",
+        "atheist": "Atheist"
+      },
       "religionDescriptions": {
         "BLA": "Tibetan Buddhism, a branch of Buddhism characteristic of Tibet and certain regions of the Himalayas.",
         "BOF": "folk Buddhism, a syncretistic blend of traditional Buddhist practices with elements of magic and superstition.",

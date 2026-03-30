@@ -242,6 +242,19 @@
         "NSE": "Sin Afiliación - Secularismo",
         "U": "Desconocido"
       },
+      "religionAlternates": {
+        "buddhist": "Budista",
+        "animist": "Animista",
+        "daoist": "Daoísta",
+        "taoist": "Taoísta",
+        "polytheist": "Politeísta",
+        "muslim": "Musulmán",
+        "shiite": "Chiita",
+        "jewish": "Judío",
+        "mandaean": "Mandeo",
+        "parsi": "Parsi",
+        "atheist": "Ateo"
+      },
       "religionDescriptions": {
         "BLA": "Budismo tibetano, una rama del budismo característica del Tíbet y ciertas regiones del Himalaya.",
         "BOF": "Budismo popular, una mezcla sincrética de prácticas budistas tradicionales con elementos de magia y superstición.",

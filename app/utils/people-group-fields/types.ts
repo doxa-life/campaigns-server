@@ -4,6 +4,7 @@ export interface FieldOption {
   value: string
   label?: string      // Direct label (for proper nouns that don't need translation)
   labelKey?: string   // Translation key (for translatable options)
+  alternateKeys?: string[]  // Translation keys for alternate search terms (e.g., "Muslim" for "Islam - Sunni")
 }
 
 export interface FieldDefinition {

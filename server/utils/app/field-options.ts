@@ -143,6 +143,17 @@ export function getFieldOptionDescription(fieldKey: string, optionKey: string, l
   return null
 }
 
+/**
+ * Returns translated alternate search terms for a field option (e.g., "Muslim" for "Islam - Sunni").
+ */
+export function getFieldOptionAlternates(fieldKey: string, optionKey: string, locale: string = 'en'): string[] | null {
+  const field = getField(fieldKey)
+  if (!field?.options) return null
+  const option = field.options.find(o => o.value === optionKey)
+  if (!option?.alternateKeys?.length) return null
+  return option.alternateKeys.map(key => getTranslatedLabel(key, locale))
+}
+
 export function getReligionLabel(code: string, locale: string = 'en'): string | null {
   return getFieldOptionLabel('imb_reg_of_religion_3', code, locale)
 }

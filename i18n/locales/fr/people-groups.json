@@ -242,6 +242,19 @@
         "NSE": "Sans affiliation - laïcité",
         "U": "Inconnu"
       },
+      "religionAlternates": {
+        "buddhist": "Bouddhiste",
+        "animist": "Animiste",
+        "daoist": "Daoïste",
+        "taoist": "Taoïste",
+        "polytheist": "Polythéiste",
+        "muslim": "Musulman",
+        "shiite": "Chiite",
+        "jewish": "Juif",
+        "mandaean": "Mandéen",
+        "parsi": "Parsi",
+        "atheist": "Athée"
+      },
       "religionDescriptions": {
         "BLA": "Bouddhisme tibétain, une branche du bouddhisme caractéristique du Tibet et de certaines régions de l'Himalaya.",
         "BOF": "Bouddhisme populaire, un mélange syncrétique de pratiques bouddhistes traditionnelles avec des éléments de magie et de superstition.",

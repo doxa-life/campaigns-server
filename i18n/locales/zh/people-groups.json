@@ -242,6 +242,19 @@
         "NSE": "无宗教信仰 - 世俗主义",
         "U": "未知"
       },
+      "religionAlternates": {
+        "buddhist": "佛教徒",
+        "animist": "泛灵论者",
+        "daoist": "道教徒",
+        "taoist": "道教徒",
+        "polytheist": "多神论者",
+        "muslim": "穆斯林",
+        "shiite": "什叶派",
+        "jewish": "犹太人",
+        "mandaean": "曼达安人",
+        "parsi": "帕西人",
+        "atheist": "无神论者"
+      },
       "religionDescriptions": {
         "BLA": "藏传佛教，是佛教的一个分支，主要流行于西藏和喜马拉雅山脉的某些地区。",
         "BOF": "民间佛教，是传统佛教修行与巫术和迷信元素的混合体。",

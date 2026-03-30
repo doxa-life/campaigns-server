@@ -1,4 +1,4 @@
-import { getFieldOptionLabel, getFieldOptionDescription, getCountryLabel, allFields } from './field-options'
+import { getFieldOptionLabel, getFieldOptionDescription, getFieldOptionAlternates, getCountryLabel, allFields } from './field-options'
 import { generatePeopleGroupDescription } from './people-group-description'
 
 interface PeopleGroupRecord {
@@ -122,12 +122,15 @@ function formatValueLabelWithDescription(
   fieldKey: string,
   value: string | null | undefined,
   lang: string
-): (ValueLabelPair & { description?: string }) | null {
+): (ValueLabelPair & { description?: string, alternates?: string[] }) | null {
   const pair = formatValueLabel(fieldKey, value, lang)
   if (!pair) return null
+  const result: ValueLabelPair & { description?: string, alternates?: string[] } = { ...pair }
   const description = getFieldOptionDescription(fieldKey, value!, lang)
-  if (description) return { ...pair, description }
-  return pair
+  if (description) result.description = description
+  const alternates = getFieldOptionAlternates(fieldKey, value!, lang)
+  if (alternates) result.alternates = alternates
+  return result
 }
 
 /**

@@ -242,6 +242,19 @@
         "NSE": "Neafiliat - Secularism",
         "U": "Necunoscut"
       },
+      "religionAlternates": {
+        "buddhist": "Budist",
+        "animist": "Animist",
+        "daoist": "Daoist",
+        "taoist": "Taoist",
+        "polytheist": "Politeist",
+        "muslim": "Musulman",
+        "shiite": "Șiit",
+        "jewish": "Evreu",
+        "mandaean": "Mandean",
+        "parsi": "Pars",
+        "atheist": "Ateu"
+      },
       "religionDescriptions": {
         "BLA": "Budismul tibetan, o ramură a budismului caracteristică Tibetului și anumitor regiuni ale Himalayei.",
         "BOF": "Budismul popular, un amestec sincretic de practici budiste tradiționale cu elemente de magie și superstiție.",

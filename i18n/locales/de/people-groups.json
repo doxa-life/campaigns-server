@@ -242,6 +242,19 @@
         "NSE": "Nicht religiös - Säkularismus",
         "U": "Unbekannt"
       },
+      "religionAlternates": {
+        "buddhist": "Buddhist",
+        "animist": "Animist",
+        "daoist": "Daoist",
+        "taoist": "Taoist",
+        "polytheist": "Polytheist",
+        "muslim": "Muslim",
+        "shiite": "Schiit",
+        "jewish": "Jüdisch",
+        "mandaean": "Mandäer",
+        "parsi": "Parse",
+        "atheist": "Atheist"
+      },
       "religionDescriptions": {
         "BLA": "Tibetischer Buddhismus, ein Zweig des Buddhismus, der für Tibet und bestimmte Regionen des Himalayas charakteristisch ist.",
         "BOF": "Volksbuddhismus, eine synkretistische Mischung aus traditionellen buddhistischen Praktiken mit Elementen der Magie und des Aberglaubens.",
