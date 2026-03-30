@@ -79,6 +79,7 @@ interface PeopleGroupData {
   country: string | null
   lat: number | null
   lng: number | null
+  picture_credit: Array<{ text: string; link: string | null }> | null
 }
 
 interface ContentItem {

@@ -44,7 +44,7 @@ export class UserInvitationService {
         VALUES (${email}, ${token}, ${invited_by}, ${role}, ${expiresAt.toISOString()})
         RETURNING *
       `
-      return row
+      return row as UserInvitation
     } catch (error: any) {
       if (error.code === '23505') {
         throw new Error('An invitation for this email already exists')
@@ -55,12 +55,12 @@ export class UserInvitationService {
 
   async getInvitationById(id: number): Promise<UserInvitation | null> {
     const [row] = await this.sql`SELECT * FROM user_invitations WHERE id = ${id}`
-    return row || null
+    return (row as UserInvitation) || null
   }
 
   async getInvitationByToken(token: string): Promise<UserInvitation | null> {
     const [row] = await this.sql`SELECT * FROM user_invitations WHERE token = ${token}`
-    return row || null
+    return (row as UserInvitation) || null
   }
 
   async getAllInvitationsWithInviter(): Promise<UserInvitationWithInviter[]> {
@@ -143,7 +143,7 @@ export class UserInvitationService {
       WHERE email = ${email} AND status = 'pending'
         AND expires_at > CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
     `
-    return result.count > 0
+    return result?.count > 0
   }
 
   async cleanupExpiredInvitations(): Promise<number> {

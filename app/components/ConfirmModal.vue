@@ -32,6 +32,8 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+
 interface Props {
   open?: boolean
   title?: string

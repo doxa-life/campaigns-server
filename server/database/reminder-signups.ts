@@ -68,17 +68,17 @@ class ReminderSignupService {
       )
       RETURNING *
     `
-    return row
+    return row as ReminderSignup
   }
 
   async getSignupById(id: number): Promise<ReminderSignup | null> {
     const [row] = await this.sql`SELECT * FROM reminder_signups WHERE id = ${id}`
-    return row || null
+    return (row as ReminderSignup) || null
   }
 
   async getSignupByTrackingId(tracking_id: string): Promise<ReminderSignup | null> {
     const [row] = await this.sql`SELECT * FROM reminder_signups WHERE tracking_id = ${tracking_id}`
-    return row || null
+    return (row as ReminderSignup) || null
   }
 
   async getPeopleGroupSignups(peopleGroupId: number, options?: {
@@ -123,7 +123,7 @@ class ReminderSignupService {
       WHERE id = ${id}
       RETURNING *
     `
-    return row || null
+    return (row as ReminderSignup) || null
   }
 
   async unsubscribeByTrackingId(tracking_id: string): Promise<boolean> {
@@ -159,7 +159,7 @@ class ReminderSignupService {
       SELECT COUNT(*) as count FROM reminder_signups
       WHERE people_group_id = ${peopleGroupId} AND status = 'active'
     `
-    return result.count
+    return Number(result?.count ?? 0)
   }
 
   async generateVerificationToken(signupId: number): Promise<string> {
@@ -177,7 +177,7 @@ class ReminderSignupService {
 
   async getSignupByVerificationToken(token: string): Promise<ReminderSignup | null> {
     const [row] = await this.sql`SELECT * FROM reminder_signups WHERE verification_token = ${token}`
-    return row || null
+    return (row as ReminderSignup) || null
   }
 
   isTokenExpired(signup: ReminderSignup): boolean {

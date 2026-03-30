@@ -106,7 +106,7 @@ export class LibraryService {
         VALUES (${name}, ${description}, ${repeating}, ${people_group_id}, ${library_key})
         RETURNING *
       `
-      return row
+      return row as Library
     } catch (error: any) {
       if (error.code === '23505') {
         throw new Error('A library with this name already exists')
@@ -123,14 +123,14 @@ export class LibraryService {
     if (id === DAY_IN_LIFE_LIBRARY_ID) return DAY_IN_LIFE_LIBRARY
 
     const [row] = await s`SELECT * FROM libraries WHERE id = ${id}`
-    return row || null
+    return (row as Library) || null
   }
 
   async getPeopleGroupLibraryByKey(peopleGroupId: number, libraryKey: string): Promise<Library | null> {
     const [row] = await this.sql`
       SELECT * FROM libraries WHERE people_group_id = ${peopleGroupId} AND library_key = ${libraryKey}
     `
-    return row || null
+    return (row as Library) || null
   }
 
   async getPeopleGroupLibraries(peopleGroupId: number): Promise<Library[]> {
@@ -241,12 +241,12 @@ export class LibraryService {
       languageStats[r.language_code] = r.count
     })
 
-    return { totalDays: daysResult.count, languageStats }
+    return { totalDays: daysResult?.count, languageStats }
   }
 
   async libraryNameExists(name: string): Promise<boolean> {
     const [result] = await this.sql`SELECT COUNT(*) as count FROM libraries WHERE name = ${name}`
-    return result.count > 0
+    return result?.count > 0
   }
 
   async generateUniqueName(baseName: string): Promise<string> {

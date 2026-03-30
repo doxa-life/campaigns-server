@@ -29,7 +29,7 @@ class NotificationRecipientService {
       VALUES (${groupKey}, ${email}, ${name || null})
       RETURNING *
     `
-    return row
+    return row as NotificationRecipient
   }
 
   async remove(id: number): Promise<boolean> {

@@ -236,8 +236,8 @@ export function parseReference(reference: string): ParsedReference | null {
 
   if (!match) return null
 
-  const bookName = match[1].trim().toLowerCase()
-  const chapter = parseInt(match[2], 10)
+  const bookName = match[1]!.trim().toLowerCase()
+  const chapter = parseInt(match[2]!, 10)
   const verseStart = match[3] ? parseInt(match[3], 10) : undefined
   const verseEnd = match[4] ? parseInt(match[4], 10) : undefined
 

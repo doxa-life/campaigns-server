@@ -2,6 +2,9 @@
  * App-specific auth composable that extends the base layer's useAuth
  * Adds role-specific computed properties for this application
  */
+import { computed } from 'vue'
+import { useAuth } from '#imports'
+
 export const useAuthUser = () => {
   // Get base auth functionality from the base layer
   const baseAuth = useAuth()

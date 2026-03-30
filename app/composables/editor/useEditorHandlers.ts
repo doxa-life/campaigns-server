@@ -40,7 +40,7 @@ export const spacerHandler: EditorHandler = {
 /**
  * Create Vimeo handler with modal callback
  */
-export function createVimeoHandler(showModal: (editor: Editor) => Promise<void>): EditorHandler {
+export function createVimeoHandler(showModal: (editor: Editor) => Promise<boolean | void>): EditorHandler {
   return {
     canExecute: () => true,
     execute: async (editor: Editor) => {

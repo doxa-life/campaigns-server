@@ -1,3 +1,4 @@
+import { useOverlay } from '#imports'
 import ErrorModal from '~/components/ErrorModal.vue'
 import ConfirmModal from '~/components/ConfirmModal.vue'
 import PromptModal from '~/components/PromptModal.vue'

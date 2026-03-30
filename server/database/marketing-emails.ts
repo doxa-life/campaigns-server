@@ -70,16 +70,16 @@ class MarketingEmailService {
 
     const [row] = await this.sql`
       INSERT INTO marketing_emails (subject, content_json, audience_type, people_group_id, created_by)
-      VALUES (${subject}, ${content_json}, ${audience_type},
+      VALUES (${subject}, ${this.sql.json(content_json)}, ${audience_type},
               ${audience_type === 'people_group' ? people_group_id! : null}, ${created_by})
       RETURNING *
     `
-    return row
+    return row as MarketingEmail
   }
 
   async getById(id: number): Promise<MarketingEmail | null> {
     const [row] = await this.sql`SELECT * FROM marketing_emails WHERE id = ${id}`
-    return row || null
+    return (row as MarketingEmail) || null
   }
 
   async getByIdWithPeopleGroup(id: number): Promise<MarketingEmailWithPeopleGroup | null> {
@@ -89,7 +89,7 @@ class MarketingEmailService {
       LEFT JOIN people_groups pg ON me.people_group_id = pg.id
       WHERE me.id = ${id}
     `
-    return row || null
+    return (row as MarketingEmailWithPeopleGroup) || null
   }
 
   async update(id: number, data: UpdateMarketingEmailData): Promise<MarketingEmail | null> {
@@ -101,7 +101,7 @@ class MarketingEmailService {
     const fields: Fragment[] = []
 
     if (data.subject !== undefined) fields.push(this.sql`subject = ${data.subject}`)
-    if (data.content_json !== undefined) fields.push(this.sql`content_json = ${data.content_json}`)
+    if (data.content_json !== undefined) fields.push(this.sql`content_json = ${this.sql.json(data.content_json)}`)
     if (data.audience_type !== undefined) fields.push(this.sql`audience_type = ${data.audience_type}`)
     if (data.people_group_id !== undefined) fields.push(this.sql`people_group_id = ${data.people_group_id}`)
     if (data.updated_by) fields.push(this.sql`updated_by = ${data.updated_by}`)
@@ -164,7 +164,7 @@ class MarketingEmailService {
   }
 
   async updateStatus(id: number, status: MarketingEmail['status'], sentBy?: string): Promise<void> {
-    if (status === 'queued' && sentBy) {
+    if (sentBy) {
       if (status === 'sent' || status === 'failed') {
         await this.sql`
           UPDATE marketing_emails

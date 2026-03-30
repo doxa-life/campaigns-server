@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, computed, useTemplateRef } from 'vue'
 import { NodeViewWrapper, type NodeViewProps } from '@tiptap/vue-3'
 import { isValidPosition, focusNextNode } from '~/utils/tiptap'
 
@@ -144,7 +145,7 @@ const onFileChange = () => {
   const input = fileUploadRef.value?.inputRef
   if (!input?.files?.length) return
 
-  const files = Array.from(input.files)
+  const files = Array.from(input.files) as File[]
   handleUpload(files)
 }
 

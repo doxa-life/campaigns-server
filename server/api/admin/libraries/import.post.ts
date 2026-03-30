@@ -118,11 +118,12 @@ export default defineEventHandler(async (event) => {
   const sql = getSql()
 
   const result = await sql.begin(async (tx) => {
+    const txSql = tx as any
     let library
     let contentDeleted = 0
 
     if (body.target_library_id) {
-      library = await libraryService.getLibraryById(body.target_library_id, tx)
+      library = await libraryService.getLibraryById(body.target_library_id, txSql)
 
       if (!library) {
         throw createError({
@@ -131,7 +132,7 @@ export default defineEventHandler(async (event) => {
         })
       }
 
-      contentDeleted = await libraryContentService.deleteAllLibraryContent(library.id, tx)
+      contentDeleted = await libraryContentService.deleteAllLibraryContent(library.id, txSql)
     } else {
       const baseName = body.name || exportData.library.name
       const uniqueName = await libraryService.generateUniqueName(baseName)
@@ -144,12 +145,12 @@ export default defineEventHandler(async (event) => {
         repeating: exportData.library.repeating,
         people_group_id: body.people_group_id || null,
         library_key: libraryKey
-      }, tx)
+      }, txSql)
     }
 
-    const importResult = await libraryContentService.bulkCreateContent(library.id, sanitizedContent, tx)
+    const importResult = await libraryContentService.bulkCreateContent(library.id, sanitizedContent, txSql)
 
-    const stats = await libraryService.getLibraryStats(library.id, tx)
+    const stats = await libraryService.getLibraryStats(library.id, txSql)
 
     return {
       library,

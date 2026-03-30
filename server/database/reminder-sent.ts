@@ -38,13 +38,13 @@ class ReminderSentService {
   async cleanupOldRecords(daysToKeep: number = 90): Promise<number> {
     const cutoffDate = new Date()
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep)
-    const cutoffDateStr = cutoffDate.toISOString().split('T')[0]
+    const cutoffDateStr = cutoffDate.toISOString().split('T')[0]!
 
     const result = await this.sql`
       DELETE FROM reminder_emails_sent
       WHERE sent_date < ${cutoffDateStr}
     `
-    return result.count
+    return Number(result.count)
   }
 }
 

@@ -37,7 +37,7 @@ class PendingAdoptionService {
         updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       RETURNING *
     `
-    return row
+    return row as PendingAdoption
   }
 
   async getByContactMethodId(contactMethodId: number): Promise<PendingAdoption[]> {

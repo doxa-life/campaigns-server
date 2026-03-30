@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
     const grouped: Record<string, typeof all> = {}
     for (const r of all) {
       if (!grouped[r.group_key]) grouped[r.group_key] = []
-      grouped[r.group_key].push(r)
+      grouped[r.group_key]!.push(r)
     }
 
     return grouped

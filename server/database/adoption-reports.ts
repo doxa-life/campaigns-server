@@ -30,12 +30,12 @@ class AdoptionReportService {
       VALUES (${data.adoption_id}, ${data.praying_count ?? null}, ${data.stories ?? null}, ${data.comments ?? null})
       RETURNING *
     `
-    return row
+    return row as AdoptionReport
   }
 
   async getById(id: number): Promise<AdoptionReport | null> {
     const [row] = await this.sql`SELECT * FROM adoption_reports WHERE id = ${id}`
-    return row || null
+    return (row as AdoptionReport) || null
   }
 
   async getForAdoption(adoptionId: number): Promise<AdoptionReport[]> {
@@ -65,7 +65,7 @@ class AdoptionReportService {
       UPDATE adoption_reports SET status = ${status} WHERE id = ${id}
       RETURNING *
     `
-    return row || null
+    return (row as AdoptionReport) || null
   }
 }
 

@@ -1,3 +1,6 @@
+import { readonly } from 'vue'
+import { useState, useRuntimeConfig } from '#imports'
+
 export const usePeopleGroup = () => {
   const config = useRuntimeConfig()
   const appName = config.public.appName || 'Base'

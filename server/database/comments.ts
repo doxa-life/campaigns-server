@@ -30,12 +30,12 @@ class CommentService {
       VALUES (${data.record_type}, ${data.record_id}, ${data.user_id || null}, ${data.author_label || null}, ${this.sql.json(data.content)})
       RETURNING *
     `
-    return row
+    return row as Comment
   }
 
   async getById(id: number): Promise<Comment | null> {
     const [row] = await this.sql`SELECT * FROM comments WHERE id = ${id}`
-    return row || null
+    return (row as Comment) || null
   }
 
   async getForRecord(recordType: string, recordId: number): Promise<CommentWithAuthor[]> {
@@ -54,7 +54,7 @@ class CommentService {
       UPDATE comments SET content = ${this.sql.json(content)}, updated_at = NOW() WHERE id = ${id}
       RETURNING *
     `
-    return row || null
+    return (row as Comment) || null
   }
 
   async delete(id: number): Promise<boolean> {

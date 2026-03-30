@@ -70,12 +70,12 @@ export class PeopleGroupAccessService {
 
   async getUserPeopleGroupCount(userId: string): Promise<number> {
     const [result] = await this.sql`SELECT COUNT(*) as count FROM campaign_users WHERE user_id = ${userId}`
-    return result.count
+    return result?.count
   }
 
   async getPeopleGroupUserCount(peopleGroupId: number): Promise<number> {
     const [result] = await this.sql`SELECT COUNT(*) as count FROM campaign_users WHERE people_group_id = ${peopleGroupId}`
-    return result.count
+    return result?.count
   }
 }
 

@@ -364,7 +364,7 @@ const bubbleToolbarItems = computed(() => [
   ]
 ])
 
-const slashCommandItems = [
+const slashCommandItems: any = [
   [
     { type: 'label', label: 'Style' },
     ...blockTypeItems

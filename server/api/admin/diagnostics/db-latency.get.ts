@@ -36,22 +36,23 @@ export default defineEventHandler(async (event) => {
 
   // Test 5: Create temp table for write tests
   const testTableName = `_diag_test_${Date.now()}`
+  const unsafeSql = sql as any
   try {
     let start = performance.now()
-    await sql.unsafe(`CREATE TABLE ${testTableName} (id SERIAL PRIMARY KEY, name TEXT, data TEXT, created_at TIMESTAMP DEFAULT NOW())`)
+    await unsafeSql.unsafe(`CREATE TABLE ${testTableName} (id SERIAL PRIMARY KEY, name TEXT, data TEXT, created_at TIMESTAMP DEFAULT NOW())`)
     let elapsed = performance.now() - start
     results.push({ query: 'CREATE TABLE', ms: Math.round(elapsed * 100) / 100 })
 
     // Test 6: Single INSERT
     start = performance.now()
-    const inserted = await sql.unsafe(`INSERT INTO ${testTableName} (name, data) VALUES ($1, $2) RETURNING id`, ['test', 'some data'])
+    const inserted = await unsafeSql.unsafe(`INSERT INTO ${testTableName} (name, data) VALUES ($1, $2) RETURNING id`, ['test', 'some data'])
     elapsed = performance.now() - start
     results.push({ query: 'INSERT single row', ms: Math.round(elapsed * 100) / 100 })
     const insertedId = inserted[0]?.id
 
     // Test 7: Single UPDATE
     start = performance.now()
-    await sql.unsafe(`UPDATE ${testTableName} SET name = $1, data = $2 WHERE id = $3`, ['updated', 'new data', insertedId])
+    await unsafeSql.unsafe(`UPDATE ${testTableName} SET name = $1, data = $2 WHERE id = $3`, ['updated', 'new data', insertedId])
     elapsed = performance.now() - start
     results.push({ query: 'UPDATE single row', ms: Math.round(elapsed * 100) / 100 })
 
@@ -59,7 +60,7 @@ export default defineEventHandler(async (event) => {
     const insertTimes: number[] = []
     for (let i = 0; i < 10; i++) {
       start = performance.now()
-      await sql.unsafe(`INSERT INTO ${testTableName} (name, data) VALUES ($1, $2)`, [`test${i}`, `data${i}`])
+      await unsafeSql.unsafe(`INSERT INTO ${testTableName} (name, data) VALUES ($1, $2)`, [`test${i}`, `data${i}`])
       elapsed = performance.now() - start
       insertTimes.push(elapsed)
     }
@@ -71,9 +72,9 @@ export default defineEventHandler(async (event) => {
     const selectUpdateTimes: number[] = []
     for (let i = 0; i < 5; i++) {
       start = performance.now()
-      const row = await sql.unsafe(`SELECT * FROM ${testTableName} WHERE name = $1 LIMIT 1`, [`test${i}`])
+      const row = await unsafeSql.unsafe(`SELECT * FROM ${testTableName} WHERE name = $1 LIMIT 1`, [`test${i}`])
       if (row[0]) {
-        await sql.unsafe(`UPDATE ${testTableName} SET data = $1 WHERE id = $2`, [`updated${i}`, row[0].id])
+        await unsafeSql.unsafe(`UPDATE ${testTableName} SET data = $1 WHERE id = $2`, [`updated${i}`, row[0].id])
       }
       elapsed = performance.now() - start
       selectUpdateTimes.push(elapsed)
@@ -85,7 +86,7 @@ export default defineEventHandler(async (event) => {
     // Test 10: Bulk INSERT (what sync SHOULD do)
     const bulkData = Array.from({ length: 100 }, (_, i) => [`bulk${i}`, `bulkdata${i}`])
     start = performance.now()
-    await sql.unsafe(
+    await unsafeSql.unsafe(
       `INSERT INTO ${testTableName} (name, data) VALUES ${bulkData.map((_, i) => `($${i * 2 + 1}, $${i * 2 + 2})`).join(', ')}`,
       bulkData.flat()
     )
@@ -94,7 +95,7 @@ export default defineEventHandler(async (event) => {
 
     // Cleanup
     start = performance.now()
-    await sql.unsafe(`DROP TABLE ${testTableName}`)
+    await unsafeSql.unsafe(`DROP TABLE ${testTableName}`)
     elapsed = performance.now() - start
     results.push({ query: 'DROP TABLE', ms: Math.round(elapsed * 100) / 100 })
 
@@ -103,7 +104,7 @@ export default defineEventHandler(async (event) => {
     results.push({ query: e.message, ms: -1 })
     // Try to cleanup
     try {
-      await sql.unsafe(`DROP TABLE IF EXISTS ${testTableName}`)
+      await unsafeSql.unsafe(`DROP TABLE IF EXISTS ${testTableName}`)
     } catch {}
   }
 
@@ -142,7 +143,7 @@ export default defineEventHandler(async (event) => {
     },
     details: results,
     interpretation: {
-      firstQuerySlow: first > restAvg * 2 ? 'First query significantly slower - connection warmup overhead' : 'First query normal',
+      firstQuerySlow: (first ?? 0) > restAvg * 2 ? 'First query significantly slower - connection warmup overhead' : 'First query normal',
       overallLatency: avg > 20 ? 'HIGH - Railway infrastructure issue likely' : avg > 5 ? 'MODERATE - some overhead present' : 'GOOD - latency acceptable',
       parallelEfficiency: parallelElapsed < avg * 5 ? 'Parallel queries efficient - connection pooling working' : 'Parallel queries slow - possible pooling issue',
       writePerformance: seqInsertsAvg > 10 ? 'SLOW writes - disk I/O or WAL issue' : seqInsertsAvg > 3 ? 'MODERATE write latency' : 'GOOD write performance',

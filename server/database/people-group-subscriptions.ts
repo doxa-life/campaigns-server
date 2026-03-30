@@ -79,16 +79,16 @@ class PeopleGroupSubscriptionService {
     `
 
     if (status === 'active') {
-      await this.setInitialNextReminder(row.id)
+      await this.setInitialNextReminder(row?.id)
     }
-    return (await this.getById(row.id))!
+    return (await this.getById(row?.id))!
   }
 
   async getById(id: number): Promise<PeopleGroupSubscription | null> {
     const [row] = await this.sql`SELECT * FROM campaign_subscriptions WHERE id = ${id}`
     if (!row) return null
     parseDaysOfWeek(row)
-    return row
+    return row as PeopleGroupSubscription
   }
 
   async getBySubscriberAndPeopleGroup(
@@ -101,7 +101,7 @@ class PeopleGroupSubscriptionService {
     `
     if (!row) return null
     parseDaysOfWeek(row)
-    return row
+    return row as PeopleGroupSubscription
   }
 
   async getAllBySubscriberAndPeopleGroup(
@@ -114,7 +114,7 @@ class PeopleGroupSubscriptionService {
       ORDER BY created_at ASC
     `
     rows.forEach(parseDaysOfWeek)
-    return rows
+    return rows as unknown as PeopleGroupSubscription[]
   }
 
   async countBySubscriberAndPeopleGroup(
@@ -125,7 +125,7 @@ class PeopleGroupSubscriptionService {
       SELECT COUNT(*) as count FROM campaign_subscriptions
       WHERE subscriber_id = ${subscriberId} AND people_group_id = ${peopleGroupId}
     `
-    return result.count
+    return result?.count
   }
 
   async unsubscribeAllForPeopleGroup(
@@ -152,7 +152,7 @@ class PeopleGroupSubscriptionService {
       ORDER BY cs.created_at DESC
     `
     rows.forEach(parseDaysOfWeek)
-    return rows
+    return rows as unknown as PeopleGroupSubscriptionWithDetails[]
   }
 
   async getPeopleGroupSubscriptions(
@@ -214,7 +214,7 @@ class PeopleGroupSubscriptionService {
       `
     }
     rows.forEach(parseDaysOfWeek)
-    return rows
+    return rows as unknown as PeopleGroupSubscriptionWithDetails[]
   }
 
   async getActiveSubscriptionCount(peopleGroupId: number): Promise<number> {
@@ -222,7 +222,7 @@ class PeopleGroupSubscriptionService {
       SELECT COUNT(*) as count FROM campaign_subscriptions
       WHERE people_group_id = ${peopleGroupId} AND status = 'active'
     `
-    return result.count
+    return result?.count
   }
 
   async updateSubscription(
@@ -305,7 +305,7 @@ class PeopleGroupSubscriptionService {
     }
 
     return await this.sql.begin(async (tx) => {
-      const claimed = await tx`
+      const claimed = await (tx as any)`
         SELECT cs.*, s.name as subscriber_name, s.tracking_id as subscriber_tracking_id,
           s.profile_id as subscriber_profile_id, s.preferred_language as subscriber_language,
           cm.value as email_value, cm.verified as email_verified,
@@ -327,10 +327,10 @@ class PeopleGroupSubscriptionService {
       if (claimed.length === 0) return []
 
       const ids = claimed.map(s => s.id)
-      await tx`
+      await (tx as any)`
         UPDATE campaign_subscriptions
         SET claimed_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-        WHERE id IN ${tx(ids)}
+        WHERE id IN ${(tx as any)(ids)}
       `
 
       claimed.forEach(parseDaysOfWeek)
@@ -361,7 +361,7 @@ class PeopleGroupSubscriptionService {
       ORDER BY cs.next_reminder_utc ASC
     `
     rows.forEach(parseDaysOfWeek)
-    return rows
+    return rows as unknown as SubscriptionDueForReminder[]
   }
 
   async updateNextReminderUtc(subscriptionId: number, nextUtc: Date): Promise<void> {
@@ -427,7 +427,7 @@ class PeopleGroupSubscriptionService {
       FROM campaign_subscriptions
       WHERE people_group_id = ${peopleGroupId} AND status = 'active'
     `
-    return { people_committed: result.people_committed, committed_duration: result.committed_duration }
+    return { people_committed: result?.people_committed, committed_duration: result?.committed_duration }
   }
 
   async getCommitmentStatsForPeopleGroups(peopleGroupIds: number[]): Promise<Map<number, { people_committed: number; committed_duration: number }>> {
@@ -455,7 +455,7 @@ class PeopleGroupSubscriptionService {
       SELECT COUNT(*) as people_committed, COALESCE(SUM(prayer_duration), 0) as committed_duration
       FROM campaign_subscriptions WHERE status = 'active'
     `
-    return { people_committed: result.people_committed, committed_duration: result.committed_duration }
+    return { people_committed: result?.people_committed, committed_duration: result?.committed_duration }
   }
 
   async markFollowupSent(subscriptionId: number): Promise<void> {
@@ -502,7 +502,11 @@ class PeopleGroupSubscriptionService {
     const [row] = await this.sql`SELECT * FROM campaign_subscriptions WHERE id = ${subscriptionId}`
     if (!row) return null
     parseDaysOfWeek(row)
-    return row
+    return row as PeopleGroupSubscription & {
+      last_followup_at: string | null
+      followup_count: number
+      followup_reminder_count: number
+    }
   }
 }
 

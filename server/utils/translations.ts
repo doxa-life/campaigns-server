@@ -74,7 +74,7 @@ export function isLocaleSupported(locale: string): boolean {
  */
 export function normalizeLocale(locale: string | null | undefined): string {
   if (!locale) return 'en'
-  const lower = locale.toLowerCase().split('-')[0] // Handle 'es-ES' -> 'es'
+  const lower = locale.toLowerCase().split('-')[0]! // Handle 'es-ES' -> 'es'
   return SUPPORTED_LOCALES.includes(lower) ? lower : 'en'
 }
 

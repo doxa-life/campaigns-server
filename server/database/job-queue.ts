@@ -79,12 +79,12 @@ class JobQueueService {
       )
       RETURNING *
     `
-    return row
+    return row as Job
   }
 
   async getById(id: number): Promise<Job | null> {
     const [row] = await this.sql`SELECT * FROM jobs WHERE id = ${id}`
-    return row || null
+    return (row as Job) || null
   }
 
   async getPendingJobs(type?: JobType, limit: number = 10): Promise<Job[]> {
@@ -175,11 +175,11 @@ class JobQueueService {
       `
     }
     return {
-      total: Number(result.total),
-      pending: Number(result.pending),
-      processing: Number(result.processing),
-      completed: Number(result.completed),
-      failed: Number(result.failed)
+      total: Number(result?.total),
+      pending: Number(result?.pending),
+      processing: Number(result?.processing),
+      completed: Number(result?.completed),
+      failed: Number(result?.failed)
     }
   }
 

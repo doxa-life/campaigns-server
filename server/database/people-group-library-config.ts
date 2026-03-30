@@ -36,7 +36,7 @@ export class PeopleGroupLibraryConfigService {
         VALUES (${people_group_id}, ${library_id}, ${order_index}, ${enabled})
         RETURNING *
       `
-      return row
+      return row as PeopleGroupLibraryConfig
     } catch (error: any) {
       if (error.code === '23505') {
         throw new Error('This library is already configured for this people group')
@@ -47,7 +47,7 @@ export class PeopleGroupLibraryConfigService {
 
   async getConfigById(id: number): Promise<PeopleGroupLibraryConfig | null> {
     const [row] = await this.sql`SELECT * FROM campaign_library_config WHERE id = ${id}`
-    return row || null
+    return (row as PeopleGroupLibraryConfig) || null
   }
 
   async getPeopleGroupLibraries(peopleGroupId: number, includeDisabled: boolean = false): Promise<PeopleGroupLibraryConfig[]> {
@@ -116,9 +116,10 @@ export class PeopleGroupLibraryConfigService {
     await this.sql`DELETE FROM campaign_library_config WHERE people_group_id = ${peopleGroupId}`
 
     for (let i = 0; i < libraryIds.length; i++) {
+      const libraryId = libraryIds[i]!
       await this.sql`
         INSERT INTO campaign_library_config (people_group_id, library_id, order_index, enabled)
-        VALUES (${peopleGroupId}, ${libraryIds[i]}, ${i + 1}, true)
+        VALUES (${peopleGroupId}, ${libraryId}, ${i + 1}, true)
       `
     }
   }

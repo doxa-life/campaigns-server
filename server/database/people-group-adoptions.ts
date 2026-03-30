@@ -46,12 +46,12 @@ class PeopleGroupAdoptionService {
               ${status === 'active' ? new Date().toISOString() : null})
       RETURNING *
     `
-    return row
+    return row as PeopleGroupAdoption
   }
 
   async getById(id: number): Promise<PeopleGroupAdoption | null> {
     const [row] = await this.sql`SELECT * FROM people_group_adoptions WHERE id = ${id}`
-    return row || null
+    return (row as PeopleGroupAdoption) || null
   }
 
   async getByToken(token: string): Promise<AdoptionWithDetails | null> {
@@ -64,7 +64,7 @@ class PeopleGroupAdoptionService {
       JOIN groups g ON a.group_id = g.id
       WHERE a.update_token = ${token}
     `
-    return row || null
+    return (row as AdoptionWithDetails) || null
   }
 
   async getForGroup(groupId: number): Promise<AdoptionWithDetails[]> {
@@ -141,12 +141,12 @@ class PeopleGroupAdoptionService {
         SELECT COUNT(*) as count FROM people_group_adoptions
         WHERE people_group_id = ${peopleGroupId} AND status = ${status}
       `
-      return Number(result.count)
+      return Number(result?.count)
     }
     const [result] = await this.sql`
       SELECT COUNT(*) as count FROM people_group_adoptions WHERE people_group_id = ${peopleGroupId}
     `
-    return Number(result.count)
+    return Number(result?.count)
   }
 }
 

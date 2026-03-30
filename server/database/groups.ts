@@ -39,12 +39,12 @@ class GroupService {
       VALUES (${data.name}, ${data.primary_subscriber_id || null}, ${data.country || null})
       RETURNING *
     `
-    return row
+    return row as Group
   }
 
   async getById(id: number): Promise<Group | null> {
     const [row] = await this.sql`SELECT * FROM groups WHERE id = ${id}`
-    return row || null
+    return (row as Group) || null
   }
 
   async getAll(options?: {
@@ -85,10 +85,10 @@ class GroupService {
   async count(search?: string): Promise<number> {
     if (search) {
       const [result] = await this.sql`SELECT COUNT(*) as count FROM groups WHERE name ILIKE ${`%${search}%`}`
-      return Number(result.count)
+      return Number(result?.count)
     }
     const [result] = await this.sql`SELECT COUNT(*) as count FROM groups`
-    return Number(result.count)
+    return Number(result?.count)
   }
 
   async update(id: number, data: UpdateGroupData): Promise<Group | null> {
@@ -111,17 +111,17 @@ class GroupService {
 
   async delete(id: number): Promise<boolean> {
     return await this.sql.begin(async (tx) => {
-      await tx`
+      await (tx as any)`
         DELETE FROM adoption_reports WHERE adoption_id IN (
           SELECT id FROM people_group_adoptions WHERE group_id = ${id}
         )
       `
-      await tx`DELETE FROM people_group_adoptions WHERE group_id = ${id}`
-      await tx`
+      await (tx as any)`DELETE FROM people_group_adoptions WHERE group_id = ${id}`
+      await (tx as any)`
         DELETE FROM connections
         WHERE (from_type = 'group' AND from_id = ${id}) OR (to_type = 'group' AND to_id = ${id})
       `
-      const result = await tx`DELETE FROM groups WHERE id = ${id}`
+      const result = await (tx as any)`DELETE FROM groups WHERE id = ${id}`
       return result.count > 0
     })
   }

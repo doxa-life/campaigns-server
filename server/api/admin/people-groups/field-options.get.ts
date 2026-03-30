@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
     if (!fieldsByCategory[field.category]) {
       fieldsByCategory[field.category] = []
     }
-    fieldsByCategory[field.category].push(field)
+    fieldsByCategory[field.category]!.push(field)
   }
 
   return {

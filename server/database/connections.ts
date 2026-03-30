@@ -25,12 +25,12 @@ class ConnectionService {
       VALUES (${data.from_type}, ${data.from_id}, ${data.to_type}, ${data.to_id}, ${data.connection_type || null})
       RETURNING *
     `
-    return row
+    return row as Connection
   }
 
   async getById(id: number): Promise<Connection | null> {
     const [row] = await this.sql`SELECT * FROM connections WHERE id = ${id}`
-    return row || null
+    return (row as Connection) || null
   }
 
   async getConnections(type: string, id: number, targetType: string): Promise<Connection[]> {

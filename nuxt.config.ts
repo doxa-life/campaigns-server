@@ -79,9 +79,7 @@ export default defineNuxtConfig({
     }
   },
 
-  watch: {
-    exclude: ['node_modules/.c12/**']
-  },
+  watch: ['!node_modules/.c12/**'],
 
   vite: {
     server: {

@@ -302,15 +302,15 @@
                     No recipients configured
                   </p>
 
-                  <div class="flex gap-2 pt-2 border-t border-[var(--ui-border)]">
+                  <div v-if="newRecipient[group.key]" class="flex gap-2 pt-2 border-t border-[var(--ui-border)]">
                     <UInput
-                      v-model="newRecipient[group.key].name"
+                      v-model="newRecipient[group.key]!.name"
                       placeholder="Name (optional)"
                       class="w-40"
                       size="sm"
                     />
                     <UInput
-                      v-model="newRecipient[group.key].email"
+                      v-model="newRecipient[group.key]!.email"
                       placeholder="Email"
                       type="email"
                       class="flex-1"
@@ -321,7 +321,7 @@
                       icon="i-lucide-plus"
                       size="sm"
                       variant="outline"
-                      :disabled="!newRecipient[group.key].email"
+                      :disabled="!newRecipient[group.key]!.email"
                       @click="addRecipient(group.key)"
                     >
                       Add
@@ -526,7 +526,9 @@ async function fetchNotificationRecipients() {
 }
 
 async function addRecipient(groupKey: string) {
-  const { email, name } = newRecipient.value[groupKey]
+  const recipient = newRecipient.value[groupKey]
+  if (!recipient) return
+  const { email, name } = recipient
   if (!email) return
 
   try {
@@ -554,7 +556,7 @@ async function removeRecipient(groupKey: string, id: number) {
     await $fetch(`/api/admin/superadmin/notification-recipients/${id}`, {
       method: 'DELETE'
     })
-    notificationRecipients.value[groupKey] = notificationRecipients.value[groupKey].filter(r => r.id !== id)
+    notificationRecipients.value[groupKey] = (notificationRecipients.value[groupKey] ?? []).filter(r => r.id !== id)
   } catch (error) {
     console.error('Failed to remove recipient:', error)
   }
@@ -563,7 +565,7 @@ async function removeRecipient(groupKey: string, id: number) {
 fetchNotificationRecipients()
 
 // Translation state
-const selectedTranslateField = ref<string | null>(null)
+const selectedTranslateField = ref<string | undefined>(undefined)
 const translateOverwrite = ref(false)
 const showTranslateConfirmModal = ref(false)
 const isTranslating = ref(false)

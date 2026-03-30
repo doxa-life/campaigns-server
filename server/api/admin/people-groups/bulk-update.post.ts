@@ -1,4 +1,4 @@
-import { peopleGroupService, UpdatePeopleGroupData } from '../../../database/people-groups'
+import { peopleGroupService, type UpdatePeopleGroupData } from '../../../database/people-groups'
 import { getSql } from '#server/database/db'
 import { handleApiError, getErrorMessage } from '#server/utils/api-helpers'
 

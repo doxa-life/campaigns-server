@@ -89,7 +89,7 @@ class FollowupTrackingService {
       VALUES (${subscriptionId}, ${response}, ${followupSentAt.toISOString()})
       RETURNING *
     `
-    return row
+    return row as FollowupResponse
   }
 
   async getLatestResponse(subscriptionId: number): Promise<FollowupResponse | null> {
@@ -99,7 +99,7 @@ class FollowupTrackingService {
       ORDER BY created_at DESC
       LIMIT 1
     `
-    return row || null
+    return (row as FollowupResponse) || null
   }
 
   async getResponseHistory(subscriptionId: number): Promise<FollowupResponse[]> {

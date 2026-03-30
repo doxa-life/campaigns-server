@@ -129,10 +129,14 @@ async function processSubscription(
     people_group_name,
     people_group_slug,
     frequency,
-    days_of_week,
+    days_of_week: days_of_week_raw,
     subscriber_profile_id,
     subscriber_language
   } = subscription
+
+  const days_of_week: number[] | null = days_of_week_raw
+    ? (typeof days_of_week_raw === 'string' ? JSON.parse(days_of_week_raw) : days_of_week_raw)
+    : null
 
   // Calculate when the next followup is due
   const baseTimestamp = last_activity_at || created_at
@@ -168,7 +172,7 @@ async function processSubscription(
       subscriptionId,
       profileId: subscriber_profile_id,
       frequency,
-      daysOfWeek: days_of_week?.length > 0 ? days_of_week : undefined,
+      daysOfWeek: days_of_week && days_of_week.length > 0 ? days_of_week : undefined,
       isReminder: false,
       locale: subscriber_language || 'en'
     })
@@ -199,7 +203,7 @@ async function processSubscription(
       subscriptionId,
       profileId: subscriber_profile_id,
       frequency,
-      daysOfWeek: days_of_week?.length > 0 ? days_of_week : undefined,
+      daysOfWeek: days_of_week && days_of_week.length > 0 ? days_of_week : undefined,
       isReminder: true,
       locale: subscriber_language || 'en'
     })

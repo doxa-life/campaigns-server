@@ -290,7 +290,7 @@ const formData = ref<Record<string, any>>({})
 
 // Adoption modal state
 const showAddAdoptionModal = ref(false)
-const addAdoptionGroupId = ref<number | null>(null)
+const addAdoptionGroupId = ref<number | undefined>(undefined)
 
 // Adoption slideover state
 const showAdoptionSlideover = ref(false)
@@ -518,7 +518,7 @@ function openAdoptionSlideover(adoption: Adoption) {
 }
 
 function openAddAdoptionModal() {
-  addAdoptionGroupId.value = null
+  addAdoptionGroupId.value = undefined
   showAddAdoptionModal.value = true
 }
 
@@ -530,7 +530,7 @@ async function addAdoption() {
       body: { people_group_id: selectedGroup.value.id }
     })
     showAddAdoptionModal.value = false
-    addAdoptionGroupId.value = null
+    addAdoptionGroupId.value = undefined
     await selectGroup(selectedGroup.value, false)
     toast.add({ title: 'Adoption added', color: 'success' })
   } catch (err: any) {

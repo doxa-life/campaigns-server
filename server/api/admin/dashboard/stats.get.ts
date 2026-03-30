@@ -27,10 +27,10 @@ export default defineEventHandler(async (event) => {
     sql`SELECT COUNT(DISTINCT people_group_id) as count FROM people_group_adoptions WHERE status = 'active'`.then(rows => rows[0]),
   ])
 
-  const total = Number(totalRow.count)
-  const engaged = Number(engagementRow.count)
-  const withPrayer = Number(prayerRow.count)
-  const adopted = Number(adoptedRow.count)
+  const total = Number(totalRow?.count ?? 0)
+  const engaged = Number(engagementRow?.count ?? 0)
+  const withPrayer = Number(prayerRow?.count ?? 0)
+  const adopted = Number(adoptedRow?.count ?? 0)
 
   return {
     engagement: { engaged, unengaged: total - engaged, total },

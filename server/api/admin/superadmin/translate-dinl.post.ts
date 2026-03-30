@@ -67,7 +67,8 @@ export default defineEventHandler(async (event) => {
           library_id: library.id,
           source_language: 'en',
           target_language: targetLanguage,
-          overwrite
+          overwrite,
+          retranslate_verses: false
         }
 
         await jobQueueService.createJob('translation_batch', payload, {

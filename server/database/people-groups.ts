@@ -62,25 +62,25 @@ export class PeopleGroupService {
 
     const [row] = await this.sql`
       INSERT INTO people_groups (name, image_url, metadata)
-      VALUES (${name}, ${image_url}, ${metadata})
+      VALUES (${name}, ${image_url}, ${metadata ? this.sql.json(metadata) : null})
       RETURNING *
     `
-    return row
+    return row as PeopleGroup
   }
 
   async getPeopleGroupById(id: number): Promise<PeopleGroup | null> {
     const [row] = await this.sql`SELECT * FROM people_groups WHERE id = ${id}`
-    return row || null
+    return (row as PeopleGroup) || null
   }
 
   async getPeopleGroupByRandomOrder(randomOrder: number): Promise<PeopleGroup | null> {
     const [row] = await this.sql`SELECT * FROM people_groups WHERE random_order = ${randomOrder}`
-    return row || null
+    return (row as PeopleGroup) || null
   }
 
   async getPeopleGroupBySlug(slug: string): Promise<PeopleGroup | null> {
     const [row] = await this.sql`SELECT * FROM people_groups WHERE slug = ${slug}`
-    return row || null
+    return (row as PeopleGroup) || null
   }
 
   async getAllPeopleGroups(options?: {
@@ -133,7 +133,7 @@ export class PeopleGroupService {
     if (data.name !== undefined) fields.push(this.sql`name = ${data.name}`)
     if (data.slug !== undefined) fields.push(this.sql`slug = ${data.slug}`)
     if (data.image_url !== undefined) fields.push(this.sql`image_url = ${data.image_url}`)
-    if (data.metadata !== undefined) fields.push(this.sql`metadata = ${data.metadata}`)
+    if (data.metadata !== undefined) fields.push(this.sql`metadata = ${data.metadata ? this.sql.json(data.metadata) : null}`)
     if (data.people_praying !== undefined) fields.push(this.sql`people_praying = ${data.people_praying}`)
     if (data.daily_prayer_duration !== undefined) fields.push(this.sql`daily_prayer_duration = ${data.daily_prayer_duration}`)
     if (data.country_code !== undefined) fields.push(this.sql`country_code = ${data.country_code}`)
@@ -175,10 +175,10 @@ export class PeopleGroupService {
   async countPeopleGroups(search?: string): Promise<number> {
     if (search) {
       const [result] = await this.sql`SELECT COUNT(*) as count FROM people_groups WHERE name ILIKE ${`%${search}%`}`
-      return Number(result.count)
+      return Number(result?.count)
     }
     const [result] = await this.sql`SELECT COUNT(*) as count FROM people_groups`
-    return Number(result.count)
+    return Number(result?.count)
   }
 
   generateSlug(name: string): string {
@@ -222,7 +222,7 @@ export class PeopleGroupService {
       this.sql`SELECT COUNT(*) as count FROM people_groups`,
       this.sql`SELECT COUNT(DISTINCT people_group_id) as count FROM people_group_adoptions WHERE status = 'active'`,
     ])
-    return Number(totalRow.count) - Number(adoptedRow.count)
+    return Number(totalRow?.count) - Number(adoptedRow?.count)
   }
 
   async getPeopleGroupsForUser(userId: string): Promise<PeopleGroup[]> {

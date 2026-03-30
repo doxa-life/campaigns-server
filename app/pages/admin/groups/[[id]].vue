@@ -291,7 +291,7 @@ const creating = ref(false)
 const deleting = ref(false)
 
 const searchQuery = ref('')
-const groupForm = ref({ name: '', primary_subscriber_id: null as number | null, country: null as string | null })
+const groupForm = ref({ name: '', primary_subscriber_id: undefined as number | undefined, country: undefined as string | undefined })
 
 const showCreateModal = ref(false)
 const showDeleteModal = ref(false)
@@ -300,8 +300,8 @@ const showAddAdoptionModal = ref(false)
 const showAdoptionSlideover = ref(false)
 const selectedAdoption = ref<Adoption | null>(null)
 const createGroupForm = ref({ name: '' })
-const addSubscriberId = ref<number | null>(null)
-const addAdoptionPeopleGroupId = ref<number | null>(null)
+const addSubscriberId = ref<number | undefined>(undefined)
+const addAdoptionPeopleGroupId = ref<number | undefined>(undefined)
 
 const slideoverOpen = ref(false)
 
@@ -381,8 +381,8 @@ async function selectGroup(group: GroupWithDetails, updateUrl = true) {
   slideoverOpen.value = true
   groupForm.value = {
     name: group.name,
-    primary_subscriber_id: group.primary_subscriber_id,
-    country: group.country
+    primary_subscriber_id: group.primary_subscriber_id ?? undefined,
+    country: group.country ?? undefined
   }
   if (updateUrl && import.meta.client) {
     window.history.replaceState({}, '', `/admin/groups/${group.id}`)
@@ -484,7 +484,7 @@ async function addSubscriberToGroup() {
       body: { subscriber_id: addSubscriberId.value }
     })
     showAddSubscriberModal.value = false
-    addSubscriberId.value = null
+    addSubscriberId.value = undefined
     await refreshGroup()
     toast.add({ title: 'Contact added', color: 'success' })
   } catch (err: any) {
@@ -513,7 +513,7 @@ async function addAdoption() {
       body: { people_group_id: addAdoptionPeopleGroupId.value }
     })
     showAddAdoptionModal.value = false
-    addAdoptionPeopleGroupId.value = null
+    addAdoptionPeopleGroupId.value = undefined
     await refreshGroup()
     toast.add({ title: 'Adoption added', color: 'success' })
   } catch (err: any) {
