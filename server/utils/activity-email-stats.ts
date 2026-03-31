@@ -27,8 +27,19 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
     groupsAdoptedRow,
     groupsEngagedRow
   ] = await Promise.all([
-    sql`SELECT COUNT(*) as count FROM subscribers WHERE created_at >= ${startIso} AND created_at < ${endIso}`.then(rows => rows[0]),
-    sql`SELECT COUNT(*) as count FROM subscribers`.then(rows => rows[0]),
+    sql`
+      SELECT COUNT(DISTINCT s.id) as count
+      FROM subscribers s
+      JOIN contact_methods cm ON cm.subscriber_id = s.id AND cm.type = 'email' AND cm.verified = true
+      JOIN campaign_subscriptions cs ON cs.subscriber_id = s.id AND cs.status = 'active' AND cs.people_group_id IS NOT NULL
+      WHERE s.created_at >= ${startIso} AND s.created_at < ${endIso}
+    `.then(rows => rows[0]),
+    sql`
+      SELECT COUNT(DISTINCT s.id) as count
+      FROM subscribers s
+      JOIN contact_methods cm ON cm.subscriber_id = s.id AND cm.type = 'email' AND cm.verified = true
+      JOIN campaign_subscriptions cs ON cs.subscriber_id = s.id AND cs.status = 'active' AND cs.people_group_id IS NOT NULL
+    `.then(rows => rows[0]),
     sql`SELECT COALESCE(ROUND(SUM(duration) / 60.0), 0) as total FROM prayer_activity WHERE timestamp >= ${startIso} AND timestamp < ${endIso}`.then(rows => rows[0]),
     sql`
       SELECT COALESCE(SUM(daily_committed), 0) as total
