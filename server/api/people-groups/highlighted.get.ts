@@ -7,6 +7,7 @@ import { getSql } from '../../database/db'
 import { formatPeopleGroupForList } from '../../utils/app/people-group-formatter'
 import { setCacheHeaders } from '../../utils/app/cors'
 import { LANGUAGE_CODES } from '../../../config/languages'
+import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
 
 export default defineEventHandler(async (event) => {
   setCacheHeaders(event)
@@ -41,6 +42,15 @@ export default defineEventHandler(async (event) => {
     ORDER BY population DESC NULLS LAST
     LIMIT ${limit}
   ` as any[]
+
+  // Fetch commitment stats
+  const pgIds = peopleGroups.map((pg: any) => pg.id)
+  const commitmentStatsMap = await peopleGroupSubscriptionService.getCommitmentStatsForPeopleGroups(pgIds)
+
+  for (const pg of peopleGroups) {
+    const stats = commitmentStatsMap.get(pg.id)
+    pg.people_committed = stats?.people_committed || 0
+  }
 
   // Format the response
   const posts = peopleGroups.map(pg => formatPeopleGroupForList(pg, lang))
