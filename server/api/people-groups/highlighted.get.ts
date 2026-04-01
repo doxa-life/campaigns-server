@@ -7,7 +7,6 @@ import { getSql } from '../../database/db'
 import { formatPeopleGroupForList } from '../../utils/app/people-group-formatter'
 import { setCacheHeaders } from '../../utils/app/cors'
 import { LANGUAGE_CODES } from '../../../config/languages'
-import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
 
 export default defineEventHandler(async (event) => {
   setCacheHeaders(event)
@@ -23,34 +22,33 @@ export default defineEventHandler(async (event) => {
   // Excludes 'na' and 'oceania' regions
   // Must have an image
   const peopleGroups = await sql`
-    WITH ranked AS (
+    WITH commitment_counts AS (
+      SELECT people_group_id, COUNT(*) as people_committed
+      FROM campaign_subscriptions
+      WHERE status = 'active'
+      GROUP BY people_group_id
+    ),
+    ranked AS (
       SELECT
         pg.*,
         pg.people_praying as total_people_praying,
         (pg.metadata::jsonb)->>'doxa_wagf_region' as wagf_region,
+        COALESCE(cc.people_committed, 0)::INTEGER as people_committed,
         ROW_NUMBER() OVER (
           PARTITION BY (pg.metadata::jsonb)->>'doxa_wagf_region'
-          ORDER BY pg.population DESC NULLS LAST
+          ORDER BY COALESCE(cc.people_committed, 0) ASC, pg.population DESC NULLS LAST
         ) as rn
       FROM people_groups pg
+      LEFT JOIN commitment_counts cc ON cc.people_group_id = pg.id
       WHERE pg.image_url IS NOT NULL
         AND (pg.metadata::jsonb)->>'doxa_wagf_region' IS NOT NULL
         AND (pg.metadata::jsonb)->>'doxa_wagf_region' NOT IN ('na', 'oceania')
     )
     SELECT * FROM ranked
     WHERE rn = 1
-    ORDER BY population DESC NULLS LAST
+    ORDER BY people_committed ASC, population DESC NULLS LAST
     LIMIT ${limit}
   ` as any[]
-
-  // Fetch commitment stats
-  const pgIds = peopleGroups.map((pg: any) => pg.id)
-  const commitmentStatsMap = await peopleGroupSubscriptionService.getCommitmentStatsForPeopleGroups(pgIds)
-
-  for (const pg of peopleGroups) {
-    const stats = commitmentStatsMap.get(pg.id)
-    pg.people_committed = stats?.people_committed || 0
-  }
 
   // Format the response
   const posts = peopleGroups.map(pg => formatPeopleGroupForList(pg, lang))
