@@ -55,15 +55,23 @@
 
     <!-- People Group Title -->
     <div v-if="shouldShowPeopleGroupHeader" class="bg-beige-50 dark:bg-elevated py-8">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 text-center">
-        <h1 class="text-3xl md:text-4xl font-bold uppercase tracking-wide">
-          <span class="text-default">{{ $t('campaign.header.prayFor', { campaign: peopleGroupTitle }) }}</span>
-        </h1>
-        <i18n-t keypath="campaign.header.championedBy" tag="p" class="text-sm text-muted mt-2">
-          <template #link>
-            <a :href="`https://doxa.life/${$i18n.locale === 'en' ? '' : $i18n.locale}`" target="_blank" class="underline hover:text-default">{{ $t('campaign.header.doxaFoundation') }}</a>
-          </template>
-        </i18n-t>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-center gap-4">
+        <img
+          v-if="peopleGroupImageUrl"
+          :src="peopleGroupImageUrl"
+          :alt="peopleGroupTitle"
+          class="w-16 h-16 rounded-lg object-cover shrink-0"
+        />
+        <div class="text-center">
+          <h1 class="text-3xl md:text-4xl font-bold uppercase tracking-wide">
+            <span class="text-default">{{ $t('campaign.header.prayFor', { campaign: peopleGroupTitle }) }}</span>
+          </h1>
+          <i18n-t keypath="campaign.header.championedBy" tag="p" class="text-sm text-muted mt-2">
+            <template #link>
+              <a :href="`https://doxa.life/${$i18n.locale === 'en' ? '' : $i18n.locale}`" target="_blank" class="underline hover:text-default">{{ $t('campaign.header.doxaFoundation') }}</a>
+            </template>
+          </i18n-t>
+        </div>
       </div>
     </div>
 
@@ -95,7 +103,7 @@ const config = useRuntimeConfig()
 const route = useRoute()
 const localePath = useLocalePath()
 const currentYear = new Date().getFullYear()
-const { peopleGroupTitle, showPeopleGroupHeader } = usePeopleGroup()
+const { peopleGroupTitle, peopleGroupImageUrl, showPeopleGroupHeader } = usePeopleGroup()
 const { isLoggedIn, checkAuth } = useAuth()
 
 const slug = computed(() => route.params.slug as string | undefined)

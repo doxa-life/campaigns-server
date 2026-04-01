@@ -82,6 +82,7 @@ export default defineEventHandler(async (event) => {
       id: peopleGroup.id,
       slug: peopleGroup.slug,
       title: peopleGroup.name,
+      image_url: peopleGroup.image_url || null,
       default_language: defaultLang
     },
     date,

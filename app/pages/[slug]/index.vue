@@ -592,7 +592,7 @@ const { setPeopleGroupTitle } = usePeopleGroup()
 // Set people group title on mount (handles cached data from navigation)
 onMounted(() => {
   if (pg.value?.name) {
-    setPeopleGroupTitle(pg.value.name)
+    setPeopleGroupTitle(pg.value.name, pg.value.image_url)
   }
 })
 
@@ -607,7 +607,7 @@ const PRAYER_GOAL = computed(() => {
 // Set people group title when loaded
 watch(pg, (newPg) => {
   if (newPg?.name) {
-    setPeopleGroupTitle(newPg.name)
+    setPeopleGroupTitle(newPg.name, newPg.image_url)
   }
 }, { immediate: true })
 

@@ -161,7 +161,7 @@ watch(data, (newData) => {
       selectedLanguage.value = newData.language
     }
     if (newData.people_group?.title) {
-      setPeopleGroupTitle(newData.people_group.title)
+      setPeopleGroupTitle(newData.people_group.title, newData.people_group.image_url)
     }
   }
 }, { immediate: true })
@@ -190,7 +190,7 @@ const pastContent = computed(() => {
 // Set people group title on mount (handles cached data from navigation)
 onMounted(() => {
   if (data.value?.people_group?.title) {
-    setPeopleGroupTitle(data.value.people_group.title)
+    setPeopleGroupTitle(data.value.people_group.title, data.value.people_group.image_url)
   }
 })
 

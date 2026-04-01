@@ -4,11 +4,10 @@
     <main class="flex-1 py-8 px-8">
       <div class="max-w-4xl mx-auto">
         <div v-if="hasContent">
-          <div v-for="(contentItem, index) in content" :key="contentItem.id" :class="index > 0 ? 'mt-24' : ''">
+          <div v-for="(contentItem, index) in mainContent" :key="contentItem.id" :class="index > 0 ? 'mt-24' : ''">
             <!-- People Group content -->
             <template v-if="contentItem.content_type === 'people_group' && contentItem.people_group_data">
-              <h2 v-if="contentItem.id === -1" class="text-2xl font-bold mb-8">{{ $t('prayerFuel.meetThePeople') }}</h2>
-              <h2 v-else-if="contentItem.id === -2" class="text-2xl font-bold mb-8">{{ $t('prayerFuel.peopleGroupOfTheDay') }}</h2>
+              <h2 class="text-2xl font-bold mb-8">{{ $t('prayerFuel.peopleGroupOfTheDay') }}</h2>
               <PeopleGroupCard :people-group="contentItem.people_group_data" />
             </template>
 
@@ -56,13 +55,25 @@
           {{ $t('prayerFuel.thankYou') }}
         </p>
 
-        <div v-if="copyrightNotices.length" class="mt-8 border-l-2 border-[var(--ui-border)] pl-3 text-left">
-          <p v-for="item in copyrightNotices" :key="item.id" class="!text-[10px] italic text-[var(--ui-text-muted)] mt-1">
-            {{ item.notice }}
-          </p>
-        </div>
       </div>
     </footer>
+
+    <!-- My People Group (below Amen button) -->
+    <section v-if="meetThePeople?.people_group_data" class="py-8 px-8">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-2xl font-bold mb-8">{{ $t('prayerFuel.meetThePeople') }}</h2>
+        <PeopleGroupCard :people-group="meetThePeople.people_group_data" />
+      </div>
+    </section>
+
+    <!-- Scripture copyright notices -->
+    <section v-if="copyrightNotices.length" class="px-8 pb-8">
+      <div class="max-w-4xl mx-auto border-l-2 border-[var(--ui-border)] pl-3">
+        <p v-for="item in copyrightNotices" :key="item.id" class="!text-[10px] italic text-[var(--ui-text-muted)] mt-1">
+          {{ item.notice }}
+        </p>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -100,6 +111,9 @@ const props = defineProps<{
 defineEmits<{
   pray: []
 }>()
+
+const mainContent = computed(() => props.content.filter(item => item.id !== -1))
+const meetThePeople = computed(() => props.content.find(item => item.id === -1))
 
 const copyrightNotices = computed(() => {
   const translations = extractTranslations(props.content)
