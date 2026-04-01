@@ -222,39 +222,23 @@
 
         <UCard>
           <template #header>
-            <div class="flex items-center gap-2">
-              <UIcon name="i-lucide-bar-chart-3" class="text-[var(--ui-primary)] text-lg" />
-              <span class="font-semibold">Daily Prayer Recorded</span>
-              <span class="text-sm text-[var(--ui-text-dimmed)]">(last 30 days)</span>
-            </div>
-          </template>
-          <div class="flex items-end gap-1 h-48">
-            <div
-              v-for="day in prayerDaily"
-              :key="day.date"
-              class="flex-1 flex flex-col items-center justify-end h-full group relative"
-            >
-              <div
-                class="w-full rounded-t-sm bg-[var(--ui-primary)] opacity-80 group-hover:opacity-100 transition-all min-w-[4px]"
-                :style="{ height: barHeight(day.minutes) }"
-              />
-              <span class="text-[10px] text-[var(--ui-text-dimmed)] mt-1 tabular-nums leading-none">
-                {{ day.date.slice(8) }}
-              </span>
-              <div class="absolute bottom-full mb-1 px-1.5 py-0.5 rounded text-xs bg-[var(--ui-bg-inverted)] text-[var(--ui-text-inverted)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                {{ formatChartDate(day.date) }}: {{ formatMinutes(day.minutes) }}
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <UIcon name="i-lucide-bar-chart-3" class="text-[var(--ui-primary)] text-lg" />
+                <span class="font-semibold">Daily Prayer Time</span>
+                <span class="text-sm text-[var(--ui-text-dimmed)]">(last 30 days)</span>
+              </div>
+              <div class="flex items-center gap-3 text-xs">
+                <span class="flex items-center gap-1">
+                  <span class="inline-block w-2.5 h-2.5 rounded-sm bg-[#92b195]/50" />
+                  Committed
+                </span>
+                <span class="flex items-center gap-1">
+                  <span class="inline-block w-2.5 h-2.5 rounded-sm bg-[#3b463d]" />
+                  Recorded
+                </span>
               </div>
             </div>
-          </div>
-        </UCard>
-
-        <UCard>
-          <template #header>
-            <div class="flex items-center gap-2">
-              <UIcon name="i-lucide-calendar-check" class="text-[var(--ui-primary)] text-lg" />
-              <span class="font-semibold">Daily Prayer Committed</span>
-              <span class="text-sm text-[var(--ui-text-dimmed)]">(last 30 days)</span>
-            </div>
           </template>
           <div class="flex items-end gap-1 h-48">
             <div
@@ -262,15 +246,21 @@
               :key="day.date"
               class="flex-1 flex flex-col items-center justify-end h-full group relative"
             >
-              <div
-                class="w-full rounded-t-sm bg-[#73A17F] opacity-80 group-hover:opacity-100 transition-all min-w-[4px]"
-                :style="{ height: committedBarHeight(day.committed) }"
-              />
+              <div class="w-full relative flex items-end" :style="{ height: '100%' }">
+                <div
+                  class="absolute bottom-0 w-full rounded-t-sm bg-[#92b195]/50 group-hover:bg-[#92b195]/70 transition-all min-w-[4px]"
+                  :style="{ height: prayerTimeBarHeight(day.committed) }"
+                />
+                <div
+                  class="absolute bottom-0 w-full rounded-t-sm bg-[#3b463d] opacity-80 group-hover:opacity-100 transition-all min-w-[4px]"
+                  :style="{ height: prayerTimeBarHeight(day.minutes) }"
+                />
+              </div>
               <span class="text-[10px] text-[var(--ui-text-dimmed)] mt-1 tabular-nums leading-none">
                 {{ day.date.slice(8) }}
               </span>
               <div class="absolute bottom-full mb-1 px-1.5 py-0.5 rounded text-xs bg-[var(--ui-bg-inverted)] text-[var(--ui-text-inverted)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                {{ formatChartDate(day.date) }}: {{ formatMinutes(day.committed) }}
+                {{ formatChartDate(day.date) }}: {{ formatMinutes(day.minutes) }} recorded / {{ formatMinutes(day.committed) }} committed
               </div>
             </div>
           </div>
@@ -305,17 +295,6 @@ const tabs = [
 const { data, status } = useFetch('/api/admin/dashboard/stats')
 const { data: prayerDaily, status: prayerStatus } = useFetch('/api/admin/dashboard/prayer-daily')
 
-const maxPrayerMinutes = computed(() => {
-  if (!prayerDaily.value) return 1
-  return Math.max(1, ...prayerDaily.value.map((d: any) => d.minutes))
-})
-
-function barHeight(minutes: number): string {
-  if (minutes === 0) return '0%'
-  const pct = (minutes / maxPrayerMinutes.value) * 100
-  return `${Math.max(pct, 2)}%`
-}
-
 const maxUniquePeople = computed(() => {
   if (!prayerDaily.value) return 1
   return Math.max(1, ...prayerDaily.value.map((d: any) => Math.max(d.unique_sessions, d.unique_subscribers)))
@@ -327,14 +306,14 @@ function uniquePeopleBarHeight(count: number): string {
   return `${Math.max(pct, 2)}%`
 }
 
-const maxCommittedMinutes = computed(() => {
+const maxPrayerTime = computed(() => {
   if (!prayerDaily.value) return 1
-  return Math.max(1, ...prayerDaily.value.map((d: any) => d.committed))
+  return Math.max(1, ...prayerDaily.value.map((d: any) => Math.max(d.minutes, d.committed)))
 })
 
-function committedBarHeight(minutes: number): string {
+function prayerTimeBarHeight(minutes: number): string {
   if (minutes === 0) return '0%'
-  const pct = (minutes / maxCommittedMinutes.value) * 100
+  const pct = (minutes / maxPrayerTime.value) * 100
   return `${Math.max(pct, 2)}%`
 }
 
