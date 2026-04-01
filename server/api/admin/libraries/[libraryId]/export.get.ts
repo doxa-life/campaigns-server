@@ -4,8 +4,8 @@ import { peopleGroupService } from '#server/database/people-groups'
 import { getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  // Require authentication
-  const user = await requireAuth(event)
+  // Require authentication (supports API key or JWT)
+  const user = checkAuth(event)
 
   const id = getIntParam(event, 'libraryId')
 
