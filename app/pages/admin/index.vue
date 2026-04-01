@@ -124,6 +124,47 @@
             </div>
           </UCard>
         </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <UCard>
+            <div class="flex items-center gap-3">
+              <UIcon name="i-lucide-hand-heart" class="text-[var(--ui-primary)] text-2xl" />
+              <div>
+                <p class="text-sm text-[var(--ui-text-dimmed)]">People Signed Up to Pray</p>
+                <p class="text-2xl font-bold">{{ data.prayerSignups }}</p>
+              </div>
+            </div>
+          </UCard>
+        </div>
+
+        <div class="max-w-md">
+          <UCard v-if="data.signupsByLanguage?.length">
+            <template #header>
+              <div class="flex items-center gap-2">
+                <UIcon name="i-lucide-languages" class="text-[var(--ui-primary)] text-lg" />
+                <span class="font-semibold">Signups by Language</span>
+              </div>
+            </template>
+            <div class="flex flex-col gap-2">
+              <div
+                v-for="entry in data.signupsByLanguage"
+                :key="entry.language"
+                class="flex items-center gap-3"
+              >
+                <span class="text-xs text-[var(--ui-text-dimmed)] w-28 text-right shrink-0">
+                  {{ languageLabel(entry.language) }}
+                </span>
+                <div class="flex-1">
+                  <div
+                    class="h-6 rounded bg-[var(--ui-primary)] opacity-80 transition-all duration-500"
+                    :style="{ width: languageBarWidth(entry.count) }"
+                  />
+                </div>
+                <span class="text-xs font-semibold w-10 shrink-0 tabular-nums">{{ entry.count }}</span>
+              </div>
+            </div>
+          </UCard>
+        </div>
       </div>
     </template>
 
@@ -300,6 +341,29 @@ function committedBarHeight(minutes: number): string {
 function formatChartDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00')
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+const languageMap = Object.fromEntries(LANGUAGES.map(l => [l.code, l]))
+
+function languageLabel(code: string): string {
+  const lang = languageMap[code]
+  return lang ? `${lang.flag} ${lang.name}` : code
+}
+
+const totalSignups = computed(() => {
+  if (!data.value?.signupsByLanguage) return 0
+  return data.value.signupsByLanguage.reduce((sum: number, e: any) => sum + e.count, 0)
+})
+
+const maxLanguageCount = computed(() => {
+  if (!data.value?.signupsByLanguage?.length) return 1
+  return Math.max(1, data.value.signupsByLanguage[0].count)
+})
+
+function languageBarWidth(count: number): string {
+  if (count === 0) return '0%'
+  const pct = (count / maxLanguageCount.value) * 100
+  return `${Math.max(pct, 2)}%`
 }
 
 </script>

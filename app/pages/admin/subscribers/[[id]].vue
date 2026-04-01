@@ -48,7 +48,7 @@
         :active="selectedSubscriber?.id === subscriber.id"
         @click="selectSubscriber(subscriber)"
       >
-        <div class="subscriber-name">{{ subscriber.name }}</div>
+        <div class="subscriber-name">{{ subscriber.name }} <span v-if="subscriber.preferred_language" class="language-flag">{{ getLanguageFlag(subscriber.preferred_language) }}</span></div>
         <div class="subscriber-contact">
           {{ subscriber.primary_email || subscriber.primary_phone || 'No contact' }}
         </div>
@@ -749,6 +749,11 @@ const languageOptions = LANGUAGES.map(lang => ({
   label: lang.name,
   value: lang.code
 }))
+
+const languageFlagMap = Object.fromEntries(LANGUAGES.map(l => [l.code, l.flag]))
+function getLanguageFlag(code: string): string {
+  return languageFlagMap[code] || ''
+}
 
 const { countryOptions, getCountryName } = useLocalizedOptions()
 
