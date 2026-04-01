@@ -17,18 +17,43 @@
       <CrmListPanel
         v-model="searchQuery"
         search-placeholder="Search by name..."
-        :total-count="total"
-        @update:model-value="debouncedSearch"
-      />
+        :total-count="filteredPeopleGroups.length"
+      >
+        <template #filters>
+          <div class="filter-row">
+            <USelectMenu
+              v-model="filterEngagement"
+              :items="engagementOptions"
+              value-key="value"
+              placeholder="All Engagement"
+              class="filter-select"
+            />
+            <USelectMenu
+              v-model="filterAdopted"
+              :items="adoptedOptions"
+              value-key="value"
+              placeholder="All Adoption"
+              class="filter-select"
+            />
+            <USelectMenu
+              v-model="filterPrayerCommitment"
+              :items="prayerCommitmentOptions"
+              value-key="value"
+              placeholder="All Prayer"
+              class="filter-select"
+            />
+          </div>
+        </template>
+      </CrmListPanel>
     </template>
 
     <template #list>
-      <template v-if="peopleGroups.length === 0">
+      <template v-if="filteredPeopleGroups.length === 0">
         <div class="empty-list">No people groups found</div>
       </template>
       <CrmListItem
         v-else
-        v-for="group in peopleGroups"
+        v-for="group in filteredPeopleGroups"
         :key="group.id"
         :active="selectedGroup?.id === group.id"
         @click="selectGroup(group)"
@@ -283,7 +308,7 @@ const peopleGroups = ref<PeopleGroup[]>([])
 const selectedGroup = ref<PeopleGroup | null>(null)
 const adoptions = ref<Adoption[]>([])
 const allGroups = ref<GroupOption[]>([])
-const total = ref(0)
+
 
 // Form state
 const formData = ref<Record<string, any>>({})
@@ -326,6 +351,56 @@ const error = ref('')
 const saving = ref(false)
 const searchQuery = ref('')
 
+// Filters
+const filterEngagement = ref<string | null>(null)
+const filterAdopted = ref<string | null>(null)
+const filterPrayerCommitment = ref<string | null>(null)
+
+const engagementOptions = [
+  { label: 'All Engagement', value: null },
+  { label: 'Engaged', value: 'engaged' },
+  { label: 'Unengaged', value: 'unengaged' }
+]
+
+const adoptedOptions = [
+  { label: 'All Adoption', value: null },
+  { label: 'Adopted', value: 'adopted' },
+  { label: 'Not Adopted', value: 'not_adopted' }
+]
+
+const prayerCommitmentOptions = [
+  { label: 'All Prayer', value: null },
+  { label: 'With Commitments', value: 'with' },
+  { label: 'Without Commitments', value: 'without' }
+]
+
+const filteredPeopleGroups = computed(() => {
+  let filtered = peopleGroups.value
+
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(g => g.name.toLowerCase().includes(q))
+  }
+
+  if (filterEngagement.value) {
+    filtered = filtered.filter(g => g.metadata?.imb_engagement_status === filterEngagement.value)
+  }
+
+  if (filterAdopted.value) {
+    filtered = filtered.filter(g =>
+      filterAdopted.value === 'adopted' ? g.adoption_count > 0 : g.adoption_count === 0
+    )
+  }
+
+  if (filterPrayerCommitment.value) {
+    filtered = filtered.filter(g =>
+      filterPrayerCommitment.value === 'with' ? g.people_committed > 0 : g.people_committed === 0
+    )
+  }
+
+  return filtered
+})
+
 // i18n and localized options
 const { t } = useI18n()
 const { countryOptions } = useLocalizedOptions()
@@ -365,15 +440,9 @@ async function loadPeopleGroups(isInitialLoad = false) {
     }
     error.value = ''
 
-    const params: Record<string, string> = {}
-    if (searchQuery.value) {
-      params.search = searchQuery.value
-    }
-
     const [response, groupsRes] = await Promise.all([
       $fetch<{ peopleGroups: PeopleGroup[]; total: number }>(
-        '/api/admin/people-groups',
-        { params }
+        '/api/admin/people-groups'
       ),
       allGroups.value.length === 0
         ? $fetch<{ groups: GroupOption[] }>('/api/admin/groups')
@@ -381,7 +450,6 @@ async function loadPeopleGroups(isInitialLoad = false) {
     ])
 
     peopleGroups.value = response.peopleGroups
-    total.value = response.total
     if (groupsRes) allGroups.value = groupsRes.groups
   } catch (err: any) {
     error.value = err.data?.statusMessage || 'Failed to load people groups'
@@ -389,17 +457,6 @@ async function loadPeopleGroups(isInitialLoad = false) {
   } finally {
     loading.value = false
   }
-}
-
-// Debounced search
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
-function debouncedSearch() {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
-  searchTimeout = setTimeout(() => {
-    loadPeopleGroups()
-  }, 300)
 }
 
 // Select a people group
@@ -699,4 +756,14 @@ onMounted(async () => {
   gap: 0.5rem;
 }
 
+.filter-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-select {
+  flex: 1;
+  min-width: 120px;
+}
 </style>
