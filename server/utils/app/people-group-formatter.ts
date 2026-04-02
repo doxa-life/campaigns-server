@@ -47,12 +47,6 @@ const FORMATTED_FIELDS = new Set([
   'imb_is_indigenous',
   'imb_congregation_existing',
   'imb_church_planting',
-  'imb_bible_available',
-  'imb_jesus_film_available',
-  'imb_radio_broadcast_available',
-  'imb_gospel_recordings_available',
-  'imb_audio_scripture_available',
-  'imb_bible_stories_available',
   'imb_bible_translation_level',
   'primary_language'
 ])
@@ -244,6 +238,13 @@ export function formatPeopleGroupForListWithFields(
         }, lang)
         break
       default: {
+        // Boolean fields: preserve native type from metadata
+        const fieldDef = allFields.find(f => f.key === field)
+        if (fieldDef?.type === 'boolean') {
+          const raw = meta[field]
+          result[field] = raw === true || raw === '1' ? true : raw === false || raw === '0' ? false : null
+          break
+        }
         // Try to get from metadata or table columns
         const value = getFieldValue(pg, field)
         if (value !== null) {
@@ -295,6 +296,13 @@ export function formatPeopleGroupForDetail(pg: PeopleGroupRecord, lang: string =
         descriptions: pg.descriptions,
         metadata: meta as any
       }, lang)
+      continue
+    }
+
+    // Boolean fields: preserve native type from metadata
+    if (fieldDef.type === 'boolean') {
+      const raw = meta[key]
+      result[key] = raw === true || raw === '1' ? true : raw === false || raw === '0' ? false : null
       continue
     }
 
