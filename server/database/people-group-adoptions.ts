@@ -135,6 +135,21 @@ class PeopleGroupAdoptionService {
     return result.count > 0
   }
 
+  async getActiveCountsForPeopleGroups(pgIds: number[]): Promise<Map<number, number>> {
+    if (pgIds.length === 0) return new Map()
+    const rows = await this.sql`
+      SELECT people_group_id, COUNT(*)::INTEGER as count
+      FROM people_group_adoptions
+      WHERE people_group_id IN ${this.sql(pgIds)} AND status = 'active'
+      GROUP BY people_group_id
+    `
+    const map = new Map<number, number>()
+    for (const row of rows) {
+      map.set(row.people_group_id, row.count)
+    }
+    return map
+  }
+
   async countForPeopleGroup(peopleGroupId: number, status?: string): Promise<number> {
     if (status) {
       const [result] = await this.sql`

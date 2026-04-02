@@ -150,7 +150,7 @@ export function formatPeopleGroupForList(pg: PeopleGroupRecord, lang: string = '
     picture_credit: meta.picture_credit || null,
     people_praying: pg.total_people_praying || 0,
     people_committed: pg.people_committed || 0,
-    adopted_by_churches: 0
+    adopted_by_churches: pg.adopted_by_churches || 0
   }
 }
 
@@ -222,7 +222,7 @@ export function formatPeopleGroupForListWithFields(
         result.people_committed = pg.people_committed || 0
         break
       case 'adopted_by_churches':
-        result.adopted_by_churches = 0
+        result.adopted_by_churches = pg.adopted_by_churches || 0
         break
       case 'joshua_project_id':
         result.joshua_project_id = pg.joshua_project_id ?? null
@@ -277,7 +277,7 @@ export function formatPeopleGroupForDetail(pg: PeopleGroupRecord, lang: string =
     picture_credit: meta.picture_credit || null,
     population: pg.population,
     people_praying: pg.total_people_praying || 0,
-    adopted_by_churches: 0,
+    adopted_by_churches: pg.adopted_by_churches || 0,
     joshua_project_id: pg.joshua_project_id ?? null
   }
 

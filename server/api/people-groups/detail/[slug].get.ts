@@ -61,6 +61,7 @@ export default defineEventHandler(async (event) => {
     people_committed: commitmentStats.people_committed,
     committed_duration: commitmentStats.committed_duration,
     global_start_date: globalStartDate,
+    adopted_by_churches: activeAdoptions.length,
     adopted_by_count: activeAdoptions.length,
     adopted_by_names: publicAdoptions.map(a => a.group_name)
   }

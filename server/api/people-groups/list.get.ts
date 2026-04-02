@@ -13,6 +13,7 @@ import {
 import { setCacheHeaders } from '../../utils/app/cors'
 import { LANGUAGE_CODES } from '../../../config/languages'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
+import { peopleGroupAdoptionService } from '../../database/people-group-adoptions'
 
 export default defineEventHandler(async (event) => {
   setCacheHeaders(event)
@@ -40,14 +41,18 @@ export default defineEventHandler(async (event) => {
     ORDER BY pg.name
   ` as any[]
 
-  // Fetch commitment stats for all people groups
+  // Fetch commitment stats and adoption counts for all people groups
   const pgIds = peopleGroups.map((pg: any) => pg.id)
-  const commitmentStatsMap = await peopleGroupSubscriptionService.getCommitmentStatsForPeopleGroups(pgIds)
+  const [commitmentStatsMap, adoptionCountsMap] = await Promise.all([
+    peopleGroupSubscriptionService.getCommitmentStatsForPeopleGroups(pgIds),
+    peopleGroupAdoptionService.getActiveCountsForPeopleGroups(pgIds)
+  ])
 
-  // Attach people_committed to each record
+  // Attach people_committed and adopted_by_churches to each record
   for (const pg of peopleGroups) {
     const stats = commitmentStatsMap.get(pg.id)
     pg.people_committed = stats?.people_committed || 0
+    pg.adopted_by_churches = adoptionCountsMap.get(pg.id) || 0
   }
 
   // Format the response
