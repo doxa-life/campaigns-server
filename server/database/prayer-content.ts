@@ -268,25 +268,30 @@ export class PrayerContentService {
     let lng: number | null = null
     let pictureCredit: Array<{ text: string; link: string | null }> | null = null
 
-    if (peopleGroup.metadata) {
-      const metadata = peopleGroup.metadata
+    if (peopleGroup) {
+      const metadata = peopleGroup.metadata || {}
       description = generatePeopleGroupDescription({
         name: peopleGroup.name,
         descriptions: peopleGroup.descriptions,
+        country_code: peopleGroup.country_code,
+        population: peopleGroup.population,
+        engagement_status: peopleGroup.engagement_status,
+        primary_religion: peopleGroup.primary_religion,
+        primary_language: peopleGroup.primary_language,
         metadata
       }, languageCode)
-      population = metadata.imb_population ? parseInt(metadata.imb_population, 10) : null
+      population = peopleGroup.population
 
-      const langCode = metadata.imb_reg_of_language
+      const langCode = peopleGroup.primary_language
       const religionCode = metadata.imb_reg_of_religion_3
-      const countryCode = metadata.imb_isoalpha3
+      const countryCode = peopleGroup.country_code
 
-      language = langCode ? (getFieldOptionLabel('imb_reg_of_language', langCode, languageCode) || langCode) : null
+      language = langCode ? (getFieldOptionLabel('primary_language', langCode, languageCode) || langCode) : null
       religion = religionCode ? (getReligionLabel(religionCode, languageCode) || religionCode) : null
       country = countryCode ? (getCountryLabel(countryCode, languageCode) || countryCode) : null
 
-      lat = metadata.imb_lat ? parseFloat(metadata.imb_lat) : null
-      lng = metadata.imb_lng ? parseFloat(metadata.imb_lng) : null
+      lat = peopleGroup.latitude ? Number(peopleGroup.latitude) : null
+      lng = peopleGroup.longitude ? Number(peopleGroup.longitude) : null
 
       pictureCredit = metadata.picture_credit || null
     }
@@ -355,25 +360,30 @@ export class PrayerContentService {
     let lng: number | null = null
     let pictureCredit: Array<{ text: string; link: string | null }> | null = null
 
-    if (peopleGroup.metadata) {
-      const metadata = peopleGroup.metadata
+    if (peopleGroup) {
+      const metadata = peopleGroup.metadata || {}
       description = generatePeopleGroupDescription({
         name: peopleGroup.name,
         descriptions: peopleGroup.descriptions,
+        country_code: peopleGroup.country_code,
+        population: peopleGroup.population,
+        engagement_status: peopleGroup.engagement_status,
+        primary_religion: peopleGroup.primary_religion,
+        primary_language: peopleGroup.primary_language,
         metadata
       }, languageCode)
-      population = metadata.imb_population ? parseInt(metadata.imb_population, 10) : null
+      population = peopleGroup.population
 
-      const langCode = metadata.imb_reg_of_language
+      const langCode = peopleGroup.primary_language
       const religionCode = metadata.imb_reg_of_religion_3
-      const countryCode = metadata.imb_isoalpha3
+      const countryCode = peopleGroup.country_code
 
-      language = langCode ? (getFieldOptionLabel('imb_reg_of_language', langCode, languageCode) || langCode) : null
+      language = langCode ? (getFieldOptionLabel('primary_language', langCode, languageCode) || langCode) : null
       religion = religionCode ? (getReligionLabel(religionCode, languageCode) || religionCode) : null
       country = countryCode ? (getCountryLabel(countryCode, languageCode) || countryCode) : null
 
-      lat = metadata.imb_lat ? parseFloat(metadata.imb_lat) : null
-      lng = metadata.imb_lng ? parseFloat(metadata.imb_lng) : null
+      lat = peopleGroup.latitude ? Number(peopleGroup.latitude) : null
+      lng = peopleGroup.longitude ? Number(peopleGroup.longitude) : null
 
       pictureCredit = metadata.picture_credit || null
     }

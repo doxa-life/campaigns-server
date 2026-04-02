@@ -85,6 +85,7 @@ interface PrayerContentResponse {
     slug: string
     title: string
     default_language: string
+    image_url: string | null
   }
   date: string
   language: string

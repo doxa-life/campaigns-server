@@ -1,8 +1,8 @@
 import type { FieldDefinition } from '../types'
 
 export const field: FieldDefinition = {
-  key: 'imb_lng',
-  labelKey: 'peopleGroups.fields.imb_lng',
+  key: 'longitude',
+  labelKey: 'peopleGroups.fields.longitude',
   type: 'number',
   category: 'geography',
   tableColumn: true

@@ -102,7 +102,6 @@ const mobileTabs = computed(() => {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 1.5rem;
-  height: 100%;
 }
 
 .mobile-layout {
@@ -110,9 +109,6 @@ const mobileTabs = computed(() => {
 }
 
 .detail-column {
-  overflow-y: auto;
-  overflow-x: hidden;
-  min-height: 0;
   min-width: 0;
 }
 
@@ -128,8 +124,6 @@ const mobileTabs = computed(() => {
 }
 
 .side-column {
-  overflow-y: auto;
-  min-height: 0;
   border-left: 1px solid var(--ui-border);
   padding-left: 1.5rem;
 }

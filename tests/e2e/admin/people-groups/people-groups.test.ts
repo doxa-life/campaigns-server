@@ -83,7 +83,7 @@ describe('People Groups API', async () => {
     })
 
     it('indicates optionsSource for dynamic fields', async () => {
-      const response = await $fetch('/api/admin/people-groups/field-options?field=imb_isoalpha3', adminAuth)
+      const response = await $fetch('/api/admin/people-groups/field-options?field=country_code', adminAuth)
       expect(response).toBeDefined()
       expect(response.optionsSource).toBe('countries')
     })

@@ -20,10 +20,13 @@ interface UpdateBody {
 }
 
 const TRACKED_FIELDS = [
-  'name', 'image_url', 'joshua_project_id', 'country_code', 'region',
-  'latitude', 'longitude', 'population', 'evangelical_pct',
-  'engagement_status', 'primary_religion', 'primary_language'
+  'name', 'image_url', 'joshua_project_id', 'descriptions',
+  'country_code', 'region', 'latitude', 'longitude',
+  'population', 'evangelical_pct', 'engagement_status',
+  'primary_religion', 'primary_language'
 ] as const
+
+const TRACKED_FIELD_SET = new Set<string>(TRACKED_FIELDS)
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
@@ -118,6 +121,7 @@ export default defineEventHandler(async (event) => {
     const newMeta = body.metadata || {}
     const allKeys = new Set([...Object.keys(oldMeta), ...Object.keys(newMeta)])
     for (const key of allKeys) {
+      if (TRACKED_FIELD_SET.has(key)) continue
       if (String(oldMeta[key] ?? '') !== String(newMeta[key] ?? '')) {
         changes[key] = { from: oldMeta[key] ?? null, to: newMeta[key] ?? null }
       }

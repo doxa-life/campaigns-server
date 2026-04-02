@@ -1,24 +1,22 @@
 import { getFieldOptionLabel, getTranslatedLabel } from './field-options'
 
-interface PeopleGroupMetadata {
-  imb_isoalpha3?: string
-  imb_population?: number | string
-  imb_engagement_status?: string
-  imb_gsec?: string | number  // GSEC 0-3 = Unreached
-  imb_is_indigenous?: string | number
-  imb_alternate_name?: string
-  imb_reg_of_people_1?: string  // ROP1 - Affinity Bloc
-  imb_reg_of_people_2?: string  // ROP2 - People Cluster
-  imb_reg_of_religion?: string
-  imb_reg_of_religion_3?: string
-  imb_reg_of_language?: string
-  [key: string]: any
-}
-
 interface PeopleGroupData {
   name: string
   descriptions?: Record<string, string> | null
-  metadata: PeopleGroupMetadata
+  country_code?: string | null
+  population?: number | null
+  engagement_status?: string | null
+  primary_religion?: string | null
+  primary_language?: string | null
+  metadata: {
+    imb_gsec?: string | number
+    imb_is_indigenous?: string | number
+    imb_alternate_name?: string
+    imb_reg_of_people_1?: string
+    imb_reg_of_people_2?: string
+    imb_reg_of_religion_3?: string
+    [key: string]: any
+  }
 }
 
 /**
@@ -48,9 +46,9 @@ export function generatePeopleGroupDescription(peopleGroup: PeopleGroupData, loc
   const parts: string[] = []
 
   // First sentence: name, country, population, engagement status
-  const country = getFieldOptionLabel('imb_isoalpha3', metadata.imb_isoalpha3 || '', locale) || metadata.imb_isoalpha3
-  const population = metadata.imb_population ? Number(metadata.imb_population).toLocaleString(locale) : null
-  const engagementLabel = getFieldOptionLabel('imb_engagement_status', metadata.imb_engagement_status || '', locale) || metadata.imb_engagement_status
+  const country = getFieldOptionLabel('country_code', peopleGroup.country_code || '', locale) || peopleGroup.country_code
+  const population = peopleGroup.population ? Number(peopleGroup.population).toLocaleString(locale) : null
+  const engagementLabel = getFieldOptionLabel('engagement_status', peopleGroup.engagement_status || '', locale) || peopleGroup.engagement_status
 
   // GSEC 0-3 = Unreached (< 2% evangelical)
   const gsecValue = metadata.imb_gsec !== undefined ? Number(metadata.imb_gsec) : null
@@ -59,7 +57,7 @@ export function generatePeopleGroupDescription(peopleGroup: PeopleGroupData, loc
   // Combine engagement status with unreached status
   let engagementStatus = engagementLabel
   if (engagementStatus && isUnreached) {
-    const isEngaged = metadata.imb_engagement_status === 'engaged'
+    const isEngaged = peopleGroup.engagement_status === 'engaged'
     const unreachedKey = isEngaged ? 'butUnreached' : 'andUnreached'
     const unreachedSuffix = getTranslatedLabel(`peopleGroups.descriptionTemplates.${unreachedKey}`, locale)
     engagementStatus = `${engagementStatus} ${unreachedSuffix}`
@@ -105,17 +103,17 @@ export function generatePeopleGroupDescription(peopleGroup: PeopleGroupData, loc
   }
 
   // Fourth sentence: religion
-  const religion = getFieldOptionLabel('imb_reg_of_religion', metadata.imb_reg_of_religion || '', locale)
+  const religion = getFieldOptionLabel('primary_religion', peopleGroup.primary_religion || '', locale)
     || getFieldOptionLabel('imb_reg_of_religion_3', metadata.imb_reg_of_religion_3 || '', locale)
-    || metadata.imb_reg_of_religion
+    || peopleGroup.primary_religion
   if (religion) {
     parts.push(getTemplate('religion', locale, { religion }))
   }
 
   // Fifth sentence: language (skip if undetermined)
-  const languageCode = metadata.imb_reg_of_language || ''
+  const languageCode = peopleGroup.primary_language || ''
   if (languageCode !== 'und') {
-    const language = getFieldOptionLabel('imb_reg_of_language', languageCode, locale) || languageCode
+    const language = getFieldOptionLabel('primary_language', languageCode, locale) || languageCode
     if (language) {
       parts.push(getTemplate('language', locale, { language }))
     }

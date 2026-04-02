@@ -71,14 +71,14 @@
             size="xs"
           />
           <UBadge
-            v-if="group.metadata?.imb_engagement_status"
-            :label="group.metadata.imb_engagement_status"
-            :color="group.metadata.imb_engagement_status === 'engaged' ? 'success' : 'warning'"
+            v-if="group.engagement_status"
+            :label="group.engagement_status"
+            :color="group.engagement_status === 'engaged' ? 'success' : 'warning'"
             variant="subtle"
             size="xs"
           />
-          <span v-if="group.metadata?.imb_population" class="population">
-            Pop: {{ formatNumber(group.metadata.imb_population) }}
+          <span v-if="group.population" class="population">
+            Pop: {{ formatNumber(group.population) }}
           </span>
         </div>
         <div class="group-stats">
@@ -319,7 +319,7 @@
 </template>
 
 <script setup lang="ts">
-import { allFields, fieldsByCategory, categories, type FieldDefinition } from '~/utils/people-group-fields'
+import { allFields, fieldsByCategory, categories, tableColumnFields, type FieldDefinition } from '~/utils/people-group-fields'
 import type { Adoption } from '~/types/adoption'
 
 definePageMeta({
@@ -335,6 +335,15 @@ interface PeopleGroup {
   image_url: string | null
   descriptions: Record<string, string> | null
   metadata: Record<string, any>
+  country_code: string | null
+  region: string | null
+  latitude: number | null
+  longitude: number | null
+  population: number | null
+  evangelical_pct: number | null
+  engagement_status: string | null
+  primary_religion: string | null
+  primary_language: string | null
   people_committed: number
   committed_duration: number
   adoption_count: number
@@ -446,7 +455,7 @@ const filteredPeopleGroups = computed(() => {
   }
 
   if (filterEngagement.value) {
-    filtered = filtered.filter(g => g.metadata?.imb_engagement_status === filterEngagement.value)
+    filtered = filtered.filter(g => g.engagement_status === filterEngagement.value)
   }
 
   if (filterAdopted.value) {
@@ -570,12 +579,15 @@ function deselectGroup() {
 }
 
 // Initialize form with group data
+const columnKeys = new Set(tableColumnFields.map(f => f.key))
+
 function initializeForm(group: PeopleGroup) {
+  const columnValues: Record<string, any> = {}
+  for (const key of columnKeys) {
+    columnValues[key] = (group as any)[key]
+  }
   formData.value = {
-    name: group.name,
-    image_url: group.image_url,
-    joshua_project_id: group.joshua_project_id,
-    descriptions: group.descriptions || {},
+    ...columnValues,
     ...group.metadata
   }
 }
@@ -608,18 +620,23 @@ async function saveChanges() {
   try {
     saving.value = true
 
-    const { name, image_url, joshua_project_id, descriptions, ...metadataFields } = formData.value
+    const columnData: Record<string, any> = {}
+    const metadataData: Record<string, any> = {}
+    for (const [key, value] of Object.entries(formData.value)) {
+      if (columnKeys.has(key)) {
+        columnData[key] = value
+      } else {
+        metadataData[key] = value
+      }
+    }
 
     const response = await $fetch<{ success: boolean; peopleGroup: PeopleGroup }>(
       `/api/admin/people-groups/${selectedGroup.value.id}`,
       {
         method: 'PUT',
         body: {
-          name,
-          image_url,
-          joshua_project_id,
-          descriptions,
-          metadata: metadataFields
+          ...columnData,
+          metadata: metadataData
         }
       }
     )

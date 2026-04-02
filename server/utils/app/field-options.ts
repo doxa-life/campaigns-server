@@ -126,7 +126,7 @@ export function getTranslatedLabel(labelKey: string, locale: string): string {
 // To add descriptions for a new field, add its translation key here and the
 // corresponding object in people-groups.json under options.
 const FIELD_DESCRIPTION_KEYS: Record<string, string> = {
-  imb_reg_of_religion: 'religionDescriptions',
+  primary_religion: 'religionDescriptions',
 }
 
 /**

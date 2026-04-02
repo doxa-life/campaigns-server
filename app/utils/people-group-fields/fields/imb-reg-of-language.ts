@@ -5075,8 +5075,8 @@ const options: FieldOption[] = [
 ]
 
 export const field: FieldDefinition = {
-  key: 'imb_reg_of_language',
-  labelKey: 'peopleGroups.fields.imb_reg_of_language',
+  key: 'primary_language',
+  labelKey: 'peopleGroups.fields.primary_language',
   type: 'select',
   category: 'language',
   tableColumn: true,

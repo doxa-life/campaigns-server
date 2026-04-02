@@ -77,10 +77,10 @@
           <div class="grid md:grid-cols-3 gap-6">
 
             <!-- Map -->
-            <div v-if="pg.imb_lat && pg.imb_lng" class="bg-beige-100 dark:bg-elevated rounded-2xl overflow-hidden md:order-3">
+            <div v-if="pg.latitude && pg.longitude" class="bg-beige-100 dark:bg-elevated rounded-2xl overflow-hidden md:order-3">
               <div class="relative h-full min-h-48">
                 <iframe
-                  :src="`https://www.openstreetmap.org/export/embed.html?bbox=${Number(pg.imb_lng) - 10},${Number(pg.imb_lat) - 10},${Number(pg.imb_lng) + 10},${Number(pg.imb_lat) + 10}&layer=mapnik&marker=${pg.imb_lat},${pg.imb_lng}`"
+                  :src="`https://www.openstreetmap.org/export/embed.html?bbox=${Number(pg.longitude) - 10},${Number(pg.latitude) - 10},${Number(pg.longitude) + 10},${Number(pg.latitude) + 10}&layer=mapnik&marker=${pg.latitude},${pg.longitude}`"
                   class="absolute inset-0 w-full h-full border-0"
                   loading="lazy"
                 ></iframe>
@@ -93,30 +93,30 @@
             <div class="bg-beige-100 dark:bg-elevated rounded-2xl p-6 md:order-2">
               <h3 class="font-bold text-default uppercase tracking-wide text-center mb-4">{{ $t('campaign.peopleGroup.overview.title') }}</h3>
               <div class="space-y-3 text-sm">
-                <div v-if="pg.imb_isoalpha3" class="flex items-center gap-2">
+                <div v-if="pg.country_code" class="flex items-center gap-2">
                   <UIcon name="i-lucide-map-pin" class="w-4 h-4 text-muted" />
                   <span class="font-medium text-default">{{ $t('campaign.peopleGroup.overview.country') }}</span>
-                  <span class="text-muted">{{ (pg.imb_isoalpha3 as any).label || (pg.imb_isoalpha3 as any).value }}</span>
+                  <span class="text-muted">{{ (pg.country_code as any).label || (pg.country_code as any).value }}</span>
                 </div>
                 <div v-if="pg.population" class="flex items-center gap-2">
                   <UIcon name="i-lucide-users" class="w-4 h-4 text-muted" />
                   <span class="font-medium text-default">{{ $t('campaign.peopleGroup.overview.population') }}</span>
                   <span class="text-muted">{{ Number(pg.population).toLocaleString() }}</span>
                 </div>
-                <div v-if="pg.imb_reg_of_language" class="flex items-center gap-2">
+                <div v-if="pg.primary_language" class="flex items-center gap-2">
                   <UIcon name="i-lucide-languages" class="w-4 h-4 text-muted" />
                   <span class="font-medium text-default">{{ $t('campaign.peopleGroup.overview.language') }}</span>
-                  <span class="text-muted">{{ (pg.imb_reg_of_language as any).label || (pg.imb_reg_of_language as any).value }}</span>
+                  <span class="text-muted">{{ (pg.primary_language as any).label || (pg.primary_language as any).value }}</span>
                 </div>
-                <div v-if="pg.imb_reg_of_religion || pg.imb_reg_of_religion_3" class="flex items-center gap-2">
+                <div v-if="pg.primary_religion || pg.imb_reg_of_religion_3" class="flex items-center gap-2">
                   <UIcon name="i-lucide-flame" class="w-4 h-4 text-muted" />
                   <span class="font-medium text-default">{{ $t('campaign.peopleGroup.overview.religion') }}</span>
-                  <span class="text-muted">{{ (pg.imb_reg_of_religion as any)?.label || (pg.imb_reg_of_religion_3 as any)?.label || (pg.imb_reg_of_religion as any)?.value }}</span>
+                  <span class="text-muted">{{ (pg.primary_religion as any)?.label || (pg.imb_reg_of_religion_3 as any)?.label || (pg.primary_religion as any)?.value }}</span>
                 </div>
-                <div v-if="pg.imb_engagement_status" class="flex items-center gap-2">
+                <div v-if="pg.engagement_status" class="flex items-center gap-2">
                   <UIcon name="i-lucide-target" class="w-4 h-4 text-muted" />
                   <span class="font-medium text-default">{{ $t('campaign.peopleGroup.overview.status') }}</span>
-                  <span class="text-muted">{{ (pg.imb_engagement_status as any).label || (pg.imb_engagement_status as any).value }}</span>
+                  <span class="text-muted">{{ (pg.engagement_status as any).label || (pg.engagement_status as any).value }}</span>
                 </div>
                 <div v-if="pg.imb_congregation_existing" class="flex items-center gap-2">
                   <UIcon name="i-lucide-church" class="w-4 h-4 text-muted" />
@@ -530,14 +530,13 @@ interface PeopleGroupDetailResponse {
   committed_duration: number
   global_start_date: string | null
   imb_people_description: string | null
-  imb_isoalpha3: { value: string; label: string } | null
-  imb_lat: string | null
-  imb_lng: string | null
-  imb_population: string | null
-  imb_reg_of_language: { value: string; label: string } | null
-  imb_reg_of_religion: { value: string; label: string; description?: string } | null
+  country_code: { value: string; label: string } | null
+  latitude: string | null
+  longitude: string | null
+  primary_language: { value: string; label: string } | null
+  primary_religion: { value: string; label: string; description?: string } | null
   imb_reg_of_religion_3: { value: string; label: string; description?: string } | null
-  imb_engagement_status: { value: string; label: string } | null
+  engagement_status: { value: string; label: string } | null
   imb_congregation_existing: { value: string; label: string } | null
   [key: string]: unknown
 }

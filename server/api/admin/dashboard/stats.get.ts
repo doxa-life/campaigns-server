@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
 
   const [engagementRow, totalRow, prayerRow, prayerTimeAllRow, prayerTime24hRow, prayerCommittedRow, dailyCommittedRow, adoptedRow, languageRows, prayerSignupsRow] = await Promise.all([
-    sql`SELECT COUNT(*) as count FROM people_groups WHERE engagement_status = 'engaged' OR (metadata::jsonb->>'imb_engagement_status') = 'engaged'`.then(rows => rows[0]),
+    sql`SELECT COUNT(*) as count FROM people_groups WHERE engagement_status = 'engaged'`.then(rows => rows[0]),
     sql`SELECT COUNT(*) as count FROM people_groups`.then(rows => rows[0]),
     sql`SELECT COUNT(DISTINCT people_group_id) as count FROM campaign_subscriptions WHERE status = 'active'`.then(rows => rows[0]),
     sql`SELECT COALESCE(ROUND(SUM(duration) / 60.0), 0) as total FROM prayer_activity`.then(rows => rows[0]),

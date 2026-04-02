@@ -13,6 +13,7 @@ interface PeopleGroupRecord {
   longitude: number | null
   engagement_status: string | null
   primary_religion: string | null
+  primary_language: string | null
   descriptions: Record<string, string> | null
   total_people_praying?: number
   people_committed?: number
@@ -29,14 +30,14 @@ const FORMATTED_FIELDS = new Set([
   'doxa_wagf_region',
   'doxa_wagf_block',
   'doxa_wagf_member',
-  'imb_isoalpha3',
+  'country_code',
   'imb_reg_of_people_1',
-  'imb_reg_of_religion',
+  'primary_religion',
   'imb_reg_of_religion_3',
   'imb_reg_of_religion_4',
-  'imb_region',
+  'region',
   'imb_subregion',
-  'imb_engagement_status',
+  'engagement_status',
   'imb_evangelical_level',
   'imb_population_class',
   'imb_gsec',
@@ -53,7 +54,7 @@ const FORMATTED_FIELDS = new Set([
   'imb_audio_scripture_available',
   'imb_bible_stories_available',
   'imb_bible_translation_level',
-  'imb_reg_of_language'
+  'primary_language'
 ])
 
 // Map from API response field names to metadata field keys
@@ -61,7 +62,7 @@ const FIELD_KEY_MAP: Record<string, string> = {
   wagf_region: 'doxa_wagf_region',
   wagf_block: 'doxa_wagf_block',
   wagf_member: 'doxa_wagf_member',
-  country: 'imb_isoalpha3',
+  country: 'country_code',
   rop1: 'imb_reg_of_people_1',
   religion: 'imb_reg_of_religion_3'
 }
@@ -87,17 +88,8 @@ function formatValueLabel(fieldKey: string, value: string | null | undefined, la
  */
 function getFieldValue(pg: PeopleGroupRecord, fieldKey: string): string | null {
   // Check if it's a table column field first
-  const tableColumnMap: Record<string, keyof PeopleGroupRecord> = {
-    imb_isoalpha3: 'country_code',
-    imb_lat: 'latitude',
-    imb_lng: 'longitude',
-    imb_population: 'population',
-    imb_engagement_status: 'engagement_status',
-    imb_reg_of_religion: 'primary_religion'
-  }
-
-  if (tableColumnMap[fieldKey]) {
-    const val = pg[tableColumnMap[fieldKey]]
+  if (fieldKey in pg && pg[fieldKey] !== undefined) {
+    const val = pg[fieldKey]
     return val !== null && val !== undefined ? String(val) : null
   }
 
@@ -148,9 +140,9 @@ export function formatPeopleGroupForList(pg: PeopleGroupRecord, lang: string = '
     wagf_region: formatValueLabel('doxa_wagf_region', meta.doxa_wagf_region as string, lang),
     wagf_block: formatValueLabel('doxa_wagf_block', meta.doxa_wagf_block as string, lang),
     wagf_member: formatValueLabel('doxa_wagf_member', meta.doxa_wagf_member as string, lang),
-    country: formatValueLabel('imb_isoalpha3', pg.country_code, lang),
+    country: formatValueLabel('country_code', pg.country_code, lang),
     rop1: formatValueLabel('imb_reg_of_people_1', meta.imb_reg_of_people_1 as string, lang),
-    religion: formatValueLabelWithDescription('imb_reg_of_religion', (pg.primary_religion || meta.imb_reg_of_religion) as string, lang),
+    religion: formatValueLabelWithDescription('primary_religion', pg.primary_religion as string, lang),
     location_description: meta.imb_location_description || null,
     population: pg.population || null,
     has_photo: meta.imb_has_photo === '1' || meta.imb_has_photo === true,
@@ -197,13 +189,13 @@ export function formatPeopleGroupForListWithFields(
         result.wagf_member = formatValueLabel('doxa_wagf_member', meta.doxa_wagf_member as string, lang)
         break
       case 'country':
-        result.country = formatValueLabel('imb_isoalpha3', pg.country_code, lang)
+        result.country = formatValueLabel('country_code', pg.country_code, lang)
         break
       case 'rop1':
         result.rop1 = formatValueLabel('imb_reg_of_people_1', meta.imb_reg_of_people_1 as string, lang)
         break
       case 'religion':
-        result.religion = formatValueLabelWithDescription('imb_reg_of_religion', (pg.primary_religion || meta.imb_reg_of_religion) as string, lang)
+        result.religion = formatValueLabelWithDescription('primary_religion', pg.primary_religion as string, lang)
         break
       case 'location_description':
         result.location_description = meta.imb_location_description || null
@@ -243,6 +235,11 @@ export function formatPeopleGroupForListWithFields(
         result[field] = generatePeopleGroupDescription({
           name: pg.name,
           descriptions: pg.descriptions,
+          country_code: pg.country_code,
+          population: pg.population,
+          engagement_status: pg.engagement_status,
+          primary_religion: pg.primary_religion,
+          primary_language: pg.primary_language as string | null,
           metadata: meta as any
         }, lang)
         break
@@ -289,7 +286,7 @@ export function formatPeopleGroupForDetail(pg: PeopleGroupRecord, lang: string =
     const key = fieldDef.key
 
     // Skip fields we've already handled or don't want in the response
-    if (['name', 'image_url', 'imb_picture_credit_html', 'descriptions', 'joshua_project_id', 'doxa_masteruid'].includes(key)) continue
+    if (['name', 'image_url', 'imb_picture_credit_html', 'descriptions', 'joshua_project_id', 'doxa_masteruid', 'picture_credit'].includes(key)) continue
 
     // Handle special fields
     if (key === 'imb_people_description') {
@@ -301,26 +298,8 @@ export function formatPeopleGroupForDetail(pg: PeopleGroupRecord, lang: string =
       continue
     }
 
-    // Get the value
-    let value: string | null = null
-
-    // Check table columns first
-    if (key === 'imb_isoalpha3') {
-      value = pg.country_code
-    } else if (key === 'imb_lat') {
-      value = pg.latitude !== null ? String(pg.latitude) : null
-    } else if (key === 'imb_lng') {
-      value = pg.longitude !== null ? String(pg.longitude) : null
-    } else if (key === 'imb_population') {
-      value = pg.population !== null ? String(pg.population) : null
-    } else if (key === 'imb_engagement_status') {
-      value = pg.engagement_status
-    } else if (key === 'imb_reg_of_religion') {
-      value = pg.primary_religion
-    } else {
-      // Get from metadata
-      value = meta[key] as string | null
-    }
+    // Get the value from table columns or metadata
+    const value = getFieldValue(pg, key)
 
     // Format with label (and description when available) if this is a select field
     if (FORMATTED_FIELDS.has(key) && value !== null && value !== undefined) {
@@ -359,23 +338,26 @@ export function formatPeopleGroupRaw(pg: PeopleGroupRecord, fields: string[], la
       case 'imb_display_name':
         result.imb_display_name = meta.imb_display_name || pg.name
         break
-      case 'imb_isoalpha3':
-        result.imb_isoalpha3 = pg.country_code
+      case 'country_code':
+        result.country_code = pg.country_code
         break
-      case 'imb_lat':
-        result.imb_lat = pg.latitude !== null ? String(pg.latitude) : null
+      case 'latitude':
+        result.latitude = pg.latitude !== null ? String(pg.latitude) : null
         break
-      case 'imb_lng':
-        result.imb_lng = pg.longitude !== null ? String(pg.longitude) : null
+      case 'longitude':
+        result.longitude = pg.longitude !== null ? String(pg.longitude) : null
         break
-      case 'imb_population':
-        result.imb_population = pg.population !== null ? String(pg.population) : null
+      case 'population':
+        result.population = pg.population !== null ? String(pg.population) : null
         break
-      case 'imb_engagement_status':
-        result.imb_engagement_status = pg.engagement_status || meta.imb_engagement_status || null
+      case 'engagement_status':
+        result.engagement_status = pg.engagement_status
         break
-      case 'imb_reg_of_religion':
-        result.imb_reg_of_religion = pg.primary_religion || meta.imb_reg_of_religion || null
+      case 'primary_religion':
+        result.primary_religion = pg.primary_religion
+        break
+      case 'primary_language':
+        result.primary_language = pg.primary_language
         break
       case 'descriptions':
         result.descriptions = pg.descriptions?.['en'] || null
@@ -385,6 +367,11 @@ export function formatPeopleGroupRaw(pg: PeopleGroupRecord, fields: string[], la
         result[field] = generatePeopleGroupDescription({
           name: pg.name,
           descriptions: pg.descriptions,
+          country_code: pg.country_code,
+          population: pg.population,
+          engagement_status: pg.engagement_status,
+          primary_religion: pg.primary_religion,
+          primary_language: pg.primary_language as string | null,
           metadata: meta as any
         }, lang)
         break
@@ -408,7 +395,7 @@ export const DEFAULT_LIST_FIELDS = [
 // Default fields for /all endpoint
 export const DEFAULT_ALL_FIELDS = [
   'name', 'slug', 'imb_reg_of_people_1', 'doxa_wagf_region', 'doxa_wagf_block',
-  'imb_population', 'imb_reg_of_religion', 'imb_reg_of_religion_3', 'imb_isoalpha3',
-  'imb_has_photo', 'image_url', 'imb_lat', 'imb_lng',
+  'population', 'primary_religion', 'imb_reg_of_religion_3', 'country_code',
+  'imb_has_photo', 'image_url', 'latitude', 'longitude',
   'imb_people_description'
 ]

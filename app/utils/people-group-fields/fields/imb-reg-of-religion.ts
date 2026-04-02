@@ -1,8 +1,8 @@
 import type { FieldDefinition } from '../types'
 
 export const field: FieldDefinition = {
-  key: 'imb_reg_of_religion',
-  labelKey: 'peopleGroups.fields.imb_reg_of_religion',
+  key: 'primary_religion',
+  labelKey: 'peopleGroups.fields.primary_religion',
   type: 'select',
   category: 'religion',
   tableColumn: true,
