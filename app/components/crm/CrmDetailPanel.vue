@@ -7,7 +7,18 @@
     <!-- Desktop: two columns -->
     <div class="desktop-layout">
       <div class="detail-column">
-        <slot name="details" />
+        <template v-if="detailTabs.length > 0">
+          <UTabs :items="detailTabs">
+            <template v-for="tab in detailTabs" :key="tab.slot" #[tab.slot]>
+              <div class="detail-tab-content">
+                <slot :name="'detail-' + tab.slot" />
+              </div>
+            </template>
+          </UTabs>
+        </template>
+        <template v-else>
+          <slot name="details" />
+        </template>
       </div>
       <div v-if="sideTabs.length > 0" class="side-column">
         <UTabs :items="sideTabs">
@@ -29,12 +40,17 @@
         <template #trailing="{ item }">
           <UBadge v-if="item.badge != null" :label="item.badge" variant="subtle" size="xs" />
         </template>
-        <template #details>
+        <template v-for="tab in detailTabs" :key="'mobile-detail-' + tab.slot" #[tab.slot]>
+          <div class="mobile-tab-content">
+            <slot :name="'detail-' + tab.slot" />
+          </div>
+        </template>
+        <template v-if="detailTabs.length === 0" #details>
           <div class="mobile-tab-content">
             <slot name="details" />
           </div>
         </template>
-        <template v-for="tab in sideTabs" :key="tab.slot" #[tab.slot]>
+        <template v-for="tab in sideTabs" :key="'mobile-side-' + tab.slot" #[tab.slot]>
           <div class="mobile-tab-content">
             <slot :name="'side-' + tab.slot" />
           </div>
@@ -53,15 +69,19 @@ interface Tab {
 }
 
 const props = withDefaults(defineProps<{
+  detailTabs?: Tab[]
   sideTabs?: Tab[]
 }>(), {
+  detailTabs: () => [],
   sideTabs: () => []
 })
 
-const mobileTabs = computed(() => [
-  { label: 'Details', slot: 'details', icon: 'i-lucide-file-text' },
-  ...props.sideTabs
-])
+const mobileTabs = computed(() => {
+  const leftTabs = props.detailTabs.length > 0
+    ? props.detailTabs
+    : [{ label: 'Details', slot: 'details', icon: 'i-lucide-file-text' }]
+  return [...leftTabs, ...props.sideTabs]
+})
 </script>
 
 <style scoped>
@@ -99,6 +119,10 @@ const mobileTabs = computed(() => [
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.detail-tab-content {
+  padding-top: 1rem;
 }
 
 .side-column {

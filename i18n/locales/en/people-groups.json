@@ -19,11 +19,11 @@
       "butUnreached": "but Unreached"
     },
     "categories": {
-      "status": "Status",
+      "engagement": "Engagement",
       "basic": "Basic Info",
       "identifiers": "Identifiers",
       "geography": "Geography",
-      "population": "Population & Engagement",
+      "population": "Population",
       "strategic": "Strategic Metrics",
       "language": "Language",
       "religion": "Religion",

@@ -107,7 +107,7 @@
     </template>
 
     <template #detail>
-      <CrmDetailPanel v-if="selectedGroup" :side-tabs="sideTabs">
+      <CrmDetailPanel v-if="selectedGroup" :detail-tabs="detailTabs" :side-tabs="sideTabs">
         <template #top>
           <UButton size="xs" @click="navigateToSubscribers(selectedGroup.id)" variant="outline">
             Subscribers
@@ -120,7 +120,7 @@
           </UButton>
         </template>
 
-        <template #details>
+        <template #detail-progress>
           <CrmFormSection title="Adopted By">
             <template #header-extra>
               <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="openAddAdoptionModal">
@@ -144,7 +144,7 @@
 
           <form @submit.prevent="saveChanges">
             <CrmFormSection
-              v-for="category in fieldCategories"
+              v-for="category in progressCategories"
               :key="category.key"
               :title="category.label"
             >
@@ -157,7 +157,63 @@
                   :class="{ 'full-width': field.type === 'textarea' || field.type === 'translatable' || field.type === 'picture-credit' }"
                 >
                   <div v-if="field.readOnly" class="readonly-field">
-                    {{ getFieldValue(field.key) || '\u2014' }}
+                    {{ getFieldValue(field.key) || '—' }}
+                  </div>
+
+                  <UInput
+                    v-else-if="field.type === 'text'"
+                    :model-value="getFieldValue(field.key)"
+                    @update:model-value="setFieldValue(field.key, $event)"
+                    class="w-full"
+                  />
+
+                  <UInput
+                    v-else-if="field.type === 'number'"
+                    type="number"
+                    :model-value="getFieldValue(field.key)"
+                    @update:model-value="setFieldValue(field.key, $event)"
+                    class="w-full"
+                  />
+
+                  <USelectMenu
+                    v-else-if="field.type === 'select' && field.options"
+                    :model-value="getFieldValue(field.key)"
+                    @update:model-value="setFieldValue(field.key, $event)"
+                    :items="field.options"
+                    value-key="value"
+                    :search-input="{ placeholder: 'Search...' }"
+                    :virtualize="field.options.length > 50"
+                    class="w-full"
+                  />
+
+                  <UCheckbox
+                    v-else-if="field.type === 'boolean'"
+                    :model-value="getFieldValue(field.key) === true || getFieldValue(field.key) === '1'"
+                    @update:model-value="setFieldValue(field.key, $event)"
+                  />
+                </UFormField>
+              </div>
+            </CrmFormSection>
+          </form>
+        </template>
+
+        <template #detail-details>
+          <form @submit.prevent="saveChanges">
+            <CrmFormSection
+              v-for="category in detailCategories"
+              :key="category.key"
+              :title="category.label"
+            >
+              <div class="fields-grid">
+                <UFormField
+                  v-for="field in category.fields"
+                  :key="field.key"
+                  :label="field.label"
+                  :hint="field.description"
+                  :class="{ 'full-width': field.type === 'textarea' || field.type === 'translatable' || field.type === 'picture-credit' }"
+                >
+                  <div v-if="field.readOnly" class="readonly-field">
+                    {{ getFieldValue(field.key) || '—' }}
                   </div>
 
                   <UInput
@@ -327,6 +383,10 @@ const slideoverOpen = ref(false)
 const activityRef = ref<{ refresh: () => void } | null>(null)
 
 const commentCount = ref(0)
+const detailTabs = [
+  { label: 'Progress', slot: 'progress', icon: 'i-lucide-bar-chart-3' },
+  { label: 'Details', slot: 'details', icon: 'i-lucide-file-text' }
+]
 const sideTabs = computed(() => [
   { label: 'Activity', slot: 'activity', icon: 'i-lucide-activity' },
   { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square', badge: commentCount.value || undefined }
@@ -405,9 +465,11 @@ const filteredPeopleGroups = computed(() => {
 const { t } = useI18n()
 const { countryOptions } = useLocalizedOptions()
 
-// Field categories computed from new structure
-const fieldCategories = computed(() => {
-  return categories.map(category => ({
+// Categories shown on the Progress tab
+const progressCategoryKeys = new Set(['engagement', 'resources'])
+
+function mapCategory(category: { key: string; labelKey: string }) {
+  return {
     key: category.key,
     label: t(category.labelKey),
     fields: (fieldsByCategory[category.key] || []).map(field => ({
@@ -415,7 +477,23 @@ const fieldCategories = computed(() => {
       label: t(field.labelKey),
       options: getOptionsForField(field)
     }))
-  }))
+  }
+}
+
+// Progress tab: engagement, strategic, resources
+const progressCategories = computed(() => {
+  return categories
+    .filter(c => progressCategoryKeys.has(c.key))
+    .map(mapCategory)
+    .filter(c => c.fields.length > 0)
+})
+
+// Details tab: everything else
+const detailCategories = computed(() => {
+  return categories
+    .filter(c => !progressCategoryKeys.has(c.key))
+    .map(mapCategory)
+    .filter(c => c.fields.length > 0)
 })
 
 // Get options for a field, handling dynamic sources
