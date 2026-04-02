@@ -232,6 +232,9 @@ export function formatPeopleGroupForListWithFields(
       case 'adopted_by_churches':
         result.adopted_by_churches = 0
         break
+      case 'joshua_project_id':
+        result.joshua_project_id = pg.joshua_project_id ?? null
+        break
       case 'descriptions':
         result.descriptions = pg.descriptions?.[lang] || pg.descriptions?.['en'] || null
         break
@@ -277,7 +280,8 @@ export function formatPeopleGroupForDetail(pg: PeopleGroupRecord, lang: string =
     picture_credit: meta.picture_credit || null,
     population: pg.population,
     people_praying: pg.total_people_praying || 0,
-    adopted_by_churches: 0
+    adopted_by_churches: 0,
+    joshua_project_id: pg.joshua_project_id ?? null
   }
 
   // Process all defined fields
