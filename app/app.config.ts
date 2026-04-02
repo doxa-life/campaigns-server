@@ -19,6 +19,11 @@ export default defineAppConfig({
         }
       }
     },
+    switch: {
+      slots: {
+        base: 'data-[state=unchecked]:!bg-neutral-300 dark:data-[state=unchecked]:!bg-neutral-600'
+      }
+    },
     editor: {
       slots: {
         base: [

@@ -116,7 +116,10 @@
             Content
           </UButton>
           <UButton size="xs" v-if="selectedGroup.slug" :to="`/${selectedGroup.slug}`" target="_blank" variant="outline">
-            Open
+            Sign Up Page
+          </UButton>
+          <UButton size="xs" v-if="selectedGroup.slug" :href="`https://doxa.life/research/${selectedGroup.slug}/`" target="_blank" variant="outline">
+            Full Profile
           </UButton>
         </template>
 
@@ -186,7 +189,7 @@
                     class="w-full"
                   />
 
-                  <UCheckbox
+                  <USwitch
                     v-else-if="field.type === 'boolean'"
                     :model-value="getFieldValue(field.key) === true || getFieldValue(field.key) === '1'"
                     @update:model-value="setFieldValue(field.key, $event)"
@@ -264,7 +267,7 @@
                     @update:model-value="setFieldValue(field.key, $event)"
                   />
 
-                  <UCheckbox
+                  <USwitch
                     v-else-if="field.type === 'boolean'"
                     :model-value="getFieldValue(field.key) === true || getFieldValue(field.key) === '1'"
                     @update:model-value="setFieldValue(field.key, $event)"
@@ -466,7 +469,7 @@ const { t } = useI18n()
 const { countryOptions } = useLocalizedOptions()
 
 // Categories shown on the Progress tab
-const progressCategoryKeys = new Set(['engagement', 'resources'])
+const progressCategoryKeys = new Set(['engagement', 'workers', 'resources'])
 
 function mapCategory(category: { key: string; labelKey: string }) {
   return {

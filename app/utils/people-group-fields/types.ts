@@ -35,7 +35,8 @@ export const categories: FieldCategory[] = [
   { key: 'language', labelKey: 'peopleGroups.categories.language', order: 6 },
   { key: 'religion', labelKey: 'peopleGroups.categories.religion', order: 7 },
   { key: 'rop', labelKey: 'peopleGroups.categories.rop', order: 8 },
-  { key: 'resources', labelKey: 'peopleGroups.categories.resources', order: 9 },
-  { key: 'wagf', labelKey: 'peopleGroups.categories.wagf', order: 10 },
-  { key: 'media', labelKey: 'peopleGroups.categories.media', order: 11 }
+  { key: 'workers', labelKey: 'peopleGroups.categories.workers', order: 9 },
+  { key: 'resources', labelKey: 'peopleGroups.categories.resources', order: 10 },
+  { key: 'wagf', labelKey: 'peopleGroups.categories.wagf', order: 11 },
+  { key: 'media', labelKey: 'peopleGroups.categories.media', order: 12 }
 ]

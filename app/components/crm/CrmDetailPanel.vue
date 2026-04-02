@@ -36,7 +36,7 @@
 
     <!-- Mobile: all tabs -->
     <div class="mobile-layout">
-      <UTabs :items="mobileTabs">
+      <UTabs :items="mobileTabs" size="xs">
         <template #trailing="{ item }">
           <UBadge v-if="item.badge != null" :label="item.badge" variant="subtle" size="xs" />
         </template>
@@ -80,7 +80,7 @@ const mobileTabs = computed(() => {
   const leftTabs = props.detailTabs.length > 0
     ? props.detailTabs
     : [{ label: 'Details', slot: 'details', icon: 'i-lucide-file-text' }]
-  return [...leftTabs, ...props.sideTabs]
+  return [...leftTabs, ...props.sideTabs].map(({ icon, ...tab }) => tab)
 })
 </script>
 
@@ -92,6 +92,7 @@ const mobileTabs = computed(() => {
 .top-bar {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--ui-border);
   margin-bottom: 1rem;
@@ -123,6 +124,7 @@ const mobileTabs = computed(() => {
 
 .detail-tab-content {
   padding-top: 1rem;
+  padding-bottom: 3rem;
 }
 
 .side-column {
@@ -134,6 +136,7 @@ const mobileTabs = computed(() => {
 
 .side-tab-content {
   padding-top: 1rem;
+  padding-bottom: 3rem;
 }
 
 .mobile-tab-content {
@@ -147,6 +150,12 @@ const mobileTabs = computed(() => {
 
   .mobile-layout {
     display: block;
+  }
+
+  .top-bar :deep(button),
+  .top-bar :deep(a) {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
   }
 }
 </style>

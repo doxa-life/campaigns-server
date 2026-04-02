@@ -29,6 +29,7 @@
       "religion": "Religion",
       "rop": "People Classification (ROP)",
       "resources": "Resources Available",
+      "workers": "Engagement Criteria",
       "wagf": "WAGF/Doxa",
       "media": "Media"
     },
@@ -59,6 +60,7 @@
       "imb_engagement_status": "Engagement Status",
       "imb_congregation_existing": "Congregation Exists",
       "imb_church_planting": "Church Planting Status",
+      "believers_count": "Believers Count",
       "imb_gsec": "GSEC",
       "imb_strategic_priority_index": "Strategic Priority Index",
       "imb_lostness_priority_index": "Lostness Priority Index",
@@ -89,7 +91,10 @@
       "image_url": "Picture URL",
       "picture_credit": "Picture Credit",
       "imb_has_photo": "Has Photo",
-      "imb_people_search_text": "People Search Text"
+      "imb_people_search_text": "People Search Text",
+      "workers_long_term": "Long-Term Presence",
+      "workers_local_languages": "Operating in Local Language",
+      "workers_multiplicative": "Using CPM/Multiplicative Strategy"
     },
     "options": {
       "regions": {

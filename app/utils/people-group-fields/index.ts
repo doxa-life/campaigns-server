@@ -59,6 +59,9 @@ import { field as imbRegOfPeople2 } from './fields/imb-reg-of-people-2'
 import { field as imbRegOfPeople1 } from './fields/imb-reg-of-people-1'
 import { field as imbRegOfPeople25 } from './fields/imb-reg-of-people-25'
 
+// Believers count (engagement)
+import { field as believersCount } from './fields/believers-count'
+
 // Resources fields
 import { field as imbBibleAvailable } from './fields/imb-bible-available'
 import { field as imbJesusFilmAvailable } from './fields/imb-jesus-film-available'
@@ -69,6 +72,11 @@ import { field as imbBibleStoriesAvailable } from './fields/imb-bible-stories-av
 import { field as imbTotalResourcesAvailable } from './fields/imb-total-resources-available'
 import { field as imbBibleTranslationLevel } from './fields/imb-bible-translation-level'
 import { field as imbBibleYearPublished } from './fields/imb-bible-year-published'
+
+// Workers fields
+import { field as workersLongTerm } from './fields/workers-long-term'
+import { field as workersLocalLanguages } from './fields/workers-local-languages'
+import { field as workersMultiplicative } from './fields/workers-multiplicative'
 
 // WAGF/Doxa fields
 import { field as doxaWagfRegion } from './fields/doxa-wagf-region'
@@ -113,6 +121,7 @@ export const allFields: FieldDefinition[] = [
   imbEngagementStatus,
   imbCongregationExisting,
   imbChurchPlanting,
+  believersCount,
   // Strategic
   imbGsec,
   imbStrategicPriorityIndex,
@@ -142,6 +151,10 @@ export const allFields: FieldDefinition[] = [
   imbTotalResourcesAvailable,
   imbBibleTranslationLevel,
   imbBibleYearPublished,
+  // Workers
+  workersLongTerm,
+  workersLocalLanguages,
+  workersMultiplicative,
   // WAGF
   doxaWagfRegion,
   doxaWagfBlock,
