@@ -103,7 +103,7 @@
     </template>
 
     <template v-if="selectedGroup" #detail-actions>
-      <UButton size="sm" @click="saveChanges" :loading="saving">Save</UButton>
+      <CrmSaveStatus :saving="saving" :saved="!!savedField" />
     </template>
 
     <template #detail>
@@ -145,7 +145,7 @@
             </div>
           </CrmFormSection>
 
-          <form @submit.prevent="saveChanges">
+          <form @submit.prevent>
             <CrmFormSection
               v-for="category in progressCategories"
               :key="category.key"
@@ -166,7 +166,8 @@
                   <UInput
                     v-else-if="field.type === 'text'"
                     :model-value="getFieldValue(field.key)"
-                    @update:model-value="setFieldValue(field.key, $event)"
+                    @update:model-value="setFieldValue(field.key, $event, field.type)"
+                    @blur="flushAutoSave"
                     class="w-full"
                   />
 
@@ -174,14 +175,15 @@
                     v-else-if="field.type === 'number'"
                     type="number"
                     :model-value="getFieldValue(field.key)"
-                    @update:model-value="setFieldValue(field.key, $event)"
+                    @update:model-value="setFieldValue(field.key, $event, field.type)"
+                    @blur="flushAutoSave"
                     class="w-full"
                   />
 
                   <USelectMenu
                     v-else-if="field.type === 'select' && field.options"
                     :model-value="getFieldValue(field.key)"
-                    @update:model-value="setFieldValue(field.key, $event)"
+                    @update:model-value="setFieldValue(field.key, $event, field.type)"
                     :items="field.options"
                     value-key="value"
                     :search-input="{ placeholder: 'Search...' }"
@@ -192,7 +194,7 @@
                   <USwitch
                     v-else-if="field.type === 'boolean'"
                     :model-value="getFieldValue(field.key) === true || getFieldValue(field.key) === '1'"
-                    @update:model-value="setFieldValue(field.key, $event)"
+                    @update:model-value="setFieldValue(field.key, $event, field.type)"
                   />
                 </UFormField>
               </div>
@@ -201,7 +203,7 @@
         </template>
 
         <template #detail-details>
-          <form @submit.prevent="saveChanges">
+          <form @submit.prevent>
             <CrmFormSection
               v-for="category in detailCategories"
               :key="category.key"
@@ -222,7 +224,8 @@
                   <UInput
                     v-else-if="field.type === 'text'"
                     :model-value="getFieldValue(field.key)"
-                    @update:model-value="setFieldValue(field.key, $event)"
+                    @update:model-value="setFieldValue(field.key, $event, field.type)"
+                    @blur="flushAutoSave"
                     class="w-full"
                   />
 
@@ -230,14 +233,16 @@
                     v-else-if="field.type === 'number'"
                     type="number"
                     :model-value="getFieldValue(field.key)"
-                    @update:model-value="setFieldValue(field.key, $event)"
+                    @update:model-value="setFieldValue(field.key, $event, field.type)"
+                    @blur="flushAutoSave"
                     class="w-full"
                   />
 
                   <UTextarea
                     v-else-if="field.type === 'textarea'"
                     :model-value="getFieldValue(field.key)"
-                    @update:model-value="setFieldValue(field.key, $event)"
+                    @update:model-value="setFieldValue(field.key, $event, field.type)"
+                    @blur="flushAutoSave"
                     :rows="3"
                     class="w-full"
                   />
@@ -245,7 +250,7 @@
                   <USelectMenu
                     v-else-if="field.type === 'select' && field.options"
                     :model-value="getFieldValue(field.key)"
-                    @update:model-value="setFieldValue(field.key, $event)"
+                    @update:model-value="setFieldValue(field.key, $event, field.type)"
                     :items="field.options"
                     value-key="value"
                     :search-input="{ placeholder: 'Search...' }"
@@ -256,21 +261,25 @@
                   <TranslatableField
                     v-else-if="field.type === 'translatable'"
                     :model-value="getFieldValue(field.key)"
-                    @update:model-value="setFieldValue(field.key, $event)"
-                    @save="saveChanges"
+                    @update:model-value="setFieldValue(field.key, $event, 'text')"
+                    @save="flushAutoSave"
                     :rows="3"
                   />
 
-                  <PictureCreditEditor
+                  <div
                     v-else-if="field.type === 'picture-credit'"
-                    :model-value="getFieldValue(field.key)"
-                    @update:model-value="setFieldValue(field.key, $event)"
-                  />
+                    @focusout="flushAutoSave"
+                  >
+                    <PictureCreditEditor
+                      :model-value="getFieldValue(field.key)"
+                      @update:model-value="setFieldValue(field.key, $event, field.type)"
+                    />
+                  </div>
 
                   <USwitch
                     v-else-if="field.type === 'boolean'"
                     :model-value="getFieldValue(field.key) === true || getFieldValue(field.key) === '1'"
-                    @update:model-value="setFieldValue(field.key, $event)"
+                    @update:model-value="setFieldValue(field.key, $event, field.type)"
                   />
                 </UFormField>
               </div>
@@ -378,8 +387,47 @@ const adoptions = ref<Adoption[]>([])
 const allGroups = ref<GroupOption[]>([])
 
 
-// Form state
-const formData = ref<Record<string, any>>({})
+// Auto-save form state
+const { formData, saving, savedField, fieldChanged, reset: resetAutoSave, flush: flushAutoSave } = useAutoSave(
+  {} as Record<string, any>,
+  {
+    saveFn: async (data) => {
+      if (!selectedGroup.value) return
+      const columnData: Record<string, any> = {}
+      const metadataData: Record<string, any> = {}
+      for (const [key, value] of Object.entries(data)) {
+        if (columnKeys.has(key)) {
+          columnData[key] = value
+        } else {
+          metadataData[key] = value
+        }
+      }
+      const response = await $fetch<{ success: boolean; peopleGroup: PeopleGroup }>(
+        `/api/admin/people-groups/${selectedGroup.value.id}`,
+        {
+          method: 'PUT',
+          body: { ...columnData, metadata: metadataData }
+        }
+      )
+      selectedGroup.value = response.peopleGroup
+      const index = peopleGroups.value.findIndex(g => g.id === response.peopleGroup.id)
+      if (index !== -1) {
+        peopleGroups.value[index] = response.peopleGroup
+      }
+      return buildFormData(response.peopleGroup)
+    },
+    onSaved: () => {
+      activityRef.value?.refresh()
+    },
+    onError: (err) => {
+      toast.add({
+        title: 'Error',
+        description: err.data?.statusMessage || 'Failed to save changes',
+        color: 'error'
+      })
+    }
+  }
+)
 
 // Adoption modal state
 const showAddAdoptionModal = ref(false)
@@ -406,6 +454,7 @@ const sideTabs = computed(() => [
 
 watch(slideoverOpen, (open) => {
   if (!open) {
+    flushAutoSave()
     deselectGroup()
   }
 })
@@ -420,7 +469,6 @@ const availableGroupOptions = computed(() => {
 // UI state
 const loading = ref(true)
 const error = ref('')
-const saving = ref(false)
 const searchQuery = ref('')
 
 // Filters
@@ -558,7 +606,7 @@ async function selectGroup(group: PeopleGroup, updateUrl = true) {
 
   selectedGroup.value = group
   slideoverOpen.value = true
-  initializeForm(group)
+  resetAutoSave(buildFormData(group))
   if (updateUrl && import.meta.client) {
     window.history.replaceState({}, '', `/admin/people-groups/${group.id}`)
   }
@@ -578,21 +626,16 @@ function deselectGroup() {
   }
 }
 
-// Initialize form with group data
 const columnKeys = new Set(tableColumnFields.map(f => f.key))
 
-function initializeForm(group: PeopleGroup) {
+function buildFormData(group: PeopleGroup): Record<string, any> {
   const columnValues: Record<string, any> = {}
   for (const key of columnKeys) {
     columnValues[key] = (group as any)[key]
   }
-  formData.value = {
-    ...columnValues,
-    ...group.metadata
-  }
+  return { ...columnValues, ...group.metadata }
 }
 
-// Get field value from form data
 function getFieldValue(key: string): any {
   const value = formData.value[key]
   if (key === 'descriptions') {
@@ -601,70 +644,12 @@ function getFieldValue(key: string): any {
   return value ?? ''
 }
 
-// Set field value in form data
-function setFieldValue(key: string, value: any) {
+function setFieldValue(key: string, value: any, fieldType?: string) {
   formData.value[key] = value
-}
-
-// Reset form to original values
-function resetForm() {
-  if (selectedGroup.value) {
-    initializeForm(selectedGroup.value)
-  }
-}
-
-// Save changes
-async function saveChanges() {
-  if (!selectedGroup.value) return
-
-  try {
-    saving.value = true
-
-    const columnData: Record<string, any> = {}
-    const metadataData: Record<string, any> = {}
-    for (const [key, value] of Object.entries(formData.value)) {
-      if (columnKeys.has(key)) {
-        columnData[key] = value
-      } else {
-        metadataData[key] = value
-      }
-    }
-
-    const response = await $fetch<{ success: boolean; peopleGroup: PeopleGroup }>(
-      `/api/admin/people-groups/${selectedGroup.value.id}`,
-      {
-        method: 'PUT',
-        body: {
-          ...columnData,
-          metadata: metadataData
-        }
-      }
-    )
-
-    selectedGroup.value = response.peopleGroup
-    initializeForm(response.peopleGroup)
-
-    const index = peopleGroups.value.findIndex(g => g.id === response.peopleGroup.id)
-    if (index !== -1) {
-      peopleGroups.value[index] = response.peopleGroup
-    }
-
-    activityRef.value?.refresh()
-
-    toast.add({
-      title: 'Success',
-      description: 'People group updated successfully',
-      color: 'success'
-    })
-  } catch (err: any) {
-    toast.add({
-      title: 'Error',
-      description: err.data?.statusMessage || 'Failed to save changes',
-      color: 'error'
-    })
-  } finally {
-    saving.value = false
-  }
+  const strategy = ['text', 'number', 'textarea', 'translatable', 'picture-credit'].includes(fieldType || '')
+    ? 'text' as const
+    : 'immediate' as const
+  fieldChanged(key, strategy)
 }
 
 function openAdoptionSlideover(adoption: Adoption) {
@@ -742,7 +727,7 @@ onMounted(async () => {
       } as PeopleGroup
       selectedGroup.value = group
       slideoverOpen.value = true
-      initializeForm(group)
+      resetAutoSave(buildFormData(group))
       adoptions.value = groupRes.adoptions
     } catch {
       // Group not found — just wait for the list
@@ -753,7 +738,7 @@ onMounted(async () => {
     const listGroup = peopleGroups.value.find(g => g.id === parseInt(idParam))
     if (listGroup) {
       selectedGroup.value = listGroup
-      initializeForm(listGroup)
+      resetAutoSave(buildFormData(listGroup))
     }
   } else {
     await loadPeopleGroups(true)

@@ -47,21 +47,28 @@
     </template>
 
     <template v-if="selectedGroup" #detail-actions>
+      <CrmSaveStatus :saving="saving" :saved="!!savedField" />
       <UButton size="sm" @click="openDeleteGroupModal" color="error" variant="outline">Delete</UButton>
-      <UButton size="sm" @click="saveGroupChanges" :loading="saving">Save</UButton>
     </template>
 
     <template #detail>
       <CrmDetailPanel v-if="selectedGroup" :side-tabs="sideTabs">
         <template #details>
-          <form @submit.prevent="saveGroupChanges">
+          <form @submit.prevent>
             <CrmFormSection title="Group Information">
               <UFormField :label="getGroupFieldLabel('name')" required>
-                <UInput v-model="groupForm.name" type="text" class="w-full" />
+                <UInput
+                  :model-value="formData.name"
+                  @update:model-value="v => { formData.name = v }"
+                  @blur="flushAutoSave"
+                  type="text"
+                  class="w-full"
+                />
               </UFormField>
               <UFormField :label="getGroupFieldLabel('primary_subscriber_id')">
                 <USelectMenu
-                  v-model="groupForm.primary_subscriber_id"
+                  :model-value="formData.primary_subscriber_id"
+                  @update:model-value="v => { formData.primary_subscriber_id = v ?? undefined; fieldChanged('primary_subscriber_id', 'immediate') }"
                   :items="primarySubscriberOptions"
                   value-key="value"
                   placeholder="Select primary contact..."
@@ -70,7 +77,8 @@
               </UFormField>
               <UFormField :label="getGroupFieldLabel('country')">
                 <USelectMenu
-                  v-model="groupForm.country"
+                  :model-value="formData.country"
+                  @update:model-value="v => { formData.country = v; fieldChanged('country', 'immediate') }"
                   :items="countryOptions"
                   value-key="value"
                   placeholder="Select country..."
@@ -286,12 +294,33 @@ const allPeopleGroups = ref<PeopleGroupOption[]>([])
 
 const loading = ref(true)
 const error = ref('')
-const saving = ref(false)
 const creating = ref(false)
 const deleting = ref(false)
 
 const searchQuery = ref('')
-const groupForm = ref({ name: '', primary_subscriber_id: undefined as number | undefined, country: undefined as string | undefined })
+
+const { formData, saving, savedField, fieldChanged, reset: resetAutoSave, flush: flushAutoSave } = useAutoSave(
+  { name: '', primary_subscriber_id: undefined as number | undefined, country: undefined as string | undefined },
+  {
+    saveFn: async (data) => {
+      await $fetch(`/api/admin/groups/${selectedGroup.value!.id}`, {
+        method: 'PUT',
+        body: {
+          name: data.name,
+          primary_subscriber_id: data.primary_subscriber_id,
+          country: data.country
+        }
+      })
+    },
+    onSaved: () => {
+      refreshGroup()
+      activityRef.value?.refresh()
+    },
+    onError: (err) => {
+      toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to save', color: 'error' })
+    }
+  }
+)
 
 const showCreateModal = ref(false)
 const showDeleteModal = ref(false)
@@ -315,6 +344,7 @@ const sideTabs = computed(() => [
 
 watch(slideoverOpen, (open) => {
   if (!open) {
+    flushAutoSave()
     deselectGroup()
   }
 })
@@ -379,11 +409,11 @@ async function selectGroup(group: GroupWithDetails, updateUrl = true) {
 
   selectedGroup.value = group
   slideoverOpen.value = true
-  groupForm.value = {
+  resetAutoSave({
     name: group.name,
     primary_subscriber_id: group.primary_subscriber_id ?? undefined,
     country: group.country ?? undefined
-  }
+  })
   if (updateUrl && import.meta.client) {
     window.history.replaceState({}, '', `/admin/groups/${group.id}`)
   }
@@ -405,31 +435,6 @@ function deselectGroup() {
   }
 }
 
-async function saveGroupChanges() {
-  if (!selectedGroup.value) return
-  try {
-    saving.value = true
-    await $fetch(`/api/admin/groups/${selectedGroup.value.id}`, {
-      method: 'PUT',
-      body: {
-        name: groupForm.value.name,
-        primary_subscriber_id: groupForm.value.primary_subscriber_id,
-        country: groupForm.value.country
-      }
-    })
-    await refreshGroup()
-    activityRef.value?.refresh()
-    toast.add({ title: 'Saved', color: 'success' })
-  } catch (err: any) {
-    toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to save', color: 'error' })
-  } finally {
-    saving.value = false
-  }
-}
-
-function resetForm() {
-  if (selectedGroup.value) selectGroup(selectedGroup.value, false)
-}
 
 function openCreateModal() {
   createGroupForm.value = { name: '' }

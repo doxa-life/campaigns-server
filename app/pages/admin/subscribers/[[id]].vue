@@ -100,8 +100,8 @@
     </template>
 
     <template v-if="selectedSubscriber" #detail-actions>
+      <CrmSaveStatus :saving="saving" :saved="!!savedField" />
       <UButton size="sm" @click="openDeleteModal" color="error" variant="outline">Delete</UButton>
-      <UButton size="sm" @click="saveChanges" :loading="saving">Save</UButton>
     </template>
 
     <template #detail>
@@ -131,10 +131,16 @@
             </div>
           </div>
 
-          <form @submit.prevent="saveChanges">
+          <form @submit.prevent>
             <CrmFormSection title="Contact Information">
               <UFormField :label="getSubscriberFieldLabel('name')" required>
-                <UInput v-model="subscriberForm.name" type="text" class="w-full" />
+                <UInput
+                  :model-value="subscriberForm.name"
+                  @update:model-value="v => { subscriberForm.name = v }"
+                  @blur="flushSubscriberAutoSave"
+                  type="text"
+                  class="w-full"
+                />
               </UFormField>
 
               <UFormField>
@@ -149,20 +155,40 @@
                     />
                   </span>
                 </template>
-                <UInput v-model="subscriberForm.email" type="email" class="w-full" />
+                <UInput
+                  :model-value="subscriberForm.email"
+                  @update:model-value="v => { subscriberForm.email = v }"
+                  @blur="flushSubscriberAutoSave"
+                  type="email"
+                  class="w-full"
+                />
               </UFormField>
 
               <UFormField :label="getSubscriberFieldLabel('phone')">
-                <UInput v-model="subscriberForm.phone" type="tel" class="w-full" />
+                <UInput
+                  :model-value="subscriberForm.phone"
+                  @update:model-value="v => { subscriberForm.phone = v }"
+                  @blur="flushSubscriberAutoSave"
+                  type="tel"
+                  class="w-full"
+                />
               </UFormField>
 
               <UFormField :label="getSubscriberFieldLabel('role')">
-                <UInput v-model="subscriberForm.role" type="text" class="w-full" placeholder="e.g. Pastor, Missions Pastor" />
+                <UInput
+                  :model-value="subscriberForm.role"
+                  @update:model-value="v => { subscriberForm.role = v }"
+                  @blur="flushSubscriberAutoSave"
+                  type="text"
+                  class="w-full"
+                  placeholder="e.g. Pastor, Missions Pastor"
+                />
               </UFormField>
 
               <UFormField :label="getSubscriberFieldLabel('preferred_language')">
                 <USelectMenu
-                  v-model="subscriberForm.preferred_language"
+                  :model-value="subscriberForm.preferred_language"
+                  @update:model-value="v => { subscriberForm.preferred_language = v; subscriberFieldChanged('preferred_language', 'immediate') }"
                   :items="languageOptions"
                   value-key="value"
                   class="w-full"
@@ -171,7 +197,8 @@
 
               <UFormField :label="getSubscriberFieldLabel('country')">
                 <USelectMenu
-                  v-model="subscriberForm.country"
+                  :model-value="subscriberForm.country"
+                  @update:model-value="v => { subscriberForm.country = v; subscriberFieldChanged('country', 'immediate') }"
                   :items="countryOptions"
                   value-key="value"
                   placeholder="Select country..."
@@ -182,7 +209,8 @@
 
               <UFormField :label="getSubscriberFieldLabel('sources')">
                 <USelectMenu
-                  v-model="subscriberForm.sources"
+                  :model-value="subscriberForm.sources"
+                  @update:model-value="v => { subscriberForm.sources = v; subscriberFieldChanged('sources', 'immediate') }"
                   :items="sourceEditOptions"
                   value-key="value"
                   multiple
@@ -309,7 +337,8 @@
 
                     <UFormField :label="getSubscriberFieldLabel('frequency')">
                       <USelect
-                        v-model="getSubscriptionForm(subscription.id).frequency"
+                        :model-value="getSubscriptionForm(subscription.id).frequency"
+                        @update:model-value="v => updateSubscriptionField(subscription.id, 'frequency', v)"
                         :items="frequencyOptions"
                         value-key="value"
                         class="w-full"
@@ -322,7 +351,9 @@
 
                     <UFormField :label="getSubscriberFieldLabel('time_preference')">
                       <UInput
-                        v-model="getSubscriptionForm(subscription.id).time_preference"
+                        :model-value="getSubscriptionForm(subscription.id).time_preference"
+                        @update:model-value="v => updateSubscriptionField(subscription.id, 'time_preference', v)"
+                        @blur="() => flushSubscriptionSaver(subscription.id)"
                         type="time"
                         class="w-full"
                       />
@@ -342,7 +373,8 @@
 
                     <UFormField :label="getSubscriberFieldLabel('status')">
                       <USelect
-                        v-model="getSubscriptionForm(subscription.id).status"
+                        :model-value="getSubscriptionForm(subscription.id).status"
+                        @update:model-value="v => updateSubscriptionField(subscription.id, 'status', v)"
                         :items="statusOptions"
                         value-key="value"
                         class="w-full"
@@ -631,16 +663,112 @@ const selectedSubscriber = ref<GeneralSubscriber | null>(null)
 // Loading states
 const loading = ref(true)
 const error = ref('')
-const saving = ref(false)
 
 // Filters
 const searchQuery = ref('')
 const filterPeopleGroupId = ref<number | null>(null)
 const filterSource = ref<string | null>(null)
 
-// Form state
-const subscriberForm = ref({ name: '', email: '', phone: '', role: '', preferred_language: 'en', country: undefined as string | undefined, sources: [] as string[] })
+// Subscriber auto-save
+interface SubscriberFormData {
+  name: string
+  email: string
+  phone: string
+  role: string
+  preferred_language: string
+  country: string | undefined
+  sources: string[]
+}
+
+const { formData: subscriberForm, saving: subscriberSaving, savedField, fieldChanged: subscriberFieldChanged, reset: resetSubscriberAutoSave, flush: flushSubscriberAutoSave } = useAutoSave<SubscriberFormData>(
+  { name: '', email: '', phone: '', role: '', preferred_language: 'en', country: undefined, sources: [] },
+  {
+    saveFn: async (data) => {
+      if (!selectedSubscriber.value) return
+      await $fetch(`/api/admin/subscribers/${selectedSubscriber.value.id}`, {
+        method: 'PUT',
+        body: {
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          role: data.role || null,
+          preferred_language: data.preferred_language,
+          country: data.country || null,
+          sources: data.sources
+        }
+      })
+    },
+    onSaved: () => {
+      if (selectedSubscriber.value) loadActivityLog(selectedSubscriber.value)
+    },
+    onError: (err) => {
+      toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to save', color: 'error' })
+    }
+  }
+)
+
+// Subscription auto-save (per subscription)
+const subscriptionSavers = shallowRef(new Map<number, ReturnType<typeof useAutoSave<SubscriptionForm>>>())
 const subscriptionForms = ref<Map<number, SubscriptionForm>>(new Map())
+
+const saving = computed(() => {
+  if (subscriberSaving.value) return true
+  for (const saver of subscriptionSavers.value.values()) {
+    if (saver.saving.value) return true
+  }
+  return false
+})
+
+function getOrCreateSubscriptionSaver(subscriptionId: number) {
+  if (!subscriptionSavers.value.has(subscriptionId)) {
+    const form = subscriptionForms.value.get(subscriptionId)
+    if (!form) return null
+    const saver = useAutoSave<SubscriptionForm>(
+      { ...form },
+      {
+        saveFn: async (data) => {
+          await $fetch(`/api/admin/subscriptions/${subscriptionId}`, {
+            method: 'PUT',
+            body: data
+          })
+        },
+        onSaved: () => {
+          if (selectedSubscriber.value) loadActivityLog(selectedSubscriber.value)
+        },
+        onError: (err) => {
+          toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to save subscription', color: 'error' })
+        }
+      }
+    )
+    // Keep subscriptionForms in sync for template reads
+    watch(saver.formData, (v) => {
+      subscriptionForms.value.set(subscriptionId, { ...v })
+    }, { deep: true })
+    subscriptionSavers.value.set(subscriptionId, saver)
+    triggerRef(subscriptionSavers)
+  }
+  return subscriptionSavers.value.get(subscriptionId)!
+}
+
+function updateSubscriptionField(subscriptionId: number, key: keyof SubscriptionForm, value: any) {
+  const saver = getOrCreateSubscriptionSaver(subscriptionId)
+  if (!saver) return
+  ;(saver.formData.value as any)[key] = value
+  const strategy = key === 'time_preference' ? 'text' as const : 'immediate' as const
+  saver.fieldChanged(key, strategy)
+}
+
+function flushSubscriptionSaver(subscriptionId: number) {
+  const saver = subscriptionSavers.value.get(subscriptionId)
+  if (saver) saver.flush()
+}
+
+function flushAllAutoSave() {
+  flushSubscriberAutoSave()
+  for (const saver of subscriptionSavers.value.values()) {
+    saver.flush()
+  }
+}
 
 // Expansion state for subscription cards
 const expandedSubscriptions = ref<Set<number>>(new Set())
@@ -683,6 +811,7 @@ const sideTabs = computed(() => [
 
 watch(slideoverOpen, (open) => {
   if (!open) {
+    flushAllAutoSave()
     deselectSubscriber()
   }
 })
@@ -964,7 +1093,15 @@ async function selectSubscriber(subscriber: GeneralSubscriber, updateUrl = true)
 
   selectedSubscriber.value = subscriber
   slideoverOpen.value = true
-  subscriberForm.value = { name: subscriber.name, email: subscriber.primary_email || '', phone: subscriber.primary_phone || '', role: subscriber.role || '', preferred_language: subscriber.preferred_language, country: subscriber.country || undefined, sources: subscriber.sources || [] }
+  resetSubscriberAutoSave({
+    name: subscriber.name,
+    email: subscriber.primary_email || '',
+    phone: subscriber.primary_phone || '',
+    role: subscriber.role || '',
+    preferred_language: subscriber.preferred_language,
+    country: subscriber.country || undefined,
+    sources: subscriber.sources || []
+  })
   if (updateUrl && import.meta.client) {
     const params = new URLSearchParams()
     if (filterPeopleGroupId.value) params.set('peopleGroup', String(filterPeopleGroupId.value))
@@ -974,6 +1111,7 @@ async function selectSubscriber(subscriber: GeneralSubscriber, updateUrl = true)
     window.history.replaceState({}, '', `/admin/subscribers/${subscriber.id}${queryString ? '?' + queryString : ''}`)
   }
 
+  subscriptionSavers.value = new Map()
   subscriptionForms.value = new Map()
   for (const sub of subscriber.subscriptions) {
     subscriptionForms.value.set(sub.id, {
@@ -1120,79 +1258,6 @@ async function sendFollowup(subscription: Subscription) {
     })
   } finally {
     sendingFollowup.value[subscription.id] = false
-  }
-}
-
-async function saveChanges() {
-  if (!selectedSubscriber.value) return
-
-  try {
-    saving.value = true
-    const subscriber = selectedSubscriber.value
-    const nameChanged = subscriberForm.value.name !== subscriber.name
-    const emailChanged = subscriberForm.value.email !== (subscriber.primary_email || '')
-    const phoneChanged = subscriberForm.value.phone !== (subscriber.primary_phone || '')
-    const roleChanged = subscriberForm.value.role !== (subscriber.role || '')
-    const langChanged = subscriberForm.value.preferred_language !== subscriber.preferred_language
-    const countryChanged = (subscriberForm.value.country || null) !== (subscriber.country || null)
-    const sourcesChanged = JSON.stringify([...subscriberForm.value.sources].sort()) !== JSON.stringify([...subscriber.sources].sort())
-
-    if (nameChanged || emailChanged || phoneChanged || roleChanged || langChanged || countryChanged || sourcesChanged) {
-      await $fetch(`/api/admin/subscribers/${subscriber.id}`, {
-        method: 'PUT',
-        body: {
-          name: subscriberForm.value.name,
-          email: subscriberForm.value.email,
-          phone: subscriberForm.value.phone,
-          role: subscriberForm.value.role || null,
-          preferred_language: subscriberForm.value.preferred_language,
-          country: subscriberForm.value.country || null,
-          sources: subscriberForm.value.sources
-        }
-      })
-    }
-
-    for (const [subId, form] of subscriptionForms.value.entries()) {
-      const original = subscriber.subscriptions.find(s => s.id === subId)
-      if (!original) continue
-      if (
-        form.frequency !== original.frequency ||
-        form.time_preference !== original.time_preference ||
-        form.status !== original.status
-      ) {
-        await $fetch(`/api/admin/subscriptions/${subId}`, {
-          method: 'PUT',
-          body: form
-        })
-      }
-    }
-
-    await loadData()
-
-    const updated = subscribers.value.find(s => s.id === subscriber.id)
-    if (updated) {
-      selectSubscriber(updated, false)
-    }
-
-    toast.add({
-      title: 'Success',
-      description: 'Changes saved successfully',
-      color: 'success'
-    })
-  } catch (err: any) {
-    toast.add({
-      title: 'Error',
-      description: err.data?.statusMessage || 'Failed to save changes',
-      color: 'error'
-    })
-  } finally {
-    saving.value = false
-  }
-}
-
-function resetForm() {
-  if (selectedSubscriber.value) {
-    selectSubscriber(selectedSubscriber.value)
   }
 }
 
