@@ -51,7 +51,7 @@
             <span v-if="showExpanded" class="nav-label">Groups</span>
           </NuxtLink>
         </li>
-        <li v-if="canAccess('content.view')">
+        <li v-if="canAccessUnscoped('content.view')">
           <NuxtLink to="/admin/libraries" class="nav-link" :title="!showExpanded ? 'Libraries' : undefined">
             <UIcon name="i-lucide-book-open" />
             <span v-if="showExpanded" class="nav-label">Libraries</span>
@@ -100,7 +100,7 @@
 
 <script setup lang="ts">
 const config = useRuntimeConfig()
-const { user, isAdmin, isSuperAdmin, hasRole, canAccess, checkAuth } = useAuthUser()
+const { user, isAdmin, isSuperAdmin, hasRole, canAccess, canAccessUnscoped, checkAuth } = useAuthUser()
 
 const route = useRoute()
 const sidebarOpen = ref(false)

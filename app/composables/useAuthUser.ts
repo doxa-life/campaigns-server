@@ -30,11 +30,17 @@ export const useAuthUser = () => {
     return userPermissions.value.has(permission) || userPermissions.value.has(permission + '_scoped')
   }
 
+  function canAccessUnscoped(permission: string): boolean {
+    if (isAdmin.value) return true
+    return userPermissions.value.has(permission)
+  }
+
   return {
     ...baseAuth,
     isAdmin,
     isSuperAdmin,
     hasRole,
-    canAccess
+    canAccess,
+    canAccessUnscoped
   }
 }
