@@ -520,65 +520,6 @@ paths:
                   total:
                     type: integer
 
-  /api/people-groups:
-    get:
-      tags:
-        - People Groups
-      summary: Get all people groups (raw data)
-      description: |
-        Returns all people groups with raw field values (no label formatting). Useful for map widgets and data exports.
-
-        **Default fields:** name, slug, imb_reg_of_people_1, doxa_wagf_region, doxa_wagf_block, population, primary_religion, imb_reg_of_religion_3, country_code, imb_has_photo, image_url, latitude, longitude, imb_people_description
-
-        **Available fields:**
-        - **Basic:** name, imb_display_name, imb_alternate_name, imb_people_name, imb_people_description, imb_location_description
-        - **Identifiers:** joshua_project_id, doxa_masteruid, doxa_wagf_uid, imb_uid, imb_pgid, imb_peid
-        - **Geography:** country_code, region, imb_subregion, latitude, longitude, imb_is_indigenous, imb_affinity_code
-        - **Engagement:** engagement_status, imb_congregation_existing, imb_church_planting, believers_count
-        - **Engagement Criteria:** workers_long_term, work_in_local_language, disciple_and_church_multiplication
-        - **Population:** population, imb_population_class
-        - **Strategic:** imb_gsec, imb_strategic_priority_index, imb_lostness_priority_index, evangelical_pct, imb_evangelical_level, imb_church_planting
-        - **Language:** primary_language, imb_language_family, imb_language_class, imb_language_speakers
-        - **Religion:** primary_religion, imb_reg_of_religion_3, imb_reg_of_religion_4
-        - **People Classification:** imb_reg_of_people_3, imb_reg_of_people_2, imb_reg_of_people_1, imb_reg_of_people_25
-        - **Resources:** imb_bible_available, imb_jesus_film_available, imb_radio_broadcast_available, imb_gospel_recordings_available, imb_audio_scripture_available, imb_bible_stories_available, imb_total_resources_available, imb_bible_translation_level, imb_bible_year_published
-        - **WAGF:** doxa_wagf_region, doxa_wagf_block, doxa_wagf_member
-        - **Media:** image_url, imb_picture_credit_html, imb_has_photo, imb_people_search_text
-        - **Special:** slug (always included)
-      operationId: getAllPeopleGroupsRaw
-      parameters:
-        - name: fields
-          in: query
-          required: false
-          description: Comma-separated field names, or "all" for everything
-          schema:
-            type: string
-          example: name,slug,image_url,latitude,longitude,engagement_status
-        - name: lang
-          in: query
-          required: false
-          description: Language code for locale-aware fields (e.g. imb_people_description)
-          schema:
-            type: string
-            enum: [en, es, fr, pt, de, it, zh, ar, ru, hi]
-            default: en
-      responses:
-        '200':
-          description: Successfully retrieved people groups
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  posts:
-                    type: array
-                    items:
-                      type: object
-                      additionalProperties: true
-                      description: Raw field values based on requested fields
-                  total:
-                    type: integer
-
 components:
   securitySchemes:
     apiKey:
