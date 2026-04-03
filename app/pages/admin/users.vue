@@ -151,7 +151,7 @@
               </div>
               <div class="flex items-center gap-2">
                 <UBadge color="neutral" variant="outline" size="sm">
-                  {{ (role as RoleWithPermissions).permissions.length }} permissions
+                  {{ role.permissions.length }} permissions
                 </UBadge>
                 <UIcon
                   :name="expandedRole === role.name ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
@@ -161,7 +161,7 @@
             </button>
 
             <div v-if="expandedRole === role.name" class="border-t border-[var(--ui-border)] p-4 space-y-4">
-              <div v-for="group in getPermissionGroups((role as RoleWithPermissions).permissions)" :key="group.label">
+              <div v-for="group in getPermissionGroups(role.permissions)" :key="group.label">
                 <p class="text-xs font-medium text-[var(--ui-text-muted)] uppercase tracking-wider mb-2">
                   {{ group.label }}
                 </p>
@@ -530,7 +530,7 @@ const loading = ref(true)
 const error = ref('')
 const users = ref<User[]>([])
 const allInvitations = ref<Invitation[]>([])
-const availableRoles = ref<Role[]>([])
+const availableRoles = ref<RoleWithPermissions[]>([])
 const showInviteModal = ref(false)
 
 const inviteForm = ref({
@@ -651,7 +651,8 @@ async function loadData() {
 // Roles modal
 function openRolesModal(user: User) {
   selectedUser.value = user
-  editingRoles.value = user.roles.map(r => r.name)
+  const availableNames = availableRoles.value.map(r => r.name)
+  editingRoles.value = user.roles.map(r => r.name).filter(n => availableNames.includes(n))
   showRolesModal.value = true
 }
 

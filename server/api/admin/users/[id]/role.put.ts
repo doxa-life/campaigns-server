@@ -32,9 +32,9 @@ export default defineEventHandler(async (event) => {
     }
 
     // Validate all role names
-    const validRoleNames = Object.keys(roleService.getAllRoles().reduce((acc, r) => ({ ...acc, [r.name]: true }), {}))
+    const validRoleNames = roleService.getAllRoles().map(r => r.name)
     for (const roleName of body.roles) {
-      if (!roleService.getRoleByName(roleName)) {
+      if (!validRoleNames.includes(roleName)) {
         throw createError({
           statusCode: 400,
           statusMessage: `Invalid role: ${roleName}. Valid roles: ${validRoleNames.join(', ')}`
