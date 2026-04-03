@@ -55,19 +55,26 @@ describe('Library CRUD API', async () => {
         expect(error.statusCode).toBe(401)
       })
 
-      it('succeeds for any authenticated user (global libraries)', async () => {
-        const response = await $fetch(`/api/admin/libraries/${testLibrary.id}`, noRoleAuth)
-        expect(response.library).toBeDefined()
+      it('returns 403 for users with no role', async () => {
+        const error = await $fetch(`/api/admin/libraries/${testLibrary.id}`, noRoleAuth).catch((e) => e)
+        expect(error.statusCode).toBe(403)
       })
     })
 
     describe('People group-linked library access', () => {
-      it('any authenticated user can read global libraries', async () => {
+      it('admin can read global libraries', async () => {
         const globalLib = await createTestLibrary(sql, { name: `Test Global Library ${Date.now()}` })
 
-        const response = await $fetch(`/api/admin/libraries/${globalLib.id}`, editorAuth)
+        const response = await $fetch(`/api/admin/libraries/${globalLib.id}`, adminAuth)
         expect(response.library).toBeDefined()
         expect(response.library.id).toBe(globalLib.id)
+      })
+
+      it('scoped user cannot read global libraries', async () => {
+        const globalLib = await createTestLibrary(sql, { name: `Test Scoped Global ${Date.now()}` })
+
+        const error = await $fetch(`/api/admin/libraries/${globalLib.id}`, editorAuth).catch((e) => e)
+        expect(error.statusCode).toBe(403)
       })
 
       // Note: This test documents the potential bug - people group-linked libraries
@@ -156,14 +163,14 @@ describe('Library CRUD API', async () => {
         expect(response.library).toBeDefined()
       })
 
-      it('returns 403 for people_group_editor users (admin only)', async () => {
-        const error = await $fetch('/api/admin/libraries', {
+      it('succeeds for people_group_editor users (content.create permission)', async () => {
+        const response = await $fetch('/api/admin/libraries', {
           method: 'POST',
           body: { name: `Test Library Editor ${Date.now()}` },
           ...editorAuth
-        }).catch((e) => e)
+        })
 
-        expect(error.statusCode).toBe(403)
+        expect(response.success).toBe(true)
       })
     })
 

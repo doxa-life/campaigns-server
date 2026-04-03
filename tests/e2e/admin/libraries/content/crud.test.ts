@@ -163,14 +163,14 @@ describe('Library Content CRUD API', async () => {
       expect(error.statusCode).toBe(401)
     })
 
-    it('allows users with no role (requires auth only)', async () => {
-      const response = await $fetch(`/api/admin/libraries/${testLibrary.id}/content/${testContent.id}`, {
+    it('returns 403 for users with no role', async () => {
+      const error = await $fetch(`/api/admin/libraries/${testLibrary.id}/content/${testContent.id}`, {
         method: 'PUT',
         body: { day_number: 2 },
         ...noRoleAuth
-      })
+      }).catch((e) => e)
 
-      expect(response.success).toBe(true)
+      expect(error.statusCode).toBe(403)
     })
 
     it('updates content successfully', async () => {
@@ -207,15 +207,15 @@ describe('Library Content CRUD API', async () => {
       expect(error.statusCode).toBe(401)
     })
 
-    it('allows users with no role (requires auth only)', async () => {
+    it('returns 403 for users with no role', async () => {
       const content = await createTestLibraryContent(sql, testLibrary.id, { day_number: 11 })
 
-      const response = await $fetch(`/api/admin/libraries/${testLibrary.id}/content/${content.id}`, {
+      const error = await $fetch(`/api/admin/libraries/${testLibrary.id}/content/${content.id}`, {
         method: 'DELETE',
         ...noRoleAuth
-      })
+      }).catch((e) => e)
 
-      expect(response.success).toBe(true)
+      expect(error.statusCode).toBe(403)
     })
 
     it('deletes content successfully', async () => {

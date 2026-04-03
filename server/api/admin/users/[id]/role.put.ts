@@ -3,25 +3,26 @@ import { userService } from '#server/database/users'
 import { handleApiError, getUuidParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  // Require admin authentication
-  await requireAdmin(event)
+  await requirePermission(event, 'users.manage')
 
-  // Get and validate user ID from route params (UUID string)
   const userId = getUuidParam(event, 'id')
-
-  // Get request body
   const body = await readBody(event)
 
-  // Validate role is provided (can be null to remove role)
-  if (body.role === undefined) {
+  if (body.roles === undefined) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'role is required (use null to remove role)'
+      statusMessage: 'roles is required (use empty array to remove all roles)'
+    })
+  }
+
+  if (!Array.isArray(body.roles)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'roles must be an array'
     })
   }
 
   try {
-    // Check if user exists
     const user = await userService.getUserById(userId)
     if (!user) {
       throw createError({
@@ -30,44 +31,33 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const oldRole = user.role || null
-
-    // If role is null, remove the user's role
-    if (body.role === null) {
-      await roleService.setUserRole(userId, null)
-
-      if (oldRole !== null) {
-        logUpdate('users', userId, event, { changes: { role: { from: oldRole, to: null } } })
-      }
-
-      return {
-        success: true,
-        message: 'User role removed'
+    // Validate all role names
+    const validRoleNames = roleService.getAllRoles().map(r => r.name)
+    for (const roleName of body.roles) {
+      if (!validRoleNames.includes(roleName)) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: `Invalid role: ${roleName}. Valid roles: ${validRoleNames.join(', ')}`
+        })
       }
     }
 
-    // Validate role name
-    const roleConfig = roleService.getRoleByName(body.role)
-    if (!roleConfig) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Invalid role. Valid roles: admin, people_group_editor'
-      })
-    }
+    const oldRoles = await roleService.getUserRoles(userId)
+    await roleService.setUserRoles(userId, body.roles as RoleName[])
 
-    // Set new role
-    await roleService.setUserRole(userId, body.role as RoleName)
-
-    if (oldRole !== body.role) {
-      logUpdate('users', userId, event, { changes: { role: { from: oldRole, to: body.role } } })
+    const rolesChanged = JSON.stringify(oldRoles.sort()) !== JSON.stringify([...body.roles].sort())
+    if (rolesChanged) {
+      logUpdate('users', userId, event, { changes: { roles: { from: oldRoles, to: body.roles } } })
     }
 
     return {
       success: true,
-      role: body.role,
-      message: `User role updated to ${body.role}`
+      roles: body.roles,
+      message: body.roles.length > 0
+        ? `User roles updated to ${body.roles.join(', ')}`
+        : 'User roles removed'
     }
   } catch (error) {
-    handleApiError(error, 'Failed to update user role')
+    handleApiError(error, 'Failed to update user roles')
   }
 })

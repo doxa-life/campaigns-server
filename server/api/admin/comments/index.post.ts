@@ -4,9 +4,13 @@ import { extractMentions } from '#server/utils/extract-mentions'
 import { sendCommentMentionEmails } from '#server/utils/comment-mention-email'
 import { handleApiError } from '#server/utils/api-helpers'
 
-export default defineEventHandler(async (event) => {
-  const user = await requireAdmin(event)
+const RECORD_TYPE_PERMISSIONS: Record<string, string> = {
+  people_group: 'people_groups.view',
+  group: 'groups.view',
+  subscriber: 'subscribers.view'
+}
 
+export default defineEventHandler(async (event) => {
   const body = await readBody<{
     record_type: string
     record_id: number
@@ -16,6 +20,13 @@ export default defineEventHandler(async (event) => {
   if (!body.record_type || !body.record_id || !body.content) {
     throw createError({ statusCode: 400, statusMessage: 'record_type, record_id, and content are required' })
   }
+
+  const permission = RECORD_TYPE_PERMISSIONS[body.record_type]
+  if (!permission) {
+    throw createError({ statusCode: 400, statusMessage: 'Invalid record type' })
+  }
+
+  const user = await requirePermission(event, permission)
 
   const sanitized = sanitizeTiptapContent(body.content)
   if (!sanitized) {

@@ -23,7 +23,7 @@ interface PeopleGroupWithEnglish {
  * Returns SSE stream with progress events and final stats
  */
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'people_groups.edit')
 
   if (!isDeepLConfigured()) {
     throw createError({

@@ -164,35 +164,35 @@ describe('POST /api/admin/users/invite', async () => {
       // Verify in database
       const invitation = await getTestUserInvitationByEmail(sql, email)
       expect(invitation).toBeDefined()
-      expect(invitation?.role).toBeNull()
+      expect(invitation?.roles).toEqual([])
     })
 
-    it('creates invitation with specified role', async () => {
+    it('creates invitation with specified roles', async () => {
       const email = `test-admin-role-${Date.now()}@example.com`
       const response = await $fetch('/api/admin/users/invite', {
         method: 'POST',
-        body: { email, role: 'admin' },
+        body: { email, roles: ['admin'] },
         ...adminAuth
       })
 
       expect(response.success).toBe(true)
 
       const invitation = await getTestUserInvitationByEmail(sql, email)
-      expect(invitation?.role).toBe('admin')
+      expect(invitation?.roles).toContain('admin')
     })
 
     it('creates invitation with people_group_editor role', async () => {
       const email = `test-editor-role-${Date.now()}@example.com`
       const response = await $fetch('/api/admin/users/invite', {
         method: 'POST',
-        body: { email, role: 'people_group_editor' },
+        body: { email, roles: ['people_group_editor'] },
         ...adminAuth
       })
 
       expect(response.success).toBe(true)
 
       const invitation = await getTestUserInvitationByEmail(sql, email)
-      expect(invitation?.role).toBe('people_group_editor')
+      expect(invitation?.roles).toContain('people_group_editor')
     })
 
     it('creates invitation with custom expiry', async () => {

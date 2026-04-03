@@ -88,7 +88,6 @@ describe('GET /api/admin/roles', async () => {
 
       const adminRole = response.roles.find((r: any) => r.name === 'admin')
       expect(adminRole.permissions).toContain('users.manage')
-      expect(adminRole.permissions).toContain('roles.manage')
     })
 
     it('people_group_editor role does not have user management permissions', async () => {
@@ -96,7 +95,6 @@ describe('GET /api/admin/roles', async () => {
 
       const editorRole = response.roles.find((r: any) => r.name === 'people_group_editor')
       expect(editorRole.permissions).not.toContain('users.manage')
-      expect(editorRole.permissions).not.toContain('roles.manage')
     })
   })
 })

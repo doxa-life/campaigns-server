@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requireSuperAdmin(event)
 
   const results: { query: string; ms: number }[] = []
   const queryCount = 10

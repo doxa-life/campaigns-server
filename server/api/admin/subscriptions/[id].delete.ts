@@ -5,7 +5,7 @@ import { peopleGroupService } from '#server/database/people-groups'
 import { handleApiError, getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  const user = await requirePermission(event, 'people_groups.delete')
+  const user = await requirePermission(event, 'subscribers.delete')
 
   const subscriptionId = getIntParam(event, 'id')
 

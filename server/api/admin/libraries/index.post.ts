@@ -2,8 +2,7 @@ import { libraryService } from '#server/database/libraries'
 import { handleApiError } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  // Require admin authentication - only admins can create libraries
-  await requireAdmin(event)
+  await requirePermission(event, 'content.create')
 
   const body = await readBody(event)
 

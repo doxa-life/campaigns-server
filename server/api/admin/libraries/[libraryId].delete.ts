@@ -2,8 +2,7 @@ import { libraryService } from '#server/database/libraries'
 import { handleApiError, getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  // Require admin authentication
-  await requireAdmin(event)
+  await requirePermission(event, 'content.delete')
 
   const id = getIntParam(event, 'libraryId')
 

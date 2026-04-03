@@ -4,7 +4,7 @@ import { peopleGroupAdoptionService } from '../../../database/people-group-adopt
 import { getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'groups.view')
 
   const id = getIntParam(event, 'id')
   const group = await groupService.getById(id)
