@@ -27,6 +27,9 @@ import { field as imbLat } from './fields/imb-lat'
 import { field as imbLng } from './fields/imb-lng'
 import { field as imbIsIndigenous } from './fields/imb-is-indigenous'
 
+// Status
+import { field as status } from './fields/status'
+
 // Population & Engagement fields
 import { field as imbPopulation } from './fields/imb-population'
 import { field as imbPopulationClass } from './fields/imb-population-class'
@@ -91,6 +94,8 @@ import { field as imbPeopleSearchText } from './fields/imb-people-search-text'
 
 // All fields array
 export const allFields: FieldDefinition[] = [
+  // Status
+  status,
   // Basic
   name,
   imbDisplayName,

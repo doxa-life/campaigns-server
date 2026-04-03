@@ -13,6 +13,7 @@ interface UpdateBody {
   longitude?: number | null
   population?: number | null
   evangelical_pct?: number | null
+  status?: string | null
   engagement_status?: string | null
   primary_religion?: string | null
   primary_language?: string | null
@@ -21,7 +22,7 @@ interface UpdateBody {
 
 const TRACKED_FIELDS = [
   'name', 'image_url', 'joshua_project_id', 'descriptions',
-  'country_code', 'region', 'latitude', 'longitude',
+  'status', 'country_code', 'region', 'latitude', 'longitude',
   'population', 'evangelical_pct', 'engagement_status',
   'primary_religion', 'primary_language'
 ] as const
@@ -82,6 +83,10 @@ export default defineEventHandler(async (event) => {
 
   if (body.evangelical_pct !== undefined) {
     updateData.evangelical_pct = body.evangelical_pct
+  }
+
+  if (body.status !== undefined) {
+    updateData.status = body.status
   }
 
   if (body.engagement_status !== undefined) {

@@ -38,6 +38,7 @@ export default defineEventHandler(async (event) => {
       pg.*,
       COALESCE(pg.people_praying, 0)::INTEGER as total_people_praying
     FROM people_groups pg
+    WHERE pg.status != 'archived'
     ORDER BY pg.name
   ` as any[]
 

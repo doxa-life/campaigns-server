@@ -34,6 +34,7 @@
       "media": "Media"
     },
     "fields": {
+      "status": "Status",
       "name": "People Group Name",
       "imb_display_name": "Display Name",
       "imb_alternate_name": "Alternate Name",
@@ -97,6 +98,10 @@
       "disciple_and_church_multiplication": "Disciple & Church Multiplication"
     },
     "options": {
+      "status": {
+        "active": "Active",
+        "archived": "Archived"
+      },
       "regions": {
         "africa": "Africa",
         "americas": "Americas",

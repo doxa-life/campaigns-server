@@ -20,6 +20,7 @@ export interface PeopleGroup {
   longitude: number | null
   population: number | null
   evangelical_pct: number | null
+  status: string | null
   engagement_status: string | null
   primary_religion: string | null
   primary_language: string | null
@@ -48,6 +49,7 @@ export interface UpdatePeopleGroupData {
   longitude?: number | null
   population?: number | null
   evangelical_pct?: number | null
+  status?: string | null
   engagement_status?: string | null
   primary_religion?: string | null
   primary_language?: string | null
@@ -142,6 +144,7 @@ export class PeopleGroupService {
     if (data.longitude !== undefined) fields.push(this.sql`longitude = ${data.longitude}`)
     if (data.population !== undefined) fields.push(this.sql`population = ${data.population}`)
     if (data.evangelical_pct !== undefined) fields.push(this.sql`evangelical_pct = ${data.evangelical_pct}`)
+    if (data.status !== undefined) fields.push(this.sql`status = ${data.status}`)
     if (data.engagement_status !== undefined) fields.push(this.sql`engagement_status = ${data.engagement_status}`)
     if (data.primary_religion !== undefined) fields.push(this.sql`primary_religion = ${data.primary_religion}`)
     if (data.primary_language !== undefined) fields.push(this.sql`primary_language = ${data.primary_language}`)

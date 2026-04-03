@@ -39,6 +39,7 @@ export default defineEventHandler(async (event) => {
   const peopleGroups = await sql`
     SELECT *
     FROM people_groups
+    WHERE status != 'archived'
     ORDER BY name
   ` as any[]
 

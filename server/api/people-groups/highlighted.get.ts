@@ -41,6 +41,7 @@ export default defineEventHandler(async (event) => {
       FROM people_groups pg
       LEFT JOIN commitment_counts cc ON cc.people_group_id = pg.id
       WHERE pg.image_url IS NOT NULL
+        AND pg.status != 'archived'
         AND (pg.metadata::jsonb)->>'doxa_wagf_region' IS NOT NULL
         AND (pg.metadata::jsonb)->>'doxa_wagf_region' NOT IN ('na', 'oceania')
     )
