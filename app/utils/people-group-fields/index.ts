@@ -99,7 +99,6 @@ export const allFields: FieldDefinition[] = [
   // Status
   status,
   reasonUnlisted,
-  reasonEngaged,
   // Basic
   name,
   imbDisplayName,
@@ -128,6 +127,7 @@ export const allFields: FieldDefinition[] = [
   imbEvangelicalPercentage,
   imbEvangelicalLevel,
   imbEngagementStatus,
+  reasonEngaged,
   imbCongregationExisting,
   imbChurchPlanting,
   believersCount,

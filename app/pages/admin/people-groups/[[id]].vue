@@ -528,7 +528,7 @@ const { t } = useI18n()
 const { countryOptions } = useLocalizedOptions()
 
 // Categories shown on the Progress tab
-const progressCategoryKeys = new Set(['engagement', 'workers', 'resources'])
+const progressCategoryKeys = new Set(['status', 'engagement', 'workers', 'resources'])
 
 function mapCategory(category: { key: string; labelKey: string }) {
   return {

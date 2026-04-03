@@ -4,7 +4,7 @@ export const field: FieldDefinition = {
   key: 'reason_unlisted',
   labelKey: 'peopleGroups.fields.reason_unlisted',
   type: 'select',
-  category: 'engagement',
+  category: 'status',
   showIf: { field: 'status', value: 'archived' },
   options: [
     { value: 'is_diaspora', labelKey: 'peopleGroups.options.reasonUnlisted.is_diaspora' },

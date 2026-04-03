@@ -27,17 +27,18 @@ export interface FieldCategory {
 }
 
 export const categories: FieldCategory[] = [
-  { key: 'engagement', labelKey: 'peopleGroups.categories.engagement', order: 0 },
-  { key: 'basic', labelKey: 'peopleGroups.categories.basic', order: 1 },
-  { key: 'identifiers', labelKey: 'peopleGroups.categories.identifiers', order: 2 },
-  { key: 'geography', labelKey: 'peopleGroups.categories.geography', order: 3 },
-  { key: 'population', labelKey: 'peopleGroups.categories.population', order: 4 },
-  { key: 'strategic', labelKey: 'peopleGroups.categories.strategic', order: 5 },
-  { key: 'language', labelKey: 'peopleGroups.categories.language', order: 6 },
-  { key: 'religion', labelKey: 'peopleGroups.categories.religion', order: 7 },
-  { key: 'rop', labelKey: 'peopleGroups.categories.rop', order: 8 },
-  { key: 'workers', labelKey: 'peopleGroups.categories.workers', order: 9 },
-  { key: 'resources', labelKey: 'peopleGroups.categories.resources', order: 10 },
-  { key: 'wagf', labelKey: 'peopleGroups.categories.wagf', order: 11 },
-  { key: 'media', labelKey: 'peopleGroups.categories.media', order: 12 }
+  { key: 'status', labelKey: 'peopleGroups.categories.status', order: 0 },
+  { key: 'engagement', labelKey: 'peopleGroups.categories.engagement', order: 1 },
+  { key: 'basic', labelKey: 'peopleGroups.categories.basic', order: 2 },
+  { key: 'identifiers', labelKey: 'peopleGroups.categories.identifiers', order: 3 },
+  { key: 'geography', labelKey: 'peopleGroups.categories.geography', order: 4 },
+  { key: 'population', labelKey: 'peopleGroups.categories.population', order: 5 },
+  { key: 'strategic', labelKey: 'peopleGroups.categories.strategic', order: 6 },
+  { key: 'language', labelKey: 'peopleGroups.categories.language', order: 7 },
+  { key: 'religion', labelKey: 'peopleGroups.categories.religion', order: 8 },
+  { key: 'rop', labelKey: 'peopleGroups.categories.rop', order: 9 },
+  { key: 'workers', labelKey: 'peopleGroups.categories.workers', order: 10 },
+  { key: 'resources', labelKey: 'peopleGroups.categories.resources', order: 11 },
+  { key: 'wagf', labelKey: 'peopleGroups.categories.wagf', order: 12 },
+  { key: 'media', labelKey: 'peopleGroups.categories.media', order: 13 }
 ]

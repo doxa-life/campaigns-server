@@ -19,6 +19,7 @@
       "butUnreached": "but Unreached"
     },
     "categories": {
+      "status": "Status",
       "engagement": "Engagement",
       "basic": "Basic Info",
       "identifiers": "Identifiers",
