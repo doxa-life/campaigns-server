@@ -51,10 +51,12 @@ class GroupService {
     search?: string
     limit?: number
     offset?: number
+    peopleGroupIds?: number[]
   }): Promise<GroupWithDetails[]> {
     const search = options?.search ? `%${options.search}%` : null
     const limit = options?.limit || null
     const offset = options?.offset || null
+    const pgIds = options?.peopleGroupIds
 
     const baseQuery = this.sql`
       SELECT g.*,
@@ -66,28 +68,30 @@ class GroupService {
       LEFT JOIN subscribers s ON g.primary_subscriber_id = s.id
     `
 
-    if (search && limit) {
-      return await this.sql`
-        ${baseQuery}
-        WHERE g.name ILIKE ${search}
-        ORDER BY g.created_at DESC LIMIT ${limit} OFFSET ${offset || 0}
-      `
-    }
-    if (search) {
-      return await this.sql`${baseQuery} WHERE g.name ILIKE ${search} ORDER BY g.created_at DESC`
-    }
+    const conditions = []
+    if (search) conditions.push(this.sql`g.name ILIKE ${search}`)
+    if (pgIds) conditions.push(this.sql`g.id IN (SELECT DISTINCT group_id FROM people_group_adoptions WHERE people_group_id IN ${this.sql(pgIds)})`)
+
+    const where = conditions.length > 0
+      ? this.sql`WHERE ${conditions.reduce((a, b) => this.sql`${a} AND ${b}`)}`
+      : this.sql``
+
     if (limit) {
-      return await this.sql`${baseQuery} ORDER BY g.created_at DESC LIMIT ${limit} OFFSET ${offset || 0}`
+      return await this.sql`${baseQuery} ${where} ORDER BY g.created_at DESC LIMIT ${limit} OFFSET ${offset || 0}`
     }
-    return await this.sql`${baseQuery} ORDER BY g.created_at DESC`
+    return await this.sql`${baseQuery} ${where} ORDER BY g.created_at DESC`
   }
 
-  async count(search?: string): Promise<number> {
-    if (search) {
-      const [result] = await this.sql`SELECT COUNT(*) as count FROM groups WHERE name ILIKE ${`%${search}%`}`
-      return Number(result?.count)
-    }
-    const [result] = await this.sql`SELECT COUNT(*) as count FROM groups`
+  async count(search?: string, peopleGroupIds?: number[]): Promise<number> {
+    const conditions = []
+    if (search) conditions.push(this.sql`name ILIKE ${`%${search}%`}`)
+    if (peopleGroupIds) conditions.push(this.sql`id IN (SELECT DISTINCT group_id FROM people_group_adoptions WHERE people_group_id IN ${this.sql(peopleGroupIds)})`)
+
+    const where = conditions.length > 0
+      ? this.sql`WHERE ${conditions.reduce((a, b) => this.sql`${a} AND ${b}`)}`
+      : this.sql``
+
+    const [result] = await this.sql`SELECT COUNT(*) as count FROM groups ${where}`
     return Number(result?.count)
   }
 

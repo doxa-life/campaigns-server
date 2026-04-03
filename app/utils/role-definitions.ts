@@ -48,6 +48,7 @@ export const ROLES: Record<RoleName, { name: RoleName; description: string; perm
     permissions: [
       'people_groups.view_scoped',
       'people_groups.edit_scoped',
+      'groups.view_scoped',
       'subscribers.view_scoped',
       'content.view_scoped',
       'content.create_scoped',

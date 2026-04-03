@@ -89,34 +89,29 @@ export class PeopleGroupService {
     search?: string
     limit?: number
     offset?: number
+    ids?: number[]
   }): Promise<PeopleGroup[]> {
     const search = options?.search ? `%${options.search}%` : null
     const limit = options?.limit || null
     const offset = options?.offset || null
+    const ids = options?.ids
 
-    if (search && limit) {
-      return await this.sql`
-        SELECT * FROM people_groups
-        WHERE name ILIKE ${search}
-        ORDER BY name
-        LIMIT ${limit} OFFSET ${offset || 0}
-      `
-    }
-    if (search) {
-      return await this.sql`
-        SELECT * FROM people_groups
-        WHERE name ILIKE ${search}
-        ORDER BY name
-      `
-    }
+    const conditions = []
+    if (search) conditions.push(this.sql`name ILIKE ${search}`)
+    if (ids) conditions.push(this.sql`id IN ${this.sql(ids)}`)
+
+    const where = conditions.length > 0
+      ? this.sql`WHERE ${conditions.reduce((a, b) => this.sql`${a} AND ${b}`)}`
+      : this.sql``
+
     if (limit) {
       return await this.sql`
-        SELECT * FROM people_groups
+        SELECT * FROM people_groups ${where}
         ORDER BY name
         LIMIT ${limit} OFFSET ${offset || 0}
       `
     }
-    return await this.sql`SELECT * FROM people_groups ORDER BY name`
+    return await this.sql`SELECT * FROM people_groups ${where} ORDER BY name`
   }
 
   async updatePeopleGroup(id: number, data: UpdatePeopleGroupData): Promise<PeopleGroup | null> {
@@ -175,12 +170,16 @@ export class PeopleGroupService {
     return result.count > 0
   }
 
-  async countPeopleGroups(search?: string): Promise<number> {
-    if (search) {
-      const [result] = await this.sql`SELECT COUNT(*) as count FROM people_groups WHERE name ILIKE ${`%${search}%`}`
-      return Number(result?.count)
-    }
-    const [result] = await this.sql`SELECT COUNT(*) as count FROM people_groups`
+  async countPeopleGroups(search?: string, ids?: number[]): Promise<number> {
+    const conditions = []
+    if (search) conditions.push(this.sql`name ILIKE ${`%${search}%`}`)
+    if (ids) conditions.push(this.sql`id IN ${this.sql(ids)}`)
+
+    const where = conditions.length > 0
+      ? this.sql`WHERE ${conditions.reduce((a, b) => this.sql`${a} AND ${b}`)}`
+      : this.sql``
+
+    const [result] = await this.sql`SELECT COUNT(*) as count FROM people_groups ${where}`
     return Number(result?.count)
   }
 
