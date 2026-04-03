@@ -1,4 +1,4 @@
-import { getFieldOptionLabel, getFieldOptionDescription, getFieldOptionAlternates, getCountryLabel, allFields } from './field-options'
+import { getFieldOptionLabel, getFieldOptionDescription, getFieldOptionAlternates, allFields } from './field-options'
 import { generatePeopleGroupDescription } from './people-group-description'
 
 interface PeopleGroupRecord {
@@ -259,65 +259,9 @@ export function formatPeopleGroupForDetail(pg: PeopleGroupRecord, lang: string =
   return result
 }
 
-/**
- * Format a people group for the /all endpoint (raw values, no formatting)
- * Returns only the requested fields
- */
-export function formatPeopleGroupRaw(pg: PeopleGroupRecord, fields: string[], lang: string = 'en'): Record<string, unknown> {
-  const meta = parseMetadata(pg.metadata)
-  const result: Record<string, unknown> = {}
-
-  for (const field of fields) {
-    switch (field) {
-      case 'display_name':
-      case 'imb_display_name':
-        result[field] = meta.imb_display_name || pg.name
-        break
-      case 'latitude':
-        result.latitude = pg.latitude !== null ? String(pg.latitude) : null
-        break
-      case 'longitude':
-        result.longitude = pg.longitude !== null ? String(pg.longitude) : null
-        break
-      case 'population':
-        result.population = pg.population !== null ? String(pg.population) : null
-        break
-      case 'descriptions':
-        result.descriptions = pg.descriptions?.['en'] || null
-        break
-      case 'generated_description':
-      case 'imb_people_description':
-        result[field] = generatePeopleGroupDescription({
-          name: pg.name,
-          descriptions: pg.descriptions,
-          country_code: pg.country_code,
-          population: pg.population,
-          engagement_status: pg.engagement_status,
-          primary_religion: pg.primary_religion,
-          primary_language: pg.primary_language as string | null,
-          metadata: meta as any
-        }, lang)
-        break
-      default:
-        result[field] = getFieldValue(pg, field) ?? meta[field] ?? null
-        break
-    }
-  }
-
-  return result
-}
-
 // Default fields for /list endpoint
 export const DEFAULT_LIST_FIELDS = [
   'id', 'name', 'slug', 'display_name', 'wagf_region', 'wagf_block', 'wagf_member',
   'country', 'rop1', 'religion', 'location_description', 'population',
   'has_photo', 'picture_url', 'people_praying', 'people_committed', 'adopted_by_churches'
-]
-
-// Default fields for /all endpoint
-export const DEFAULT_ALL_FIELDS = [
-  'name', 'slug', 'imb_reg_of_people_1', 'doxa_wagf_region', 'doxa_wagf_block',
-  'population', 'primary_religion', 'imb_reg_of_religion_3', 'country_code',
-  'imb_has_photo', 'image_url', 'latitude', 'longitude',
-  'imb_people_description'
 ]

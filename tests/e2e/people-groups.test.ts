@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest'
 import { $fetch } from '@nuxt/test-utils/e2e'
 import { getTestDatabase, closeTestDatabase, cleanupTestData, createTestPeopleGroup } from '../helpers/db'
 
-describe('GET /api/people-groups', async () => {
+describe('GET /api/people-groups/list', async () => {
   const sql = getTestDatabase()
 
   afterEach(async () => {
@@ -14,7 +14,7 @@ describe('GET /api/people-groups', async () => {
   })
 
   it('returns empty array when no people groups exist', async () => {
-    const response = await $fetch('/api/people-groups')
+    const response = await $fetch('/api/people-groups/list')
 
     expect(response).toHaveProperty('posts')
     expect(Array.isArray(response.posts)).toBe(true)
@@ -25,7 +25,7 @@ describe('GET /api/people-groups', async () => {
       title: 'Test Prayer People Group'
     })
 
-    const response = await $fetch('/api/people-groups')
+    const response = await $fetch('/api/people-groups/list')
 
     expect(response.posts).toContainEqual(
       expect.objectContaining({
