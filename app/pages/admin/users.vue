@@ -17,102 +17,165 @@
     <UAlert v-else-if="error" color="error" :title="error" class="mb-6" />
 
     <!-- Content -->
-    <div v-else class="flex flex-col gap-8">
-      <!-- Users Section -->
-      <section>
-        <h2 class="text-xl font-semibold mb-4">Active Users</h2>
+    <UTabs v-else :items="tabs" default-value="users" class="w-full">
+      <template #users>
+        <div class="flex flex-col gap-8 pt-4">
+          <!-- Users Section -->
+          <section>
+            <h2 class="text-xl font-semibold mb-4">Active Users</h2>
 
-        <div v-if="users.length === 0" class="text-center py-8 text-[var(--ui-text-muted)] border border-dashed border-[var(--ui-border)] rounded-lg">
-          No users found
-        </div>
-
-        <UTable v-else :data="users" :columns="userColumns">
-          <template #email-cell="{ row }">
-            {{ (row.original as User).email }}
-          </template>
-          <template #display_name-cell="{ row }">
-            {{ (row.original as User).display_name || '—' }}
-          </template>
-          <template #role-cell="{ row }">
-            <USelect
-              v-if="availableRoles.length > 0"
-              :model-value="(row.original as User).role?.name || 'none'"
-              @update:model-value="(val: string) => updateUserRole((row.original as User).id, val === 'none' ? null : val)"
-              :items="roleOptions"
-              class="w-40"
-              size="sm"
-            />
-            <span v-else>{{ (row.original as User).role ? formatRoleName((row.original as User).role!.name) : 'No role' }}</span>
-          </template>
-          <template #status-cell="{ row }">
-            <UBadge :color="(row.original as User).verified ? 'success' : 'neutral'" variant="subtle">
-              {{ (row.original as User).verified ? 'Verified' : 'Unverified' }}
-            </UBadge>
-          </template>
-          <template #peopleGroups-cell="{ row }">
-            <UButton
-              v-if="(row.original as User).role?.name === 'people_group_editor'"
-              @click="openPeopleGroupModal(row.original as User)"
-              variant="outline"
-              size="xs"
-            >
-              Manage
-            </UButton>
-            <span v-else class="text-[var(--ui-text-muted)]">—</span>
-          </template>
-          <template #created-cell="{ row }">
-            {{ formatDate((row.original as User).created) }}
-          </template>
-        </UTable>
-      </section>
-
-      <!-- Invitations Section -->
-      <section>
-        <h2 class="text-xl font-semibold mb-4">Invitations</h2>
-
-        <div v-if="pendingInvitations.length === 0" class="text-center py-8 text-[var(--ui-text-muted)] border border-dashed border-[var(--ui-border)] rounded-lg">
-          No pending invitations
-        </div>
-
-        <UTable v-else :data="pendingInvitations" :columns="invitationColumns">
-          <template #email-cell="{ row }">
-            {{ (row.original as Invitation).email }}
-          </template>
-          <template #inviter-cell="{ row }">
-            {{ (row.original as Invitation).inviter_name || (row.original as Invitation).inviter_email }}
-          </template>
-          <template #status-cell="{ row }">
-            <UBadge :color="getStatusColor((row.original as Invitation).status)" variant="subtle">
-              {{ (row.original as Invitation).status }}
-            </UBadge>
-          </template>
-          <template #expires_at-cell="{ row }">
-            {{ formatDateTime((row.original as Invitation).expires_at) }}
-          </template>
-          <template #actions-cell="{ row }">
-            <div class="flex gap-2">
-              <UButton
-                @click="resendInvitation((row.original as Invitation).id)"
-                variant="outline"
-                size="xs"
-                :disabled="(row.original as Invitation).status !== 'pending'"
-              >
-                Resend
-              </UButton>
-              <UButton
-                @click="revokeInvitation((row.original as Invitation).id)"
-                color="error"
-                variant="outline"
-                size="xs"
-                :disabled="(row.original as Invitation).status !== 'pending'"
-              >
-                Revoke
-              </UButton>
+            <div v-if="users.length === 0" class="text-center py-8 text-[var(--ui-text-muted)] border border-dashed border-[var(--ui-border)] rounded-lg">
+              No users found
             </div>
-          </template>
-        </UTable>
-      </section>
-    </div>
+
+            <UTable v-else :data="users" :columns="userColumns">
+              <template #email-cell="{ row }">
+                {{ (row.original as User).email }}
+              </template>
+              <template #display_name-cell="{ row }">
+                {{ (row.original as User).display_name || '—' }}
+              </template>
+              <template #role-cell="{ row }">
+                <USelect
+                  v-if="availableRoles.length > 0"
+                  :model-value="(row.original as User).role?.name || 'none'"
+                  @update:model-value="(val: string) => updateUserRole((row.original as User).id, val === 'none' ? null : val)"
+                  :items="roleOptions"
+                  class="w-40"
+                  size="sm"
+                />
+                <span v-else>{{ (row.original as User).role ? formatRoleName((row.original as User).role!.name) : 'No role' }}</span>
+              </template>
+              <template #status-cell="{ row }">
+                <UBadge :color="(row.original as User).verified ? 'success' : 'neutral'" variant="subtle">
+                  {{ (row.original as User).verified ? 'Verified' : 'Unverified' }}
+                </UBadge>
+              </template>
+              <template #peopleGroups-cell="{ row }">
+                <UButton
+                  v-if="(row.original as User).role?.name === 'people_group_editor'"
+                  @click="openPeopleGroupModal(row.original as User)"
+                  variant="outline"
+                  size="xs"
+                >
+                  Manage
+                </UButton>
+                <span v-else class="text-[var(--ui-text-muted)]">—</span>
+              </template>
+              <template #created-cell="{ row }">
+                {{ formatDate((row.original as User).created) }}
+              </template>
+            </UTable>
+          </section>
+
+          <!-- Invitations Section -->
+          <section>
+            <h2 class="text-xl font-semibold mb-4">Invitations</h2>
+
+            <div v-if="pendingInvitations.length === 0" class="text-center py-8 text-[var(--ui-text-muted)] border border-dashed border-[var(--ui-border)] rounded-lg">
+              No pending invitations
+            </div>
+
+            <UTable v-else :data="pendingInvitations" :columns="invitationColumns">
+              <template #email-cell="{ row }">
+                {{ (row.original as Invitation).email }}
+              </template>
+              <template #inviter-cell="{ row }">
+                {{ (row.original as Invitation).inviter_name || (row.original as Invitation).inviter_email }}
+              </template>
+              <template #status-cell="{ row }">
+                <UBadge :color="getStatusColor((row.original as Invitation).status)" variant="subtle">
+                  {{ (row.original as Invitation).status }}
+                </UBadge>
+              </template>
+              <template #expires_at-cell="{ row }">
+                {{ formatDateTime((row.original as Invitation).expires_at) }}
+              </template>
+              <template #actions-cell="{ row }">
+                <div class="flex gap-2">
+                  <UButton
+                    @click="resendInvitation((row.original as Invitation).id)"
+                    variant="outline"
+                    size="xs"
+                    :disabled="(row.original as Invitation).status !== 'pending'"
+                  >
+                    Resend
+                  </UButton>
+                  <UButton
+                    @click="revokeInvitation((row.original as Invitation).id)"
+                    color="error"
+                    variant="outline"
+                    size="xs"
+                    :disabled="(row.original as Invitation).status !== 'pending'"
+                  >
+                    Revoke
+                  </UButton>
+                </div>
+              </template>
+            </UTable>
+          </section>
+        </div>
+      </template>
+
+      <template #roles>
+        <div class="pt-4 space-y-3">
+          <div
+            v-for="role in availableRoles"
+            :key="role.name"
+            class="rounded-lg border border-[var(--ui-border)] overflow-hidden"
+          >
+            <button
+              class="w-full flex items-center justify-between p-4 hover:bg-[var(--ui-bg-elevated)]/50 transition-colors text-left"
+              @click="toggleRole(role.name)"
+            >
+              <div class="flex items-center gap-3">
+                <UIcon
+                  :name="role.name === 'admin' ? 'i-lucide-shield' : 'i-lucide-user'"
+                  class="size-5 text-[var(--ui-text-muted)]"
+                />
+                <div>
+                  <p class="text-sm font-medium">{{ formatRoleName(role.name) }}</p>
+                  <p class="text-xs text-[var(--ui-text-muted)]">{{ role.description }}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <UBadge color="neutral" variant="outline" size="sm">
+                  {{ (role as RoleWithPermissions).permissions.length }} permissions
+                </UBadge>
+                <UIcon
+                  :name="expandedRole === role.name ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+                  class="size-4 text-[var(--ui-text-muted)]"
+                />
+              </div>
+            </button>
+
+            <div v-if="expandedRole === role.name" class="border-t border-[var(--ui-border)] p-4 space-y-4">
+              <div v-for="group in getPermissionGroups((role as RoleWithPermissions).permissions)" :key="group.label">
+                <p class="text-xs font-medium text-[var(--ui-text-muted)] uppercase tracking-wider mb-2">
+                  {{ group.label }}
+                </p>
+                <div class="space-y-1">
+                  <div
+                    v-for="{ perm, granted } in group.permissions"
+                    :key="perm"
+                    class="flex items-center gap-2 py-1 px-2"
+                  >
+                    <UIcon
+                      :name="granted ? 'i-lucide-check' : 'i-lucide-x'"
+                      :class="granted ? 'size-4 text-[var(--ui-color-success-500)]' : 'size-4 text-[var(--ui-text-muted)]'"
+                    />
+                    <span class="text-sm" :class="{ 'text-[var(--ui-text-muted)]': !granted }">{{ permissionDetails[perm]?.title || perm }}</span>
+                    <span v-if="permissionDetails[perm]?.description" class="text-xs text-[var(--ui-text-muted)]">
+                      — {{ permissionDetails[perm].description }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </UTabs>
 
     <!-- Manage People Groups Modal -->
     <UModal v-model:open="showPeopleGroupModal" title="Manage People Group Access">
@@ -244,6 +307,10 @@ interface Role {
   description: string
 }
 
+interface RoleWithPermissions extends Role {
+  permissions: string[]
+}
+
 interface User {
   id: string
   email: string
@@ -274,6 +341,52 @@ interface Invitation {
   created_at: string
   inviter_name: string
   inviter_email: string
+}
+
+const tabs = [
+  { label: 'Users', value: 'users', slot: 'users' as const },
+  { label: 'Roles', value: 'roles', slot: 'roles' as const }
+]
+
+const expandedRole = ref<string | null>(null)
+
+const toggleRole = (roleName: string) => {
+  expandedRole.value = expandedRole.value === roleName ? null : roleName
+}
+
+const permissionGroupLabels: Record<string, string> = {
+  people_groups: 'People Groups',
+  content: 'Content',
+  users: 'Users',
+  roles: 'Roles'
+}
+
+const permissionDetails: Record<string, { title: string; description: string }> = {
+  'people_groups.view': { title: 'View People Groups', description: 'View people group records' },
+  'people_groups.create': { title: 'Create People Groups', description: 'Create new people groups' },
+  'people_groups.edit': { title: 'Edit People Groups', description: 'Edit existing people groups' },
+  'people_groups.delete': { title: 'Delete People Groups', description: 'Delete people groups' },
+  'content.view': { title: 'View Content', description: 'View library content' },
+  'content.create': { title: 'Create Content', description: 'Create new content' },
+  'content.edit': { title: 'Edit Content', description: 'Edit existing content' },
+  'content.delete': { title: 'Delete Content', description: 'Delete content' },
+  'users.manage': { title: 'Manage Users', description: 'Invite, edit, and remove users' },
+  'roles.manage': { title: 'Manage Roles', description: 'Assign roles to users' }
+}
+
+const allPermissions = Object.keys(permissionDetails)
+
+function getPermissionGroups(rolePermissions: string[]) {
+  const groups: Record<string, { perm: string; granted: boolean }[]> = {}
+  for (const perm of allPermissions) {
+    const prefix = perm.substring(0, perm.lastIndexOf('.'))
+    if (!groups[prefix]) groups[prefix] = []
+    groups[prefix].push({ perm, granted: rolePermissions.includes(perm) })
+  }
+  return Object.entries(groups).map(([key, perms]) => ({
+    label: permissionGroupLabels[key] || key,
+    permissions: perms
+  }))
 }
 
 const loading = ref(true)
