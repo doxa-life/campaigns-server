@@ -4,7 +4,7 @@ import { getIntParam } from '#server/utils/api-helpers'
 import { getSql } from '#server/database/db'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'subscribers.edit')
 
   const id = getIntParam(event, 'id')
 

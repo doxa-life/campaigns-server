@@ -4,7 +4,7 @@ import { getIntParam } from '#server/utils/api-helpers'
 const VALID_STATUSES = ['pending', 'active', 'inactive'] as const
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'groups.edit')
 
   const groupId = getIntParam(event, 'id')
   const adoptionId = getIntParam(event, 'adoptionId')

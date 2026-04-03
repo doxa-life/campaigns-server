@@ -1,7 +1,7 @@
 import { groupService } from '../../../database/groups'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'groups.create')
 
   const body = await readBody<{
     name: string

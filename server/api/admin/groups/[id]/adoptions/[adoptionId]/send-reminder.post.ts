@@ -7,7 +7,7 @@ import { sendAdoptionReminderEmail } from '../../../../../../utils/adoption-remi
 import { getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'groups.edit')
 
   const groupId = getIntParam(event, 'id')
   const adoptionId = getIntParam(event, 'adoptionId')

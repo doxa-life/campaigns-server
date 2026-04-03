@@ -1,7 +1,7 @@
 import { groupService } from '../../../database/groups'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'groups.view')
 
   const query = getQuery(event)
   const search = query.search as string | undefined

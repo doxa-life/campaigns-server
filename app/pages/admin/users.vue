@@ -356,6 +356,8 @@ const toggleRole = (roleName: string) => {
 
 const permissionGroupLabels: Record<string, string> = {
   people_groups: 'People Groups',
+  groups: 'Groups',
+  subscribers: 'Subscribers',
   content: 'Content',
   users: 'Users',
   roles: 'Roles'
@@ -366,6 +368,14 @@ const permissionDetails: Record<string, { title: string; description: string }> 
   'people_groups.create': { title: 'Create People Groups', description: 'Create new people groups' },
   'people_groups.edit': { title: 'Edit People Groups', description: 'Edit existing people groups' },
   'people_groups.delete': { title: 'Delete People Groups', description: 'Delete people groups' },
+  'groups.view': { title: 'View Groups', description: 'View group records' },
+  'groups.create': { title: 'Create Groups', description: 'Create new groups' },
+  'groups.edit': { title: 'Edit Groups', description: 'Edit existing groups' },
+  'groups.delete': { title: 'Delete Groups', description: 'Delete groups' },
+  'subscribers.view': { title: 'View Subscribers', description: 'View subscriber records' },
+  'subscribers.create': { title: 'Create Subscribers', description: 'Create new subscribers' },
+  'subscribers.edit': { title: 'Edit Subscribers', description: 'Edit existing subscribers' },
+  'subscribers.delete': { title: 'Delete Subscribers', description: 'Delete subscribers' },
   'content.view': { title: 'View Content', description: 'View library content' },
   'content.create': { title: 'Create Content', description: 'Create new content' },
   'content.edit': { title: 'Edit Content', description: 'Edit existing content' },

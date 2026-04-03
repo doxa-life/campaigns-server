@@ -3,7 +3,7 @@ import { contactMethodService } from '#server/database/contact-methods'
 import { getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'subscribers.edit')
 
   const id = getIntParam(event, 'id')
 
