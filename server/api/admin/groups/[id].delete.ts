@@ -2,7 +2,7 @@ import { groupService } from '../../../database/groups'
 import { getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'groups.delete')
 
   const id = getIntParam(event, 'id')
   await doAction('record.delete', 'group', id)

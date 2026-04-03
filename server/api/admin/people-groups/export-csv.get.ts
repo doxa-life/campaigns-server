@@ -16,7 +16,7 @@ function flattenValue(val: unknown): string {
 }
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'people_groups.view')
 
   const sql = getSql()
   const peopleGroups = await sql`

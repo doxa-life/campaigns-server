@@ -2,7 +2,7 @@ import { subscriberService } from '#server/database/subscribers'
 import { contactMethodService } from '#server/database/contact-methods'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'subscribers.create')
 
   const body = await readBody<{
     name: string

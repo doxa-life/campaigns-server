@@ -13,7 +13,7 @@ export interface UserWithRoles {
   email: string
   display_name: string
   verified: boolean
-  role: string | null
+  roles: string[]
   isAdmin: boolean
   isSuperAdmin: boolean
 }
@@ -30,14 +30,26 @@ export function checkAuth(event: H3Event) {
 export async function requireAdmin(event: H3Event) {
   const user = checkAuth(event)
 
-  // Check if user has admin role
-  // userId is a UUID string, not a number
   const isAdmin = await roleService.isAdmin(user.userId)
-
   if (!isAdmin) {
     throw createError({
       statusCode: 403,
       statusMessage: 'Admin access required'
+    })
+  }
+
+  return user
+}
+
+export async function requireSuperAdmin(event: H3Event) {
+  const user = checkAuth(event)
+
+  const { userService } = await import('#server/database/users')
+  const dbUser = await userService.getUserById(user.userId)
+  if (!dbUser?.superadmin) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'Superadmin access required'
     })
   }
 
@@ -78,15 +90,15 @@ export function setAuthCookie(event: H3Event, token: string) {
 
 // Get user with their role
 export async function getUserWithRoles(userId: string, userEmail: string, displayName: string, verified: boolean, superadmin: boolean): Promise<UserWithRoles> {
-  const role = await roleService.getUserRole(userId)
-  const isAdmin = role === 'admin'
+  const roles = await roleService.getUserRoles(userId)
+  const isAdmin = roles.includes('admin')
 
   return {
     id: userId as any, // Keep as any for backward compatibility
     email: userEmail,
     display_name: displayName,
     verified,
-    role,
+    roles,
     isAdmin,
     isSuperAdmin: superadmin
   }

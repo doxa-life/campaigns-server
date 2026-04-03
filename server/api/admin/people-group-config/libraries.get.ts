@@ -16,7 +16,7 @@ import { handleApiError } from '#server/utils/api-helpers'
  * }
  */
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'content.edit')
 
   try {
     const config = await appConfigService.getConfig('global_campaign_libraries')

@@ -2,7 +2,7 @@ import { notificationRecipientService } from '../../../database/notification-rec
 import { handleApiError } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requireSuperAdmin(event)
 
   const body = await readBody<{
     group_key: string

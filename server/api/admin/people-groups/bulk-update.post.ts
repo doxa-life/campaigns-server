@@ -36,7 +36,7 @@ interface BulkUpdateError {
 
 export default defineEventHandler(async (event) => {
   try {
-    await requireAdmin(event)
+    await requirePermission(event, 'people_groups.edit')
 
     const body = await readBody<BulkUpdateBody>(event)
 
