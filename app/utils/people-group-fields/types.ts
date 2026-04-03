@@ -17,6 +17,7 @@ export interface FieldDefinition {
   tableColumn?: boolean
   readOnly?: boolean
   description?: string
+  showIf?: { field: string; value: string }
 }
 
 export interface FieldCategory {
