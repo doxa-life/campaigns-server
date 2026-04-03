@@ -112,9 +112,9 @@ describe('Marketing Emails API', async () => {
       expect(error.statusCode).toBe(401)
     })
 
-    it('returns audience data for authenticated users', async () => {
-      const response = await $fetch('/api/admin/marketing/audience/doxa', adminAuth)
-      expect(response).toBeDefined()
+    it('returns 403 for non-superadmin users', async () => {
+      const error = await $fetch('/api/admin/marketing/audience/doxa', adminAuth).catch((e) => e)
+      expect(error.statusCode).toBe(403)
     })
   })
 })

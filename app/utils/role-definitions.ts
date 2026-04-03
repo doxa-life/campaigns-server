@@ -50,6 +50,8 @@ export const ROLES: Record<RoleName, { name: RoleName; description: string; perm
       'people_groups.edit_scoped',
       'groups.view_scoped',
       'subscribers.view_scoped',
+      'subscribers.edit_scoped',
+      'subscribers.delete_scoped',
       'content.view_scoped',
       'content.create_scoped',
       'content.edit_scoped',

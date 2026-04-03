@@ -520,6 +520,8 @@ const scopedDescriptions: Record<string, string> = {
   'people_groups.view': 'Only assigned people groups',
   'people_groups.edit': 'Only assigned people groups',
   'subscribers.view': 'Only subscribers linked to assigned people groups',
+  'subscribers.edit': 'Only subscribers linked to assigned people groups',
+  'subscribers.delete': 'Only subscribers linked to assigned people groups',
   'content.view': 'Only libraries linked to assigned people groups',
   'content.create': 'Only in libraries linked to assigned people groups',
   'content.edit': 'Only in libraries linked to assigned people groups',
