@@ -1,32 +1,10 @@
 import { peopleGroupService, type UpdatePeopleGroupData } from '../../../database/people-groups'
 import { getSql } from '#server/database/db'
 import { handleApiError, getErrorMessage } from '#server/utils/api-helpers'
+import { extractUpdateFields } from '#server/utils/app/people-group-update-helpers'
 
 const CONCURRENCY_LIMIT = 10
 const MAX_ERRORS = 50
-
-interface BulkUpdateItem {
-  id?: number | null
-  slug?: string
-  name?: string
-  image_url?: string | null
-  joshua_project_id?: string | null
-  metadata?: Record<string, any>
-  country_code?: string | null
-  region?: string | null
-  latitude?: number | null
-  longitude?: number | null
-  population?: number | null
-  evangelical_pct?: number | null
-  engagement_status?: string | null
-  primary_religion?: string | null
-  primary_language?: string | null
-  descriptions?: Record<string, string> | null
-}
-
-interface BulkUpdateBody {
-  updates: BulkUpdateItem[]
-}
 
 interface BulkUpdateError {
   index: number
@@ -38,7 +16,7 @@ export default defineEventHandler(async (event) => {
   try {
     await requirePermission(event, 'people_groups.edit')
 
-    const body = await readBody<BulkUpdateBody>(event)
+    const body = await readBody<{ updates: Record<string, any>[] }>(event)
 
     if (!body?.updates || !Array.isArray(body.updates)) {
       throw createError({
@@ -124,24 +102,7 @@ export default defineEventHandler(async (event) => {
         continue
       }
 
-      // Build update data (matches [id].put.ts field mapping)
-      const updateData: UpdatePeopleGroupData = {}
-      let hasFields = false
-
-      if (item.name !== undefined) { updateData.name = item.name; hasFields = true }
-      if (item.image_url !== undefined) { updateData.image_url = item.image_url; hasFields = true }
-      if (item.joshua_project_id !== undefined) { updateData.joshua_project_id = item.joshua_project_id; hasFields = true }
-      if (item.metadata !== undefined) { updateData.metadata = item.metadata; hasFields = true }
-      if (item.country_code !== undefined) { updateData.country_code = item.country_code; hasFields = true }
-      if (item.region !== undefined) { updateData.region = item.region; hasFields = true }
-      if (item.latitude !== undefined) { updateData.latitude = item.latitude; hasFields = true }
-      if (item.longitude !== undefined) { updateData.longitude = item.longitude; hasFields = true }
-      if (item.population !== undefined) { updateData.population = item.population; hasFields = true }
-      if (item.evangelical_pct !== undefined) { updateData.evangelical_pct = item.evangelical_pct; hasFields = true }
-      if (item.engagement_status !== undefined) { updateData.engagement_status = item.engagement_status; hasFields = true }
-      if (item.primary_religion !== undefined) { updateData.primary_religion = item.primary_religion; hasFields = true }
-      if (item.primary_language !== undefined) { updateData.primary_language = item.primary_language; hasFields = true }
-      if (item.descriptions !== undefined) { updateData.descriptions = item.descriptions; hasFields = true }
+      const { updateData, hasFields } = extractUpdateFields(item)
 
       if (!hasFields) {
         skipped++
