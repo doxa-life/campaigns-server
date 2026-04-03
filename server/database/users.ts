@@ -8,7 +8,7 @@ export interface User {
   display_name: string
   verified: boolean
   superadmin: boolean
-  role: string | null
+  roles: string[]
   token_key: string
   created: string
   updated: string
@@ -48,7 +48,7 @@ export class UserService {
 
   async getUserById(id: string): Promise<User | null> {
     const [row] = await this.sql`
-      SELECT id, email, display_name, verified, superadmin, role, token_key, created, updated, activity_email_preferences
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences
       FROM users WHERE id = ${id}
     `
     return (row as User) ?? null
@@ -56,7 +56,7 @@ export class UserService {
 
   async getUserByEmail(email: string): Promise<User | null> {
     const [row] = await this.sql`
-      SELECT id, email, display_name, verified, superadmin, role, token_key, created, updated, activity_email_preferences
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences
       FROM users WHERE email = ${email}
     `
     return (row as User) ?? null
@@ -64,15 +64,15 @@ export class UserService {
 
   async getAllUsers(): Promise<User[]> {
     return await this.sql`
-      SELECT id, email, display_name, verified, superadmin, role, token_key, created, updated, activity_email_preferences
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences
       FROM users ORDER BY created DESC
     ` as any
   }
 
   async getAdminUsers(): Promise<User[]> {
     return await this.sql`
-      SELECT id, email, display_name, verified, superadmin, role, token_key, created, updated, activity_email_preferences
-      FROM users WHERE role = 'admin' OR superadmin = TRUE ORDER BY created DESC
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences
+      FROM users WHERE 'admin' = ANY(roles) OR superadmin = TRUE ORDER BY created DESC
     ` as any
   }
 

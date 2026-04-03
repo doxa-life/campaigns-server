@@ -13,7 +13,7 @@ export interface TestUser {
   display_name: string
   verified: boolean
   superadmin: boolean
-  role: 'admin' | 'people_group_editor' | null
+  roles: string[]
 }
 
 const SALT_ROUNDS = 10
@@ -37,7 +37,7 @@ export async function createTestUser(
   const email = options.email || `test-${uuidv4().slice(0, 8)}@example.com`
   const display_name = options.display_name || 'Test User'
   const password = options.password || 'testpassword123'
-  const role = options.role ?? null
+  const roles = options.role ? [options.role] : []
   const verified = options.verified ?? true
   const superadmin = options.superadmin ?? false
   const token_key = uuidv4()
@@ -45,8 +45,8 @@ export async function createTestUser(
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
 
   await sql`
-    INSERT INTO users (id, email, password, display_name, verified, superadmin, role, token_key)
-    VALUES (${id}, ${email}, ${passwordHash}, ${display_name}, ${verified}, ${superadmin}, ${role}, ${token_key})
+    INSERT INTO users (id, email, password, display_name, verified, superadmin, roles, token_key)
+    VALUES (${id}, ${email}, ${passwordHash}, ${display_name}, ${verified}, ${superadmin}, ${roles}, ${token_key})
   `
 
   return {
@@ -55,7 +55,7 @@ export async function createTestUser(
     display_name,
     verified,
     superadmin,
-    role
+    roles
   }
 }
 

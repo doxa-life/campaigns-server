@@ -1,7 +1,7 @@
 import { getSql } from '#server/database/db'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'people_groups.view')
 
   const sql = getSql()
 

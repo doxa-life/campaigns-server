@@ -215,8 +215,8 @@ export class PeopleGroupService {
   }
 
   async userCanAccessPeopleGroup(userId: string, peopleGroupId: number): Promise<boolean> {
-    const isAdmin = await roleService.isAdmin(userId)
-    if (isAdmin) return true
+    const scoped = await roleService.isPermissionScoped(userId, 'people_groups.view')
+    if (!scoped) return true
     return await peopleGroupAccessService.userHasAccess(userId, peopleGroupId)
   }
 
@@ -229,8 +229,8 @@ export class PeopleGroupService {
   }
 
   async getPeopleGroupsForUser(userId: string): Promise<PeopleGroup[]> {
-    const isAdmin = await roleService.isAdmin(userId)
-    if (isAdmin) return this.getAllPeopleGroups()
+    const scoped = await roleService.isPermissionScoped(userId, 'people_groups.view')
+    if (!scoped) return this.getAllPeopleGroups()
 
     const peopleGroupIds = await peopleGroupAccessService.getUserPeopleGroups(userId)
     if (peopleGroupIds.length === 0) return []

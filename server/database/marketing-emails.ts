@@ -125,11 +125,11 @@ class MarketingEmailService {
   }
 
   async listForUser(userId: string, filters?: MarketingEmailFilters): Promise<MarketingEmailWithPeopleGroup[]> {
-    const isAdmin = await roleService.isAdmin(userId)
+    const scoped = await roleService.isPermissionScoped(userId, 'people_groups.view')
 
     const conditions: Fragment[] = []
 
-    if (!isAdmin) {
+    if (scoped) {
       const peopleGroupIds = await peopleGroupAccessService.getUserPeopleGroups(userId)
       if (peopleGroupIds.length === 0) {
         conditions.push(this.sql`(me.audience_type = 'people_group' AND me.created_by = ${userId})`)
@@ -224,8 +224,8 @@ class MarketingEmailService {
     const email = await this.getById(emailId)
     if (!email) return false
 
-    const isAdmin = await roleService.isAdmin(userId)
-    if (isAdmin) return true
+    const scoped = await roleService.isPermissionScoped(userId, 'people_groups.view')
+    if (!scoped) return true
 
     if (email.audience_type === 'doxa') return email.created_by === userId
 
@@ -237,12 +237,12 @@ class MarketingEmailService {
   }
 
   async canUserSendToAudience(userId: string, audienceType: 'doxa' | 'people_group', peopleGroupId?: number): Promise<boolean> {
-    const isAdmin = await roleService.isAdmin(userId)
+    const scoped = await roleService.isPermissionScoped(userId, 'people_groups.view')
 
-    if (audienceType === 'doxa') return isAdmin
+    if (audienceType === 'doxa') return !scoped
 
     if (audienceType === 'people_group' && peopleGroupId) {
-      if (isAdmin) return true
+      if (!scoped) return true
       return await peopleGroupAccessService.userHasAccess(userId, peopleGroupId)
     }
 

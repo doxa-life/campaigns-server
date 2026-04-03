@@ -12,11 +12,10 @@ export default defineEventHandler(async (event) => {
   const source = query.source as string | undefined
 
   try {
-    // Determine accessible people groups for non-admin users
-    const isAdmin = await roleService.isAdmin(user.userId)
+    const scoped = await roleService.isPermissionScoped(user.userId, 'subscribers.view')
     let accessiblePeopleGroupIds: number[] | undefined
 
-    if (!isAdmin) {
+    if (scoped) {
       accessiblePeopleGroupIds = await peopleGroupAccessService.getUserPeopleGroups(user.userId)
 
       // If user has no people group access, return empty list

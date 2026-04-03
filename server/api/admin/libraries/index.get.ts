@@ -1,8 +1,7 @@
 import { libraryService, PEOPLE_GROUP_LIBRARY, DAILY_PEOPLE_GROUP_LIBRARY, DAY_IN_LIFE_LIBRARY } from '#server/database/libraries'
 
 export default defineEventHandler(async (event) => {
-  // Require authentication
-  await requireAuth(event)
+  await requirePermission(event, 'content.view')
 
   const query = getQuery(event)
   const search = query.search as string | undefined

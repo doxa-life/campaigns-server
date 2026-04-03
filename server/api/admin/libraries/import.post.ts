@@ -85,7 +85,7 @@ export default defineEventHandler(async (event) => {
       })
     }
   } else {
-    await requireAdmin(event)
+    user = await requirePermission(event, 'content.edit')
   }
 
   const validation = validateExportData(body.data)

@@ -1,25 +1,29 @@
 import { userService } from '#server/database/users'
 import { roleService, ROLES } from '#server/database/roles'
+import { peopleGroupAccessService } from '#server/database/people-group-access'
 import { handleApiError } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  // Require admin authentication
-  await requireAdmin(event)
+  await requirePermission(event, 'users.manage')
 
   try {
-    // Get all users
     const users = await userService.getAllUsers()
 
-    // Get role for each user
     const usersWithRoles = await Promise.all(
       users.map(async (user) => {
-        const role = await roleService.getUserRole(user.id)
+        const roles = await roleService.getUserRoles(user.id)
+        const hasScopedAccess = await roleService.isPermissionScoped(user.id, 'people_groups.view')
+        const peopleGroupCount = hasScopedAccess
+          ? await peopleGroupAccessService.getUserPeopleGroupCount(user.id)
+          : 0
         return {
           ...user,
-          role: role ? {
-            name: role,
-            description: ROLES[role].description
-          } : null
+          roles: roles.map(r => ({
+            name: r,
+            description: ROLES[r]?.description || ''
+          })),
+          hasScopedAccess,
+          peopleGroupCount
         }
       })
     )

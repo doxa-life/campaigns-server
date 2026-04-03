@@ -30,7 +30,7 @@ const TRACKED_FIELDS = [
 const TRACKED_FIELD_SET = new Set<string>(TRACKED_FIELDS)
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'people_groups.edit')
 
   const id = getIntParam(event, 'id')
 

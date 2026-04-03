@@ -2,7 +2,7 @@ import { notificationRecipientService } from '../../../../database/notification-
 import { handleApiError, getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requireSuperAdmin(event)
 
   const id = getIntParam(event, 'id')
 

@@ -3,8 +3,7 @@ import { userService } from '#server/database/users'
 import { handleApiError } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  // Require admin authentication - only admins can invite users
-  const user = await requireAdmin(event)
+  const user = await requirePermission(event, 'users.manage')
 
   // Get request body
   const body = await readBody(event)
@@ -49,7 +48,7 @@ export default defineEventHandler(async (event) => {
     const invitation = await userInvitationService.createInvitation({
       email: body.email,
       invited_by: user.userId,
-      role: body.role || null,
+      roles: body.roles || [],
       expires_in_days: body.expires_in_days || 7
     })
 

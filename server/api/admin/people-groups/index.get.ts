@@ -3,7 +3,7 @@ import { peopleGroupSubscriptionService } from '../../../database/people-group-s
 import { getSql } from '../../../database/db'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'people_groups.view')
 
   const query = getQuery(event)
   const search = query.search as string | undefined

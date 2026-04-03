@@ -16,7 +16,7 @@ import { getErrorMessage } from '#server/utils/api-helpers'
  * - translations: Record<string, string> - Map of language code to translated text
  */
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'content.edit')
 
   if (!isDeepLConfigured()) {
     throw createError({

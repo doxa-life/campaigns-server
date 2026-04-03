@@ -1,20 +1,27 @@
 import { handleApiError } from '#server/utils/api-helpers'
 
-const VALID_TABLES = ['people_groups', 'groups', 'libraries', 'users', 'people_group_adoptions', 'subscribers']
+const TABLE_PERMISSIONS: Record<string, string> = {
+  people_groups: 'people_groups.view',
+  groups: 'groups.view',
+  subscribers: 'subscribers.view',
+  libraries: 'content.view',
+  people_group_adoptions: 'groups.view',
+  users: 'users.manage'
+}
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
-
   const tableName = getRouterParam(event, 'tableName')
   const recordId = getRouterParam(event, 'recordId')
 
-  if (!tableName || !VALID_TABLES.includes(tableName)) {
+  if (!tableName || !TABLE_PERMISSIONS[tableName]) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid table name' })
   }
 
   if (!recordId) {
     throw createError({ statusCode: 400, statusMessage: 'Record ID is required' })
   }
+
+  await requirePermission(event, TABLE_PERMISSIONS[tableName])
 
   try {
     const activities = await sql`

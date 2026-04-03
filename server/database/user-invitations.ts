@@ -7,7 +7,7 @@ export interface UserInvitation {
   email: string
   token: string
   invited_by: string
-  role: RoleName | null
+  roles: RoleName[]
   status: 'pending' | 'accepted' | 'expired' | 'revoked'
   expires_at: string
   accepted_at: string | null
@@ -23,7 +23,7 @@ export interface UserInvitationWithInviter extends UserInvitation {
 export interface CreateInvitationData {
   email: string
   invited_by: string
-  role?: RoleName | null
+  roles?: RoleName[]
   expires_in_days?: number
 }
 
@@ -31,7 +31,7 @@ export class UserInvitationService {
   private sql = getSql()
 
   async createInvitation(data: CreateInvitationData): Promise<UserInvitation> {
-    const { email, invited_by, role = null, expires_in_days = 7 } = data
+    const { email, invited_by, roles = [], expires_in_days = 7 } = data
 
     const token = uuidv4()
 
@@ -40,8 +40,8 @@ export class UserInvitationService {
 
     try {
       const [row] = await this.sql`
-        INSERT INTO user_invitations (email, token, invited_by, role, expires_at)
-        VALUES (${email}, ${token}, ${invited_by}, ${role}, ${expiresAt.toISOString()})
+        INSERT INTO user_invitations (email, token, invited_by, roles, expires_at)
+        VALUES (${email}, ${token}, ${invited_by}, ${roles}, ${expiresAt.toISOString()})
         RETURNING *
       `
       return row as UserInvitation

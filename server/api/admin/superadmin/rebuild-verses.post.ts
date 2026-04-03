@@ -14,7 +14,7 @@ import { getErrorMessage } from '#server/utils/api-helpers'
  * Body: { languages: string[] }
  */
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requireSuperAdmin(event)
 
   const body = await readBody(event)
   const { languages } = body

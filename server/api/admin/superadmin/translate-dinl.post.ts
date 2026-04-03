@@ -16,7 +16,7 @@ import { handleApiError } from '#server/utils/api-helpers'
  */
 export default defineEventHandler(async (event) => {
   try {
-    await requireAdmin(event)
+    await requireSuperAdmin(event)
 
     if (!isDeepLConfigured()) {
       throw createError({

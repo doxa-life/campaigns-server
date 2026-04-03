@@ -4,7 +4,7 @@ import { getIntParam } from '#server/utils/api-helpers'
 const VALID_STATUSES = ['submitted', 'approved', 'rejected'] as const
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'groups.edit')
 
   const id = getIntParam(event, 'id')
   const body = await readBody<{

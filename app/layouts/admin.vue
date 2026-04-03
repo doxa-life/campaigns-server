@@ -27,37 +27,37 @@
       </div>
 
       <ul class="nav-menu" v-if="hasRole">
-        <li v-if="isAdmin">
+        <li>
           <NuxtLink to="/admin" class="nav-link" :class="{ 'router-link-active': route.path === '/admin' }" :title="!showExpanded ? 'Dashboard' : undefined">
             <UIcon name="i-lucide-layout-dashboard" />
             <span v-if="showExpanded" class="nav-label">Dashboard</span>
           </NuxtLink>
         </li>
-        <li v-if="isAdmin">
+        <li v-if="canAccess('people_groups.view')">
           <NuxtLink to="/admin/people-groups" class="nav-link" :title="!showExpanded ? 'People Groups' : undefined">
             <UIcon name="i-lucide-globe" />
             <span v-if="showExpanded" class="nav-label">People Groups</span>
           </NuxtLink>
         </li>
-        <li>
+        <li v-if="canAccess('subscribers.view')">
           <NuxtLink to="/admin/subscribers" class="nav-link" :title="!showExpanded ? 'Contacts' : undefined">
             <UIcon name="i-lucide-user" />
             <span v-if="showExpanded" class="nav-label">Contacts</span>
           </NuxtLink>
         </li>
-        <li v-if="isAdmin">
+        <li v-if="canAccess('groups.view')">
           <NuxtLink to="/admin/groups" class="nav-link" :title="!showExpanded ? 'Groups' : undefined">
             <UIcon name="i-lucide-users" />
             <span v-if="showExpanded" class="nav-label">Groups</span>
           </NuxtLink>
         </li>
-        <li v-if="isAdmin">
+        <li v-if="canAccess('content.view')">
           <NuxtLink to="/admin/libraries" class="nav-link" :title="!showExpanded ? 'Libraries' : undefined">
             <UIcon name="i-lucide-book-open" />
             <span v-if="showExpanded" class="nav-label">Libraries</span>
           </NuxtLink>
         </li>
-        <li v-if="isAdmin">
+        <li v-if="canAccess('users.manage')">
           <NuxtLink to="/admin/users" class="nav-link" :title="!showExpanded ? 'Users' : undefined">
             <UIcon name="i-lucide-user-cog" />
             <span v-if="showExpanded" class="nav-label">Users</span>
@@ -100,7 +100,7 @@
 
 <script setup lang="ts">
 const config = useRuntimeConfig()
-const { user, isAdmin, isSuperAdmin, hasRole, checkAuth } = useAuthUser()
+const { user, isAdmin, isSuperAdmin, hasRole, canAccess, checkAuth } = useAuthUser()
 
 const route = useRoute()
 const sidebarOpen = ref(false)

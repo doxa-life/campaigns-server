@@ -330,7 +330,7 @@ export interface TestUserInvitation {
   email: string
   token: string
   invited_by: string
-  role: 'admin' | 'people_group_editor' | null
+  roles: string[]
   status: 'pending' | 'accepted' | 'expired' | 'revoked'
   expires_at: string
 }
@@ -347,7 +347,7 @@ export async function createTestUserInvitation(
 ): Promise<TestUserInvitation> {
   const email = options.email || `test-${uuidv4().slice(0, 8)}@example.com`
   const token = uuidv4()
-  const role = options.role ?? null
+  const roles = options.role ? [options.role] : []
   const status = options.status ?? 'pending'
   const expires_in_days = options.expires_in_days ?? 7
 
@@ -355,9 +355,9 @@ export async function createTestUserInvitation(
   expiresAt.setDate(expiresAt.getDate() + expires_in_days)
 
   const result = await sql`
-    INSERT INTO user_invitations (email, token, invited_by, role, status, expires_at)
-    VALUES (${email}, ${token}, ${options.invited_by}, ${role}, ${status}, ${expiresAt.toISOString()})
-    RETURNING id, email, token, invited_by, role, status, expires_at
+    INSERT INTO user_invitations (email, token, invited_by, roles, status, expires_at)
+    VALUES (${email}, ${token}, ${options.invited_by}, ${roles}, ${status}, ${expiresAt.toISOString()})
+    RETURNING id, email, token, invited_by, roles, status, expires_at
   `
 
   return result[0] as TestUserInvitation
@@ -368,7 +368,7 @@ export async function getTestUserInvitation(
   id: number
 ): Promise<TestUserInvitation | null> {
   const result = await sql`
-    SELECT id, email, token, invited_by, role, status, expires_at
+    SELECT id, email, token, invited_by, roles, status, expires_at
     FROM user_invitations
     WHERE id = ${id}
   `
@@ -380,7 +380,7 @@ export async function getTestUserInvitationByEmail(
   email: string
 ): Promise<TestUserInvitation | null> {
   const result = await sql`
-    SELECT id, email, token, invited_by, role, status, expires_at
+    SELECT id, email, token, invited_by, roles, status, expires_at
     FROM user_invitations
     WHERE email = ${email}
     ORDER BY created_at DESC
@@ -527,7 +527,7 @@ export async function getTestUser(
   id: string
 ) {
   const result = await sql`
-    SELECT id, email, display_name, verified, superadmin, role
+    SELECT id, email, display_name, verified, superadmin, roles
     FROM users
     WHERE id = ${id}
   `
@@ -537,7 +537,7 @@ export async function getTestUser(
     display_name: string
     verified: boolean
     superadmin: boolean
-    role: string | null
+    roles: string[]
   } | null
 }
 
@@ -546,7 +546,7 @@ export async function getTestUserByEmail(
   email: string
 ) {
   const result = await sql`
-    SELECT id, email, display_name, verified, superadmin, role
+    SELECT id, email, display_name, verified, superadmin, roles
     FROM users
     WHERE email = ${email}
   `
@@ -556,7 +556,7 @@ export async function getTestUserByEmail(
     display_name: string
     verified: boolean
     superadmin: boolean
-    role: string | null
+    roles: string[]
   } | null
 }
 

@@ -16,7 +16,7 @@ interface ImportResult {
 
 export default defineEventHandler(async (event): Promise<ImportResult> => {
   try {
-    await requireAdmin(event)
+    await requirePermission(event, 'people_groups.edit')
 
     const formData = await readMultipartFormData(event)
     if (!formData || formData.length === 0) {
