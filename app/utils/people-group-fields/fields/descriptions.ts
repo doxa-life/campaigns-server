@@ -5,5 +5,6 @@ export const field: FieldDefinition = {
   labelKey: 'peopleGroups.fields.descriptions',
   type: 'translatable',
   category: 'basic',
-  tableColumn: true
+  tableColumn: true,
+  hidden: true
 }

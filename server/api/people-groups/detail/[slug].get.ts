@@ -4,7 +4,7 @@
  * Supports translated labels via ?locale= query param
  */
 import { getSql } from '../../../database/db'
-import { formatPeopleGroupForDetail } from '../../../utils/app/people-group-formatter'
+import { formatPeopleGroup } from '../../../utils/app/people-group-formatter'
 import { setCacheHeaders } from '../../../utils/app/cors'
 import { LANGUAGE_CODES } from '../../../../config/languages'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
@@ -57,7 +57,7 @@ export default defineEventHandler(async (event) => {
   const publicAdoptions = activeAdoptions.filter(a => a.show_publicly)
 
   return {
-    ...formatPeopleGroupForDetail(peopleGroup, lang),
+    ...formatPeopleGroup(peopleGroup, { fields: 'all', lang }),
     people_committed: commitmentStats.people_committed,
     committed_duration: commitmentStats.committed_duration,
     global_start_date: globalStartDate,

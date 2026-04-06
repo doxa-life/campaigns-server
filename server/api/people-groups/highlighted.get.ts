@@ -4,7 +4,7 @@
  * Supports translated labels via ?lang= query param
  */
 import { getSql } from '../../database/db'
-import { formatPeopleGroupForList } from '../../utils/app/people-group-formatter'
+import { formatPeopleGroup } from '../../utils/app/people-group-formatter'
 import { setCacheHeaders } from '../../utils/app/cors'
 import { LANGUAGE_CODES } from '../../../config/languages'
 
@@ -52,7 +52,7 @@ export default defineEventHandler(async (event) => {
   ` as any[]
 
   // Format the response
-  const posts = peopleGroups.map(pg => formatPeopleGroupForList(pg, lang))
+  const posts = peopleGroups.map(pg => formatPeopleGroup(pg, { lang }))
 
   return {
     posts,

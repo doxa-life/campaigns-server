@@ -1,5 +1,5 @@
 import { getSql } from '../../../database/db'
-import { formatPeopleGroupForDetail } from '../../../utils/app/people-group-formatter'
+import { formatPeopleGroup, INTERNAL_TO_ALIAS } from '../../../utils/app/people-group-formatter'
 import { allFields } from '../../../utils/app/field-options'
 
 function escapeCsvField(value: string): string {
@@ -25,10 +25,10 @@ export default defineEventHandler(async (event) => {
     ORDER BY pg.name
   ` as any[]
 
-  const fields = ['id', 'name', 'slug', ...allFields.map(f => f.key)]
+  const fields = ['id', 'name', 'slug', ...allFields.map(f => INTERNAL_TO_ALIAS[f.key] || f.key)]
 
   const rows = peopleGroups.map(pg => {
-    const formatted = formatPeopleGroupForDetail(pg, 'en')
+    const formatted = formatPeopleGroup(pg, { fields: 'all', lang: 'en' })
     return fields.map(key => escapeCsvField(flattenValue(formatted[key]))).join(',')
   })
 
