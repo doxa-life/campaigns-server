@@ -29,6 +29,8 @@ import { field as imbIsIndigenous } from './fields/imb-is-indigenous'
 
 // Status
 import { field as status } from './fields/status'
+import { field as reasonUnlisted } from './fields/reason-unlisted'
+import { field as reasonEngaged } from './fields/reason-engaged'
 
 // Population & Engagement fields
 import { field as imbPopulation } from './fields/imb-population'
@@ -96,6 +98,7 @@ import { field as imbPeopleSearchText } from './fields/imb-people-search-text'
 export const allFields: FieldDefinition[] = [
   // Status
   status,
+  reasonUnlisted,
   // Basic
   name,
   imbDisplayName,
@@ -124,6 +127,7 @@ export const allFields: FieldDefinition[] = [
   imbEvangelicalPercentage,
   imbEvangelicalLevel,
   imbEngagementStatus,
+  reasonEngaged,
   imbCongregationExisting,
   imbChurchPlanting,
   believersCount,

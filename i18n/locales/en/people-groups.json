@@ -19,6 +19,7 @@
       "butUnreached": "but Unreached"
     },
     "categories": {
+      "status": "Status",
       "engagement": "Engagement",
       "basic": "Basic Info",
       "identifiers": "Identifiers",
@@ -35,6 +36,8 @@
     },
     "fields": {
       "status": "Status",
+      "reason_unlisted": "Reason Unlisted",
+      "reason_engaged": "Engagement Reason",
       "name": "People Group Name",
       "imb_display_name": "Display Name",
       "imb_alternate_name": "Alternate Name",
@@ -101,6 +104,16 @@
       "status": {
         "active": "Active",
         "archived": "Archived"
+      },
+      "reasonUnlisted": {
+        "is_diaspora": "Is Diaspora",
+        "historically_christian": "Historically Christian",
+        "merged_or_deleted": "Merged or Deleted"
+      },
+      "reasonEngaged": {
+        "imb_report": "IMB Report",
+        "agwm_report": "AGWM Report",
+        "doxa_report": "Doxa Report"
       },
       "regions": {
         "africa": "Africa",

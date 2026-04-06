@@ -154,6 +154,7 @@
               <div class="fields-grid">
                 <UFormField
                   v-for="field in category.fields"
+                  v-show="shouldShowField(field)"
                   :key="field.key"
                   :label="field.label"
                   :hint="field.description"
@@ -212,6 +213,7 @@
               <div class="fields-grid">
                 <UFormField
                   v-for="field in category.fields"
+                  v-show="shouldShowField(field)"
                   :key="field.key"
                   :label="field.label"
                   :hint="field.description"
@@ -526,7 +528,7 @@ const { t } = useI18n()
 const { countryOptions } = useLocalizedOptions()
 
 // Categories shown on the Progress tab
-const progressCategoryKeys = new Set(['engagement', 'workers', 'resources'])
+const progressCategoryKeys = new Set(['status', 'engagement', 'workers', 'resources'])
 
 function mapCategory(category: { key: string; labelKey: string }) {
   return {
@@ -568,6 +570,11 @@ function getOptionsForField(field: FieldDefinition): { value: string; label: str
     }))
   }
   return undefined
+}
+
+function shouldShowField(field: { showIf?: { field: string; value: string } }): boolean {
+  if (!field.showIf) return true
+  return getFieldValue(field.showIf.field) === field.showIf.value
 }
 
 // Load people groups

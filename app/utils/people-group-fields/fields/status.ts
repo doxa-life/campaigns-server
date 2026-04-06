@@ -4,7 +4,7 @@ export const field: FieldDefinition = {
   key: 'status',
   labelKey: 'peopleGroups.fields.status',
   type: 'select',
-  category: 'engagement',
+  category: 'status',
   tableColumn: true,
   options: [
     { value: 'active', labelKey: 'peopleGroups.options.status.active' },
