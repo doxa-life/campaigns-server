@@ -108,10 +108,10 @@
                   <span class="font-medium text-default">{{ $t('campaign.peopleGroup.overview.language') }}</span>
                   <span class="text-muted">{{ (pg.primary_language as any).label || (pg.primary_language as any).value }}</span>
                 </div>
-                <div v-if="pg.primary_religion || pg.imb_reg_of_religion_3" class="flex items-center gap-2">
+                <div v-if="pg.religion" class="flex items-center gap-2">
                   <UIcon name="i-lucide-flame" class="w-4 h-4 text-muted" />
                   <span class="font-medium text-default">{{ $t('campaign.peopleGroup.overview.religion') }}</span>
-                  <span class="text-muted">{{ (pg.primary_religion as any)?.label || (pg.imb_reg_of_religion_3 as any)?.label || (pg.primary_religion as any)?.value }}</span>
+                  <span class="text-muted">{{ (pg.religion as any).label || (pg.religion as any).value }}</span>
                 </div>
                 <div v-if="pg.engagement_status" class="flex items-center gap-2">
                   <UIcon name="i-lucide-target" class="w-4 h-4 text-muted" />
@@ -534,8 +534,7 @@ interface PeopleGroupDetailResponse {
   latitude: string | null
   longitude: string | null
   primary_language: { value: string; label: string } | null
-  primary_religion: { value: string; label: string; description?: string } | null
-  imb_reg_of_religion_3: { value: string; label: string; description?: string } | null
+  religion: { value: string; label: string; description?: string } | null
   engagement_status: { value: string; label: string } | null
   imb_congregation_existing: { value: string; label: string } | null
   [key: string]: unknown

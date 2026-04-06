@@ -16,6 +16,7 @@ export interface FieldDefinition {
   optionsSource?: 'countries'
   tableColumn?: boolean
   readOnly?: boolean
+  hidden?: boolean
   description?: string
   showIf?: { field: string; value: string }
 }
