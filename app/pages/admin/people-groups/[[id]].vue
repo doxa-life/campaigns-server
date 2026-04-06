@@ -395,6 +395,7 @@ const { formData, saving, savedField, fieldChanged, reset: resetAutoSave, flush:
   {
     saveFn: async (data) => {
       if (!selectedGroup.value) return
+      const targetId = selectedGroup.value.id
       const columnData: Record<string, any> = {}
       const metadataData: Record<string, any> = {}
       for (const [key, value] of Object.entries(data)) {
@@ -405,16 +406,18 @@ const { formData, saving, savedField, fieldChanged, reset: resetAutoSave, flush:
         }
       }
       const response = await $fetch<{ success: boolean; peopleGroup: PeopleGroup }>(
-        `/api/admin/people-groups/${selectedGroup.value.id}`,
+        `/api/admin/people-groups/${targetId}`,
         {
           method: 'PUT',
           body: { ...columnData, metadata: metadataData }
         }
       )
-      selectedGroup.value = response.peopleGroup
       const index = peopleGroups.value.findIndex(g => g.id === response.peopleGroup.id)
       if (index !== -1) {
         peopleGroups.value[index] = response.peopleGroup
+      }
+      if (selectedGroup.value?.id === targetId) {
+        selectedGroup.value = response.peopleGroup
       }
       return buildFormData(response.peopleGroup)
     },
@@ -611,6 +614,7 @@ async function selectGroup(group: PeopleGroup, updateUrl = true) {
     return
   }
 
+  flushAutoSave()
   selectedGroup.value = group
   slideoverOpen.value = true
   resetAutoSave(buildFormData(group))

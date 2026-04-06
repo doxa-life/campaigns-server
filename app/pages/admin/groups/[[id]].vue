@@ -303,7 +303,8 @@ const { formData, saving, savedField, fieldChanged, reset: resetAutoSave, flush:
   { name: '', primary_subscriber_id: undefined as number | undefined, country: undefined as string | undefined },
   {
     saveFn: async (data) => {
-      await $fetch(`/api/admin/groups/${selectedGroup.value!.id}`, {
+      const targetId = selectedGroup.value!.id
+      await $fetch(`/api/admin/groups/${targetId}`, {
         method: 'PUT',
         body: {
           name: data.name,
@@ -407,6 +408,7 @@ async function selectGroup(group: GroupWithDetails, updateUrl = true) {
     return
   }
 
+  flushAutoSave()
   selectedGroup.value = group
   slideoverOpen.value = true
   resetAutoSave({

@@ -685,7 +685,8 @@ const { formData: subscriberForm, saving: subscriberSaving, savedField, fieldCha
   {
     saveFn: async (data) => {
       if (!selectedSubscriber.value) return
-      await $fetch(`/api/admin/subscribers/${selectedSubscriber.value.id}`, {
+      const targetId = selectedSubscriber.value.id
+      await $fetch(`/api/admin/subscribers/${targetId}`, {
         method: 'PUT',
         body: {
           name: data.name,
@@ -1091,6 +1092,7 @@ async function selectSubscriber(subscriber: GeneralSubscriber, updateUrl = true)
     return
   }
 
+  flushSubscriberAutoSave()
   selectedSubscriber.value = subscriber
   slideoverOpen.value = true
   resetSubscriberAutoSave({

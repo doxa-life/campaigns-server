@@ -24,6 +24,7 @@ export function useAutoSave<T extends Record<string, any>>(
   let savedTimer: ReturnType<typeof setTimeout> | null = null
   let saveQueued = false
   let inFlight = false
+  let generation = 0
 
   function hasChanges(): boolean {
     return JSON.stringify(formData.value) !== JSON.stringify(snapshot.value)
@@ -37,12 +38,15 @@ export function useAutoSave<T extends Record<string, any>>(
       return
     }
 
+    const gen = generation
     inFlight = true
     saving.value = true
     const dataToSend = deepClone(toRaw(formData.value))
 
     try {
       const result = await options.saveFn(dataToSend)
+      if (gen !== generation) return
+
       snapshot.value = result ? deepClone(toRaw(result)) : deepClone(dataToSend)
 
       if (savedTimer) clearTimeout(savedTimer)
@@ -51,6 +55,7 @@ export function useAutoSave<T extends Record<string, any>>(
 
       options.onSaved?.()
     } catch (err: any) {
+      if (gen !== generation) return
       options.onError?.(err)
     } finally {
       inFlight = false
@@ -69,7 +74,8 @@ export function useAutoSave<T extends Record<string, any>>(
   }
 
   function reset(data: T) {
-    flush()
+    generation++
+    saveQueued = false
     formData.value = deepClone(toRaw(data))
     snapshot.value = deepClone(toRaw(data))
   }
