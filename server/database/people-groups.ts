@@ -3,6 +3,7 @@ import { getSql } from './db'
 import { buildSet } from './sql-helpers'
 import { roleService } from './roles'
 import { peopleGroupAccessService } from './people-group-access'
+import { tableColumnFields } from '~/utils/people-group-fields'
 
 export interface PeopleGroup {
   id: number
@@ -126,29 +127,23 @@ export class PeopleGroupService {
 
     const fields: ReturnType<typeof this.sql>[] = []
 
-    if (data.joshua_project_id !== undefined) fields.push(this.sql`joshua_project_id = ${data.joshua_project_id}`)
-    if (data.name !== undefined) fields.push(this.sql`name = ${data.name}`)
+    // Table column fields from field definitions
+    for (const field of tableColumnFields) {
+      const value = (data as any)[field.key]
+      if (value === undefined) continue
+      if (field.key === 'descriptions') {
+        const desc = typeof value === 'string' ? JSON.parse(value) : value
+        fields.push(this.sql`descriptions = ${this.sql.json(desc)}`)
+      } else {
+        fields.push(this.sql`${this.sql(field.key)} = ${value}`)
+      }
+    }
+
+    // Non-field-definition columns (managed by other code paths)
     if (data.slug !== undefined) fields.push(this.sql`slug = ${data.slug}`)
-    if (data.image_url !== undefined) fields.push(this.sql`image_url = ${data.image_url}`)
     if (data.metadata !== undefined) fields.push(this.sql`metadata = ${data.metadata ? this.sql.json(data.metadata) : null}`)
     if (data.people_praying !== undefined) fields.push(this.sql`people_praying = ${data.people_praying}`)
     if (data.daily_prayer_duration !== undefined) fields.push(this.sql`daily_prayer_duration = ${data.daily_prayer_duration}`)
-    if (data.country_code !== undefined) fields.push(this.sql`country_code = ${data.country_code}`)
-    if (data.region !== undefined) fields.push(this.sql`region = ${data.region}`)
-    if (data.latitude !== undefined) fields.push(this.sql`latitude = ${data.latitude}`)
-    if (data.longitude !== undefined) fields.push(this.sql`longitude = ${data.longitude}`)
-    if (data.population !== undefined) fields.push(this.sql`population = ${data.population}`)
-    if (data.evangelical_pct !== undefined) fields.push(this.sql`evangelical_pct = ${data.evangelical_pct}`)
-    if (data.status !== undefined) fields.push(this.sql`status = ${data.status}`)
-    if (data.engagement_status !== undefined) fields.push(this.sql`engagement_status = ${data.engagement_status}`)
-    if (data.primary_religion !== undefined) fields.push(this.sql`primary_religion = ${data.primary_religion}`)
-    if (data.primary_language !== undefined) fields.push(this.sql`primary_language = ${data.primary_language}`)
-    if (data.descriptions !== undefined) {
-      const desc = typeof data.descriptions === 'string'
-        ? JSON.parse(data.descriptions)
-        : data.descriptions
-      fields.push(this.sql`descriptions = ${this.sql.json(desc)}`)
-    }
 
     if (fields.length === 0) return peopleGroup
 

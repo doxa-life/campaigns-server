@@ -100,7 +100,7 @@ const pageSize = 10
 
 const { locale } = useI18n()
 
-const { data, pending, error } = await useFetch('/api/people-groups', {
+const { data, pending, error } = await useFetch('/api/people-groups/list', {
   query: { fields: 'name,slug,image_url,imb_people_description', lang: locale },
   watch: [locale]
 })

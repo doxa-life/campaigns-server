@@ -1,4 +1,4 @@
-import { getFieldOptionLabel, getFieldOptionDescription, getFieldOptionAlternates, getCountryLabel, allFields } from './field-options'
+import { getFieldOptionLabel, getFieldOptionDescription, getFieldOptionAlternates, allFields } from './field-options'
 import { generatePeopleGroupDescription } from './people-group-description'
 
 interface PeopleGroupRecord {
@@ -25,40 +25,19 @@ interface ValueLabelPair {
   label: string
 }
 
-// Fields that should be formatted as {value, label} pairs
-const FORMATTED_FIELDS = new Set([
-  'doxa_wagf_region',
-  'doxa_wagf_block',
-  'doxa_wagf_member',
-  'country_code',
-  'imb_reg_of_people_1',
-  'primary_religion',
-  'imb_reg_of_religion_3',
-  'imb_reg_of_religion_4',
-  'region',
-  'imb_subregion',
-  'engagement_status',
-  'imb_evangelical_level',
-  'imb_population_class',
-  'imb_gsec',
-  'imb_strategic_priority_index',
-  'imb_lostness_priority_index',
-  'imb_affinity_code',
-  'imb_is_indigenous',
-  'imb_congregation_existing',
-  'imb_church_planting',
-  'imb_bible_translation_level',
-  'primary_language'
-])
+// Fields that should be formatted as {value, label} pairs — derived from field definitions
+const FORMATTED_FIELDS = new Set(
+  allFields.filter(f => f.type === 'select').map(f => f.key)
+)
 
-// Map from API response field names to metadata field keys
+// Map from API response field names to internal field keys
 const FIELD_KEY_MAP: Record<string, string> = {
   wagf_region: 'doxa_wagf_region',
   wagf_block: 'doxa_wagf_block',
   wagf_member: 'doxa_wagf_member',
   country: 'country_code',
   rop1: 'imb_reg_of_people_1',
-  religion: 'imb_reg_of_religion_3'
+  religion: 'primary_religion'
 }
 
 /**
@@ -120,6 +99,62 @@ function formatValueLabelWithDescription(
 }
 
 /**
+ * Format a generic field value — applies select formatting if applicable
+ */
+function formatField(pg: PeopleGroupRecord, fieldKey: string, lang: string): unknown {
+  const fieldDef = allFields.find(f => f.key === fieldKey)
+
+  // Boolean fields: preserve native type
+  if (fieldDef?.type === 'boolean') {
+    const raw = pg.metadata?.[fieldKey]
+    return raw === true || raw === '1' ? true : raw === false || raw === '0' ? false : null
+  }
+
+  const value = getFieldValue(pg, fieldKey)
+
+  if (value !== null && FORMATTED_FIELDS.has(fieldKey)) {
+    return formatValueLabelWithDescription(fieldKey, value, lang)
+  }
+
+  return value ?? pg.metadata?.[fieldKey] ?? null
+}
+
+/**
+ * Resolve a requested field name, handling aliases and special computed fields.
+ * Returns undefined if the field should be handled generically.
+ */
+function resolveSpecialField(pg: PeopleGroupRecord, field: string, meta: Record<string, unknown>, lang: string): { value: unknown } | undefined {
+  switch (field) {
+    case 'id': return { value: pg.slug }
+    case 'display_name': return { value: meta.imb_display_name || pg.name }
+    case 'location_description': return { value: meta.imb_location_description || null }
+    case 'has_photo': return { value: meta.imb_has_photo === '1' || meta.imb_has_photo === true }
+    case 'picture_url': return { value: pg.image_url || meta.imb_picture_url || null }
+    case 'picture_credit': return { value: meta.picture_credit || null }
+    case 'picture_credit_html': return { value: meta.imb_picture_credit_html || null }
+    case 'people_praying': return { value: pg.total_people_praying || 0 }
+    case 'people_committed': return { value: pg.people_committed || 0 }
+    case 'adopted_by_churches': return { value: (pg as any).adopted_by_churches || 0 }
+    case 'descriptions': return { value: pg.descriptions?.[lang] || pg.descriptions?.['en'] || null }
+    case 'generated_description':
+    case 'imb_people_description':
+      return {
+        value: generatePeopleGroupDescription({
+          name: pg.name,
+          descriptions: pg.descriptions,
+          country_code: pg.country_code,
+          population: pg.population,
+          engagement_status: pg.engagement_status,
+          primary_religion: pg.primary_religion,
+          primary_language: pg.primary_language as string | null,
+          metadata: meta as any
+        }, lang)
+      }
+    default: return undefined
+  }
+}
+
+/**
  * Format a people group for the list endpoint
  * Returns summary data with {value, label} formatting for select fields
  */
@@ -144,7 +179,7 @@ export function formatPeopleGroupForList(pg: PeopleGroupRecord, lang: string = '
     picture_credit: meta.picture_credit || null,
     people_praying: pg.total_people_praying || 0,
     people_committed: pg.people_committed || 0,
-    adopted_by_churches: pg.adopted_by_churches || 0
+    adopted_by_churches: (pg as any).adopted_by_churches || 0
   }
 }
 
@@ -160,102 +195,21 @@ export function formatPeopleGroupForListWithFields(
   const result: Record<string, unknown> = {}
 
   for (const field of fields) {
-    switch (field) {
-      case 'id':
-        result.id = pg.slug
-        break
-      case 'name':
-        result.name = pg.name
-        break
-      case 'slug':
-        result.slug = pg.slug
-        break
-      case 'display_name':
-        result.display_name = meta.imb_display_name || pg.name
-        break
-      case 'wagf_region':
-        result.wagf_region = formatValueLabel('doxa_wagf_region', meta.doxa_wagf_region as string, lang)
-        break
-      case 'wagf_block':
-        result.wagf_block = formatValueLabel('doxa_wagf_block', meta.doxa_wagf_block as string, lang)
-        break
-      case 'wagf_member':
-        result.wagf_member = formatValueLabel('doxa_wagf_member', meta.doxa_wagf_member as string, lang)
-        break
-      case 'country':
-        result.country = formatValueLabel('country_code', pg.country_code, lang)
-        break
-      case 'rop1':
-        result.rop1 = formatValueLabel('imb_reg_of_people_1', meta.imb_reg_of_people_1 as string, lang)
-        break
-      case 'religion':
-        result.religion = formatValueLabelWithDescription('primary_religion', pg.primary_religion as string, lang)
-        break
-      case 'location_description':
-        result.location_description = meta.imb_location_description || null
-        break
-      case 'population':
-        result.population = pg.population || null
-        break
-      case 'has_photo':
-        result.has_photo = meta.imb_has_photo === '1' || meta.imb_has_photo === true
-        break
-      case 'picture_url':
-        result.picture_url = pg.image_url || meta.imb_picture_url || null
-        break
-      case 'picture_credit_html':
-        result.picture_credit_html = meta.imb_picture_credit_html || null
-        break
-      case 'picture_credit':
-        result.picture_credit = meta.picture_credit || null
-        break
-      case 'people_praying':
-        result.people_praying = pg.total_people_praying || 0
-        break
-      case 'people_committed':
-        result.people_committed = pg.people_committed || 0
-        break
-      case 'adopted_by_churches':
-        result.adopted_by_churches = pg.adopted_by_churches || 0
-        break
-      case 'joshua_project_id':
-        result.joshua_project_id = pg.joshua_project_id ?? null
-        break
-      case 'descriptions':
-        result.descriptions = pg.descriptions?.[lang] || pg.descriptions?.['en'] || null
-        break
-      case 'generated_description':
-      case 'imb_people_description':
-        result[field] = generatePeopleGroupDescription({
-          name: pg.name,
-          descriptions: pg.descriptions,
-          country_code: pg.country_code,
-          population: pg.population,
-          engagement_status: pg.engagement_status,
-          primary_religion: pg.primary_religion,
-          primary_language: pg.primary_language as string | null,
-          metadata: meta as any
-        }, lang)
-        break
-      default: {
-        // Boolean fields: preserve native type from metadata
-        const fieldDef = allFields.find(f => f.key === field)
-        if (fieldDef?.type === 'boolean') {
-          const raw = meta[field]
-          result[field] = raw === true || raw === '1' ? true : raw === false || raw === '0' ? false : null
-          break
-        }
-        // Try to get from metadata or table columns
-        const value = getFieldValue(pg, field)
-        if (value !== null) {
-          result[field] = FORMATTED_FIELDS.has(field)
-            ? formatValueLabelWithDescription(field, value, lang)
-            : value
-        } else if (meta[field] !== undefined) {
-          result[field] = meta[field]
-        }
-        break
-      }
+    // Check special/computed fields first
+    const special = resolveSpecialField(pg, field, meta, lang)
+    if (special) {
+      result[field] = special.value
+      continue
+    }
+
+    // Resolve aliased field names (e.g. 'country' -> 'country_code')
+    const fieldKey = FIELD_KEY_MAP[field] || field
+
+    // If aliased, format with label
+    if (FIELD_KEY_MAP[field]) {
+      result[field] = formatValueLabelWithDescription(fieldKey, getFieldValue(pg, fieldKey), lang)
+    } else {
+      result[field] = formatField(pg, fieldKey, lang)
     }
   }
 
@@ -278,8 +232,8 @@ export function formatPeopleGroupForDetail(pg: PeopleGroupRecord, lang: string =
     picture_credit: meta.picture_credit || null,
     population: pg.population,
     people_praying: pg.total_people_praying || 0,
-    adopted_by_churches: pg.adopted_by_churches || 0,
-    joshua_project_id: pg.joshua_project_id ?? null
+    adopted_by_churches: (pg as any).adopted_by_churches || 0,
+    joshua_project_id: (pg as any).joshua_project_id ?? null
   }
 
   // Process all defined fields
@@ -289,7 +243,7 @@ export function formatPeopleGroupForDetail(pg: PeopleGroupRecord, lang: string =
     // Skip fields we've already handled or don't want in the response
     if (['name', 'image_url', 'imb_picture_credit_html', 'descriptions', 'joshua_project_id', 'doxa_masteruid', 'picture_credit'].includes(key)) continue
 
-    // Handle special fields
+    // Handle generated description
     if (key === 'imb_people_description') {
       result[key] = generatePeopleGroupDescription({
         name: pg.name,
@@ -299,95 +253,7 @@ export function formatPeopleGroupForDetail(pg: PeopleGroupRecord, lang: string =
       continue
     }
 
-    // Boolean fields: preserve native type from metadata
-    if (fieldDef.type === 'boolean') {
-      const raw = meta[key]
-      result[key] = raw === true || raw === '1' ? true : raw === false || raw === '0' ? false : null
-      continue
-    }
-
-    // Get the value from table columns or metadata
-    const value = getFieldValue(pg, key)
-
-    // Format with label (and description when available) if this is a select field
-    if (FORMATTED_FIELDS.has(key) && value !== null && value !== undefined) {
-      result[key] = formatValueLabelWithDescription(key, value, lang)
-    } else {
-      result[key] = value ?? null
-    }
-  }
-
-  return result
-}
-
-/**
- * Format a people group for the /all endpoint (raw values, no formatting)
- * Returns only the requested fields
- */
-export function formatPeopleGroupRaw(pg: PeopleGroupRecord, fields: string[], lang: string = 'en'): Record<string, unknown> {
-  const meta = parseMetadata(pg.metadata)
-  const result: Record<string, unknown> = {}
-
-  for (const field of fields) {
-    // Handle special mapped fields
-    switch (field) {
-      case 'name':
-        result.name = pg.name
-        break
-      case 'image_url':
-        result.image_url = pg.image_url
-        break
-      case 'joshua_project_id':
-        result.joshua_project_id = pg.joshua_project_id
-        break
-      case 'slug':
-        result.slug = pg.slug
-        break
-      case 'imb_display_name':
-        result.imb_display_name = meta.imb_display_name || pg.name
-        break
-      case 'country_code':
-        result.country_code = pg.country_code
-        break
-      case 'latitude':
-        result.latitude = pg.latitude !== null ? String(pg.latitude) : null
-        break
-      case 'longitude':
-        result.longitude = pg.longitude !== null ? String(pg.longitude) : null
-        break
-      case 'population':
-        result.population = pg.population !== null ? String(pg.population) : null
-        break
-      case 'engagement_status':
-        result.engagement_status = pg.engagement_status
-        break
-      case 'primary_religion':
-        result.primary_religion = pg.primary_religion
-        break
-      case 'primary_language':
-        result.primary_language = pg.primary_language
-        break
-      case 'descriptions':
-        result.descriptions = pg.descriptions?.['en'] || null
-        break
-      case 'generated_description':
-      case 'imb_people_description':
-        result[field] = generatePeopleGroupDescription({
-          name: pg.name,
-          descriptions: pg.descriptions,
-          country_code: pg.country_code,
-          population: pg.population,
-          engagement_status: pg.engagement_status,
-          primary_religion: pg.primary_religion,
-          primary_language: pg.primary_language as string | null,
-          metadata: meta as any
-        }, lang)
-        break
-      default:
-        // Get from metadata
-        result[field] = meta[field] ?? null
-        break
-    }
+    result[key] = formatField(pg, key, lang)
   }
 
   return result
@@ -398,12 +264,4 @@ export const DEFAULT_LIST_FIELDS = [
   'id', 'name', 'slug', 'display_name', 'wagf_region', 'wagf_block', 'wagf_member',
   'country', 'rop1', 'religion', 'location_description', 'population',
   'has_photo', 'picture_url', 'people_praying', 'people_committed', 'adopted_by_churches'
-]
-
-// Default fields for /all endpoint
-export const DEFAULT_ALL_FIELDS = [
-  'name', 'slug', 'imb_reg_of_people_1', 'doxa_wagf_region', 'doxa_wagf_block',
-  'population', 'primary_religion', 'imb_reg_of_religion_3', 'country_code',
-  'imb_has_photo', 'image_url', 'latitude', 'longitude',
-  'imb_people_description'
 ]
