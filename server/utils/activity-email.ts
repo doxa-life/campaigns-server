@@ -99,6 +99,46 @@ function capitalizeFirst(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
+function getFrequencyTheme(frequency: Frequency) {
+  switch (frequency) {
+    case 'weekly':
+      return { color: '#1e40af', light: '#dbeafe', border: '#93c5fd' }
+    case 'monthly':
+      return { color: '#b4ada3', light: '#f5f3f0', border: '#d4cfc9' }
+    default:
+      return { color: '#3B463D', light: '#f0fdf4', border: '#86efac' }
+  }
+}
+
+function getWeeklyVisualHtml(): string {
+  const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+  const dots = days.map(d =>
+    `<td style="text-align: center; padding: 0 4px;">
+      <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); color: #ffffff; font-size: 12px; font-weight: 600; line-height: 32px; text-align: center;">${d}</div>
+    </td>`
+  ).join('')
+  return `
+    <table style="margin: 16px auto 0; border-collapse: collapse;">
+      <tr>${dots}</tr>
+    </table>
+  `
+}
+
+function getMonthlyVisualHtml(stats: ActivityStats): string {
+  const now = new Date()
+  const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const monthName = prevMonth.toLocaleString('en-US', { month: 'long' })
+  const year = prevMonth.getFullYear()
+  return `
+    <div style="margin: 16px auto 0; text-align: center;">
+      <div style="display: inline-block; background: rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 28px; border: 1px solid rgba(255,255,255,0.3);">
+        <div style="font-size: 28px; font-weight: 700; letter-spacing: 1px;">${monthName}</div>
+        <div style="font-size: 14px; opacity: 0.8; margin-top: 2px;">${year}</div>
+      </div>
+    </div>
+  `
+}
+
 export async function sendActivityEmail(
   to: string,
   frequency: Frequency,
@@ -113,6 +153,11 @@ export async function sendActivityEmail(
   const subject = `${appName} ${freqLabel} Activity Summary`
   const profileUrl = `${baseUrl}/admin/profile`
   const rows = buildStatRows(stats, previousStats)
+  const theme = getFrequencyTheme(frequency)
+
+  let frequencyVisual = ''
+  if (frequency === 'weekly') frequencyVisual = getWeeklyVisualHtml()
+  else if (frequency === 'monthly') frequencyVisual = getMonthlyVisualHtml(stats)
 
   const tableRowsHtml = rows.map((row, i) => {
     const isDuration = row.label.toLowerCase().includes('prayer time')
@@ -139,12 +184,13 @@ export async function sendActivityEmail(
       <title>${subject}</title>
     </head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #3B463D; background: #ffffff; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="background: #3B463D; color: #ffffff; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+      <div style="background: ${theme.color}; color: #ffffff; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
         <h1 style="margin: 0; font-size: 24px; font-weight: 500;">${freqLabel} Activity Summary</h1>
         <p style="margin: 8px 0 0; font-size: 14px; opacity: 0.8;">${appName}</p>
+        ${frequencyVisual}
       </div>
 
-      <div style="background: #ffffff; border: 2px solid #3B463D; border-top: none; padding: 30px; border-radius: 0 0 10px 10px;">
+      <div style="background: #ffffff; border: 2px solid ${theme.color}; border-top: none; padding: 30px; border-radius: 0 0 10px 10px;">
         <table style="width: 100%; border-collapse: collapse; margin: 0;">
           <thead>
             <tr>
