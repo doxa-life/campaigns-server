@@ -2,6 +2,9 @@ import { peopleGroupService, type UpdatePeopleGroupData } from '../../../databas
 import { getSql } from '#server/database/db'
 import { handleApiError, getErrorMessage } from '#server/utils/api-helpers'
 import { extractUpdateFields } from '#server/utils/app/people-group-update-helpers'
+import { tableColumnFields } from '~/utils/people-group-fields'
+
+const tableColumnKeySet = new Set(tableColumnFields.map(f => f.key))
 
 const CONCURRENCY_LIMIT = 10
 const MAX_ERRORS = 50
@@ -109,6 +112,16 @@ export default defineEventHandler(async (event) => {
         continue
       }
 
+      if (updateData.metadata) {
+        updateData.mergeMetadata = true
+      }
+
+      // Auto-set reason_engaged when engagement status changes to engaged
+      if (item.engagement_status === 'engaged' && !item.metadata?.reason_engaged) {
+        updateData.metadata = { ...updateData.metadata, reason_engaged: 'imb_report' }
+        updateData.mergeMetadata = true
+      }
+
       workItems.push({ index: i, identifier, resolvedId, updateData })
     }
 
@@ -120,8 +133,9 @@ export default defineEventHandler(async (event) => {
       const chunk = workItems.slice(c, c + CONCURRENCY_LIMIT)
       const results = await Promise.allSettled(
         chunk.map(async (work) => {
+          const oldRecord = await peopleGroupService.getPeopleGroupById(work.resolvedId)
           const result = await peopleGroupService.updatePeopleGroup(work.resolvedId, work.updateData)
-          return { work, result }
+          return { work, result, oldRecord }
         })
       )
 
@@ -129,6 +143,36 @@ export default defineEventHandler(async (event) => {
         if (settled.status === 'fulfilled') {
           if (settled.value.result) {
             updated++
+
+            // Track and log field-level changes
+            const { work, oldRecord } = settled.value
+            if (oldRecord) {
+              const changes: Record<string, { from: any; to: any }> = {}
+              const item = body.updates[work.index]!
+
+              for (const key of tableColumnKeySet) {
+                if (item[key] !== undefined && String(item[key] ?? '') !== String((oldRecord as any)[key] ?? '')) {
+                  changes[key] = { from: (oldRecord as any)[key], to: item[key] }
+                }
+              }
+              if (work.updateData.metadata !== undefined) {
+                const oldMeta: Record<string, any> = oldRecord.metadata || {}
+                const newMeta = work.updateData.metadata || {}
+                for (const key of Object.keys(newMeta)) {
+                  if (tableColumnKeySet.has(key)) continue
+                  if (String(oldMeta[key] ?? '') !== String(newMeta[key] ?? '')) {
+                    changes[key] = { from: oldMeta[key] ?? null, to: newMeta[key] ?? null }
+                  }
+                }
+              }
+
+              if (Object.keys(changes).length > 0) {
+                logUpdate('people_groups', String(work.resolvedId), event, {
+                  source: 'IMB Report Update',
+                  changes
+                })
+              }
+            }
           } else {
             notFound++
             if (errors.length < MAX_ERRORS) {
