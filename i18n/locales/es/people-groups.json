@@ -366,7 +366,9 @@
         "A011": "Pueblos del Sudeste Asiático",
         "A013": "África Subsahariana",
         "A014": "Pueblos Tibetanos/Himalayos",
-        "A015": "Pueblos Túrquicos"
+        "A015": "Pueblos Túrquicos",
+        "A018": "Pueblos Tibetanos",
+        "A019": "Pueblos del Himalaya"
       },
       "availability": {
         "notAvailable": "No Disponible",

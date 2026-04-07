@@ -366,7 +366,9 @@
         "A011": "Peuples d'Asie du Sud-Est",
         "A013": "Afrique subsaharienne",
         "A014": "Peuples tibétains / himalayens",
-        "A015": "Peuples turcs"
+        "A015": "Peuples turcs",
+        "A018": "Peuples tibétains",
+        "A019": "Peuples himalayens"
       },
       "availability": {
         "notAvailable": "Non disponible",

@@ -366,7 +366,9 @@
         "A011": "Popoli del Sud-Est Asiatico",
         "A013": "Africa Subsahariana",
         "A014": "Popoli Tibetani / Himalayani",
-        "A015": "Popoli Turchi"
+        "A015": "Popoli Turchi",
+        "A018": "Popoli Tibetani",
+        "A019": "Popoli Himalayani"
       },
       "availability": {
         "notAvailable": "Non Disponibile",

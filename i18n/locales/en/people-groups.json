@@ -384,7 +384,9 @@
         "A011": "Southeast Asian Peoples",
         "A013": "Sub-Saharan African",
         "A014": "Tibetan / Himalayan Peoples",
-        "A015": "Turkic Peoples"
+        "A015": "Turkic Peoples",
+        "A018": "Tibetan Peoples",
+        "A019": "Himalayan Peoples"
       },
       "availability": {
         "notAvailable": "Not Available",
