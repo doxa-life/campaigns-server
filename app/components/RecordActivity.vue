@@ -25,7 +25,7 @@
             by {{ activity.metadata.source }}
           </template>
         </div>
-        <div v-if="activity.metadata?.message" class="activity-detail">
+        <div v-if="activity.metadata?.message || activity.metadata?.link_url" class="activity-detail">
           {{ activity.metadata.message }}
           <NuxtLink v-if="activity.metadata.link_url" :to="activity.metadata.link_url" class="activity-link">
             {{ activity.metadata.link_text }}
@@ -134,7 +134,8 @@ function getEventColor(label: string): 'success' | 'warning' | 'error' | 'neutra
     'UPDATE': 'warning',
     'DELETE': 'error',
     'Linked': 'success',
-    'Unlinked': 'error'
+    'Unlinked': 'error',
+    'Report Update': 'success'
   }
   return colors[label] || 'neutral'
 }
@@ -145,7 +146,8 @@ function getEventIcon(label: string): string | undefined {
     'UPDATE': 'i-lucide-pencil',
     'DELETE': 'i-lucide-trash',
     'Linked': 'i-lucide-link',
-    'Unlinked': 'i-lucide-link-2-off'
+    'Unlinked': 'i-lucide-link-2-off',
+    'Report Update': 'i-lucide-file-check'
   }
   return icons[label]
 }
