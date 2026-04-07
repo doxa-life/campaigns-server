@@ -129,6 +129,9 @@ export default defineNuxtConfig({
     deeplApiKey: process.env.DEEPL_API_KEY || '',
     deeplApiUrl: process.env.DEEPL_API_URL || 'https://api-free.deepl.com',
 
+    // Anthropic AI API
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
+
     // Form API key for external form submissions (WordPress, etc.)
     formApiKey: process.env.FORM_API_KEY || '',
 

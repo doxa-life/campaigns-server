@@ -175,6 +175,28 @@
   <UModal v-model:open="showCreateModal" title="New People Group Report">
     <template #body>
       <form @submit.prevent="submitReport" class="flex flex-col gap-4">
+        <UFormField label="Paste Report for AI Parsing">
+          <UTextarea
+            v-model="aiInputText"
+            placeholder="Paste a field report here to auto-fill the form..."
+            :rows="6"
+            class="w-full"
+          />
+          <template #hint>
+            <UButton
+              icon="i-lucide-sparkles"
+              label="Parse with AI"
+              size="xs"
+              :loading="aiParsing"
+              :disabled="!aiInputText.trim()"
+              @click="parseWithAi"
+              class="mt-1"
+            />
+          </template>
+        </UFormField>
+
+        <USeparator />
+
         <UFormField label="People Group" required>
           <USelectMenu
             v-model="createForm.people_group_id"
@@ -341,6 +363,11 @@ const searchQuery = ref('')
 const filterStatus = ref<string | null>(null)
 
 const commentCount = ref(0)
+
+// AI parsing
+const aiInputText = ref('')
+const aiParsing = ref(false)
+const aiOriginalText = ref('')
 
 // Action states
 const accepting = ref(false)
@@ -641,7 +668,83 @@ function openCreateModal() {
   extraFieldKeys.value = []
   createPeopleGroup.value = null
   showFieldPicker.value = false
+  aiInputText.value = ''
+  aiOriginalText.value = ''
   showCreateModal.value = true
+}
+
+function matchPeopleGroup(name: string | null, uid: string | null): PeopleGroupSummary | null {
+  if (!name && !uid) return null
+
+  if (uid) {
+    const byUid = peopleGroups.value.find(pg =>
+      pg.metadata?.doxa_masteruid === uid ||
+      pg.metadata?.imb_uid === uid
+    )
+    if (byUid) return byUid
+  }
+
+  if (name) {
+    const normalized = name.toLowerCase().trim()
+    const exact = peopleGroups.value.find(pg => pg.name.toLowerCase().trim() === normalized)
+    if (exact) return exact
+
+    const partial = peopleGroups.value.find(pg =>
+      pg.name.toLowerCase().includes(normalized) ||
+      normalized.includes(pg.name.toLowerCase())
+    )
+    if (partial) return partial
+  }
+
+  return null
+}
+
+async function parseWithAi() {
+  if (!aiInputText.value.trim()) return
+  aiParsing.value = true
+  try {
+    const { parsed } = await $fetch<{ parsed: {
+      people_group_name: string | null
+      people_group_uid: string | null
+      reporter_name: string | null
+      reporter_email: string | null
+      suggested_changes: Record<string, any>
+      notes: string | null
+    } }>('/api/admin/people-group-reports/parse', {
+      method: 'POST',
+      body: { text: aiInputText.value }
+    })
+
+    aiOriginalText.value = aiInputText.value
+
+    if (parsed.reporter_name) createForm.value.reporter_name = parsed.reporter_name
+    if (parsed.reporter_email) createForm.value.reporter_email = parsed.reporter_email
+
+    const matched = matchPeopleGroup(parsed.people_group_name, parsed.people_group_uid)
+    if (matched) {
+      createForm.value.people_group_id = matched.id
+      await onPeopleGroupSelected(matched.id)
+    }
+
+    if (parsed.suggested_changes) {
+      for (const [key, value] of Object.entries(parsed.suggested_changes)) {
+        createForm.value.suggested_changes[key] = value
+        if (!defaultReportFieldKeys.includes(key) && !extraFieldKeys.value.includes(key)) {
+          extraFieldKeys.value.push(key)
+        }
+      }
+    }
+
+    if (parsed.notes) {
+      createForm.value.notes = parsed.notes
+    }
+
+    toast.add({ title: 'Report parsed', description: 'Fields auto-filled from AI analysis', color: 'success' })
+  } catch (err: any) {
+    toast.add({ title: 'Parse failed', description: err.data?.statusMessage || 'Failed to parse report', color: 'error' })
+  } finally {
+    aiParsing.value = false
+  }
 }
 
 async function onPeopleGroupSelected(pgId: number) {
@@ -691,7 +794,8 @@ async function submitReport() {
         reporter_name: createForm.value.reporter_name.trim(),
         reporter_email: createForm.value.reporter_email?.trim() || undefined,
         suggested_changes: changes,
-        notes: createForm.value.notes?.trim() || undefined
+        notes: createForm.value.notes?.trim() || undefined,
+        ai_input_text: aiOriginalText.value?.trim() || undefined
       }
     })
     toast.add({ title: 'Report submitted', color: 'success' })
