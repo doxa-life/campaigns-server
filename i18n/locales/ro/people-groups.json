@@ -366,7 +366,9 @@
         "A011": "Popoare din Asia de Sud-Est",
         "A013": "Africa Subsahariană",
         "A014": "Popoare tibetane / himalayene",
-        "A015": "Popoare turcice"
+        "A015": "Popoare turcice",
+        "A018": "Popoare tibetane",
+        "A019": "Popoare himalayene"
       },
       "availability": {
         "notAvailable": "Indisponibil",

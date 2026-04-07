@@ -366,7 +366,9 @@
         "A011": "Südostasiatische Völker",
         "A013": "Subsaharisches Afrika",
         "A014": "Tibetische / Himalaya-Völker",
-        "A015": "Turkische Völker"
+        "A015": "Turkische Völker",
+        "A018": "Tibetische Völker",
+        "A019": "Himalaya-Völker"
       },
       "availability": {
         "notAvailable": "Nicht verfügbar",
