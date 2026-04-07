@@ -17,8 +17,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Only pending reports can be accepted' })
   }
 
-  const body = await readBody<{ notes?: string }>(event) || {}
-
   const peopleGroup = await peopleGroupService.getPeopleGroupById(report.people_group_id)
   if (!peopleGroup) {
     throw createError({ statusCode: 404, statusMessage: 'People group not found' })

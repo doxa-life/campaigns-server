@@ -11,6 +11,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Report not found' })
   }
 
+  await doAction('record.delete', 'people_group_report', id)
   await peopleGroupReportService.delete(id)
 
   logDelete('people_group_reports', String(id), event, {

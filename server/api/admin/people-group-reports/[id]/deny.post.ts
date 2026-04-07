@@ -14,8 +14,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Only pending reports can be denied' })
   }
 
-  const body = await readBody<{ notes?: string }>(event) || {}
-
   await peopleGroupReportService.updateStatus(id, 'denied', user.userId)
 
   logUpdate('people_group_reports', String(id), event, {
