@@ -76,10 +76,12 @@ META_FIELDS = [
 # Helpers
 # ---------------------------------------------------------------------------
 
+UA = 'imb-update/1.0'
+
 def api_get(base_url: str, path: str, api_key: str):
     req = urllib.request.Request(
         f'{base_url}{path}',
-        headers={'X-Api-Key': api_key}
+        headers={'X-Api-Key': api_key, 'User-Agent': UA}
     )
     return json.load(urllib.request.urlopen(req))
 
@@ -90,7 +92,7 @@ def api_post(base_url: str, path: str, api_key: str, body: dict):
         f'{base_url}{path}',
         data=payload,
         method='POST',
-        headers={'X-Api-Key': api_key, 'Content-Type': 'application/json'}
+        headers={'X-Api-Key': api_key, 'Content-Type': 'application/json', 'User-Agent': UA}
     )
     return json.load(urllib.request.urlopen(req))
 
