@@ -7,9 +7,12 @@
     <template #header>
       <div class="flex items-center justify-between w-full">
         <h1>People Groups</h1>
-        <UDropdownMenu :items="menuItems">
-          <UButton icon="i-lucide-ellipsis-vertical" variant="ghost" color="neutral" />
-        </UDropdownMenu>
+        <div class="flex items-center gap-1">
+          <UButton variant="outline" color="neutral" size="xs" to="/admin/people-groups/reports" label="Reports" />
+          <UDropdownMenu :items="menuItems">
+            <UButton icon="i-lucide-ellipsis-vertical" variant="ghost" color="neutral" />
+          </UDropdownMenu>
+        </div>
       </div>
     </template>
 
