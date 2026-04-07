@@ -69,4 +69,7 @@ Spot-check a few records in the admin UI, especially:
 - **Manual edits preserved:** Activity logs with source != "IMB Report Update" mark fields as manually edited. Those fields are skipped.
 - **Never erases with null:** If IMB has no value (or literal "None") but Doxa has a real value, the Doxa value is kept.
 - **Auto-sets reason_engaged:** When engagement_status changes to "engaged", the bulk-update endpoint automatically sets reason_engaged to "imb_report".
+- **SPI-based engagement:** Groups with SPI >= 1 are upgraded to engaged even if IMB EngStat says "Unengaged". SPI (Strategic Progress Index) is the authoritative indicator.
+- **Diaspora filtering:** Groups marked as Diaspora (non-indigenous) are archived with reason "is_diaspora".
+- **Christian filtering:** Groups with Christian religion codes (CRC, COR, CNP, CAN, CPR, CFC, etc.) are archived with reason "historically_christian". Engaged groups are excluded from this filter.
 - **Activity logging:** All changes are logged as "IMB Report Update" in the activity log with field-level diffs.

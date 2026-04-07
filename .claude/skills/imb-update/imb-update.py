@@ -278,7 +278,7 @@ def build_updates(doxa_by_peid, manual_fields_by_peid, imb_by_peid):
 
     # Archive Christian groups (religion basis = Christianity)
     # Exclude engaged groups — they're actively being worked with
-    christian_codes = ('C', 'CPR', 'CPC', 'CRO', 'CEV', 'CAO', 'CAN', 'CCM', 'CFC')
+    christian_codes = ('C', 'CPR', 'CPC', 'CRO', 'CEV', 'CAO', 'CAN', 'CCM', 'CFC', 'CRC', 'COR', 'CNP')
     christian_updates = []
     for peid in sorted(matched):
         doxa = doxa_by_peid[peid]
@@ -295,11 +295,37 @@ def build_updates(doxa_by_peid, manual_fields_by_peid, imb_by_peid):
                 'metadata': {'reason_unlisted': 'historically_christian'}
             })
 
+    # Upgrade to engaged based on SPI >= 1
+    # Even if IMB EngStat says "Unengaged", SPI >= 1 means strategic progress
+    spi_engagement_updates = []
+    for peid in sorted(matched):
+        doxa = doxa_by_peid[peid]
+        if doxa.get('status') == 'archived':
+            continue
+        if doxa.get('engagement_status') == 'engaged':
+            continue
+        manual = manual_fields_by_peid.get(peid, set())
+        if 'engagement_status' in manual:
+            continue
+        imb = imb_by_peid[peid]
+        try:
+            spi = int(imb.get('SPI', '0').strip() or '0')
+        except ValueError:
+            continue
+        if spi >= 1:
+            spi_engagement_updates.append({
+                'slug': doxa.get('slug'),
+                'engagement_status': 'engaged',
+                'metadata': {'reason_engaged': 'imb_report'}
+            })
+
     return (updates, archive_updates, diaspora_updates, christian_updates,
+            spi_engagement_updates,
             field_change_counts, skipped_manual, engagement_changes, only_doxa)
 
 
 def print_report(updates, archive_updates, diaspora_updates, christian_updates,
+                 spi_engagement_updates,
                  field_change_counts, skipped_manual,
                  engagement_changes, only_doxa, doxa_by_peid):
     """Print a summary of what would change."""
@@ -343,14 +369,19 @@ def print_report(updates, archive_updates, diaspora_updates, christian_updates,
         for u in christian_updates:
             print(f"  {u['slug']}")
 
-    total_actions = len(updates) + len(archive_updates) + len(diaspora_updates) + len(christian_updates)
+    if spi_engagement_updates:
+        print(f"\nSPI-based engagement upgrades ({len(spi_engagement_updates)}):")
+        for u in spi_engagement_updates:
+            print(f"  {u['slug']}")
+
+    total_actions = len(updates) + len(archive_updates) + len(diaspora_updates) + len(christian_updates) + len(spi_engagement_updates)
     print(f"\nTotal actions: {total_actions}")
     print()
 
 
-def apply_updates(base_url, api_key, updates, archive_updates, diaspora_updates, christian_updates):
+def apply_updates(base_url, api_key, updates, archive_updates, diaspora_updates, christian_updates, spi_engagement_updates):
     """Send updates via bulk-update API."""
-    all_updates = updates + archive_updates + diaspora_updates + christian_updates
+    all_updates = updates + archive_updates + diaspora_updates + christian_updates + spi_engagement_updates
     if not all_updates:
         print("Nothing to update.")
         return
@@ -400,7 +431,7 @@ def main():
 
     # 3. Compare
     updates, archive_updates, diaspora_updates, christian_updates, \
-        field_change_counts, skipped_manual, \
+        spi_engagement_updates, field_change_counts, skipped_manual, \
         engagement_changes, only_doxa = build_updates(
             doxa_by_peid, manual_fields_by_peid, imb_by_peid)
 
@@ -411,12 +442,12 @@ def main():
 
     # 4. Report
     print_report(updates, archive_updates, diaspora_updates, christian_updates,
-                 field_change_counts, skipped_manual,
+                 spi_engagement_updates, field_change_counts, skipped_manual,
                  engagement_changes, only_doxa, doxa_by_peid)
 
     # 5. Apply or dry-run
     if args.apply:
-        total_actions = len(updates) + len(archive_updates) + len(diaspora_updates) + len(christian_updates)
+        total_actions = len(updates) + len(archive_updates) + len(diaspora_updates) + len(christian_updates) + len(spi_engagement_updates)
         if total_actions == 0:
             print("Nothing to update.")
             return
@@ -425,7 +456,7 @@ def main():
             print("Aborted.")
             return
         apply_updates(args.base_url, args.api_key, updates, archive_updates,
-                      diaspora_updates, christian_updates)
+                      diaspora_updates, christian_updates, spi_engagement_updates)
     else:
         print("DRY RUN — pass --apply to execute updates")
 
