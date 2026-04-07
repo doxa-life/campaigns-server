@@ -42,6 +42,7 @@ export interface UpdatePeopleGroupData {
   slug?: string
   image_url?: string | null
   metadata?: Record<string, any> | null
+  mergeMetadata?: boolean
   people_praying?: number
   daily_prayer_duration?: number
   country_code?: string | null
@@ -141,7 +142,13 @@ export class PeopleGroupService {
 
     // Non-field-definition columns (managed by other code paths)
     if (data.slug !== undefined) fields.push(this.sql`slug = ${data.slug}`)
-    if (data.metadata !== undefined) fields.push(this.sql`metadata = ${data.metadata ? this.sql.json(data.metadata) : null}`)
+    if (data.metadata !== undefined) {
+      if (data.mergeMetadata && data.metadata) {
+        fields.push(this.sql`metadata = COALESCE(metadata, '{}'::jsonb) || ${this.sql.json(data.metadata)}`)
+      } else {
+        fields.push(this.sql`metadata = ${data.metadata ? this.sql.json(data.metadata) : null}`)
+      }
+    }
     if (data.people_praying !== undefined) fields.push(this.sql`people_praying = ${data.people_praying}`)
     if (data.daily_prayer_duration !== undefined) fields.push(this.sql`daily_prayer_duration = ${data.daily_prayer_duration}`)
 
