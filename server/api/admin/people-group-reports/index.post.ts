@@ -1,5 +1,6 @@
 import { peopleGroupReportService } from '../../../database/people-group-reports'
 import { peopleGroupService } from '../../../database/people-groups'
+import { commentService } from '../../../database/comments'
 
 export default defineEventHandler(async (event) => {
   await requirePermission(event, 'people_groups.edit')
@@ -10,6 +11,7 @@ export default defineEventHandler(async (event) => {
     reporter_email?: string
     suggested_changes: Record<string, any>
     notes?: string
+    ai_input_text?: string
   }>(event)
 
   if (!body.people_group_id) {
@@ -36,6 +38,24 @@ export default defineEventHandler(async (event) => {
   })
 
   logCreate('people_group_reports', String(report.id), event)
+
+  if (body.ai_input_text?.trim()) {
+    const paragraphs = body.ai_input_text.split('\n').map(line => ({
+      type: 'paragraph' as const,
+      ...(line.trim() ? { content: [{ type: 'text' as const, text: line }] } : {})
+    }))
+    try {
+      await commentService.create({
+        record_type: 'people_group_report',
+        record_id: report.id,
+        user_id: null,
+        author_label: 'AI Report Input',
+        content: { type: 'doc', content: paragraphs }
+      })
+    } catch (err) {
+      console.warn('Failed to save AI input as comment:', err)
+    }
+  }
 
   return { report }
 })
