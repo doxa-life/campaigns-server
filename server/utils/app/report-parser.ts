@@ -9,17 +9,7 @@ export interface ParsedReportResult {
   notes: string | null
 }
 
-const SYSTEM_PROMPT = `You are a data extraction assistant for a people group database. You will receive a pasted field report about a people group and must extract structured data from it.
-
-Return ONLY valid JSON matching this exact structure (no markdown, no code fences):
-{
-  "people_group_name": string or null,
-  "people_group_uid": string or null,
-  "reporter_name": string or null,
-  "reporter_email": string or null,
-  "suggested_changes": { ... },
-  "notes": string or null
-}
+const SYSTEM_PROMPT = `You are a data extraction assistant for a people group database. You will receive a pasted field report about a people group and must extract structured data using the provided tool.
 
 ## Extraction Rules
 
@@ -27,48 +17,51 @@ Return ONLY valid JSON matching this exact structure (no markdown, no code fence
 2. **people_group_uid**: Any Master UID, ROP3_PEID, or similar identifier found in the report.
 3. **reporter_name**: The name of the person submitting/reporting. Combine first and last name if separate.
 4. **reporter_email**: The email of the reporter if present.
-5. **suggested_changes**: Map report information to these field keys. Only include fields where the report provides clear information.
+5. **suggested_changes**: Map report information to the available field keys. Only include fields where the report provides clear evidence.
 6. **notes**: Any important information from the report that doesn't fit into the fields above. Include context about engagement, missionaries, or other qualitative details.
 
-## Available Fields for suggested_changes
+## Field Guidance
 
-- **engagement_status** (select): Whether cross-cultural workers are engaged with this people group.
-  Valid values: "engaged", "unengaged"
-  If the report indicates ANY form of active engagement (workers, church planting, local church leadership, missionary activity), set to "engaged".
-
-- **reason_engaged** (select): Why the group is considered engaged.
-  Valid values: "imb_report", "agwm_report", "doxa_report"
-  Use "doxa_report" when the engagement info comes from a field report submitted to Doxa.
-
-- **believers_count** (number): Estimated number of believers among this people group.
-  Must be a number or null.
-
-- **population** (number): Total population of the people group.
-  Must be a number or null.
-
-- **workers_long_term** (boolean): Are cross-cultural workers LIVING and WORKING among the people group long-term?
-  true = yes, they reside among the group. false = no resident workers.
-  Note: Non-resident engagement (visiting, remote support) does NOT count as long-term presence.
-
-- **work_in_local_language** (boolean): Are resident workers operating in the local language and culture?
-  true/false. Only relevant if there ARE resident workers.
-
-- **disciple_and_church_multiplication** (boolean): Is there evidence of disciple-making and church multiplication?
-  true/false.
-
-- **imb_congregation_existing** (select): Are there publicly-recognized congregations/churches?
-  Valid values: "0" (No), "1" (Yes)
-  If the report mentions a specific number of churches > 0, set to "1".
-
-- **imb_church_planting** (select): Church planting status.
-  Valid values: "0" (No churches planted), "1" (Dispersed church planting), "2" (Concentrated church planting)
+- **engagement_status**: If the report indicates ANY form of active engagement (workers, church planting, local church leadership, missionary activity), set to "engaged".
+- **reason_engaged**: Use "doxa_report" when the engagement info comes from a field report submitted to Doxa.
+- **workers_long_term**: Only true if cross-cultural workers are LIVING and WORKING among the people group long-term. Non-resident engagement (visiting, remote support) does NOT count.
+- **work_in_local_language**: Only relevant if there ARE resident workers.
+- **imb_congregation_existing**: If the report mentions a specific number of churches > 0, set to "1".
 
 ## Important
-- For boolean fields, use true/false (not strings).
-- For select fields, use the exact string values specified.
-- For number fields, use numbers (not strings).
 - Only include a field in suggested_changes if the report provides clear evidence for it. Do not guess.
 - Put qualitative details, missionary names, and contextual information in the notes field.`
+
+const REPORT_TOOL = {
+  name: 'submit_parsed_report',
+  description: 'Submit the extracted report data',
+  input_schema: {
+    type: 'object' as const,
+    properties: {
+      people_group_name: { type: ['string', 'null'] as const, description: 'Name of the people group' },
+      people_group_uid: { type: ['string', 'null'] as const, description: 'Master UID, ROP3_PEID, or similar identifier' },
+      reporter_name: { type: ['string', 'null'] as const, description: 'Name of the person submitting the report' },
+      reporter_email: { type: ['string', 'null'] as const, description: 'Email of the reporter' },
+      suggested_changes: {
+        type: 'object' as const,
+        description: 'Field updates extracted from the report',
+        properties: {
+          engagement_status: { type: 'string' as const, enum: ['engaged', 'unengaged'] },
+          reason_engaged: { type: 'string' as const, enum: ['imb_report', 'agwm_report', 'doxa_report'] },
+          believers_count: { type: 'number' as const, description: 'Estimated number of believers' },
+          population: { type: 'number' as const, description: 'Total population' },
+          workers_long_term: { type: 'boolean' as const, description: 'Cross-cultural workers living among the group long-term' },
+          work_in_local_language: { type: 'boolean' as const, description: 'Workers operating in local language and culture' },
+          disciple_and_church_multiplication: { type: 'boolean' as const, description: 'Evidence of disciple-making and church multiplication' },
+          imb_congregation_existing: { type: 'string' as const, enum: ['0', '1'], description: '0 = No congregations, 1 = Yes' },
+          imb_church_planting: { type: 'string' as const, enum: ['0', '1', '2'], description: '0 = None, 1 = Dispersed, 2 = Concentrated' },
+        },
+      },
+      notes: { type: ['string', 'null'] as const, description: 'Qualitative details, missionary names, and contextual information' },
+    },
+    required: ['people_group_name', 'suggested_changes'],
+  },
+}
 
 export async function parseReportText(text: string): Promise<ParsedReportResult> {
   const client = getAnthropicClient()
@@ -80,20 +73,17 @@ export async function parseReportText(text: string): Promise<ParsedReportResult>
     system: SYSTEM_PROMPT,
     messages: [
       { role: 'user', content: text }
-    ]
+    ],
+    tools: [REPORT_TOOL],
+    tool_choice: { type: 'tool', name: 'submit_parsed_report' }
   })
 
-  const content = response.content[0]
-  if (!content || content.type !== 'text') {
-    throw new Error('Unexpected response type from AI')
+  const toolBlock = response.content.find(b => b.type === 'tool_use')
+  if (!toolBlock || toolBlock.type !== 'tool_use') {
+    throw new Error('Unexpected response from AI — no tool use block')
   }
 
-  const parsed = JSON.parse(content.text) as ParsedReportResult
-
-  // Validate structure
-  if (typeof parsed !== 'object' || parsed === null) {
-    throw new Error('Invalid response structure from AI')
-  }
+  const parsed = toolBlock.input as ParsedReportResult
 
   return {
     people_group_name: parsed.people_group_name ?? null,
