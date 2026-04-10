@@ -116,10 +116,27 @@ export default defineEventHandler(async (event) => {
         updateData.mergeMetadata = true
       }
 
-      // Auto-set reason_engaged when engagement status changes to engaged
-      if (item.engagement_status === 'engaged' && !item.metadata?.reason_engaged) {
-        updateData.metadata = { ...updateData.metadata, reason_engaged: 'imb_report' }
-        updateData.mergeMetadata = true
+      // Auto-set reason_engaged and engagement criteria when status changes to engaged
+      if (item.engagement_status === 'engaged') {
+        const engagementDefaults: Record<string, any> = {}
+
+        if (!item.metadata?.reason_engaged) {
+          engagementDefaults.reason_engaged = 'imb_report'
+        }
+        if (item.metadata?.workers_long_term === undefined) {
+          engagementDefaults.workers_long_term = true
+        }
+        if (item.metadata?.work_in_local_language === undefined) {
+          engagementDefaults.work_in_local_language = true
+        }
+        if (item.metadata?.disciple_and_church_multiplication === undefined) {
+          engagementDefaults.disciple_and_church_multiplication = true
+        }
+
+        if (Object.keys(engagementDefaults).length > 0) {
+          updateData.metadata = { ...updateData.metadata, ...engagementDefaults }
+          updateData.mergeMetadata = true
+        }
       }
 
       workItems.push({ index: i, identifier, resolvedId, updateData })
