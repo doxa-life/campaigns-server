@@ -1650,8 +1650,6 @@ onMounted(async () => {
 }
 
 .activity-list {
-  max-height: 400px;
-  overflow-y: auto;
   border: 1px solid var(--ui-border);
   border-radius: 4px;
 }
