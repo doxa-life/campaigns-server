@@ -410,7 +410,10 @@ paths:
         - name: fields
           in: query
           required: false
-          description: Comma-separated list of fields to return (see /all endpoint for full field list)
+          description: |
+            Comma-separated list of fields to return. Pass `all` to return every available field.
+
+            **Available fields:** `name`, `slug`, `image_url`, `picture_credit`, `population`, `people_praying`, `people_committed`, `adopted_by_churches`, `joshua_project_id`, `status`, `reason_unlisted`, `imb_alternate_name`, `imb_people_description`, `location_description`, `doxa_wagf_uid`, `imb_uid`, `imb_pgid`, `imb_peid`, `country_code`, `region`, `imb_subregion`, `latitude`, `longitude`, `imb_is_indigenous`, `imb_population_class`, `evangelical_pct`, `imb_evangelical_level`, `engagement_status`, `reason_engaged`, `imb_congregation_existing`, `imb_church_planting`, `believers_count`, `imb_gsec`, `imb_strategic_priority_index`, `imb_lostness_priority_index`, `imb_affinity_code`, `primary_language`, `imb_language_family`, `imb_language_class`, `imb_language_speakers`, `religion`, `imb_reg_of_religion_3`, `imb_reg_of_religion_4`, `imb_reg_of_people_3`, `imb_reg_of_people_2`, `rop1`, `imb_reg_of_people_25`, `imb_bible_available`, `imb_jesus_film_available`, `imb_radio_broadcast_available`, `imb_gospel_recordings_available`, `imb_audio_scripture_available`, `imb_bible_stories_available`, `imb_total_resources_available`, `imb_bible_translation_level`, `imb_bible_year_published`, `workers_long_term`, `work_in_local_language`, `disciple_and_church_multiplication`, `wagf_region`, `wagf_block`, `wagf_member`, `has_photo`.
           schema:
             type: string
           example: id,name,country,population
@@ -680,9 +683,6 @@ components:
           type: string
           nullable: true
         longitude:
-          type: string
-          nullable: true
-        population:
           type: string
           nullable: true
         engagement_status:
