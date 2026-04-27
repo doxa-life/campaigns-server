@@ -10,6 +10,7 @@ import { handleApiError } from '#server/utils/api-helpers'
 import { sendAdoptionWelcomeEmail } from '../utils/adoption-welcome-email'
 import { sendAdoptionVerificationEmail } from '../utils/adoption-verification-email'
 import { notifyAdoptionRecipients } from '../utils/adoption-notification-email'
+import { trackEventInBackground, userHashFromEmail } from '../utils/tracking'
 
 export default defineEventHandler(async (event) => {
   requireFormApiKey(event)
@@ -185,6 +186,21 @@ export default defineEventHandler(async (event) => {
     } catch (err: any) {
       if (err.code === '23505') {
         // Already adopted by this group — return success silently
+        trackEventInBackground(event, {
+          eventType: 'adoption_submitted',
+          anonymousHash: subscriber.tracking_id,
+          userHash: userHashFromEmail(email),
+          language,
+          metadata: {
+            people_group_slug: peopleGroupSlug,
+            people_group_id: peopleGroup.id,
+            needs_verification: false,
+            language,
+            country: body.country?.trim() || null,
+            permission_to_contact: body.permission_to_contact ?? false,
+            confirm_public_display: body.confirm_public_display ?? false
+          }
+        })
         return { success: true }
       }
       throw err
@@ -233,6 +249,22 @@ export default defineEventHandler(async (event) => {
       permissionToContact: body.permission_to_contact ?? false,
       confirmPublicDisplay: body.confirm_public_display ?? false,
     }).catch(err => console.error('Failed to notify adoption recipients:', err))
+
+    trackEventInBackground(event, {
+      eventType: 'adoption_submitted',
+      anonymousHash: subscriber.tracking_id,
+      userHash: userHashFromEmail(email),
+      language,
+      metadata: {
+        people_group_slug: peopleGroupSlug,
+        people_group_id: peopleGroup.id,
+        needs_verification: false,
+        language,
+        country: body.country?.trim() || null,
+        permission_to_contact: body.permission_to_contact ?? false,
+        confirm_public_display: body.confirm_public_display ?? false
+      }
+    })
 
     return {
       success: true,

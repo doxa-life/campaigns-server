@@ -12,6 +12,7 @@ import { peopleGroupAdoptionService } from '#server/database/people-group-adopti
 import { sendAdoptionWelcomeEmail } from '#server/utils/adoption-welcome-email'
 import { generateGoogleCalendarUrl, getIcsDownloadUrl } from '#server/utils/calendar-links'
 import { t, localePath } from '#server/utils/translations'
+import { trackEventInBackground, userHashFromEmail } from '#server/utils/tracking'
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
@@ -163,6 +164,23 @@ export default defineEventHandler(async (event) => {
       google: generateGoogleCalendarUrl(calendarOptions),
       ics: getIcsDownloadUrl(latestActive.id, subscriber.profile_id, baseUrl)
     }
+  }
+
+  if (subscriber && result.contactMethod && !result.alreadyVerified) {
+    trackEventInBackground(event, {
+      eventType: 'subscriber_signup',
+      anonymousHash: subscriber.tracking_id,
+      userHash: userHashFromEmail(result.contactMethod.value),
+      language: subscriber.preferred_language || 'en',
+      metadata: {
+        people_group_slug: slug,
+        people_group_id: peopleGroup.id,
+        frequency: latestActive?.frequency,
+        delivery_method: latestActive?.delivery_method,
+        prayer_duration: latestActive?.prayer_duration,
+        status: 'active'
+      }
+    })
   }
 
   return {

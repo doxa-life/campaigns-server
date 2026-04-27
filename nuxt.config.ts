@@ -135,11 +135,17 @@ export default defineNuxtConfig({
     // Form API key for external form submissions (WordPress, etc.)
     formApiKey: process.env.FORM_API_KEY || '',
 
+    // Statinator analytics
+    statinatorApiKey: process.env.STATINATOR_API_KEY || '',
+
     // Public keys (exposed to the frontend)
     public: {
       appName: appTitle,
       nodeEnv: process.env.NODE_ENV || 'development',
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+      statinatorUrl: process.env.NUXT_PUBLIC_STATINATOR_URL || 'https://statinator.doxa.life',
+      statinatorProjectId: process.env.NUXT_PUBLIC_STATINATOR_PROJECT_ID || 'doxa',
+      statinatorEnabled: process.env.NUXT_PUBLIC_STATINATOR_ENABLED === 'true'
     }
   }
 })

@@ -10,6 +10,7 @@ import { peopleGroupService } from '#server/database/people-groups'
 import { groupService } from '#server/database/groups'
 import { sendAdoptionWelcomeEmail } from '#server/utils/adoption-welcome-email'
 import { notifyAdoptionRecipients } from '#server/utils/adoption-notification-email'
+import { trackEventInBackground, userHashFromEmail } from '#server/utils/tracking'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -109,6 +110,22 @@ export default defineEventHandler(async (event) => {
       }
 
       const subscriber = await subscriberService.getSubscriberById(result.contactMethod.subscriber_id)
+
+      if (subscriber && !result.alreadyVerified) {
+        trackEventInBackground(event, {
+          eventType: 'adoption_submitted',
+          anonymousHash: subscriber.tracking_id,
+          userHash: userHashFromEmail(result.contactMethod.value),
+          language: subscriber.preferred_language || formData.locale || 'en',
+          metadata: {
+            people_group_slug: pending.people_group_slug,
+            people_group_id: peopleGroup.id,
+            country: formData.country || null,
+            permission_to_contact: formData.permission_to_contact ?? false,
+            confirm_public_display: formData.show_publicly ?? false
+          }
+        })
+      }
 
       notifyAdoptionRecipients({
         peopleGroupName: peopleGroup.name,

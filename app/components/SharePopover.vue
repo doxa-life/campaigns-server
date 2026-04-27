@@ -60,6 +60,7 @@ const toast = useToast()
 const route = useRoute()
 const config = useRuntimeConfig()
 const { peopleGroupTitle } = usePeopleGroup()
+const { trackEvent } = useTracking()
 
 const popoverOpen = ref(false)
 const qrModalOpen = ref(false)
@@ -83,6 +84,7 @@ const shareTitle = computed(() => {
 function openQrModal() {
   popoverOpen.value = false
   qrModalOpen.value = true
+  trackEvent('share', { metadata: { method: 'qr' } })
 }
 
 async function handleCopyLink() {
@@ -96,6 +98,7 @@ async function handleNativeShare() {
 
   try {
     await navigator.share({ title: shareTitle.value, text: shareTitle.value, url })
+    trackEvent('share', { metadata: { method: 'native_share' } })
   } catch (err: any) {
     if (err.name !== 'AbortError') {
       await copyToClipboard()
@@ -111,6 +114,7 @@ async function copyToClipboard() {
       description: t('campaign.share.copiedDescription'),
       color: 'success'
     })
+    trackEvent('share', { metadata: { method: 'copy_link' } })
   } catch {
     toast.add({
       title: t('campaign.share.copyFailed'),

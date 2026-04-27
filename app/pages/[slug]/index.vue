@@ -548,6 +548,7 @@ const route = useRoute()
 const slug = route.params.slug as string
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
+const { trackEvent } = useTracking()
 
 // Fetch people group data with locale for translated labels
 const { data: pg, pending, error } = await useFetch<PeopleGroupDetailResponse>(`/api/people-groups/detail/${slug}`, {
@@ -689,6 +690,11 @@ function closeVerificationModal() {
 
 // Scroll to signup section
 function scrollToSignup() {
+  trackEvent('signup_cta_clicked', {
+    metadata: {
+      people_group_slug: slug
+    }
+  })
   const section = document.getElementById('signup-section')
   if (section) {
     section.scrollIntoView({ behavior: 'smooth' })
@@ -755,4 +761,3 @@ useHead(() => ({
   title: pg.value ? `${pg.value.name} - ${t('app.title')}` : `${t('campaign.pageTitle')} - ${t('app.title')}`
 }))
 </script>
-
