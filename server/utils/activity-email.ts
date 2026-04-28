@@ -51,10 +51,19 @@ function changeDurationText(change: number | null | undefined): string {
 }
 
 function buildStatRows(stats: ActivityStats, previousStats: ActivityStats | null): StatRow[] {
+  const unsubscribed = previousStats?.totalSubscribers != null
+    ? Math.max(0, previousStats.totalSubscribers + stats.newSubscribers - stats.totalSubscribers)
+    : null
+
   return [
     {
       label: 'New subscribers',
       value: String(stats.newSubscribers),
+      change: null
+    },
+    {
+      label: 'Unsubscribed',
+      value: unsubscribed != null ? String(unsubscribed) : '—',
       change: null
     },
     {
