@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "migrate": "sh -c 'node node_modules/.c12/github_corsacca_nuxt_*/scripts/migrate.mjs'",
+    "migrate": "node .layers/nuxt-base/scripts/migrate.mjs",
     "build": "nuxt build",
     "dev": "bun run migrate && nuxt dev",
     "dev:mail": "nuxt dev",
