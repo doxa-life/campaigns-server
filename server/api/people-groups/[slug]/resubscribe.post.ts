@@ -102,6 +102,19 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  logCreate('subscribers', String(subscriber.id), event, {
+    source: 'self_service',
+    message: 'Resubscribed to',
+    link_text: peopleGroup.name,
+    link_url: `/admin/people-groups/${peopleGroup.id}`,
+    form_values: {
+      frequency: subscription.frequency,
+      days_of_week: subscription.days_of_week,
+      time_preference: subscription.time_preference,
+      timezone: subscription.timezone
+    }
+  })
+
   return {
     message: 'Successfully resubscribed to prayer reminders',
     already_active: false,

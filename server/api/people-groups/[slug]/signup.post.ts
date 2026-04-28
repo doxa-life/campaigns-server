@@ -220,7 +220,7 @@ export default defineEventHandler(async (event) => {
       }
 
       logCreate('subscribers', String(subscriber.id), event, {
-        source: 'Signup Form',
+        source: 'Prayer sign up form',
         message: 'Resubscribed to',
         link_text: peopleGroup.name,
         link_url: `/admin/people-groups/${peopleGroup.id}`,
@@ -228,8 +228,10 @@ export default defineEventHandler(async (event) => {
           name: body.name,
           delivery_method: body.delivery_method,
           frequency: body.frequency,
+          days_of_week: body.days_of_week,
           reminder_time: body.reminder_time,
           timezone,
+          prayer_duration: body.prayer_duration,
           people_group_updates: body.consent_people_group_updates ?? false,
           doxa_general_updates: body.consent_doxa_general ?? false
         }
@@ -265,7 +267,7 @@ export default defineEventHandler(async (event) => {
     })
 
     logCreate('subscribers', String(subscriber.id), event, {
-      source: 'Signup Form',
+      source: 'Prayer sign up form',
       message: 'Subscribed to',
       link_text: peopleGroup.name,
       link_url: `/admin/people-groups/${peopleGroup.id}`,
@@ -275,8 +277,10 @@ export default defineEventHandler(async (event) => {
         language,
         delivery_method: body.delivery_method,
         frequency: body.frequency,
+        days_of_week: body.days_of_week,
         reminder_time: body.reminder_time,
         timezone,
+        prayer_duration: body.prayer_duration,
         people_group_updates: body.consent_people_group_updates ?? false,
         doxa_general_updates: body.consent_doxa_general ?? false
       }
