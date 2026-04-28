@@ -417,6 +417,39 @@
             </div>
           </div>
         </UCard>
+
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <UIcon name="i-lucide-hand-heart" class="text-[var(--ui-primary)] text-lg" />
+                <span class="font-semibold">Prayer Commitments by People Group</span>
+              </div>
+              <span class="text-sm text-[var(--ui-text-dimmed)] tabular-nums">
+                {{ pgSubscribers?.length ?? 0 }} groups
+              </span>
+            </div>
+          </template>
+          <div v-if="pgSubscribers?.length" class="overflow-x-auto pt-8 pb-2">
+            <div class="flex items-end gap-px h-64 min-w-max">
+              <div
+                v-for="entry in pgSubscribers"
+                :key="entry.id"
+                :title="`${entry.name}: ${entry.subscriber_count}`"
+                class="group relative flex flex-col justify-end h-full w-px hover:w-1 transition-all"
+              >
+                <div
+                  class="w-full bg-[var(--ui-primary)] opacity-70 group-hover:opacity-100 rounded-t-sm transition-all"
+                  :style="{ height: pgSubscriberBarHeight(entry.subscriber_count) }"
+                />
+                <div class="absolute bottom-full mb-1 left-0 px-2 py-0.5 rounded text-xs bg-[var(--ui-bg-inverted)] text-[var(--ui-text-inverted)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
+                  {{ entry.name }}: {{ entry.subscriber_count }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <p v-else class="text-sm text-[var(--ui-text-dimmed)]">No people groups.</p>
+        </UCard>
       </div>
     </template>
   </div>
@@ -457,6 +490,16 @@ const tabs = [
 const { data, status } = useFetch('/api/admin/dashboard/stats')
 const { data: prayerDaily, status: prayerStatus } = useFetch('/api/admin/dashboard/prayer-daily')
 const { data: subscribersData, status: subscribersStatus } = useFetch('/api/admin/dashboard/subscribers')
+const { data: pgSubscribers } = useFetch<{ id: number; name: string; slug: string; subscriber_count: number }[]>('/api/admin/dashboard/people-group-subscribers')
+
+const maxPgSubscribers = computed(() =>
+  Math.max(1, ...(pgSubscribers.value?.map(p => p.subscriber_count) ?? [1]))
+)
+
+function pgSubscriberBarHeight(count: number): string {
+  if (count === 0) return '0%'
+  return `${(count / maxPgSubscribers.value) * 100}%`
+}
 
 const maxUniquePeople = computed(() => {
   if (!prayerDaily.value) return 1
