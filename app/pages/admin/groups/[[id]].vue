@@ -47,6 +47,11 @@
     </template>
 
     <template v-if="selectedGroup" #detail-actions>
+      <CrmRecordNav
+        :items="filteredGroups"
+        :current-id="selectedGroup.id"
+        @navigate="selectGroup($event)"
+      />
       <CrmSaveStatus :saving="saving" :saved="!!savedField" />
       <UButton size="sm" @click="openDeleteGroupModal" color="error" variant="outline">Delete</UButton>
     </template>

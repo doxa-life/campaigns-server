@@ -106,6 +106,11 @@
     </template>
 
     <template v-if="selectedGroup" #detail-actions>
+      <CrmRecordNav
+        :items="filteredPeopleGroups"
+        :current-id="selectedGroup.id"
+        @navigate="selectGroup($event)"
+      />
       <CrmSaveStatus :saving="saving" :saved="!!savedField" />
     </template>
 
