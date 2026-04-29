@@ -113,12 +113,31 @@ async function processFollowups() {
 
 type ProcessResult = 'skipped' | 'email_sent' | 'marked_inactive' | 'cycle_completed'
 
+async function logSubscriberActivity(
+  subscriberId: number,
+  metadata: Record<string, unknown>
+): Promise<void> {
+  await sql`
+    INSERT INTO activity_logs (timestamp, event_type, table_name, record_id, user_id, metadata)
+    VALUES (
+      ${Date.now()},
+      'CREATE',
+      'subscribers',
+      ${String(subscriberId)},
+      NULL,
+      ${metadata}
+    )
+  `
+}
+
 async function processSubscription(
   subscription: Awaited<ReturnType<typeof followupTrackingService.getActiveSubscriptionsForFollowup>>[0],
   now: Date
 ): Promise<ProcessResult> {
   const {
     id: subscriptionId,
+    subscriber_id,
+    people_group_id,
     followup_count,
     followup_reminder_count,
     last_followup_at,
@@ -179,6 +198,12 @@ async function processSubscription(
 
     if (emailSent) {
       await peopleGroupSubscriptionService.markFollowupSent(subscriptionId)
+      await logSubscriberActivity(subscriber_id, {
+        source: 'system',
+        message: 'Re-engagement email sent for',
+        link_text: people_group_name,
+        link_url: `/admin/people-groups/${people_group_id}`
+      })
       console.log(`  ✅ Sent follow-up to ${email_value} for ${people_group_name}`)
       return 'email_sent'
     } else {
@@ -210,6 +235,12 @@ async function processSubscription(
 
     if (emailSent) {
       await peopleGroupSubscriptionService.markFollowupSent(subscriptionId)
+      await logSubscriberActivity(subscriber_id, {
+        source: 'system',
+        message: 'Re-engagement reminder sent for',
+        link_text: people_group_name,
+        link_url: `/admin/people-groups/${people_group_id}`
+      })
       console.log(`  ✅ Sent follow-up reminder to ${email_value} for ${people_group_name}`)
       return 'email_sent'
     } else {
@@ -227,6 +258,12 @@ async function processSubscription(
 
     // No response after 2 emails - mark as inactive
     await peopleGroupSubscriptionService.updateStatus(subscriptionId, 'inactive')
+    await logSubscriberActivity(subscriber_id, {
+      source: 'system',
+      message: 'Marked inactive — no response after 2 follow-up emails for',
+      link_text: people_group_name,
+      link_url: `/admin/people-groups/${people_group_id}`
+    })
     console.log(`  ⏸️  Marked ${email_value} as inactive (no follow-up response)`)
     return 'marked_inactive'
   }

@@ -100,6 +100,11 @@
     </template>
 
     <template v-if="selectedSubscriber" #detail-actions>
+      <CrmRecordNav
+        :items="filteredSubscribers"
+        :current-id="selectedSubscriber.id"
+        @navigate="selectSubscriber($event)"
+      />
       <CrmSaveStatus :saving="saving" :saved="!!savedField" />
       <UButton size="sm" @click="openDeleteModal" color="error" variant="outline">Delete</UButton>
     </template>

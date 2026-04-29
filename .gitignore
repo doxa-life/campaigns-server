@@ -18,6 +18,9 @@ docker-compose.override.yml
 # Node dependencies
 node_modules
 
+# Extended layers (downloaded by c12/giget)
+.layers
+
 # Logs
 logs
 *.log

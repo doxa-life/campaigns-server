@@ -129,6 +129,18 @@ export default defineEventHandler(async (event) => {
       peopleGroup.id
     )
 
+    if (unsubscribedCount > 0) {
+      logCreate('subscribers', String(subscriber.id), event, {
+        source: 'self_service',
+        message: 'Unsubscribed from all reminders for',
+        link_text: peopleGroup.name,
+        link_url: `/admin/people-groups/${peopleGroup.id}`,
+        form_values: {
+          unsubscribed_count: unsubscribedCount
+        }
+      })
+    }
+
     // Get other people groups (excluding current one)
     const otherPeopleGroups = groupByPeopleGroup(
       allSubscriberSubscriptions.filter(s => s.people_group_id !== peopleGroup.id)
@@ -215,6 +227,19 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Failed to unsubscribe'
     })
   }
+
+  logCreate('subscribers', String(subscriber.id), event, {
+    source: 'self_service',
+    message: 'Unsubscribed from',
+    link_text: peopleGroup.name,
+    link_url: `/admin/people-groups/${peopleGroup.id}`,
+    form_values: {
+      frequency: subscriptionToUnsubscribe.frequency,
+      days_of_week: subscriptionToUnsubscribe.days_of_week,
+      time_preference: subscriptionToUnsubscribe.time_preference,
+      timezone: subscriptionToUnsubscribe.timezone
+    }
+  })
 
   // Get remaining active reminders in this people group
   const otherRemindersInPeopleGroup = peopleGroupSubscriptions

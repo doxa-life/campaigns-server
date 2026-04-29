@@ -1,15 +1,41 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { fileURLToPath } from 'node:url'
-import { existsSync } from 'node:fs'
-import { extname } from 'node:path'
+import { existsSync, readdirSync, rmSync } from 'node:fs'
+import { extname, join } from 'node:path'
 import { generateI18nLocales } from './config/languages'
 
 const appTitle = process.env.APP_TITLE || 'Base'
 const baseLayerUrl = process.env.BASE_LAYER_URL || 'github:corsacca/nuxt-base#master'
 
+const LAYERS_DIR = '.layers'
+
+// Strip layer-level tsconfig.json files. The nuxt-base layer ships a
+// tsconfig.json that references ./.nuxt/tsconfig.*.json — only generated when
+// the layer is opened as its own project. Under node_modules Vite skips it;
+// at .layers/<name> Vite picks it up and crashes on the missing references.
+function stripLayerTsconfigs() {
+  if (!existsSync(LAYERS_DIR)) return
+  for (const name of readdirSync(LAYERS_DIR)) {
+    const tsconfig = join(LAYERS_DIR, name, 'tsconfig.json')
+    if (existsSync(tsconfig)) rmSync(tsconfig)
+  }
+}
+
+stripLayerTsconfigs()
+
+const isRemoteLayer = /^(github|gitlab|bitbucket|sourcehut|npm|https?):/.test(baseLayerUrl)
+
 export default defineNuxtConfig({
   // Testing local base layer changes (switch back to github:corsacca/nuxt-base#TAG before deploying)
-  extends: [baseLayerUrl], //  'github:corsacca/nuxt-base#master'
+  extends: [
+    isRemoteLayer
+      ? [baseLayerUrl, { giget: { dir: `${LAYERS_DIR}/nuxt-base`, forceClean: true } }]
+      : baseLayerUrl
+  ],
+
+  hooks: {
+    'modules:before': stripLayerTsconfigs
+  },
 
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
@@ -54,7 +80,7 @@ export default defineNuxtConfig({
 
   nitro: {
     watchOptions: {
-      ignored: ['**/node_modules/.c12/**']
+      ignored: ['**/node_modules/.c12/**', '**/.layers/**']
     },
     imports: {
       // Exclude server/utils/app from auto-imports to avoid conflicts with base layer
@@ -68,7 +94,7 @@ export default defineNuxtConfig({
         {
           name: 'resolve-base-layer-ts',
           resolveId(source: string) {
-            if (source.includes('.c12') && !extname(source)) {
+            if ((source.includes('.layers/') || source.includes('.c12')) && !extname(source)) {
               const tsPath = source + '.ts'
               if (existsSync(tsPath)) return tsPath
             }
@@ -79,12 +105,12 @@ export default defineNuxtConfig({
     }
   },
 
-  watch: ['!node_modules/.c12/**'],
+  watch: ['!node_modules/.c12/**', '!.layers/**'],
 
   vite: {
     server: {
       watch: {
-        ignored: ['**/node_modules/.c12/**']
+        ignored: ['**/node_modules/.c12/**', '**/.layers/**']
       }
     },
     optimizeDeps: {

@@ -116,6 +116,19 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  logCreate('subscribers', String(subscriber.id), event, {
+    source: 'self_service',
+    message: 'Resubscribed to',
+    link_text: peopleGroup.name,
+    link_url: `/admin/people-groups/${peopleGroup.id}`,
+    form_values: {
+      frequency: subscription.frequency,
+      days_of_week: subscription.days_of_week,
+      time_preference: subscription.time_preference,
+      timezone: subscription.timezone
+    }
+  })
+
   trackEventInBackground(event, {
     eventType: 'subscriber_resubscribed',
     anonymousHash: subscriber.tracking_id,

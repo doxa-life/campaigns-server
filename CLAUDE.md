@@ -78,6 +78,8 @@ DATABASE_URL=$TEST_DATABASE_URL bun run migrate
 
 This project extends a shared Nuxt base layer (`github:corsacca/nuxt-base`). See `documentation/BASE_LAYER.md` for full reference.
 
+The layer is extracted to `.layers/nuxt-base/` (re-extracted on every `nuxt prepare`/`nuxt dev`/`nuxt build`, gitignored). Read or grep its source there — not under `node_modules/.c12/`.
+
 **Base layer provides:**
 - Database connection (`sql` from `#imports`)
 - Authentication system (`useAuth()` composable, `auth` middleware)

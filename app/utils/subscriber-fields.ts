@@ -27,7 +27,7 @@ export const subscriberFields: SubscriberFieldDefinition[] = [
   { key: 'sources', label: 'Sources', type: 'select', category: 'contact', description: 'How this contact entered the system (contact form, adoption form, signup form)', options: [
     { key: 'contact', label: 'Contact Form' },
     { key: 'adoption', label: 'Adoption Form' },
-    { key: 'signup', label: 'Signup Form' },
+    { key: 'signup', label: 'Prayer sign up form' },
   ]},
 
   // Subscription fields
