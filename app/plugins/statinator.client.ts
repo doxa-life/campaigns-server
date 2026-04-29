@@ -77,7 +77,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   const route = useRoute()
   const router = useRouter()
-  const { locale } = useI18n()
+  const i18n = nuxtApp.$i18n as { locale: { value: string } }
   const { trackPageview } = useTracking()
 
   let scriptLoad: Promise<void> | null = null
@@ -114,7 +114,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       flushQueuedEvents()
       trackPageview({
         url: to.fullPath,
-        metadata: routeMetadata(to, locale.value)
+        metadata: routeMetadata(to, i18n.locale.value)
       })
     } catch {
       // Analytics is non-critical.
