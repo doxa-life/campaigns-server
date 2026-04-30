@@ -1,5 +1,6 @@
 import { peopleGroupAdoptionService } from '../../../database/people-group-adoptions'
 import { adoptionReportService } from '../../../database/adoption-reports'
+import { trackEventInBackground } from '../../../utils/tracking'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -27,6 +28,18 @@ export default defineEventHandler(async (event) => {
     praying_count: body.praying_count ?? null,
     stories: body.stories?.trim() || null,
     comments: body.comments?.trim() || null
+  })
+
+  trackEventInBackground(event, {
+    eventType: 'adoption_report_submitted',
+    metadata: {
+      people_group_slug: adoption.people_group_slug,
+      people_group_id: adoption.people_group_id,
+      adoption_id: adoption.id,
+      has_praying_count: body.praying_count !== undefined && body.praying_count !== null,
+      has_stories: Boolean(body.stories?.trim()),
+      has_comments: Boolean(body.comments?.trim())
+    }
   })
 
   return { report }

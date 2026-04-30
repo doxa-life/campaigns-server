@@ -3,6 +3,7 @@ import { peopleGroupService } from '../../../../database/people-groups'
 import { getIntParam } from '#server/utils/api-helpers'
 import { isTableColumn } from '~/utils/people-group-fields'
 import type { UpdatePeopleGroupData } from '#server/database/people-groups'
+import { trackEventInBackground } from '#server/utils/tracking'
 
 export default defineEventHandler(async (event) => {
   const user = await requirePermission(event, 'people_groups.edit')
@@ -41,6 +42,19 @@ export default defineEventHandler(async (event) => {
 
   // Apply changes to the people group
   const updated = await peopleGroupService.updatePeopleGroup(report.people_group_id, updateData)
+
+  const wasEngaged = peopleGroup.status === 'engaged' || peopleGroup.engagement_status === 'engaged'
+  const isEngaged = updated?.status === 'engaged' || updated?.engagement_status === 'engaged'
+  if (!wasEngaged && isEngaged) {
+    trackEventInBackground(event, {
+      eventType: 'people_group_engaged',
+      metadata: {
+        people_group_slug: updated?.slug || report.people_group_slug,
+        people_group_id: report.people_group_id,
+        report_id: report.id
+      }
+    })
+  }
 
   // Snapshot previous values and track changes
   const previousValues: Record<string, any> = {}

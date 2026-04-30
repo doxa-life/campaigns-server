@@ -104,6 +104,8 @@ const localePath = useLocalePath()
 const route = useRoute()
 const slug = route.params.slug as string
 const { setPeopleGroupTitle } = usePeopleGroup()
+const { trackEvent } = useTracking()
+const viewedTrackingKey = ref<string | null>(null)
 
 // Get current date in user's timezone
 const currentDate = computed(() => new Date().toISOString().split('T')[0] as string)
@@ -163,6 +165,16 @@ watch(data, (newData) => {
     }
     if (newData.people_group?.title) {
       setPeopleGroupTitle(newData.people_group.title, newData.people_group.image_url)
+    }
+    const trackingKey = `${slug}:${newData.date}:${newData.language}`
+    if (viewedTrackingKey.value !== trackingKey) {
+      viewedTrackingKey.value = trackingKey
+      trackEvent('prayer_content_viewed', {
+        metadata: {
+          people_group_slug: slug,
+          content_date: newData.date
+        }
+      })
     }
   }
 }, { immediate: true })

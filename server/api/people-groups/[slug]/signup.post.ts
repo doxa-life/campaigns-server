@@ -10,6 +10,7 @@ import { sendSignupVerificationEmail } from '#server/utils/signup-verification-e
 import { sendWelcomeEmail } from '#server/utils/welcome-email'
 import { isValidTimezone } from '#server/utils/next-reminder-calculator'
 import { handleApiError } from '#server/utils/api-helpers'
+import { trackEventInBackground, userHashFromEmail } from '#server/utils/tracking'
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
@@ -86,7 +87,8 @@ export default defineEventHandler(async (event) => {
       email: body.email,
       phone: body.phone,
       name: body.name,
-      language
+      language,
+      trackingId: body.tracking_id
     })
 
     await subscriberService.addSource(subscriber.id, 'signup')
@@ -198,9 +200,10 @@ export default defineEventHandler(async (event) => {
       })
 
       // For email delivery, check verification to determine status
+      let resubscribeStatus: 'active' | 'pending' = 'active'
       if (body.delivery_method === 'email') {
         const emailContact = await contactMethodService.getByValue('email', body.email)
-        const resubscribeStatus = emailContact?.verified ? 'active' : 'pending'
+        resubscribeStatus = emailContact?.verified ? 'active' : 'pending'
         await peopleGroupSubscriptionService.resubscribe(unsubscribedMatch.id, resubscribeStatus)
 
         if (emailContact && !emailContact.verified) {
@@ -217,6 +220,24 @@ export default defineEventHandler(async (event) => {
         }
       } else {
         await peopleGroupSubscriptionService.resubscribe(unsubscribedMatch.id)
+      }
+
+      if (body.delivery_method !== 'email' || resubscribeStatus === 'active') {
+        trackEventInBackground(event, {
+          eventType: 'subscriber_resubscribed',
+          anonymousHash: subscriber.tracking_id,
+          userHash: userHashFromEmail(body.email),
+          language,
+          metadata: {
+            people_group_slug: slug,
+            people_group_id: peopleGroup.id,
+            subscription_id: unsubscribedMatch.id,
+            frequency: body.frequency,
+            delivery_method: body.delivery_method,
+            prayer_duration: body.prayer_duration,
+            source: 'signup_form'
+          }
+        })
       }
 
       logCreate('subscribers', String(subscriber.id), event, {
@@ -285,6 +306,23 @@ export default defineEventHandler(async (event) => {
         doxa_general_updates: body.consent_doxa_general ?? false
       }
     })
+
+    if (subscriptionStatus === 'active') {
+      trackEventInBackground(event, {
+        eventType: 'subscriber_signup',
+        anonymousHash: subscriber.tracking_id,
+        userHash: userHashFromEmail(body.email),
+        language,
+        metadata: {
+          people_group_slug: slug,
+          people_group_id: peopleGroup.id,
+          subscription_id: subscription.id,
+          frequency: body.frequency,
+          delivery_method: body.delivery_method,
+          prayer_duration: body.prayer_duration
+        }
+      })
+    }
 
     // For email delivery, handle verification
     if (body.delivery_method === 'email') {

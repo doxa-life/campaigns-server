@@ -5,6 +5,7 @@ import { handleApiError } from '#server/utils/api-helpers'
 import { notifyContactRecipients } from '../utils/contact-notification-email'
 import { sendContactVerificationEmail } from '../utils/contact-verification-email'
 import countries from 'i18n-iso-countries'
+import { trackEventInBackground, userHashFromEmail } from '../utils/tracking'
 
 export default defineEventHandler(async (event) => {
   requireFormApiKey(event)
@@ -73,6 +74,19 @@ export default defineEventHandler(async (event) => {
       message,
       subscriberId: subscriber.id,
     }).catch(err => console.error('Failed to notify contact recipients:', err))
+
+    trackEventInBackground(event, {
+      eventType: 'contact_form_submitted',
+      anonymousHash: subscriber.tracking_id,
+      userHash: userHashFromEmail(email),
+      language,
+      metadata: {
+        source: 'contact_form',
+        country,
+        consent_doxa_general: body.consent_doxa_general ?? false,
+        language
+      }
+    })
 
     return { success: true }
   } catch (error: any) {

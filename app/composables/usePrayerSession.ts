@@ -1,25 +1,16 @@
 import { type ComputedRef, type Ref, ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute, useToast, useI18n } from '#imports'
+import { useRoute, useToast, useI18n, useTracking, getVisitorId } from '#imports'
 
-const ANON_STORAGE_KEY = 'prayertools_anon_id'
-
-function getAnonymousTrackingId(): string {
-  if (import.meta.server) return ''
-  let anonId = localStorage.getItem(ANON_STORAGE_KEY)
-  if (!anonId) {
-    anonId = `anon-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
-    localStorage.setItem(ANON_STORAGE_KEY, anonId)
-  }
-  return anonId
-}
+const MAX_PRAYER_DURATION_SECONDS = 2 * 60 * 60
 
 export function usePrayerSession(slug: string, contentDate: ComputedRef<string> | Ref<string>, peopleGroupId?: ComputedRef<number | undefined> | Ref<number | undefined>) {
   const route = useRoute()
   const toast = useToast()
   const { t } = useI18n()
+  const { trackEvent } = useTracking()
 
   const trackingId = computed(() => {
-    return (route.query.uid as string) || getAnonymousTrackingId()
+    return (route.query.uid as string) || getVisitorId()
   })
 
   const pageOpenTime = ref(Date.now())
@@ -28,12 +19,35 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
   const autoSaveComplete = ref(false)
   const prayedMarked = ref(false)
   const submitting = ref(false)
+  const autoCheckpointTracked = ref(false)
 
-  async function autoSavePrayerSession() {
+  function getDurationSeconds() {
+    const rawDuration = Math.floor((Date.now() - pageOpenTime.value) / 1000)
+    return Math.min(rawDuration, MAX_PRAYER_DURATION_SECONDS)
+  }
+
+  function trackAutoCheckpoint() {
+    if (autoCheckpointTracked.value) return
+    autoCheckpointTracked.value = true
+
+    const duration = getDurationSeconds()
+    if (duration <= 0) return
+
+    trackEvent('prayer_auto_tracked', {
+      value: duration,
+      metadata: {
+        people_group_slug: slug,
+        content_date: contentDate.value,
+        source: 'auto'
+      }
+    })
+  }
+
+  async function autoSavePrayerSession(trackCheckpoint = false) {
     if (prayedMarked.value || autoSaveComplete.value) return
 
     try {
-      const duration = Math.floor((Date.now() - pageOpenTime.value) / 1000)
+      const duration = getDurationSeconds()
       const timestamp = new Date().toISOString()
 
       await $fetch(`/api/people-groups/${slug}/prayer-content/${contentDate.value}/session`, {
@@ -46,6 +60,10 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
           peopleGroupId: peopleGroupId?.value
         }
       })
+
+      if (trackCheckpoint) {
+        trackAutoCheckpoint()
+      }
     } catch (err: any) {
       console.error('Failed to auto-save prayer session:', err)
     }
@@ -64,9 +82,7 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
     cancelAutoSaveTimeouts()
 
     try {
-      const MAX_DURATION = 2 * 60 * 60
-      const rawDuration = Math.floor((Date.now() - pageOpenTime.value) / 1000)
-      const duration = Math.min(rawDuration, MAX_DURATION)
+      const duration = getDurationSeconds()
       const timestamp = new Date().toISOString()
 
       await $fetch(`/api/people-groups/${slug}/prayer-content/${contentDate.value}/session`, {
@@ -81,6 +97,14 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
       })
 
       prayedMarked.value = true
+      trackEvent('prayer_logged', {
+        value: duration,
+        metadata: {
+          people_group_slug: slug,
+          content_date: contentDate.value,
+          source: 'explicit'
+        }
+      })
     } catch (err: any) {
       console.error('Failed to record prayer:', err)
       toast.add({
@@ -117,7 +141,7 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
 
     intervals.forEach((interval) => {
       const timeout = setTimeout(() => {
-        autoSavePrayerSession()
+        autoSavePrayerSession(interval === 30 * 1000)
       }, interval)
       autoSaveTimeouts.value.push(timeout)
     })

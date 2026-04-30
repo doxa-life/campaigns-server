@@ -5,6 +5,7 @@
 import { peopleGroupService } from '#server/database/people-groups'
 import { subscriberService } from '#server/database/subscribers'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
+import { trackEventInBackground } from '#server/utils/tracking'
 
 interface ReminderInfo {
   id: number
@@ -106,6 +107,21 @@ export default defineEventHandler(async (event) => {
     return Array.from(peopleGroupMap.values())
   }
 
+  const trackUnsubscribe = (alreadyUnsubscribed: boolean, trackedSubscriptionId: number | null) => {
+    trackEventInBackground(event, {
+      eventType: 'subscriber_unsubscribed',
+      anonymousHash: subscriber.tracking_id,
+      language: subscriber.preferred_language || null,
+      metadata: {
+        people_group_slug: slug,
+        people_group_id: peopleGroup.id,
+        subscription_id: trackedSubscriptionId,
+        unsubscribe_all: unsubscribeAll,
+        already_unsubscribed: alreadyUnsubscribed
+      }
+    })
+  }
+
   // If unsubscribe_all flag is set, unsubscribe from entire people group
   if (unsubscribeAll) {
     const unsubscribedCount = await peopleGroupSubscriptionService.unsubscribeAllForPeopleGroup(
@@ -129,6 +145,8 @@ export default defineEventHandler(async (event) => {
     const otherPeopleGroups = groupByPeopleGroup(
       allSubscriberSubscriptions.filter(s => s.people_group_id !== peopleGroup.id)
     )
+
+    trackUnsubscribe(false, null)
 
     return {
       message: `Unsubscribed from all ${unsubscribedCount} reminder(s) for this people group`,
@@ -160,6 +178,8 @@ export default defineEventHandler(async (event) => {
       .filter(s => s.status === 'active')
       .map(formatReminder)
 
+    trackUnsubscribe(true, subscriptionId)
+
     return {
       message: 'You have already been unsubscribed',
       already_unsubscribed: true,
@@ -180,6 +200,8 @@ export default defineEventHandler(async (event) => {
     const otherRemindersInPeopleGroup = peopleGroupSubscriptions
       .filter(s => s.id !== subscriptionToUnsubscribe!.id && s.status === 'active')
       .map(formatReminder)
+
+    trackUnsubscribe(true, subscriptionToUnsubscribe.id)
 
     return {
       message: 'You have already been unsubscribed from this reminder',
@@ -223,6 +245,8 @@ export default defineEventHandler(async (event) => {
   const otherRemindersInPeopleGroup = peopleGroupSubscriptions
     .filter(s => s.id !== subscriptionToUnsubscribe!.id && s.status === 'active')
     .map(formatReminder)
+
+  trackUnsubscribe(false, subscriptionToUnsubscribe.id)
 
   return {
     success: true,
