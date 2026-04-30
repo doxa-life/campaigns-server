@@ -2,6 +2,14 @@ import type { RouteLocationNormalizedLoaded, RouteLocationNormalized } from 'vue
 import { LANGUAGE_CODES } from '../../config/languages'
 
 const ANON_STORAGE_KEY = 'prayertools_anon_id'
+const ANON_COOKIE_NAME = 'doxa_vid'
+
+function writeAnonCookie(value: string, domain: string) {
+  if (typeof document === 'undefined') return
+  const domainPart = domain ? `; Domain=${domain}` : ''
+  const securePart = location.protocol === 'https:' ? '; Secure' : ''
+  document.cookie = `${ANON_COOKIE_NAME}=${encodeURIComponent(value)}; Path=/; Max-Age=63072000; SameSite=Lax${securePart}${domainPart}`
+}
 
 function stripLocale(path: string): string {
   const segments = path.split('/')
@@ -62,9 +70,11 @@ function routeMetadata(route: RouteLocationNormalizedLoaded | RouteLocationNorma
   return metadata
 }
 
-function setRouteUid(route: RouteLocationNormalizedLoaded | RouteLocationNormalized) {
+function setRouteUid(route: RouteLocationNormalizedLoaded | RouteLocationNormalized, cookieDomain: string) {
   const uid = typeof route.query.uid === 'string' ? route.query.uid : null
-  if (uid) localStorage.setItem(ANON_STORAGE_KEY, uid)
+  if (!uid) return
+  localStorage.setItem(ANON_STORAGE_KEY, uid)
+  writeAnonCookie(uid, cookieDomain)
 }
 
 export default defineNuxtPlugin((nuxtApp) => {
@@ -73,6 +83,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   const projectId = String(config.public.statinatorProjectId || 'doxa')
   const statinatorUrl = String(config.public.statinatorUrl || '').replace(/\/$/, '')
+  const cookieDomain = String(config.public.statinatorCookieDomain || '')
   if (!statinatorUrl || !projectId) return
 
   const route = useRoute()
@@ -91,8 +102,10 @@ export default defineNuxtPlugin((nuxtApp) => {
       script.async = true
       script.src = `${statinatorUrl}/api/script.js`
       script.dataset.project = projectId
-      script.dataset.storage = 'local'
+      script.dataset.storage = 'cookie+local'
       script.dataset.hashKey = ANON_STORAGE_KEY
+      script.dataset.cookieName = ANON_COOKIE_NAME
+      if (cookieDomain) script.dataset.cookieDomain = cookieDomain
       script.dataset.autoPageview = 'false'
       script.onload = () => resolve()
       script.onerror = () => reject(new Error('Failed to load Statinator script'))
@@ -108,7 +121,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       return
     }
 
-    setRouteUid(to)
+    setRouteUid(to, cookieDomain)
     try {
       await loadScript()
       flushQueuedEvents()

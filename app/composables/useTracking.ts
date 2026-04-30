@@ -23,14 +23,42 @@ declare global {
 }
 
 const ANON_STORAGE_KEY = 'prayertools_anon_id'
+const ANON_COOKIE_NAME = 'doxa_vid'
+
+function readAnonCookie(): string | null {
+  if (typeof document === 'undefined' || !document.cookie) return null
+  const prefix = `${ANON_COOKIE_NAME}=`
+  const parts = document.cookie.split('; ')
+  for (const part of parts) {
+    if (part.indexOf(prefix) === 0) return decodeURIComponent(part.substring(prefix.length))
+  }
+  return null
+}
+
+function writeAnonCookie(value: string, domain: string) {
+  if (typeof document === 'undefined') return
+  const domainPart = domain ? `; Domain=${domain}` : ''
+  const securePart = location.protocol === 'https:' ? '; Secure' : ''
+  document.cookie = `${ANON_COOKIE_NAME}=${encodeURIComponent(value)}; Path=/; Max-Age=63072000; SameSite=Lax${securePart}${domainPart}`
+}
 
 export function getVisitorId(): string {
   if (import.meta.server) return ''
-  let id = localStorage.getItem(ANON_STORAGE_KEY)
-  if (!id) {
-    id = crypto.randomUUID()
-    localStorage.setItem(ANON_STORAGE_KEY, id)
+  const cookieDomain = String(useRuntimeConfig().public.statinatorCookieDomain || '')
+  const fromLocal = localStorage.getItem(ANON_STORAGE_KEY)
+  const fromCookie = readAnonCookie()
+
+  if (fromLocal) {
+    if (fromCookie !== fromLocal) writeAnonCookie(fromLocal, cookieDomain)
+    return fromLocal
   }
+  if (fromCookie) {
+    localStorage.setItem(ANON_STORAGE_KEY, fromCookie)
+    return fromCookie
+  }
+  const id = crypto.randomUUID()
+  localStorage.setItem(ANON_STORAGE_KEY, id)
+  writeAnonCookie(id, cookieDomain)
   return id
 }
 

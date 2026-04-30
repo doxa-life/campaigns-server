@@ -171,7 +171,8 @@ export default defineNuxtConfig({
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
       statinatorUrl: process.env.NUXT_PUBLIC_STATINATOR_URL || 'https://statinator.doxa.life',
       statinatorProjectId: process.env.NUXT_PUBLIC_STATINATOR_PROJECT_ID || 'doxa',
-      statinatorEnabled: process.env.NUXT_PUBLIC_STATINATOR_ENABLED === 'true'
+      statinatorEnabled: process.env.NUXT_PUBLIC_STATINATOR_ENABLED === 'true',
+      statinatorCookieDomain: process.env.NUXT_PUBLIC_STATINATOR_COOKIE_DOMAIN || '.doxa.life'
     }
   }
 })
