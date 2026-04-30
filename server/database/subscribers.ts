@@ -5,6 +5,12 @@ import { randomUUID } from 'crypto'
 import { contactMethodService } from './contact-methods'
 import { peopleGroupSubscriptionService, type PeopleGroupSubscriptionWithDetails } from './people-group-subscriptions'
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function isUuid(value: unknown): value is string {
+  return typeof value === 'string' && UUID_REGEX.test(value)
+}
+
 export interface Subscriber {
   id: number
   tracking_id: string
@@ -47,8 +53,8 @@ export interface SubscriberWithSubscriptions extends SubscriberWithContacts {
 class SubscriberService {
   private sql = getSql()
 
-  async createSubscriber(name: string, language: string = 'en', country: string | null = null): Promise<Subscriber> {
-    const tracking_id = randomUUID()
+  async createSubscriber(name: string, language: string = 'en', country: string | null = null, trackingId?: string | null): Promise<Subscriber> {
+    const tracking_id = isUuid(trackingId) ? trackingId : randomUUID()
     const profile_id = randomUUID()
 
     const [row] = await this.sql<Subscriber[]>`
@@ -135,6 +141,7 @@ class SubscriberService {
     language?: string
     role?: string | null
     country?: string | null
+    trackingId?: string | null
   }): Promise<{ subscriber: Subscriber; isNew: boolean }> {
     if (input.email) {
       const emailContact = await contactMethodService.getByValue('email', input.email)
@@ -152,7 +159,7 @@ class SubscriberService {
       }
     }
 
-    const subscriber = await this.createSubscriber(input.name, input.language, input.country || null)
+    const subscriber = await this.createSubscriber(input.name, input.language, input.country || null, input.trackingId)
 
     if (input.email) {
       await contactMethodService.addContactMethod(subscriber.id, 'email', input.email)

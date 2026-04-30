@@ -1,18 +1,7 @@
 import { type ComputedRef, type Ref, ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute, useToast, useI18n, useTracking } from '#imports'
+import { useRoute, useToast, useI18n, useTracking, getVisitorId } from '#imports'
 
-const ANON_STORAGE_KEY = 'prayertools_anon_id'
 const MAX_PRAYER_DURATION_SECONDS = 2 * 60 * 60
-
-function getAnonymousTrackingId(): string {
-  if (import.meta.server) return ''
-  let anonId = localStorage.getItem(ANON_STORAGE_KEY)
-  if (!anonId) {
-    anonId = `anon-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
-    localStorage.setItem(ANON_STORAGE_KEY, anonId)
-  }
-  return anonId
-}
 
 export function usePrayerSession(slug: string, contentDate: ComputedRef<string> | Ref<string>, peopleGroupId?: ComputedRef<number | undefined> | Ref<number | undefined>) {
   const route = useRoute()
@@ -21,7 +10,7 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
   const { trackEvent } = useTracking()
 
   const trackingId = computed(() => {
-    return (route.query.uid as string) || getAnonymousTrackingId()
+    return (route.query.uid as string) || getVisitorId()
   })
 
   const pageOpenTime = ref(Date.now())

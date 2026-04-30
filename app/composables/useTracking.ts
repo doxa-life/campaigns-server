@@ -22,6 +22,18 @@ declare global {
   }
 }
 
+const ANON_STORAGE_KEY = 'prayertools_anon_id'
+
+export function getVisitorId(): string {
+  if (import.meta.server) return ''
+  let id = localStorage.getItem(ANON_STORAGE_KEY)
+  if (!id) {
+    id = crypto.randomUUID()
+    localStorage.setItem(ANON_STORAGE_KEY, id)
+  }
+  return id
+}
+
 export function useTracking() {
   function trackEvent(eventType: string, options?: TrackingOptions) {
     if (import.meta.server) return

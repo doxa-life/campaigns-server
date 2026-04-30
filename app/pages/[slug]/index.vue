@@ -726,6 +726,7 @@ async function handleSignup() {
         prayer_duration: signupForm.value.prayer_duration,
         timezone: userTimezone.value,
         language: locale.value,
+        tracking_id: getVisitorId(),
         consent_people_group_updates: signupForm.value.consent_people_group_updates,
         consent_doxa_general: signupForm.value.consent_doxa_general
       }

@@ -87,7 +87,8 @@ export default defineEventHandler(async (event) => {
       email: body.email,
       phone: body.phone,
       name: body.name,
-      language
+      language,
+      trackingId: body.tracking_id
     })
 
     await subscriberService.addSource(subscriber.id, 'signup')
