@@ -69,6 +69,12 @@
             <span v-if="showExpanded" class="nav-label">Superadmin</span>
           </NuxtLink>
         </li>
+        <li v-if="canAccess('people_groups.edit')">
+          <NuxtLink to="/admin/onboarding" class="nav-link" :title="!showExpanded ? 'Onboarding' : undefined">
+            <UIcon name="i-lucide-clipboard-list" />
+            <span v-if="showExpanded" class="nav-label">Onboarding</span>
+          </NuxtLink>
+        </li>
       </ul>
       <div v-if="!hasRole" class="nav-menu"></div>
 
