@@ -21,6 +21,7 @@ import argparse
 import csv
 import hashlib
 import json
+import re
 import sys
 import urllib.request
 import urllib.error
@@ -48,6 +49,44 @@ NEEDS_TAGS = [
 ]
 
 REQUIRED_COLUMNS = ('PEID', 'Name', 'PeopleDesc', 'EngStat', 'GSEC', 'Indigenous', 'ROR', 'Ctry', 'ISOalpha3')
+
+# IMB returns this URL (or similar) when no photo is available. Detected via
+# substring match so any /pgphotosearch/NoImageAvailable* variant is caught.
+IMB_NO_PHOTO_MARKERS = ('NoImageAvailable', 'no_photo', 'nophoto', 'no-photo')
+
+# Regional placeholders hosted at https://s3.doxa.life/no-photo-images/<slug>.jpg
+# Mapping derived from existing Doxa data: middle-east covers Western Asia +
+# Northern Africa; south-america vs north-america splits the Americas by
+# RegnSub. Deaf-prefixed groups get the deaf-* variant. Returns None if no
+# placeholder exists for the given region (e.g. non-deaf Oceania).
+PLACEHOLDER_BASE = 'https://s3.doxa.life/no-photo-images'
+
+def regional_placeholder_url(name, regn, regn_sub):
+    name_lower = (name or '').strip().lower()
+    is_deaf = name_lower.startswith('deaf ') or name_lower.startswith('deaf,') or name_lower == 'deaf'
+    regn = (regn or '').strip()
+    regn_sub = (regn_sub or '').strip()
+
+    if regn_sub in ('Western Asia', 'Northern Africa'):
+        slug = 'middle-east'
+    elif regn == 'Asia':
+        slug = 'asia'
+    elif regn == 'Africa':
+        slug = 'africa'
+    elif regn == 'Europe':
+        slug = 'europe'
+    elif regn == 'Americas':
+        slug = 'south-america' if regn_sub == 'South America' else 'north-america'
+    elif regn == 'Oceania':
+        slug = 'oceania' if is_deaf else None  # only deaf-oceania.jpg exists
+    else:
+        slug = None
+
+    if slug is None:
+        return None
+    if is_deaf:
+        slug = f'deaf-{slug}'
+    return f'{PLACEHOLDER_BASE}/{slug}.jpg'
 
 # Label → code maps for IMB CSV columns that send English labels but are
 # stored as codes in the DB (kept in sync with i18n/locales/en/people-groups.json).
@@ -393,6 +432,39 @@ META_FIELDS = [
 
 
 # ---------------------------------------------------------------------------
+# Joshua Project ID lookup
+# ---------------------------------------------------------------------------
+# peoplegroups.org has a "View on Joshua Project" anchor on each people group
+# page that points at https://joshuaproject.net/people_groups/<JPID>/<ISO2>.
+# Scraping the PGID page is the most authoritative cross-reference.
+PG_BASE = 'https://peoplegroups.org/people_groups'
+BROWSER_UA = (
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
+    'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36'
+)
+JP_LINK_RE = re.compile(r'joshuaproject\.net/people_groups/(\d+)')
+
+
+def fetch_joshua_project_id(pgid):
+    if not pgid:
+        return None
+    url = f'{PG_BASE}/{pgid}/'
+    req = urllib.request.Request(url, headers={
+        'User-Agent': BROWSER_UA,
+        'Accept': 'text/html,application/xhtml+xml',
+        'Accept-Language': 'en-US,en;q=0.9',
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            html = resp.read().decode('utf-8', errors='replace')
+    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as e:
+        print(f"  WARN  JP lookup failed for {pgid}: {e}")
+        return None
+    m = JP_LINK_RE.search(html)
+    return m.group(1) if m else None
+
+
+# ---------------------------------------------------------------------------
 # HTTP helpers
 # ---------------------------------------------------------------------------
 def auth_headers(api_key, content_type=None):
@@ -545,6 +617,9 @@ def build_payload(row):
     region = (row.get('Regn') or '').strip() or None
     image_url = (row.get('PicURL') or '').strip() or None
 
+    if image_url and any(m.lower() in image_url.lower() for m in IMB_NO_PHOTO_MARKERS):
+        image_url = regional_placeholder_url(name, row.get('Regn'), row.get('RegnSub'))
+
     payload = {
         'name': name,
         'peid': peid,
@@ -558,6 +633,10 @@ def build_payload(row):
         payload['description'] = description
     if image_url:
         payload['image_url'] = image_url
+
+    jp_id = fetch_joshua_project_id(row.get('PGID', '').strip())
+    if jp_id:
+        payload['joshua_project_id'] = jp_id
 
     metadata = {}
     for csv_col, key, transform in TABLE_FIELDS:
@@ -682,10 +761,12 @@ def main():
         payload = build_payload(row)
         name = payload['name']
         peid = payload['peid']
+        jp = payload.get('joshua_project_id')
+        jp_str = f"  JP {jp}" if jp else "  JP -"
 
         status, body = api_post(args.base_url, '/api/admin/people-groups', args.api_key, payload)
         if status in (200, 201):
-            print(f"  [{i}/{len(candidates)}] CREATED  PEID {peid}  {name}")
+            print(f"  [{i}/{len(candidates)}] CREATED  PEID {peid}{jp_str}  {name}")
             created += 1
         elif status == 409:
             print(f"  [{i}/{len(candidates)}] SKIP 409 PEID {peid}  {name} (already exists)")

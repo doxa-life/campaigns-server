@@ -44,7 +44,9 @@ python3 .claude/skills/imb-import/imb-import.py \
 ```
 
 For each candidate:
+- Looks up the Joshua Project ID by scraping the "View on Joshua Project" link from `https://peoplegroups.org/people_groups/<PGID>/` (e.g. `PG023974` → JP id `11835`). Sets `joshua_project_id` on the payload when found; logs a warning and proceeds without it on failure. See `fetch_joshua_project_id()` in `imb-import.py`.
 - Sends `POST /api/admin/people-groups` with the IMB CSV mapped fields, `descriptions.en` from `PeopleDesc`, and the seed `needs:X` tags.
+- If the IMB photo URL is the "no image available" placeholder (matched by `IMB_NO_PHOTO_MARKERS` substrings), substitutes a regional placeholder from `https://s3.doxa.life/no-photo-images/<slug>.jpg` based on `Regn`/`RegnSub` (and a `deaf-` prefix for groups whose name starts with "Deaf "). See `regional_placeholder_url()` in `imb-import.py`.
 - Treats HTTP 409 (PEID collision) as a soft skip — re-running on the same CSV is safe.
 - After successful creates, fires `POST /api/admin/people-groups/translate-field` with `{ fieldKey: 'descriptions', overwrite: false }` and streams progress to stdout. Pass `--skip-translate` to skip this step.
 
