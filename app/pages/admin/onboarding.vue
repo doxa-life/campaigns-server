@@ -51,7 +51,7 @@
         <div class="row-badges">
           <UBadge v-if="row.prompts_pending" color="warning" variant="subtle">
             <UIcon name="i-lucide-book-open" />
-            prompts pending
+            Day in the Life prompts pending
           </UBadge>
           <UBadge
             v-for="locale in row.translation_pending_locales"
@@ -109,7 +109,7 @@ const filterChips = computed(() => {
   const translationCount = all.filter(r => r.translation_pending_locales.length > 0).length
   const needsCount = all.filter(r => r.needs_tags.length > 0).length
   return [
-    { key: 'prompts', label: 'Prompts pending', count: promptsCount },
+    { key: 'prompts', label: 'Day in the Life prompts pending', count: promptsCount },
     { key: 'translation', label: 'Translation pending', count: translationCount },
     { key: 'needs', label: 'Needs assets', count: needsCount },
   ]
