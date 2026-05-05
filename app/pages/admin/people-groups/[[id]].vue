@@ -129,12 +129,6 @@
           <UButton size="xs" v-if="selectedGroup.slug" :href="`https://doxa.life/research/${selectedGroup.slug}/`" target="_blank" variant="outline">
             Full Profile
           </UButton>
-          <div class="tags-section">
-            <PeopleGroupTags
-              :model-value="selectedGroup.tags || []"
-              @update:model-value="setTags($event)"
-            />
-          </div>
         </template>
 
         <template #detail-progress>
@@ -215,6 +209,13 @@
               </div>
             </CrmFormSection>
           </form>
+
+          <CrmFormSection title="Tags">
+            <AdminPeopleGroupTags
+              :model-value="selectedGroup.tags || []"
+              @update:model-value="setTags($event)"
+            />
+          </CrmFormSection>
         </template>
 
         <template #detail-details>

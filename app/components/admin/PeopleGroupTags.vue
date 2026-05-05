@@ -23,13 +23,16 @@
 
     <div class="add-row">
       <UInputMenu
-        :model-value="newTag ?? ''"
+        v-model:search-term="searchTerm"
+        v-model:open="menuOpen"
+        :model-value="null"
         :items="suggestionItems"
         placeholder="Add a tag..."
         :create-item="true"
         size="xs"
         class="add-input"
-        @update:model-value="onAdd"
+        @update:model-value="onSelect"
+        @create="onCreate"
       />
     </div>
   </div>
@@ -45,32 +48,43 @@ const emit = defineEmits<{
 }>()
 
 const tags = computed(() => props.modelValue || [])
-const newTag = ref<string | null>(null)
+const searchTerm = ref('')
+const menuOpen = ref(false)
 
-const { data: distinctData } = await useFetch<{ tags: string[] }>('/api/admin/people-groups/tags-distinct', {
-  default: () => ({ tags: [] }),
-})
+const distinctTags = useState<string[]>('admin-pg-tags-distinct', () => [])
+const distinctLoaded = useState<boolean>('admin-pg-tags-distinct-loaded', () => false)
 
-const suggestionItems = computed(() => {
-  const all = distinctData.value?.tags || []
-  return all.filter(t => !tags.value.includes(t))
-})
+if (!distinctLoaded.value) {
+  distinctLoaded.value = true
+  $fetch<{ tags: string[] }>('/api/admin/people-groups/tags-distinct')
+    .then(d => { distinctTags.value = d.tags || [] })
+    .catch(() => { distinctLoaded.value = false })
+}
+
+const suggestionItems = computed(() => distinctTags.value.filter(t => !tags.value.includes(t)))
 
 function tagColor(tag: string): 'warning' | 'primary' | 'neutral' {
   if (tag.startsWith('needs:')) return 'warning'
   return 'neutral'
 }
 
-function onAdd(value: string | null) {
-  if (!value) return
-  const trimmed = String(value).trim()
+function addTag(raw: unknown) {
+  if (raw == null) return
+  const trimmed = String(raw).trim()
   if (!trimmed) return
-  if (tags.value.includes(trimmed)) {
-    newTag.value = null
-    return
+  if (!tags.value.includes(trimmed)) {
+    emit('update:modelValue', [...tags.value, trimmed])
   }
-  emit('update:modelValue', [...tags.value, trimmed])
-  newTag.value = null
+  searchTerm.value = ''
+  menuOpen.value = false
+}
+
+function onSelect(value: any) {
+  addTag(value)
+}
+
+function onCreate(value: any) {
+  addTag(value)
 }
 
 function removeTag(tag: string) {
