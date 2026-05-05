@@ -25,5 +25,10 @@ export function extractUpdateFields(body: Record<string, any>): {
     hasFields = true
   }
 
+  if (body.tags !== undefined) {
+    updateData.tags = body.tags
+    hasFields = true
+  }
+
   return { updateData, hasFields }
 }

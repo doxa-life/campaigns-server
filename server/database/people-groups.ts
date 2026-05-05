@@ -26,14 +26,27 @@ export interface PeopleGroup {
   primary_religion: string | null
   primary_language: string | null
   descriptions: Record<string, string> | null
+  tags: string[]
   created_at: string
   updated_at: string
 }
 
 export interface CreatePeopleGroupData {
   name: string
+  slug?: string
   image_url?: string | null
   metadata?: Record<string, any> | null
+  descriptions?: Record<string, string> | null
+  tags?: string[]
+  country_code?: string | null
+  region?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  population?: number | null
+  status?: string | null
+  engagement_status?: string | null
+  primary_religion?: string | null
+  primary_language?: string | null
 }
 
 export interface UpdatePeopleGroupData {
@@ -56,17 +69,70 @@ export interface UpdatePeopleGroupData {
   primary_religion?: string | null
   primary_language?: string | null
   descriptions?: Record<string, string> | null
+  tags?: string[]
+}
+
+function normalizeTags(input: unknown): string[] {
+  if (!Array.isArray(input)) return []
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const v of input) {
+    if (typeof v !== 'string') continue
+    const t = v.trim()
+    if (!t || seen.has(t)) continue
+    seen.add(t)
+    out.push(t)
+  }
+  return out
 }
 
 export class PeopleGroupService {
   private sql = getSql()
 
   async createPeopleGroup(data: CreatePeopleGroupData): Promise<PeopleGroup> {
-    const { name, image_url = null, metadata = null } = data
+    const {
+      name,
+      slug = null,
+      image_url = null,
+      metadata = null,
+      descriptions = null,
+      tags,
+      country_code = null,
+      region = null,
+      latitude = null,
+      longitude = null,
+      population = null,
+      status = null,
+      engagement_status = null,
+      primary_religion = null,
+      primary_language = null,
+    } = data
+
+    const tagsArr = normalizeTags(tags)
 
     const [row] = await this.sql`
-      INSERT INTO people_groups (name, image_url, metadata)
-      VALUES (${name}, ${image_url}, ${metadata ? this.sql.json(metadata) : null})
+      INSERT INTO people_groups (
+        name, slug, image_url, metadata, descriptions, tags,
+        country_code, region, latitude, longitude, population,
+        status, engagement_status, primary_religion, primary_language
+      )
+      VALUES (
+        ${name},
+        ${slug},
+        ${image_url},
+        ${metadata ? this.sql.json(metadata) : null},
+        ${descriptions ? this.sql.json(descriptions) : null},
+        ${this.sql.json(tagsArr)},
+        ${country_code},
+        ${region},
+        ${latitude},
+        ${longitude},
+        ${population},
+        ${status},
+        ${engagement_status},
+        ${primary_religion},
+        ${primary_language}
+      )
       RETURNING *
     `
     return row as PeopleGroup
@@ -151,6 +217,10 @@ export class PeopleGroupService {
     }
     if (data.people_praying !== undefined) fields.push(this.sql`people_praying = ${data.people_praying}`)
     if (data.daily_prayer_duration !== undefined) fields.push(this.sql`daily_prayer_duration = ${data.daily_prayer_duration}`)
+    if (data.tags !== undefined) {
+      const tagsArr = normalizeTags(data.tags)
+      fields.push(this.sql`tags = ${this.sql.json(tagsArr)}`)
+    }
 
     if (fields.length === 0) return peopleGroup
 

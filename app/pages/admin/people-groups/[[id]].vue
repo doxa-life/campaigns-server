@@ -209,6 +209,13 @@
               </div>
             </CrmFormSection>
           </form>
+
+          <CrmFormSection title="Tags">
+            <AdminPeopleGroupTags
+              :model-value="selectedGroup.tags || []"
+              @update:model-value="setTags($event)"
+            />
+          </CrmFormSection>
         </template>
 
         <template #detail-details>
@@ -354,6 +361,7 @@ interface PeopleGroup {
   image_url: string | null
   descriptions: Record<string, string> | null
   metadata: Record<string, any>
+  tags: string[]
   country_code: string | null
   region: string | null
   latitude: number | null
@@ -679,6 +687,23 @@ function openAdoptionSlideover(adoption: Adoption) {
 function openAddAdoptionModal() {
   addAdoptionGroupId.value = undefined
   showAddAdoptionModal.value = true
+}
+
+async function setTags(newTags: string[]) {
+  if (!selectedGroup.value) return
+  const targetId = selectedGroup.value.id
+  try {
+    const response = await $fetch<{ peopleGroup: PeopleGroup }>(
+      `/api/admin/people-groups/${targetId}`,
+      { method: 'PUT', body: { tags: newTags } }
+    )
+    const index = peopleGroups.value.findIndex(g => g.id === response.peopleGroup.id)
+    if (index !== -1) peopleGroups.value[index] = response.peopleGroup
+    if (selectedGroup.value?.id === targetId) selectedGroup.value = response.peopleGroup
+    activityRef.value?.refresh()
+  } catch (err: any) {
+    toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to update tags', color: 'error' })
+  }
 }
 
 async function addAdoption() {
