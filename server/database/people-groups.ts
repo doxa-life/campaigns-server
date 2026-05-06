@@ -47,6 +47,7 @@ export interface CreatePeopleGroupData {
   engagement_status?: string | null
   primary_religion?: string | null
   primary_language?: string | null
+  joshua_project_id?: string | null
 }
 
 export interface UpdatePeopleGroupData {
@@ -106,6 +107,7 @@ export class PeopleGroupService {
       engagement_status = null,
       primary_religion = null,
       primary_language = null,
+      joshua_project_id = null,
     } = data
 
     const tagsArr = normalizeTags(tags)
@@ -114,7 +116,8 @@ export class PeopleGroupService {
       INSERT INTO people_groups (
         name, slug, image_url, metadata, descriptions, tags,
         country_code, region, latitude, longitude, population,
-        status, engagement_status, primary_religion, primary_language
+        status, engagement_status, primary_religion, primary_language,
+        joshua_project_id
       )
       VALUES (
         ${name},
@@ -131,7 +134,8 @@ export class PeopleGroupService {
         ${status},
         ${engagement_status},
         ${primary_religion},
-        ${primary_language}
+        ${primary_language},
+        ${joshua_project_id}
       )
       RETURNING *
     `

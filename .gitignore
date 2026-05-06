@@ -29,6 +29,8 @@ logs
 .DS_Store
 .fleet
 .idea
+__pycache__/
+*.pyc
 
 # Local env files
 .env

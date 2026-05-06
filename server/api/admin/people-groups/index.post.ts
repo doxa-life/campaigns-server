@@ -22,6 +22,7 @@ export default defineEventHandler(async (event) => {
     metadata?: Record<string, any> | null
     tags?: string[]
     source?: string
+    joshua_project_id?: string | null
   }
 
   if (!body.name || typeof body.name !== 'string' || !body.name.trim()) {
@@ -64,6 +65,7 @@ export default defineEventHandler(async (event) => {
       engagement_status: body.engagement_status ?? 'unengaged',
       primary_religion: body.primary_religion ?? null,
       primary_language: body.primary_language ?? null,
+      joshua_project_id: body.joshua_project_id ?? null,
     })
 
     logCreate('people_groups', String(created.id), event, {
