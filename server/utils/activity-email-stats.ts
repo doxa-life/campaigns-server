@@ -32,7 +32,7 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
       FROM subscribers s
       JOIN contact_methods cm ON cm.subscriber_id = s.id AND cm.type = 'email' AND cm.verified = true
       JOIN campaign_subscriptions cs ON cs.subscriber_id = s.id AND cs.status = 'active' AND cs.people_group_id IS NOT NULL
-      WHERE s.created_at >= ${startIso} AND s.created_at < ${endIso}
+      WHERE cm.verified_at >= ${startIso} AND cm.verified_at < ${endIso}
     `.then(rows => rows[0]),
     sql`
       SELECT COUNT(DISTINCT s.id) as count

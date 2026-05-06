@@ -41,13 +41,13 @@ Pick **one** group to advance. Default to the top of the list (research-pending 
 
 Follow `../people-groups/dinl/Research Prompt.md`. Summary:
 
-1. From `../people-groups/dinl/`:
+1. From `../people-groups/`:
    ```bash
-   python3 dinl/build_research_prompt.py {slug}
+   python3 dinl/build_research_prompt.py {slug} --api-key KEY [--base-url URL]
    ```
-   This extracts demographic data and constructs the research-prompt input.
+   The script resolves slug→PEID via the admin API (`/api/admin/people-groups`) and pulls demographic data from `dinl/imb_people_groups.csv`. **The `--api-key` is required for any group imported after the legacy `UUPG_peoplegroups_list_export.csv` was last refreshed** — i.e. anything created via the recent `imb-import` runs. `DOXA_API_KEY` / `DOXA_BASE_URL` env vars are honored if CLI flags are omitted.
 2. Dispatch a Sonnet subagent (`model: "sonnet"`) with the research prompt as input. The agent performs web research and writes the findings dossier to `dinl/people-group-findings/{slug}.md`.
-3. After it completes, mark `research_done = yes` for that slug in `../people-groups/dinl/todo.csv`.
+3. After it completes, ensure `../people-groups/dinl/todo.csv` has a row for the slug and mark `research_done = yes`. Newly imported groups won't already be in `todo.csv` — append a row with the slug, name, country, religion, and the prod people-group `id` as `campaign_id` before marking it done. Future runs will then pick up the local research/prompts state correctly.
 
 ### Step 3 — Prayer prompts (if step is PROMPTS)
 
