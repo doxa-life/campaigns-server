@@ -108,7 +108,13 @@ const { trackEvent } = useTracking()
 const viewedTrackingKey = ref<string | null>(null)
 
 // Get current date in user's timezone
-const currentDate = computed(() => new Date().toISOString().split('T')[0] as string)
+const currentDate = computed(() => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+})
 
 // Get language preference from global language selector or query param
 const selectedLanguage = ref((route.query.language as string) || locale.value || '')
