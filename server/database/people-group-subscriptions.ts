@@ -450,12 +450,29 @@ class PeopleGroupSubscriptionService {
     return statsMap
   }
 
-  async getGlobalCommitmentStats(): Promise<{ people_committed: number; committed_duration: number }> {
-    const [result] = await this.sql`
-      SELECT COUNT(*) as people_committed, COALESCE(SUM(prayer_duration), 0) as committed_duration
+  async getGlobalCommitmentStats(): Promise<{ people_committed: number; committed_duration: number; people_groups_with_commitment: number; people_groups_with_full_commitment: number }> {
+    const [totals] = await this.sql`
+      SELECT
+        COUNT(*) as people_committed,
+        COALESCE(SUM(prayer_duration), 0) as committed_duration,
+        COUNT(DISTINCT people_group_id) as people_groups_with_commitment
       FROM campaign_subscriptions WHERE status = 'active'
     `
-    return { people_committed: result?.people_committed, committed_duration: result?.committed_duration }
+    const [fullCoverage] = await this.sql`
+      SELECT COUNT(*) as count FROM (
+        SELECT people_group_id
+        FROM campaign_subscriptions
+        WHERE status = 'active'
+        GROUP BY people_group_id
+        HAVING SUM(prayer_duration) >= 1440
+      ) g
+    `
+    return {
+      people_committed: totals?.people_committed,
+      committed_duration: totals?.committed_duration,
+      people_groups_with_commitment: Number(totals?.people_groups_with_commitment ?? 0),
+      people_groups_with_full_commitment: Number(fullCoverage?.count ?? 0)
+    }
   }
 
   async markFollowupSent(subscriptionId: number): Promise<void> {

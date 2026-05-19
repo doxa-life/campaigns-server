@@ -707,12 +707,16 @@ components:
       properties:
         total_with_prayer:
           type: integer
-          description: Number of people groups with at least one person praying
+          description: Number of people groups with at least one person praying (tracked prayer activity in the last 7 days)
           example: 234
         total_with_full_prayer:
           type: integer
-          description: Number of people groups with 144+ people praying (full coverage)
+          description: Number of people groups whose active prayer commitments sum to 1440+ minutes (full 24-hour daily coverage)
           example: 45
+        total_with_prayer_committed:
+          type: integer
+          description: Number of people groups with at least one active prayer commitment (campaign subscription)
+          example: 312
         total_adopted:
           type: integer
           description: Number of people groups adopted by churches (always 0)
