@@ -451,7 +451,7 @@ describe('POST /api/people-groups/[slug]/signup', async () => {
       await $fetch(`/api/people-groups/${peopleGroup.slug}/signup`, {
         method: 'POST',
         body: {
-          name: 'Tracking User A',
+          name: 'Test Tracking User A',
           email: emailA,
           delivery_method: 'email',
           frequency: 'daily',
@@ -469,7 +469,7 @@ describe('POST /api/people-groups/[slug]/signup', async () => {
       const response = await $fetch(`/api/people-groups/${peopleGroup.slug}/signup`, {
         method: 'POST',
         body: {
-          name: 'Tracking User B',
+          name: 'Test Tracking User B',
           email: emailB,
           delivery_method: 'email',
           frequency: 'daily',
