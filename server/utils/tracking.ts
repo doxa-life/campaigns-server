@@ -112,8 +112,10 @@ export async function trackEvent(event: H3Event | undefined, input: TrackEventIn
         user_hash: input.userHash || userHashFromEmail(input.email)
       }
     })
-  } catch {
-    console.error(`Statinator tracking failed for event: ${input.eventType}`)
+  } catch (error: any) {
+    const status = error?.status ?? error?.statusCode ?? error?.response?.status
+    const detail = error?.data ? JSON.stringify(error.data) : (error?.message || String(error))
+    console.error(`Statinator tracking failed for event: ${input.eventType} (status=${status ?? 'n/a'}): ${detail}`)
   }
 }
 
