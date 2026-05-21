@@ -20,9 +20,10 @@ export default defineEventHandler(async (event) => {
       WHERE status != 'archived'
     `.then(rows => rows[0] as { total_active: string | number; total_with_prayer: string | number }),
     sql`
-      SELECT COUNT(DISTINCT people_group_id) as count
-      FROM people_group_adoptions
-      WHERE status = 'active'
+      SELECT COUNT(DISTINCT a.people_group_id) as count
+      FROM people_group_adoptions a
+      JOIN people_groups pg ON pg.id = a.people_group_id
+      WHERE a.status = 'active' AND pg.status != 'archived'
     `.then(rows => rows[0] as { count: string | number }),
     peopleGroupSubscriptionService.getGlobalCommitmentStats()
   ])
