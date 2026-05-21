@@ -54,15 +54,22 @@ class SubscriberService {
   private sql = getSql()
 
   async createSubscriber(name: string, language: string = 'en', country: string | null = null, trackingId?: string | null): Promise<Subscriber> {
-    const tracking_id = isUuid(trackingId) ? trackingId : randomUUID()
     const profile_id = randomUUID()
+    let tracking_id = isUuid(trackingId) ? trackingId : randomUUID()
 
-    const [row] = await this.sql<Subscriber[]>`
-      INSERT INTO subscribers (tracking_id, profile_id, name, preferred_language, country)
-      VALUES (${tracking_id}, ${profile_id}, ${name}, ${language}, ${country})
-      RETURNING *
-    `
-    return row!
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const [row] = await this.sql<Subscriber[]>`
+        INSERT INTO subscribers (tracking_id, profile_id, name, preferred_language, country)
+        VALUES (${tracking_id}, ${profile_id}, ${name}, ${language}, ${country})
+        ON CONFLICT (tracking_id) DO NOTHING
+        RETURNING *
+      `
+      if (row) return row
+      // tracking_id already bound to another subscriber (shared device or concurrent signup) — use a fresh one
+      tracking_id = randomUUID()
+    }
+
+    throw new Error('Failed to create subscriber: tracking_id collision could not be resolved')
   }
 
   async getSubscriberById(id: number): Promise<Subscriber | null> {

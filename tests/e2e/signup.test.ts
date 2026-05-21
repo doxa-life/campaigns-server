@@ -439,4 +439,52 @@ describe('POST /api/people-groups/[slug]/signup', async () => {
       expect(contactMethod!.consent_doxa_general).toBe(true)
     })
   })
+
+  describe('Tracking ID collision (same browser, different email)', () => {
+    it('creates a new subscriber when the device tracking_id is already taken', async () => {
+      const peopleGroup = await createTestPeopleGroup(sql)
+      const trackingId = '11111111-2222-3333-4444-555555555555'
+      const emailA = `test-track-a-${Date.now()}@example.com`
+      const emailB = `test-track-b-${Date.now()}@example.com`
+
+      // First signup binds the device tracking_id to subscriber A
+      await $fetch(`/api/people-groups/${peopleGroup.slug}/signup`, {
+        method: 'POST',
+        body: {
+          name: 'Tracking User A',
+          email: emailA,
+          delivery_method: 'email',
+          frequency: 'daily',
+          reminder_time: '09:00',
+          tracking_id: trackingId
+        }
+      })
+
+      const subscriberA = await getTestSubscriberByEmail(sql, emailA)
+      expect(subscriberA).toBeDefined()
+      expect(subscriberA!.tracking_id).toBe(trackingId)
+
+      // Second signup from the same browser (same tracking_id) with a new email
+      // previously threw "duplicate key ... subscribers_tracking_id_key"
+      const response = await $fetch(`/api/people-groups/${peopleGroup.slug}/signup`, {
+        method: 'POST',
+        body: {
+          name: 'Tracking User B',
+          email: emailB,
+          delivery_method: 'email',
+          frequency: 'daily',
+          reminder_time: '10:00',
+          tracking_id: trackingId
+        }
+      })
+
+      expect(response.message).toBe('Please check your email to complete your signup')
+
+      // Subscriber B is created with a fresh tracking_id (not the device id)
+      const subscriberB = await getTestSubscriberByEmail(sql, emailB)
+      expect(subscriberB).toBeDefined()
+      expect(subscriberB!.id).not.toBe(subscriberA!.id)
+      expect(subscriberB!.tracking_id).not.toBe(trackingId)
+    })
+  })
 })
