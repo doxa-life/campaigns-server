@@ -25,6 +25,10 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, statusMessage: 'Invalid status' })
       }
       await conversationService.updateStatus(id, body.status)
+      // Closing resolves any pending review.
+      if (body.status === 'closed') {
+        await conversationService.setNeedsReview(id, false)
+      }
       logUpdate('conversations', String(id), event, { message: `Status → ${body.status}`, status: body.status })
     }
 

@@ -17,6 +17,38 @@
       </div>
     </template>
 
+    <template #list-rail>
+      <nav class="inbox-rail">
+        <UButton
+          block
+          icon="i-lucide-flag"
+          color="warning"
+          :variant="view === 'held' ? 'soft' : 'ghost'"
+          class="rail-item"
+          @click="setView('held')"
+        >
+          <span class="rail-label">{{ $t('inbox.needsReview') }}</span>
+          <UBadge v-if="counts.held" color="warning" variant="solid" size="xs">{{ counts.held }}</UBadge>
+        </UButton>
+
+        <div class="rail-divider" />
+
+        <UButton
+          v-for="v in scopeViews"
+          :key="v.key"
+          block
+          :icon="v.icon"
+          :color="view === v.key ? 'primary' : 'neutral'"
+          :variant="view === v.key ? 'soft' : 'ghost'"
+          class="rail-item"
+          @click="setView(v.key)"
+        >
+          <span class="rail-label">{{ v.label }}</span>
+          <UBadge v-if="counts[v.key]" :color="view === v.key ? 'primary' : 'neutral'" variant="subtle" size="xs">{{ counts[v.key] }}</UBadge>
+        </UButton>
+      </nav>
+    </template>
+
     <template #list-header>
       <CrmListPanel
         :model-value="search"
@@ -25,17 +57,15 @@
         @update:model-value="onSearch"
       >
         <template #filters>
-          <div class="quick-filters">
+          <div class="status-strip">
             <UButton
-              v-for="f in quickFilters"
-              :key="f.key"
-              :variant="activeFilter === f.key ? 'solid' : 'ghost'"
-              :color="activeFilter === f.key ? 'primary' : 'neutral'"
+              v-for="s in statusOptions"
+              :key="s.key"
+              :variant="statusFilter === s.key ? 'solid' : 'ghost'"
+              :color="statusFilter === s.key ? 'primary' : 'neutral'"
               size="xs"
-              @click="setFilter(f.key)"
-            >
-              {{ f.label }}
-            </UButton>
+              @click="setStatus(s.key)"
+            >{{ s.label }}</UButton>
           </div>
         </template>
       </CrmListPanel>
@@ -83,9 +113,16 @@
           :items="assigneeOptions"
           value-key="value"
           size="xs"
-          class="assignee-select"
+          class="w-32 shrink-0"
           @update:model-value="onAssign"
         />
+        <UButton
+          :icon="selected.conversation.needs_review ? 'i-lucide-flag-off' : 'i-lucide-flag'"
+          :color="selected.conversation.needs_review ? 'warning' : 'neutral'"
+          variant="ghost"
+          size="xs"
+          @click="toggleNeedsReview"
+        >{{ selected.conversation.needs_review ? $t('inbox.actions.unflagReview') : $t('inbox.actions.flagReview') }}</UButton>
         <UButton
           v-if="selected.conversation.status !== 'closed'"
           icon="i-lucide-check"
@@ -305,6 +342,7 @@ interface ConversationDetail {
   subject: string | null
   status: string
   assigned_user_id: string | null
+  needs_review: boolean
   subscriber_name: string | null
   subscriber_email: string | null
 }
@@ -320,7 +358,12 @@ const loading = ref(false)
 const conversations = ref<ConversationListItem[]>([])
 const total = ref(0)
 const search = ref('')
-const activeFilter = ref<string>('open')
+// Rail view (single-select: scope folders + the Held/needs-review queue) AND a status
+// filter, combined with AND. Held is a folder, not a scope, so picking it shows the whole
+// review queue regardless of assignment.
+const view = ref<'all' | 'unassigned' | 'mine' | 'held'>('all')
+const statusFilter = ref<'all' | 'open' | 'pending' | 'closed' | 'spam'>('open')
+const counts = ref<{ all: number; unassigned: number; mine: number; held: number }>({ all: 0, unassigned: 0, mine: 0, held: 0 })
 
 const selected = ref<SelectedConversation | null>(null)
 const slideoverOpen = ref(false)
@@ -360,15 +403,17 @@ const showCloseModal = ref(false)
 const showSpamModal = ref(false)
 const showCanned = ref(false)
 
-const quickFilters = computed(() => [
-  { key: 'unassigned', label: t('inbox.filters.unassigned') },
-  { key: 'mine', label: t('inbox.filters.mine') },
-  { key: 'open', label: t('inbox.filters.open') },
-  { key: 'pending', label: t('inbox.filters.pending') },
-  { key: 'closed', label: t('inbox.filters.closed') },
-  { key: 'spam', label: t('inbox.filters.spam') },
-  { key: 'held', label: t('inbox.filters.held') },
-  { key: 'all', label: t('inbox.filters.all') },
+const scopeViews = computed(() => [
+  { key: 'all' as const, label: t('inbox.filters.all'), icon: 'i-lucide-inbox' },
+  { key: 'unassigned' as const, label: t('inbox.filters.unassigned'), icon: 'i-lucide-circle-dashed' },
+  { key: 'mine' as const, label: t('inbox.filters.mine'), icon: 'i-lucide-user' },
+])
+const statusOptions = computed(() => [
+  { key: 'open' as const, label: t('inbox.filters.open') },
+  { key: 'pending' as const, label: t('inbox.filters.pending') },
+  { key: 'closed' as const, label: t('inbox.filters.closed') },
+  { key: 'spam' as const, label: t('inbox.filters.spam') },
+  { key: 'all' as const, label: t('inbox.filters.all') },
 ])
 
 const sideTabs = computed(() => [
@@ -425,12 +470,12 @@ function toggleQuoted(id: number) {
 function buildParams() {
   const params: Record<string, string> = {}
   if (search.value) params.search = search.value
-  switch (activeFilter.value) {
-    case 'unassigned': params.unassigned = 'true'; break
-    case 'mine': if (user.value?.id) params.mine = String(user.value.id); break
-    case 'held': params.held = 'true'; break
-    case 'open': case 'pending': case 'closed': case 'spam': params.status = activeFilter.value; break
-  }
+  // Rail view (single-select)
+  if (view.value === 'unassigned') params.unassigned = 'true'
+  else if (view.value === 'mine' && user.value?.id) params.mine = String(user.value.id)
+  else if (view.value === 'held') params.held = 'true'
+  // Status (independent of view)
+  if (statusFilter.value !== 'all') params.status = statusFilter.value
   return params
 }
 
@@ -450,6 +495,17 @@ async function loadConversations() {
   }
 }
 
+async function loadCounts() {
+  try {
+    const params: Record<string, string> = {}
+    if (statusFilter.value !== 'all') params.status = statusFilter.value
+    if (user.value?.id) params.mine = String(user.value.id)
+    counts.value = await $fetch('/api/admin/inbox/conversations/counts', { params })
+  } catch {
+    // non-fatal
+  }
+}
+
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 function onSearch(val: string) {
   search.value = val
@@ -457,9 +513,20 @@ function onSearch(val: string) {
   searchTimer = setTimeout(loadConversations, 300)
 }
 
-function setFilter(key: string) {
-  activeFilter.value = key
+function setView(key: 'all' | 'unassigned' | 'mine' | 'held') {
+  view.value = key
+  // The Held queue spans every status, so jump to the All tab to show the whole review backlog.
+  if (key === 'held' && statusFilter.value !== 'all') {
+    statusFilter.value = 'all'
+    loadCounts()
+  }
   loadConversations()
+}
+
+function setStatus(key: 'all' | 'open' | 'pending' | 'closed' | 'spam') {
+  statusFilter.value = key
+  loadConversations()
+  loadCounts()
 }
 
 async function selectConversation(id: number, updateUrl = true) {
@@ -497,6 +564,23 @@ async function onAssign(value: string) {
     toast.add({ title: t('inbox.toasts.assigned'), color: 'success' })
     await refreshSelected()
     await loadConversations()
+    await loadCounts()
+  } catch {
+    toast.add({ title: t('inbox.toasts.error'), color: 'error' })
+  }
+}
+
+async function toggleNeedsReview() {
+  if (!selected.value) return
+  const next = !selected.value.conversation.needs_review
+  try {
+    await $fetch(`/api/admin/inbox/conversations/${selected.value.conversation.id}`, {
+      method: 'PUT',
+      body: { needs_review: next },
+    })
+    await refreshSelected()
+    await loadConversations()
+    await loadCounts()
   } catch {
     toast.add({ title: t('inbox.toasts.error'), color: 'error' })
   }
@@ -512,6 +596,7 @@ async function changeStatus(status: string) {
     toast.add({ title: t('inbox.toasts.statusChanged'), color: 'success' })
     await refreshSelected()
     await loadConversations()
+    await loadCounts()
   } catch {
     toast.add({ title: t('inbox.toasts.error'), color: 'error' })
   }
@@ -532,6 +617,7 @@ async function confirmSpam() {
     toast.add({ title: t('inbox.toasts.markedSpam'), color: 'success' })
     await refreshSelected()
     await loadConversations()
+    await loadCounts()
   } catch {
     toast.add({ title: t('inbox.toasts.error'), color: 'error' })
   }
@@ -546,6 +632,7 @@ async function unmarkSpam() {
     toast.add({ title: t('inbox.toasts.unmarkedSpam'), color: 'success' })
     await refreshSelected()
     await loadConversations()
+    await loadCounts()
   } catch {
     toast.add({ title: t('inbox.toasts.error'), color: 'error' })
   }
@@ -625,6 +712,7 @@ async function sendReply() {
     toast.add({ title: t('inbox.toasts.sent'), color: 'success' })
     await refreshSelected()
     await loadConversations()
+    await loadCounts()
   } catch {
     toast.add({ title: t('inbox.toasts.error'), color: 'error' })
   } finally {
@@ -673,7 +761,7 @@ async function loadAux() {
 }
 
 onMounted(async () => {
-  await Promise.all([loadConversations(), loadAux()])
+  await Promise.all([loadConversations(), loadCounts(), loadAux()])
   const routeId = route.params.id
   if (routeId) {
     await selectConversation(Number(Array.isArray(routeId) ? routeId[0] : routeId), false)
@@ -693,10 +781,44 @@ onMounted(async () => {
   gap: 1rem;
   width: 100%;
 }
-.quick-filters {
+.inbox-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.5rem;
+}
+.rail-item {
+  justify-content: flex-start;
+}
+.rail-label {
+  flex: 1;
+  text-align: left;
+}
+.rail-divider {
+  height: 1px;
+  background: var(--ui-border);
+  margin: 0.35rem 0.25rem;
+}
+.status-strip {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .inbox-rail {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .rail-item {
+    width: auto;
+  }
+  .rail-label {
+    flex: none;
+  }
+  .rail-divider {
+    display: none;
+  }
 }
 .empty-list {
   padding: 2rem;
@@ -710,8 +832,6 @@ onMounted(async () => {
 .conv-subject { font-size: 0.8rem; }
 .conv-snippet { font-size: 0.75rem; color: var(--ui-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .conv-badges { display: flex; gap: 0.25rem; margin-top: 0.25rem; flex-wrap: wrap; }
-
-.assignee-select { min-width: 160px; }
 
 .detail-head { min-width: 0; }
 .detail-contact { display: flex; gap: 0.5rem; align-items: baseline; font-size: 0.8rem; margin-top: 0.15rem; }

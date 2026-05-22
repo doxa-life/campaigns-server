@@ -100,9 +100,10 @@ export default defineEventHandler(async (event) => {
       messageId = created.id
     }
 
-    // Auto-assign to sender if unassigned + set Pending
+    // Auto-assign to sender if unassigned + set Pending. Replying resolves any pending review.
     await conversationService.assignIfUnassigned(id, auth.userId)
     await conversationService.updateStatus(id, 'pending')
+    await conversationService.setNeedsReview(id, false)
     await conversationService.touchLastMessage(id, new Date().toISOString(), 'outbound')
 
     const payload: OutboundEmailPayload = { message_id: messageId }

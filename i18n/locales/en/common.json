@@ -619,10 +619,12 @@
     "actions": {
       "close": "Close",
       "reopen": "Reopen",
-      "markSpam": "Mark as spam",
+      "markSpam": "Spam",
       "unmarkSpam": "Not spam",
       "showQuoted": "Show quoted text",
-      "hideQuoted": "Hide quoted text"
+      "hideQuoted": "Hide quoted text",
+      "flagReview": "For review",
+      "unflagReview": "Clear review"
     },
     "confirm": {
       "closeTitle": "Close conversation",

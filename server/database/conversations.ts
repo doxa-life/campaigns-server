@@ -167,6 +167,33 @@ class ConversationService {
     return Number(row?.count ?? 0)
   }
 
+  // Rail badge counts (ignores search). The all/unassigned/mine tallies respect the status
+  // filter so they match the visible list. `held` (needs-review) is status-independent — it's
+  // an alarm for the whole review queue, surfaced regardless of which status tab is active.
+  async counts(opts: { status?: ConversationStatus; mine?: string } = {}): Promise<{
+    all: number
+    unassigned: number
+    mine: number
+    held: number
+  }> {
+    const statusCond = () => opts.status ? this.sql`c.status = ${opts.status}` : this.sql`TRUE`
+    const mineId = opts.mine ?? null
+    const [row] = await this.sql<{ all: string; unassigned: string; mine: string; held: string }[]>`
+      SELECT
+        COUNT(*) FILTER (WHERE ${statusCond()}) AS all,
+        COUNT(*) FILTER (WHERE ${statusCond()} AND c.assigned_user_id IS NULL) AS unassigned,
+        COUNT(*) FILTER (WHERE ${statusCond()} AND c.assigned_user_id = ${mineId}) AS mine,
+        COUNT(*) FILTER (WHERE c.needs_review = true) AS held
+      FROM conversations c
+    `
+    return {
+      all: Number(row?.all ?? 0),
+      unassigned: Number(row?.unassigned ?? 0),
+      mine: Number(row?.mine ?? 0),
+      held: Number(row?.held ?? 0),
+    }
+  }
+
   async listForSubscriber(subscriberId: number): Promise<ConversationWithDetails[]> {
     const rows = await this.sql`
       SELECT c.*,
