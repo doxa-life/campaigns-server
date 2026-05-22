@@ -171,6 +171,16 @@ export default defineNuxtConfig({
     // Form API key for external form submissions (WordPress, etc.)
     formApiKey: process.env.FORM_API_KEY || '',
 
+    // Mailgun shared-inbox transport + inbound/delivery webhooks
+    mailgunApiKey: process.env.MAILGUN_API_KEY || '',
+    mailgunDomain: process.env.MAILGUN_DOMAIN || '',
+    mailgunHost: process.env.MAILGUN_HOST || 'api.mailgun.net',
+    mailgunWebhookSigningKey: process.env.MAILGUN_WEBHOOK_SIGNING_KEY || '',
+    inboxContactAddress: process.env.INBOX_CONTACT_ADDRESS || 'contact@doxa.life',
+    inboxDomain: process.env.INBOX_DOMAIN || 'doxa.life',
+    // Secret for signing reply-by-email addresses (contact+<token>.<sig>@). Falls back to JWT secret.
+    inboxReplySecret: process.env.INBOX_REPLY_SECRET || process.env.JWT_SECRET || '',
+
     // Statinator analytics
     statinatorApiKey: process.env.STATINATOR_API_KEY || '',
 

@@ -567,5 +567,97 @@
     "downloadIcs": "अन्य कैलेंडर",
     "eventTitle": "{campaign} के लिए प्रार्थना",
     "eventDescription": "{campaign} के लिए {duration}-मिनट का प्रार्थना सत्र"
+  },
+  "inbox":   {
+    "title": "इनबॉक्स",
+    "searchPlaceholder": "बातचीत खोजें",
+    "empty": "कोई बातचीत नहीं",
+    "selectPrompt": "देखने के लिए एक बातचीत चुनें",
+    "conversation": "बातचीत",
+    "conversations": "बातचीतें",
+    "internalNotes": "आंतरिक नोट्स",
+    "activity": "गतिविधि",
+    "needsReview": "समीक्षा आवश्यक",
+    "unassigned": "अनिर्धारित",
+    "assignedTo": "{name} को सौंपी गई",
+    "assignToMe": "मुझे सौंपें",
+    "assign": "सौंपें",
+    "unassign": "सौंपना हटाएं",
+    "spamScore": "स्पैम स्कोर",
+    "filters": {
+      "all": "सभी",
+      "unassigned": "अनिर्धारित",
+      "mine": "मेरी",
+      "open": "खुली",
+      "pending": "लंबित",
+      "closed": "बंद",
+      "spam": "स्पैम",
+      "held": "रोकी गई"
+    },
+    "status": {
+      "open": "खुली",
+      "pending": "लंबित",
+      "closed": "बंद",
+      "spam": "स्पैम"
+    },
+    "direction": {
+      "inbound": "प्राप्त",
+      "outbound": "भेजा गया"
+    },
+    "compose": {
+      "reply": "उत्तर दें",
+      "send": "भेजें",
+      "saveDraft": "ड्राफ्ट सहेजें",
+      "draft": "ड्राफ्ट",
+      "sending": "भेजा जा रहा है…",
+      "cannedResponse": "तैयार उत्तर",
+      "attach": "फ़ाइल संलग्न करें",
+      "placeholder": "अपना उत्तर लिखें…",
+      "language": "भाषा"
+    },
+    "actions": {
+      "close": "बंद करें",
+      "reopen": "फिर से खोलें",
+      "markSpam": "स्पैम के रूप में चिह्नित करें",
+      "unmarkSpam": "स्पैम नहीं है",
+      "showQuoted": "उद्धृत पाठ दिखाएं",
+      "hideQuoted": "उद्धृत पाठ छिपाएं"
+    },
+    "confirm": {
+      "closeTitle": "बातचीत बंद करें",
+      "closeMessage": "इस बातचीत को बंद करें? यदि संपर्क उत्तर देता है तो यह स्वचालित रूप से फिर से खुल जाएगी।",
+      "spamTitle": "स्पैम के रूप में चिह्नित करें",
+      "spamMessage": "इस प्रेषक को ब्लॉक करें और बातचीत बंद करें? उनके भविष्य के संदेश स्वचालित रूप से बंद हो जाएंगे।"
+    },
+    "toasts": {
+      "sent": "उत्तर भेजा गया",
+      "draftSaved": "ड्राफ्ट सहेजा गया",
+      "assigned": "बातचीत सौंपी गई",
+      "statusChanged": "स्थिति अपडेट हुई",
+      "markedSpam": "स्पैम के रूप में चिह्नित",
+      "unmarkedSpam": "स्पैम से हटाया गया",
+      "error": "कुछ गलत हो गया"
+    },
+    "identity": {
+      "alias": "ईमेल उपनाम",
+      "aliasHint": "केवल स्थानीय भाग — george, george{'@'}doxa.life बन जाता है",
+      "signature": "ईमेल हस्ताक्षर",
+      "save": "सहेजें"
+    },
+    "canned": {
+      "title": "तैयार उत्तर",
+      "new": "नया तैयार उत्तर",
+      "name": "शीर्षक",
+      "body": "सामग्री",
+      "save": "सहेजें",
+      "delete": "हटाएं"
+    },
+    "autoAck": {
+      "subject": "हमें आपका संदेश मिल गया",
+      "greeting": "नमस्ते,",
+      "greetingNamed": "नमस्ते {name},",
+      "body": "{appName} से संपर्क करने के लिए धन्यवाद। हमें आपका संदेश मिल गया है और हमारी टीम का कोई सदस्य जल्द ही आपको उत्तर देगा।",
+      "signoff": "मसीह में,\n{appName} टीम"
+    }
   }
 }

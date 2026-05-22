@@ -1,11 +1,23 @@
 import { subscriberService } from '../database/subscribers'
 import { contactMethodService } from '../database/contact-methods'
+import { conversationService } from '../database/conversations'
+import { messageService } from '../database/conversation-messages'
 import { requireFormApiKey } from '../utils/form-api-key'
 import { handleApiError } from '#server/utils/api-helpers'
-import { notifyContactRecipients } from '../utils/contact-notification-email'
+import { notifyNewConversation } from '../utils/inbox-notification-email'
+import { sendInboxAutoAck } from '../utils/inbox-auto-ack-email'
 import { sendContactVerificationEmail } from '../utils/contact-verification-email'
 import countries from 'i18n-iso-countries'
 import { trackEventInBackground, userHashFromEmail } from '../utils/tracking'
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
 
 export default defineEventHandler(async (event) => {
   requireFormApiKey(event)
@@ -68,12 +80,32 @@ export default defineEventHandler(async (event) => {
       form_values: { name, email, message, country, consent_doxa_general: body.consent_doxa_general ?? false },
     })
 
-    notifyContactRecipients({
-      name: name || email,
-      email,
-      message,
-      subscriberId: subscriber.id,
-    }).catch(err => console.error('Failed to notify contact recipients:', err))
+    // Open a conversation in the shared inbox with the form message as the first inbound message.
+    const subject = (message.split('\n')[0] || 'Contact form message').slice(0, 120)
+    const conversation = await conversationService.create({
+      subscriber_id: subscriber.id,
+      subject,
+      status: 'open',
+    })
+    const firstMessage = await messageService.create({
+      conversation_id: conversation.id,
+      direction: 'inbound',
+      status: 'received',
+      from_email: email,
+      from_name: name || email,
+      to_email: useRuntimeConfig().inboxContactAddress || 'contact@doxa.life',
+      subject,
+      body_html: `<p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`,
+      body_text: message,
+    })
+    await conversationService.touchLastMessage(conversation.id, firstMessage.created_at, 'inbound')
+    logCreate('conversations', String(conversation.id), event, { message: 'Contact form conversation opened', direction: 'inbound' })
+
+    // Translated auto-acknowledgement in the form's language; notify staff with a signed Reply-To.
+    sendInboxAutoAck({ to: email, name: name || null, language, replyToken: conversation.reply_token })
+      .catch(err => console.error('Failed to send auto-ack:', err))
+    notifyNewConversation(conversation, firstMessage)
+      .catch(err => console.error('Failed to notify contact recipients:', err))
 
     trackEventInBackground(event, {
       eventType: 'contact_form_submitted',

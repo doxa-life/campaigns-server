@@ -70,7 +70,14 @@
                   >
                     People Groups ({{ (row.original as User).peopleGroupCount }})
                   </UButton>
-                  <span v-if="!(row.original as User).hasScopedAccess" class="text-[var(--ui-text-muted)]">—</span>
+                  <UButton
+                    @click="openInboxIdentityModal(row.original as User)"
+                    variant="outline"
+                    size="xs"
+                    icon="i-lucide-mail"
+                  >
+                    Inbox
+                  </UButton>
                 </div>
               </template>
               <template #created-cell="{ row }">
@@ -316,6 +323,51 @@
       </template>
     </UModal>
 
+    <!-- Manage Inbox Identity Modal -->
+    <UModal v-model:open="showInboxIdentityModal" title="Inbox Identity">
+      <template #body>
+        <p class="mb-4">
+          Configure email identity for <strong>{{ selectedUser?.display_name || selectedUser?.email }}</strong>:
+        </p>
+
+        <form @submit.prevent="saveInboxIdentity" class="space-y-4">
+          <UFormField :label="$t('inbox.identity.alias')">
+            <UInput
+              v-model="inboxIdentityForm.email_alias"
+              type="text"
+              placeholder="george"
+              class="w-full"
+            />
+            <template #hint>
+              {{ $t('inbox.identity.aliasHint') }}
+            </template>
+          </UFormField>
+
+          <UFormField :label="$t('inbox.identity.signature')">
+            <UTextarea
+              v-model="inboxIdentityForm.email_signature"
+              :rows="5"
+              class="w-full"
+            />
+          </UFormField>
+        </form>
+      </template>
+
+      <template #footer="{ close }">
+        <div class="flex justify-end gap-2">
+          <UButton @click="close" variant="outline">
+            Cancel
+          </UButton>
+          <UButton
+            @click="saveInboxIdentity"
+            :loading="inboxIdentitySubmitting"
+          >
+            Save Changes
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
     <!-- Invite User Modal -->
     <UModal v-model:open="showInviteModal" title="Invite User">
       <template #body>
@@ -419,6 +471,8 @@ interface User {
   roles: { name: string; description: string }[]
   hasScopedAccess: boolean
   peopleGroupCount: number
+  email_alias: string | null
+  email_signature: string | null
 }
 
 interface PeopleGroup {
@@ -565,6 +619,11 @@ const peopleGroupSelectItems = computed(() =>
     label: pg.title
   }))
 )
+
+// Inbox identity modal state
+const showInboxIdentityModal = ref(false)
+const inboxIdentityForm = ref({ email_alias: '', email_signature: '' })
+const inboxIdentitySubmitting = ref(false)
 
 // Language modal state
 const showLanguageModal = ref(false)
@@ -924,6 +983,48 @@ async function saveUserLanguages() {
     })
   } finally {
     languageModalSubmitting.value = false
+  }
+}
+
+// Inbox identity modal
+function openInboxIdentityModal(user: User) {
+  selectedUser.value = user
+  inboxIdentityForm.value = {
+    email_alias: user.email_alias || '',
+    email_signature: user.email_signature || ''
+  }
+  showInboxIdentityModal.value = true
+}
+
+async function saveInboxIdentity() {
+  if (!selectedUser.value) return
+
+  inboxIdentitySubmitting.value = true
+  try {
+    await $fetch(`/api/admin/users/${selectedUser.value.id}/inbox-identity`, {
+      method: 'PUT',
+      body: {
+        email_alias: inboxIdentityForm.value.email_alias,
+        email_signature: inboxIdentityForm.value.email_signature
+      }
+    })
+
+    toast.add({
+      title: 'Success',
+      description: 'Inbox identity updated',
+      color: 'success'
+    })
+
+    showInboxIdentityModal.value = false
+    await loadData()
+  } catch (err: any) {
+    toast.add({
+      title: 'Error',
+      description: err.data?.statusMessage || 'Failed to update inbox identity',
+      color: 'error'
+    })
+  } finally {
+    inboxIdentitySubmitting.value = false
   }
 }
 

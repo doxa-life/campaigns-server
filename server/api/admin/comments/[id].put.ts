@@ -6,7 +6,8 @@ const RECORD_TYPE_PERMISSIONS: Record<string, string> = {
   people_group: 'people_groups.view',
   group: 'groups.view',
   subscriber: 'subscribers.view',
-  people_group_report: 'people_groups.view'
+  people_group_report: 'people_groups.view',
+  conversation: 'inbox.view'
 }
 
 export default defineEventHandler(async (event) => {

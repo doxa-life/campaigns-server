@@ -441,6 +441,45 @@
           </form>
         </template>
 
+        <template v-if="canAccess('inbox.view')" #side-conversations>
+          <CrmFormSection :title="$t('inbox.conversations')">
+            <div v-if="loadingConversations" class="activity-loading">
+              Loading...
+            </div>
+            <div v-else-if="conversations.length === 0" class="activity-empty">
+              {{ $t('inbox.empty') }}
+            </div>
+            <div v-else class="conversations-list">
+              <button
+                v-for="conversation in conversations"
+                :key="conversation.id"
+                type="button"
+                class="conversation-item"
+                @click="navigateTo(`/admin/inbox/${conversation.id}`)"
+              >
+                <div class="conversation-header">
+                  <span class="conversation-subject">{{ conversation.subject || '—' }}</span>
+                  <UBadge
+                    :label="$t('inbox.status.' + conversation.status)"
+                    :color="getConversationStatusColor(conversation.status)"
+                    variant="subtle"
+                    size="xs"
+                  />
+                </div>
+                <div v-if="conversation.last_message_snippet" class="conversation-snippet">
+                  {{ conversation.last_message_snippet }}
+                </div>
+                <div class="conversation-meta">
+                  <span v-if="conversation.assignee_name" class="conversation-assignee">
+                    {{ conversation.assignee_name }}
+                  </span>
+                  <span v-if="conversation.last_message_at" class="conversation-time">{{ formatDate(conversation.last_message_at) }}</span>
+                </div>
+              </button>
+            </div>
+          </CrmFormSection>
+        </template>
+
         <template #side-comments>
           <RecordComments record-type="subscriber" :record-id="selectedSubscriber.id" @update:count="commentCount = $event" />
         </template>
@@ -658,6 +697,8 @@ interface SubscriptionForm {
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
+const { t } = useI18n()
+const { canAccess } = useAuthUser()
 
 // Data
 const subscriberGroups = ref<{ group_id: number; name: string }[]>([])
@@ -811,6 +852,9 @@ const subscriberStatus = computed(() => {
   return emailVerified.value && activeSubscriptionCount.value > 0 ? 'Active' : 'Inactive'
 })
 const sideTabs = computed(() => [
+  ...(canAccess('inbox.view')
+    ? [{ label: t('inbox.conversations'), slot: 'conversations', icon: 'i-lucide-mail', badge: conversations.value.length || undefined }]
+    : []),
   { label: 'Activity', slot: 'activity', icon: 'i-lucide-activity' },
   { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square', badge: commentCount.value || undefined }
 ])
@@ -847,6 +891,43 @@ interface ActivityLogEntry {
 }
 const activityLog = ref<ActivityLogEntry[]>([])
 const loadingActivityLog = ref(false)
+
+// Conversations (email inbox)
+interface ConversationSummary {
+  id: number
+  subject: string | null
+  status: 'open' | 'pending' | 'closed' | 'spam'
+  last_message_at: string | null
+  last_message_snippet: string | null
+  assignee_name: string | null
+  message_count: number
+}
+const conversations = ref<ConversationSummary[]>([])
+const loadingConversations = ref(false)
+
+function getConversationStatusColor(status: string): 'success' | 'warning' | 'neutral' | 'error' {
+  const colors: Record<string, 'success' | 'warning' | 'neutral' | 'error'> = {
+    open: 'success',
+    pending: 'warning',
+    closed: 'neutral',
+    spam: 'error'
+  }
+  return colors[status] || 'neutral'
+}
+
+async function loadConversations(subscriber: GeneralSubscriber) {
+  if (!canAccess('inbox.view')) return
+  try {
+    loadingConversations.value = true
+    const res = await $fetch<{ conversations: ConversationSummary[] }>(`/api/admin/subscribers/${subscriber.id}/conversations`)
+    conversations.value = res.conversations
+  } catch (err: any) {
+    console.error('Failed to load conversations:', err)
+    conversations.value = []
+  } finally {
+    loadingConversations.value = false
+  }
+}
 
 // Send reminder state
 const sendingReminder = ref<Record<number, boolean>>({})
@@ -1135,6 +1216,7 @@ async function selectSubscriber(subscriber: GeneralSubscriber, updateUrl = true)
   }
 
   await loadActivityLog(subscriber)
+  loadConversations(subscriber)
 
   try {
     const res = await $fetch<{ groups: { group_id: number; name: string }[] }>(`/api/admin/subscribers/${subscriber.id}/groups`)
@@ -1738,6 +1820,63 @@ onMounted(async () => {
 .change-to {
   font-weight: 500;
   white-space: pre-line;
+}
+
+/* Conversations List Styles */
+.conversations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.conversation-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.625rem 0.75rem;
+  background-color: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.conversation-item:hover {
+  background-color: var(--ui-bg-elevated);
+}
+
+.conversation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.conversation-subject {
+  font-weight: 500;
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversation-snippet {
+  font-size: 0.8125rem;
+  color: var(--ui-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversation-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--ui-text-muted);
 }
 
 /* Profile Link Styles */

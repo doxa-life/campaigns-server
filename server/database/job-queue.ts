@@ -1,6 +1,6 @@
 import { getSql } from './db'
 
-export type JobType = 'marketing_email' | 'translation_batch' | 'import'
+export type JobType = 'marketing_email' | 'translation_batch' | 'import' | 'outbound_email'
 
 export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
@@ -51,6 +51,10 @@ export interface TranslationBatchPayload {
   target_language: string
   overwrite: boolean
   retranslate_verses: boolean
+}
+
+export interface OutboundEmailPayload {
+  message_id: number
 }
 
 class JobQueueService {

@@ -567,5 +567,97 @@
     "downloadIcs": "Outros calendários",
     "eventTitle": "Oração pelos {campaign}",
     "eventDescription": "Sessão de oração de {duration} minutos pelos {campaign}"
+  },
+  "inbox":   {
+    "title": "Caixa de entrada",
+    "searchPlaceholder": "Pesquisar conversas",
+    "empty": "Nenhuma conversa",
+    "selectPrompt": "Selecione uma conversa para visualizá-la",
+    "conversation": "Conversa",
+    "conversations": "Conversas",
+    "internalNotes": "Notas internas",
+    "activity": "Atividade",
+    "needsReview": "Requer revisão",
+    "unassigned": "Não atribuída",
+    "assignedTo": "Atribuída a {name}",
+    "assignToMe": "Atribuir a mim",
+    "assign": "Atribuir",
+    "unassign": "Remover atribuição",
+    "spamScore": "Pontuação de spam",
+    "filters": {
+      "all": "Todas",
+      "unassigned": "Não atribuídas",
+      "mine": "Minhas",
+      "open": "Abertas",
+      "pending": "Pendentes",
+      "closed": "Fechadas",
+      "spam": "Spam",
+      "held": "Retidas"
+    },
+    "status": {
+      "open": "Aberta",
+      "pending": "Pendente",
+      "closed": "Fechada",
+      "spam": "Spam"
+    },
+    "direction": {
+      "inbound": "Recebido",
+      "outbound": "Enviado"
+    },
+    "compose": {
+      "reply": "Responder",
+      "send": "Enviar",
+      "saveDraft": "Salvar rascunho",
+      "draft": "Rascunho",
+      "sending": "Enviando…",
+      "cannedResponse": "Resposta padrão",
+      "attach": "Anexar arquivo",
+      "placeholder": "Escreva sua resposta…",
+      "language": "Idioma"
+    },
+    "actions": {
+      "close": "Fechar",
+      "reopen": "Reabrir",
+      "markSpam": "Marcar como spam",
+      "unmarkSpam": "Não é spam",
+      "showQuoted": "Mostrar texto citado",
+      "hideQuoted": "Ocultar texto citado"
+    },
+    "confirm": {
+      "closeTitle": "Fechar conversa",
+      "closeMessage": "Fechar esta conversa? Ela será reaberta automaticamente se o contato responder.",
+      "spamTitle": "Marcar como spam",
+      "spamMessage": "Bloquear este remetente e fechar a conversa? As mensagens futuras dele serão fechadas automaticamente."
+    },
+    "toasts": {
+      "sent": "Resposta enviada",
+      "draftSaved": "Rascunho salvo",
+      "assigned": "Conversa atribuída",
+      "statusChanged": "Status atualizado",
+      "markedSpam": "Marcada como spam",
+      "unmarkedSpam": "Removida do spam",
+      "error": "Algo deu errado"
+    },
+    "identity": {
+      "alias": "Alias de e-mail",
+      "aliasHint": "Apenas a parte local — george torna-se george{'@'}doxa.life",
+      "signature": "Assinatura de e-mail",
+      "save": "Salvar"
+    },
+    "canned": {
+      "title": "Respostas padrão",
+      "new": "Nova resposta padrão",
+      "name": "Título",
+      "body": "Conteúdo",
+      "save": "Salvar",
+      "delete": "Excluir"
+    },
+    "autoAck": {
+      "subject": "Recebemos sua mensagem",
+      "greeting": "Olá,",
+      "greetingNamed": "Olá {name},",
+      "body": "Obrigado por entrar em contato com {appName}. Recebemos sua mensagem e um membro da nossa equipe responderá em breve.",
+      "signoff": "Em Cristo,\nA equipe {appName}"
+    }
   }
 }

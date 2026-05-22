@@ -156,6 +156,18 @@ class ContactMethodService {
     return this.generateVerificationToken(contactMethodId)
   }
 
+  // Mark a contact method verified directly (used when we receive an authenticated email
+  // from the address — proves ownership + reachability). No-op if already verified.
+  async markVerified(id: number): Promise<void> {
+    await this.sql`
+      UPDATE contact_methods
+      SET verified = true,
+          verified_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${id} AND verified = false
+    `
+  }
+
   async hasVerifiedEmail(subscriberId: number): Promise<boolean> {
     const [row] = await this.sql`
       SELECT 1 FROM contact_methods
