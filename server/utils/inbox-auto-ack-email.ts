@@ -1,6 +1,7 @@
 import { t, normalizeLocale } from './translations'
 import { inboxEmailService } from './inbox-email'
 import { buildContactReplyAddress } from './inbox-addressing'
+import { renderInboxMessageEmail } from './inbox-email-layout'
 
 /**
  * Translated "we got your message" auto-acknowledgement.
@@ -29,17 +30,12 @@ export async function sendInboxAutoAck(opts: {
 
   const replyTo = buildContactReplyAddress(opts.replyToken, contactAddress)
 
-  const html = `
-    <!DOCTYPE html>
-    <html lang="${locale}">
-    <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${subject}</title></head>
-    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #3B463D; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <p style="font-size:16px;">${greeting}</p>
-      <p style="font-size:16px;">${body}</p>
-      <p style="font-size:16px; margin-top:24px;">${signoff.replace(/\n/g, '<br>')}</p>
-    </body>
-    </html>
+  const content = `
+      <p>${greeting}</p>
+      <p>${body}</p>
+      <p style="margin-top:24px;">${signoff.replace(/\n/g, '<br>')}</p>
   `
+  const html = renderInboxMessageEmail({ bodyHtml: content, locale, subject })
   const text = `${greeting}\n\n${body}\n\n${signoff}`
 
   const result = await inboxEmailService.send({

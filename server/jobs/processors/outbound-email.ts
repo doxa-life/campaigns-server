@@ -9,6 +9,7 @@ import { inboxEmailService, type InboxEmailAttachment } from '../../utils/inbox-
 import { buildContactReplyAddress, buildFromAddress } from '../../utils/inbox-addressing'
 import { getInlineImageObject } from '../../utils/app/inbox-inline-images'
 import { sanitizeEmailHtml } from '../../utils/inbox-sanitize-html'
+import { renderInboxMessageEmail } from '../../utils/inbox-email-layout'
 
 /**
  * Sends a queued outbound inbox message. The generic queue only tracks *job* status;
@@ -101,6 +102,12 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
   // Cap image dimensions inline so they don't dominate the email (email clients
   // ignore <style>/external CSS, so the constraint must live on each <img>).
   html = constrainImages(html)
+
+  // Wrap the assembled body + quoted history in the shared light inbox shell so
+  // the reply renders in the brand font/color instead of the client default.
+  // Wrapping last is safe: the image rewrites above operate on substrings that
+  // survive wrapping. Locale here only sets the lang attribute.
+  html = renderInboxMessageEmail({ bodyHtml: html, subject: message.subject || conversation.subject || undefined })
 
   const result = await inboxEmailService.send({
     from: fromAddress,

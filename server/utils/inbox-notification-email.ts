@@ -6,6 +6,7 @@ import type { ConversationMessage } from '../database/conversation-messages'
 import { inboxEmailService } from './inbox-email'
 import { buildContactReplyAddress, buildSignedReplyAddress } from './inbox-addressing'
 import { sanitizeEmailHtml } from './inbox-sanitize-html'
+import { renderInboxMessageEmail, renderAdminNotificationEmail } from './inbox-email-layout'
 
 function escapeHtml(text: string): string {
   return text
@@ -22,6 +23,11 @@ function getConfig() {
     siteUrl: config.public.siteUrl || 'http://localhost:3000',
     appName: config.appName || 'DOXA Prayer',
     contactAddress: config.inboxContactAddress || 'contact@doxa.life',
+    // Staff notifications send from the app's standard SMTP_FROM address (same as
+    // the legacy templates), not the public contact@ inbox address. SMTP_FROM must
+    // be on the inbox Mailgun domain (doxa.life) so it stays DKIM/DMARC-aligned
+    // through this transport — e.g. campaigns@doxa.life.
+    fromAddress: config.smtpFrom || `campaigns@${config.inboxDomain || 'doxa.life'}`,
     replySecret: config.inboxReplySecret || config.jwtSecret || '',
   }
 }
@@ -59,20 +65,13 @@ function renderNotification(opts: {
     ? '<p style="color:#a15c00;">This message could not be matched to a sender automatically. Please log in to review and decide what should happen.</p>'
     : ''
 
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head><meta charset="UTF-8"><title>${escapeHtml(heading)}</title></head>
-    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <h2 style="color: #3B463D;">${escapeHtml(heading)}</h2>
+  const contentHtml = `
       ${note}
       <p style="margin:4px 0;"><strong>From:</strong> ${escapeHtml(opts.contactName)} &lt;${escapeHtml(opts.contactEmail)}&gt;</p>
       <div style="border:1px solid #eee; border-radius:6px; padding:16px; margin:16px 0;">${sanitizeEmailHtml(opts.bodyHtml)}</div>
       <p style="font-size:14px; color:#666;">Reply directly to this email to respond from your Doxa address, or <a href="${opts.conversationUrl}" style="color:#3B463D;">open the conversation</a>.</p>
-      <div style="text-align:center; margin-top:20px; padding:15px; color:#999; font-size:12px;">This is an automated notification from ${escapeHtml(opts.appName)}.</div>
-    </body>
-    </html>
   `
+  const html = renderAdminNotificationEmail({ heading, contentHtml, appName: opts.appName })
   const text = [
     heading,
     opts.held ? '\nThis message could not be matched to a sender automatically. Log in to review.' : '',
@@ -103,7 +102,7 @@ export async function notifyNewConversation(conversation: Conversation, message:
       held: !!opts.held,
     })
     return inboxEmailService.send({
-      from: `"${cfg.appName}" <${cfg.contactAddress}>`,
+      from: `"${cfg.appName}" <${cfg.fromAddress}>`,
       to: r.email,
       subject: opts.held ? `[Review] ${conversation.subject || 'Inbox message'}` : `New message: ${conversation.subject || 'Inbox'}`,
       html,
@@ -136,7 +135,7 @@ export async function notifyAssignee(conversation: Conversation, message: Conver
   })
 
   const result = await inboxEmailService.send({
-    from: `"${cfg.appName}" <${cfg.contactAddress}>`,
+    from: `"${cfg.appName}" <${cfg.fromAddress}>`,
     to: assignee.email,
     subject: `New reply: ${conversation.subject || 'Inbox'}`,
     html,
@@ -151,14 +150,13 @@ export async function notifyHeldSender(toEmail: string, cfgOverride?: { appName?
   if (!toEmail) return true
   const cfg = getConfig()
   const appName = cfgOverride?.appName || cfg.appName
-  const html = `
-    <!DOCTYPE html>
-    <html><head><meta charset="UTF-8"></head>
-    <body style="font-family: -apple-system, sans-serif; line-height:1.6; color:#333; max-width:600px; margin:0 auto; padding:20px;">
+  const html = renderInboxMessageEmail({
+    bodyHtml: `
       <p>Thanks for your message. We could not automatically match it to an existing conversation, so a member of our team will review it shortly.</p>
       <p>— ${escapeHtml(appName)}</p>
-    </body></html>
-  `
+    `,
+    subject: 'We received your message',
+  })
   const result = await inboxEmailService.send({
     from: `"${appName}" <${cfgOverride?.contactAddress || cfg.contactAddress}>`,
     to: toEmail,
