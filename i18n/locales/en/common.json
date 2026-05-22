@@ -605,6 +605,7 @@
       "outbound": "Sent"
     },
     "compose": {
+      "from": "From",
       "reply": "Reply",
       "send": "Send",
       "saveDraft": "Save Draft",

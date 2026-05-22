@@ -7,7 +7,9 @@ import { getIntParam, handleApiError } from '#server/utils/api-helpers'
 /**
  * Compose / reply on a conversation (requires inbox.send).
  *
- * Body: { body_html, body_text?, saveDraft?, draft_id? }
+ * Body: { body_html, body_text?, from_identity?, saveDraft?, draft_id? }
+ *  - from_identity: 'personal' (the sender's alias) | 'contact' (the general address).
+ *    Defaults to 'personal' when the sender has an alias, otherwise 'contact'.
  *  - saveDraft + no draft_id  → create a shared draft
  *  - saveDraft + draft_id     → update an existing draft
  *  - !saveDraft + draft_id    → send that draft (mark queued + enqueue)
@@ -16,7 +18,7 @@ import { getIntParam, handleApiError } from '#server/utils/api-helpers'
  * Sending auto-assigns the conversation to the sender (if unassigned) and sets Pending.
  */
 export default defineEventHandler(async (event) => {
-  const user = await requirePermission(event, 'inbox.send')
+  const auth = await requirePermission(event, 'inbox.send')
 
   const id = getIntParam(event, 'id')
   const conversation = await conversationService.getById(id)
@@ -28,6 +30,7 @@ export default defineEventHandler(async (event) => {
     body_html?: string
     body_text?: string
     subject?: string
+    from_identity?: 'personal' | 'contact'
     saveDraft?: boolean
     draft_id?: number
   }>(event)
@@ -39,11 +42,19 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Message body is required' })
   }
 
+  // Resolve the chosen From address: the sender's alias (personal) or the general contact address.
+  const config = useRuntimeConfig()
+  const contactAddress = config.inboxContactAddress || 'contact@doxa.life'
+  const inboxDomain = (config.inboxDomain || 'doxa.life').toLowerCase()
+  const sender = await userService.getUserById(auth.userId)
+  const useContact = body.from_identity === 'contact' || !sender?.email_alias
+  const fromEmail = useContact ? contactAddress : `${sender!.email_alias}@${inboxDomain}`
+
   try {
     // --- Draft handling ---
     if (body.saveDraft) {
       if (body.draft_id) {
-        const updated = await messageService.updateDraft(body.draft_id, { body_html: bodyHtml, body_text: bodyText })
+        const updated = await messageService.updateDraft(body.draft_id, { body_html: bodyHtml, body_text: bodyText, from_email: fromEmail })
         if (!updated) throw createError({ statusCode: 404, statusMessage: 'Draft not found' })
         return { message: updated, draft: true }
       }
@@ -51,7 +62,8 @@ export default defineEventHandler(async (event) => {
         conversation_id: id,
         direction: 'outbound',
         status: 'draft',
-        sender_user_id: user.userId,
+        sender_user_id: auth.userId,
+        from_email: fromEmail,
         subject: body.subject || conversation.subject,
         body_html: bodyHtml,
         body_text: bodyText,
@@ -67,18 +79,20 @@ export default defineEventHandler(async (event) => {
       if (!draft || draft.status !== 'draft') {
         throw createError({ statusCode: 404, statusMessage: 'Draft not found' })
       }
-      // Apply latest edits + append signature, then queue
-      const html = await withSignature(bodyHtml || draft.body_html || '', user.userId)
-      await messageService.updateDraft(draft.id, { body_html: html, body_text: bodyText ?? draft.body_text })
+      // Apply latest edits + From choice, then queue. Personal signature only when
+      // sending as the agent's own alias (not from the general contact address).
+      const html = withSignature(bodyHtml || draft.body_html || '', useContact ? null : sender)
+      await messageService.updateDraft(draft.id, { body_html: html, body_text: bodyText ?? draft.body_text, from_email: fromEmail })
       await messageService.markStatus(draft.id, 'queued')
       messageId = draft.id
     } else {
-      const html = await withSignature(bodyHtml, user.userId)
+      const html = withSignature(bodyHtml, useContact ? null : sender)
       const created = await messageService.create({
         conversation_id: id,
         direction: 'outbound',
         status: 'queued',
-        sender_user_id: user.userId,
+        sender_user_id: auth.userId,
+        from_email: fromEmail,
         subject: body.subject || conversation.subject,
         body_html: html,
         body_text: bodyText,
@@ -87,7 +101,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Auto-assign to sender if unassigned + set Pending
-    await conversationService.assignIfUnassigned(id, user.userId)
+    await conversationService.assignIfUnassigned(id, auth.userId)
     await conversationService.updateStatus(id, 'pending')
     await conversationService.touchLastMessage(id, new Date().toISOString(), 'outbound')
 
@@ -106,10 +120,9 @@ export default defineEventHandler(async (event) => {
   }
 })
 
-async function withSignature(html: string, userId: string): Promise<string> {
-  const user = await userService.getUserById(userId)
-  if (user?.email_signature) {
-    return `${html}<br><br>${user.email_signature}`
+function withSignature(html: string, sender: { email_signature?: string | null } | null): string {
+  if (sender?.email_signature) {
+    return `${html}<br><br>${sender.email_signature}`
   }
   return html
 }

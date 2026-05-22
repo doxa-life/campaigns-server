@@ -605,6 +605,7 @@
       "outbound": "صادر"
     },
     "compose": {
+      "from": "من",
       "reply": "رد",
       "send": "إرسال",
       "saveDraft": "حفظ المسودة",

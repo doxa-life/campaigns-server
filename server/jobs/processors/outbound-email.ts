@@ -38,12 +38,24 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
   }
 
   const sender = message.sender_user_id ? await userService.getUserById(message.sender_user_id) : null
-  const fromAddress = buildFromAddress({
-    firstName: sender?.display_name,
-    alias: sender?.email_alias,
-    domain: inboxDomain,
-    contactAddress,
-  })
+  // Honor the From identity chosen at compose time (stored on the message's from_email):
+  // the general contact address, or the sender's personal alias. Falls back to the
+  // sender's alias when unset (e.g. reply-by-email).
+  const useContact = (message.from_email || '').toLowerCase() === contactAddress.toLowerCase()
+  let fromAddress: string
+  if (useContact) {
+    fromAddress = `"Doxa Prayer" <${contactAddress}>`
+  } else if (message.from_email) {
+    const first = (sender?.display_name || '').trim().split(/\s+/)[0] || 'Doxa'
+    fromAddress = `"${first} with Doxa" <${message.from_email}>`
+  } else {
+    fromAddress = buildFromAddress({
+      firstName: sender?.display_name,
+      alias: sender?.email_alias,
+      domain: inboxDomain,
+      contactAddress,
+    })
+  }
 
   const lastInbound = await messageService.getLastInbound(conversation.id)
 

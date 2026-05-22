@@ -4,8 +4,16 @@
     :loading="loading"
   >
     <template #header>
-      <div>
+      <div class="inbox-header">
         <h1 class="page-title">{{ $t('inbox.title') }}</h1>
+        <UButton
+          v-if="canSend"
+          icon="i-lucide-message-square-text"
+          variant="outline"
+          color="neutral"
+          size="sm"
+          @click="showCanned = true"
+        >{{ $t('inbox.canned.title') }}</UButton>
       </div>
     </template>
 
@@ -163,6 +171,18 @@
 
           <!-- Composer -->
           <div v-if="canSend && selected.conversation.status !== 'spam'" class="composer">
+            <div class="composer-from">
+              <span class="from-label">{{ $t('inbox.compose.from') }}:</span>
+              <USelect
+                v-if="fromOptions.length > 1"
+                v-model="fromIdentity"
+                :items="fromOptions"
+                value-key="value"
+                size="xs"
+                class="from-select"
+              />
+              <span v-else class="from-static">{{ fromOptions[0]?.label }}</span>
+            </div>
             <div v-if="cannedResponses.length" class="composer-toolbar">
               <USelectMenu
                 v-model="selectedCanned"
@@ -242,6 +262,7 @@
     confirm-color="error"
     @confirm="confirmSpam"
   />
+  <CannedResponsesManager v-model:open="showCanned" @saved="loadAux" />
 </template>
 
 <script setup lang="ts">
@@ -313,13 +334,31 @@ const expandedQuoted = ref<Set<number>>(new Set())
 const cannedResponses = ref<any[]>([])
 const selectedCanned = ref<number | null>(null)
 const cannedLanguage = ref('en')
-const users = ref<{ id: string; display_name: string; email: string }[]>([])
+const users = ref<{ id: string; display_name: string; email: string; email_alias?: string | null }[]>([])
+
+// From-identity selector: send as the agent's personal alias or the general contact address.
+const publicConfig = useRuntimeConfig().public as { inboxContactAddress?: string; inboxDomain?: string }
+const contactAddress = publicConfig.inboxContactAddress || 'contact@doxa.life'
+const inboxDomain = publicConfig.inboxDomain || 'doxa.life'
+const fromIdentity = ref<'personal' | 'contact'>('personal')
+const meAlias = ref<string | null>(null)
+const myAlias = computed(() => meAlias.value || users.value.find(u => String(u.id) === String(user.value?.id))?.email_alias || null)
+const fromOptions = computed(() => {
+  const opts: { label: string; value: 'personal' | 'contact' }[] = []
+  if (myAlias.value) {
+    const first = (user.value?.display_name || '').trim().split(/\s+/)[0] || 'You'
+    opts.push({ label: `"${first} with Doxa" <${myAlias.value}@${inboxDomain}>`, value: 'personal' })
+  }
+  opts.push({ label: `"Doxa Prayer" <${contactAddress}>`, value: 'contact' })
+  return opts
+})
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const pendingFiles = ref<File[]>([])
 
 const showCloseModal = ref(false)
 const showSpamModal = ref(false)
+const showCanned = ref(false)
 
 const quickFilters = computed(() => [
   { key: 'unassigned', label: t('inbox.filters.unassigned') },
@@ -430,6 +469,7 @@ async function selectConversation(id: number, updateUrl = true) {
     slideoverOpen.value = true
     replyHtml.value = ''
     currentDraftId.value = null
+    fromIdentity.value = 'personal'
     pendingFiles.value = []
     expandedQuoted.value = new Set()
     if (updateUrl) window.history.replaceState({}, '', `/admin/inbox/${id}`)
@@ -515,10 +555,15 @@ function htmlToText(html: string): string {
   return html.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '').trim()
 }
 
+// Falls back to the contact address when the agent has no personal alias.
+function effectiveFromIdentity(): 'personal' | 'contact' {
+  return myAlias.value ? fromIdentity.value : 'contact'
+}
+
 async function ensureDraft(): Promise<number> {
   const res = await $fetch<{ message: { id: number } }>(
     `/api/admin/inbox/conversations/${selected.value!.conversation.id}/messages`,
-    { method: 'POST', body: { body_html: replyHtml.value, body_text: htmlToText(replyHtml.value), saveDraft: true, draft_id: currentDraftId.value ?? undefined } }
+    { method: 'POST', body: { body_html: replyHtml.value, body_text: htmlToText(replyHtml.value), from_identity: effectiveFromIdentity(), saveDraft: true, draft_id: currentDraftId.value ?? undefined } }
   )
   currentDraftId.value = res.message.id
   return res.message.id
@@ -571,6 +616,7 @@ async function sendReply() {
       body: {
         body_html: replyHtml.value,
         body_text: htmlToText(replyHtml.value),
+        from_identity: effectiveFromIdentity(),
         draft_id: currentDraftId.value ?? undefined,
       },
     })
@@ -589,6 +635,9 @@ async function sendReply() {
 function loadDraft(d: Message) {
   replyHtml.value = d.body_html || ''
   currentDraftId.value = d.id
+  if (d.from_email) {
+    fromIdentity.value = d.from_email.toLowerCase() === contactAddress.toLowerCase() ? 'contact' : 'personal'
+  }
 }
 
 function onFilesPicked(e: Event) {
@@ -610,12 +659,14 @@ function applyCanned(id: number) {
 
 async function loadAux() {
   try {
-    const [cannedRes, usersRes] = await Promise.all([
+    const [cannedRes, usersRes, meRes] = await Promise.all([
       $fetch<{ cannedResponses: any[] }>('/api/admin/inbox/canned-responses').catch(() => ({ cannedResponses: [] })),
       $fetch<any>('/api/admin/users').catch(() => ({ users: [] })),
+      $fetch<{ email_alias: string | null }>('/api/admin/inbox/me').catch(() => ({ email_alias: null })),
     ])
     cannedResponses.value = cannedRes.cannedResponses || []
     users.value = Array.isArray(usersRes) ? usersRes : (usersRes.users || [])
+    meAlias.value = meRes.email_alias || null
   } catch {
     // non-fatal
   }
@@ -634,6 +685,13 @@ onMounted(async () => {
 .page-title {
   font-size: 1.5rem;
   font-weight: 600;
+}
+.inbox-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
 }
 .quick-filters {
   display: flex;
@@ -674,6 +732,10 @@ onMounted(async () => {
 .attachment-chip { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; padding: 0.2rem 0.5rem; border: 1px solid var(--ui-border); border-radius: 4px; }
 
 .composer { border-top: 1px solid var(--ui-border); padding-top: 1rem; }
+.composer-from { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.from-label { font-size: 0.75rem; color: var(--ui-text-muted); }
+.from-select { min-width: 260px; }
+.from-static { font-size: 0.8rem; color: var(--ui-text); }
 .composer-toolbar { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
 .canned-select { min-width: 200px; }
 .lang-select { width: 150px; }

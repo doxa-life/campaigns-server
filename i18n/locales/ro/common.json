@@ -601,6 +601,7 @@
       "outbound": "Trimis"
     },
     "compose": {
+      "from": "De la",
       "reply": "Răspunde",
       "send": "Trimite",
       "saveDraft": "Salvează ciorna",

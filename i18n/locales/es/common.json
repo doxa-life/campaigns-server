@@ -605,6 +605,7 @@
       "outbound": "Enviado"
     },
     "compose": {
+      "from": "De",
       "reply": "Responder",
       "send": "Enviar",
       "saveDraft": "Guardar borrador",

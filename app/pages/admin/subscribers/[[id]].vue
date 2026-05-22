@@ -450,32 +450,53 @@
               {{ $t('inbox.empty') }}
             </div>
             <div v-else class="conversations-list">
-              <button
+              <div
                 v-for="conversation in conversations"
                 :key="conversation.id"
-                type="button"
                 class="conversation-item"
-                @click="navigateTo(`/admin/inbox/${conversation.id}`)"
               >
-                <div class="conversation-header">
-                  <span class="conversation-subject">{{ conversation.subject || '—' }}</span>
-                  <UBadge
-                    :label="$t('inbox.status.' + conversation.status)"
-                    :color="getConversationStatusColor(conversation.status)"
-                    variant="subtle"
+                <div class="conversation-clickable" @click="navigateTo(`/admin/inbox/${conversation.id}`)">
+                  <div class="conversation-header">
+                    <span class="conversation-subject">{{ conversation.subject || '—' }}</span>
+                    <UBadge
+                      :label="$t('inbox.status.' + conversation.status)"
+                      :color="getConversationStatusColor(conversation.status)"
+                      variant="subtle"
+                      size="xs"
+                    />
+                  </div>
+                  <div v-if="conversation.last_message_snippet" class="conversation-snippet">
+                    {{ conversation.last_message_snippet }}
+                  </div>
+                  <div class="conversation-meta">
+                    <span v-if="conversation.assignee_name" class="conversation-assignee">
+                      {{ conversation.assignee_name }}
+                    </span>
+                    <span v-if="conversation.last_message_at" class="conversation-time">{{ formatDate(conversation.last_message_at) }}</span>
+                  </div>
+                </div>
+                <div v-if="canAccess('inbox.send') && conversation.status !== 'spam'" class="conversation-quickreply">
+                  <UButton
+                    v-if="quickReplyFor !== conversation.id"
                     size="xs"
-                  />
+                    variant="link"
+                    color="neutral"
+                    icon="i-lucide-reply"
+                    @click="openQuickReply(conversation.id)"
+                  >{{ $t('inbox.compose.reply') }}</UButton>
+                  <template v-else>
+                    <div v-if="quickReplyFromOptions.length > 1" class="qr-from">
+                      <span class="qr-from-label">{{ $t('inbox.compose.from') }}:</span>
+                      <USelect v-model="quickReplyFromIdentity" :items="quickReplyFromOptions" value-key="value" size="xs" class="qr-from-select" />
+                    </div>
+                    <UTextarea v-model="quickReplyText" :rows="2" :placeholder="$t('inbox.compose.placeholder')" class="w-full" />
+                    <div class="qr-actions">
+                      <UButton size="xs" color="primary" :loading="quickReplySending" :disabled="!quickReplyText.trim()" @click="sendQuickReply(conversation.id)">{{ $t('inbox.compose.send') }}</UButton>
+                      <UButton size="xs" variant="ghost" color="neutral" @click="quickReplyFor = null">{{ $t('common.cancel') }}</UButton>
+                    </div>
+                  </template>
                 </div>
-                <div v-if="conversation.last_message_snippet" class="conversation-snippet">
-                  {{ conversation.last_message_snippet }}
-                </div>
-                <div class="conversation-meta">
-                  <span v-if="conversation.assignee_name" class="conversation-assignee">
-                    {{ conversation.assignee_name }}
-                  </span>
-                  <span v-if="conversation.last_message_at" class="conversation-time">{{ formatDate(conversation.last_message_at) }}</span>
-                </div>
-              </button>
+              </div>
             </div>
           </CrmFormSection>
         </template>
@@ -698,7 +719,7 @@ const router = useRouter()
 const route = useRoute()
 const toast = useToast()
 const { t } = useI18n()
-const { canAccess } = useAuthUser()
+const { canAccess, user } = useAuthUser()
 
 // Data
 const subscriberGroups = ref<{ group_id: number; name: string }[]>([])
@@ -926,6 +947,64 @@ async function loadConversations(subscriber: GeneralSubscriber) {
     conversations.value = []
   } finally {
     loadingConversations.value = false
+  }
+}
+
+// Inline quick-reply from the subscriber Conversations tab
+const quickReplyFor = ref<number | null>(null)
+const quickReplyText = ref('')
+const quickReplySending = ref(false)
+
+// From-identity selector for the quick-reply (personal alias vs general contact address)
+const inboxPublic = useRuntimeConfig().public as { inboxContactAddress?: string; inboxDomain?: string }
+const inboxContactAddress = inboxPublic.inboxContactAddress || 'contact@doxa.life'
+const inboxDomain = inboxPublic.inboxDomain || 'doxa.life'
+const myInboxAlias = ref<string | null>(null)
+const quickReplyFromIdentity = ref<'personal' | 'contact'>('personal')
+const quickReplyFromOptions = computed(() => {
+  const opts: { label: string; value: 'personal' | 'contact' }[] = []
+  if (myInboxAlias.value) {
+    const first = (user.value?.display_name || '').trim().split(/\s+/)[0] || 'You'
+    opts.push({ label: `"${first} with Doxa" <${myInboxAlias.value}@${inboxDomain}>`, value: 'personal' })
+  }
+  opts.push({ label: `"Doxa Prayer" <${inboxContactAddress}>`, value: 'contact' })
+  return opts
+})
+
+async function loadMyInboxIdentity() {
+  if (!canAccess('inbox.send')) return
+  try {
+    const res = await $fetch<{ email_alias: string | null }>('/api/admin/inbox/me')
+    myInboxAlias.value = res.email_alias || null
+  } catch {
+    myInboxAlias.value = null
+  }
+}
+
+function openQuickReply(conversationId: number) {
+  quickReplyFor.value = conversationId
+  quickReplyText.value = ''
+  quickReplyFromIdentity.value = 'personal'
+}
+
+async function sendQuickReply(conversationId: number) {
+  const text = quickReplyText.value.trim()
+  if (!text) return
+  quickReplySending.value = true
+  try {
+    const html = `<p>${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}</p>`
+    await $fetch(`/api/admin/inbox/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: { body_html: html, body_text: text, from_identity: myInboxAlias.value ? quickReplyFromIdentity.value : 'contact' },
+    })
+    toast.add({ title: t('inbox.toasts.sent'), color: 'success' })
+    quickReplyFor.value = null
+    quickReplyText.value = ''
+    if (selectedSubscriber.value) await loadConversations(selectedSubscriber.value)
+  } catch (err: any) {
+    toast.add({ title: t('inbox.toasts.error'), description: err?.data?.statusMessage, color: 'error' })
+  } finally {
+    quickReplySending.value = false
   }
 }
 
@@ -1570,6 +1649,7 @@ onMounted(async () => {
   if (peopleGroupParam) {
     filterPeopleGroupId.value = parseInt(peopleGroupParam as string)
   }
+  loadMyInboxIdentity()
   await loadData()
   handleUrlSelection()
 })
@@ -1839,12 +1919,46 @@ onMounted(async () => {
   background-color: var(--ui-bg);
   border: 1px solid var(--ui-border);
   border-radius: 6px;
-  cursor: pointer;
   transition: background-color 0.2s;
+}
+
+.conversation-clickable {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  cursor: pointer;
 }
 
 .conversation-item:hover {
   background-color: var(--ui-bg-elevated);
+}
+
+.conversation-quickreply {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.qr-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.qr-from {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.qr-from-label {
+  font-size: 0.7rem;
+  color: var(--ui-text-muted);
+}
+
+.qr-from-select {
+  flex: 1;
+  min-width: 0;
 }
 
 .conversation-header {

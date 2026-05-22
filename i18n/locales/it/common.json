@@ -605,6 +605,7 @@
       "outbound": "Inviato"
     },
     "compose": {
+      "from": "Da",
       "reply": "Rispondi",
       "send": "Invia",
       "saveDraft": "Salva bozza",

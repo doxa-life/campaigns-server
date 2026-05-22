@@ -605,6 +605,7 @@
       "outbound": "Envoyé"
     },
     "compose": {
+      "from": "De",
       "reply": "Répondre",
       "send": "Envoyer",
       "saveDraft": "Enregistrer le brouillon",

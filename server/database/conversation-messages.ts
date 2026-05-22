@@ -139,11 +139,12 @@ class MessageService {
     `
   }
 
-  async updateDraft(id: number, data: { body_html?: string | null; body_text?: string | null }): Promise<ConversationMessage | null> {
+  async updateDraft(id: number, data: { body_html?: string | null; body_text?: string | null; from_email?: string | null }): Promise<ConversationMessage | null> {
     const [row] = await this.sql<ConversationMessage[]>`
       UPDATE conversation_messages
       SET body_html = ${data.body_html ?? null},
           body_text = ${data.body_text ?? null},
+          from_email = COALESCE(${data.from_email ?? null}, from_email),
           updated_at = NOW()
       WHERE id = ${id} AND status = 'draft'
       RETURNING *

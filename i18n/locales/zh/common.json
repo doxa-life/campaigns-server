@@ -605,6 +605,7 @@
       "outbound": "发送"
     },
     "compose": {
+      "from": "发件人",
       "reply": "回复",
       "send": "发送",
       "saveDraft": "保存草稿",

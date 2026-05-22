@@ -189,6 +189,9 @@ export default defineNuxtConfig({
       appName: appTitle,
       nodeEnv: process.env.NODE_ENV || 'development',
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+      // Inbox sending identity (used by the composer's From selector)
+      inboxContactAddress: process.env.INBOX_CONTACT_ADDRESS || 'contact@doxa.life',
+      inboxDomain: process.env.INBOX_DOMAIN || 'doxa.life',
       statinatorUrl: process.env.NUXT_PUBLIC_STATINATOR_URL || 'https://statinator.doxa.life',
       statinatorProjectId: process.env.NUXT_PUBLIC_STATINATOR_PROJECT_ID || 'doxa',
       statinatorEnabled: process.env.NUXT_PUBLIC_STATINATOR_ENABLED === 'true',
