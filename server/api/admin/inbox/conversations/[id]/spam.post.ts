@@ -5,11 +5,12 @@ import { getIntParam, handleApiError } from '#server/utils/api-helpers'
 
 /**
  * Mark a conversation's sender as spam (blocklists the address, sets Spam, auto-closes their
- * conversations) or un-spam (removes from blocklist, reopens). Triage action → inbox.view.
+ * conversations) or un-spam (removes from blocklist, reopens). This globally blocklists a
+ * sender and auto-closes their threads, so it requires inbox.send (not just view).
  * Body: { spam: boolean }
  */
 export default defineEventHandler(async (event) => {
-  const user = await requirePermission(event, 'inbox.view')
+  const user = await requirePermission(event, 'inbox.send')
 
   const id = getIntParam(event, 'id')
   const conversation = await conversationService.getById(id)

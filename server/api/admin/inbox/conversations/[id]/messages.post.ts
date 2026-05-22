@@ -51,6 +51,16 @@ export default defineEventHandler(async (event) => {
   const fromEmail = useContact ? contactAddress : `${sender!.email_alias}@${inboxDomain}`
 
   try {
+    // A provided draft must belong to this conversation (mirrors the attachments endpoint),
+    // so a reply can't be queued/assigned against one conversation while the message and
+    // its eventual send target belong to another.
+    if (body.draft_id) {
+      const existingDraft = await messageService.getById(body.draft_id)
+      if (!existingDraft || existingDraft.status !== 'draft' || existingDraft.conversation_id !== id) {
+        throw createError({ statusCode: 404, statusMessage: 'Draft not found' })
+      }
+    }
+
     // --- Draft handling ---
     if (body.saveDraft) {
       if (body.draft_id) {

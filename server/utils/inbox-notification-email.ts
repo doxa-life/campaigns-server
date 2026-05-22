@@ -5,6 +5,7 @@ import type { Conversation } from '../database/conversations'
 import type { ConversationMessage } from '../database/conversation-messages'
 import { inboxEmailService } from './inbox-email'
 import { buildContactReplyAddress, buildSignedReplyAddress } from './inbox-addressing'
+import { sanitizeEmailHtml } from './inbox-sanitize-html'
 
 function escapeHtml(text: string): string {
   return text
@@ -66,7 +67,7 @@ function renderNotification(opts: {
       <h2 style="color: #3B463D;">${escapeHtml(heading)}</h2>
       ${note}
       <p style="margin:4px 0;"><strong>From:</strong> ${escapeHtml(opts.contactName)} &lt;${escapeHtml(opts.contactEmail)}&gt;</p>
-      <div style="border:1px solid #eee; border-radius:6px; padding:16px; margin:16px 0;">${opts.bodyHtml || ''}</div>
+      <div style="border:1px solid #eee; border-radius:6px; padding:16px; margin:16px 0;">${sanitizeEmailHtml(opts.bodyHtml)}</div>
       <p style="font-size:14px; color:#666;">Reply directly to this email to respond from your Doxa address, or <a href="${opts.conversationUrl}" style="color:#3B463D;">open the conversation</a>.</p>
       <div style="text-align:center; margin-top:20px; padding:15px; color:#999; font-size:12px;">This is an automated notification from ${escapeHtml(opts.appName)}.</div>
     </body>

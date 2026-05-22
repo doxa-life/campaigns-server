@@ -20,14 +20,18 @@ export default defineEventHandler(async (event) => {
       conversationAttachmentService.listForConversation(id),
     ])
 
-    // Attach signed download URLs for attachments (skipped in tests where S3 is unconfigured)
-    const attachmentsByMessage: Record<number, any[]> = {}
-    for (const att of attachments) {
+    // Attach signed download URLs for attachments (skipped in tests where S3 is unconfigured).
+    // Sign in parallel rather than awaiting each in series.
+    const withUrls = await Promise.all(attachments.map(async (att) => {
       let url: string | null = null
       if (!process.env.VITEST) {
         try { url = await generateSignedUrl(att.s3_key) } catch { url = null }
       }
-      ;(attachmentsByMessage[att.message_id] ||= []).push({ ...att, url })
+      return { ...att, url }
+    }))
+    const attachmentsByMessage: Record<number, any[]> = {}
+    for (const att of withUrls) {
+      ;(attachmentsByMessage[att.message_id] ||= []).push(att)
     }
 
     const messagesWithAttachments = messages.map(m => ({

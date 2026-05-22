@@ -5,7 +5,8 @@ import { spamSenderService } from '../../../database/spam-senders'
 import { subscriberService } from '../../../database/subscribers'
 import { contactMethodService } from '../../../database/contact-methods'
 import { userService } from '../../../database/users'
-import { validateMailgunWebhook } from '../../../utils/mailgun-webhook'
+import { validateMailgunWebhook, releaseSeenToken } from '../../../utils/mailgun-webhook'
+import { sanitizeEmailHtml } from '../../../utils/inbox-sanitize-html'
 import {
   parseMessageHeaders,
   parseAuthentication,
@@ -40,9 +41,10 @@ export default defineEventHandler(async (event) => {
 
   // --- 1. Verify Mailgun webhook signature (skipped in tests unless explicitly exercised) ---
   const enforceSignature = !process.env.VITEST || field('x-test-verify-sig') === '1'
+  const sigToken = field('token') || ''
   if (enforceSignature) {
     const result = validateMailgunWebhook(
-      { timestamp: field('timestamp') || '', token: field('token') || '', signature: field('signature') || '' },
+      { timestamp: field('timestamp') || '', token: sigToken, signature: field('signature') || '' },
       config.mailgunWebhookSigningKey
     )
     if (!result.ok) {
@@ -93,11 +95,16 @@ export default defineEventHandler(async (event) => {
     if (await spamSenderService.isBlocked(fromEmail)) {
       const { subscriber } = await subscriberService.findOrCreateSubscriber({ email: fromEmail, name: fromName || fromEmail })
       await subscriberService.addSource(subscriber.id, 'inbox')
-      const convo = await conversationService.create({
-        subscriber_id: subscriber.id,
-        subject: subject || null,
-        status: 'spam',
-      })
+      // Reuse the sender's existing spam thread instead of spawning a new conversation
+      // for every blocked message — keeps a repeat spammer from inflating the table.
+      const latest = await conversationService.getLatestForSubscriber(subscriber.id)
+      const convo = latest && latest.status === 'spam'
+        ? latest
+        : await conversationService.create({
+            subscriber_id: subscriber.id,
+            subject: subject || null,
+            status: 'spam',
+          })
       await messageService.create({
         conversation_id: convo.id,
         direction: 'inbound',
@@ -211,7 +218,7 @@ export default defineEventHandler(async (event) => {
           from: fromAddress,
           to: contactEmail,
           subject: subject || conversation.subject || 'Re:',
-          html: bodyHtml || bodyStrippedHtml,
+          html: sanitizeEmailHtml(bodyHtml || bodyStrippedHtml),
           text: bodyText,
           replyTo: buildContactReplyAddress(conversation.reply_token, config.inboxContactAddress || 'contact@doxa.life'),
           inReplyTo: lastInbound?.email_message_id || undefined,
@@ -232,12 +239,19 @@ export default defineEventHandler(async (event) => {
         body_html: bodyHtml,
         body_stripped_html: bodyStrippedHtml,
         body_text: bodyText,
-        email_message_id: providerMessageId || messageId,
+        // Keep the inbound Message-Id as the row's email_message_id so a retried
+        // webhook (after a transient failure that occurred *after* the forward)
+        // dedupes here instead of re-sending. The provider's id (used for
+        // threading the contact's reply) lives in provider_message_id below.
+        email_message_id: messageId,
         in_reply_to: inReplyTo,
         email_references: references,
         authenticated: auth.authenticated,
         auth_result: auth.authResult,
       })
+      if (providerMessageId) {
+        await messageService.markStatus(storedMessage.id, 'sent', { provider_message_id: providerMessageId })
+      }
       await conversationService.updateStatus(conversation.id, 'pending')
       await conversationService.assignIfUnassigned(conversation.id, staffUser!.id)
       await conversationService.touchLastMessage(conversation.id, storedMessage.created_at, 'outbound')
@@ -339,6 +353,10 @@ export default defineEventHandler(async (event) => {
 
     return { status: outcome, conversation_id: conversation.id, message_id: storedMessage.id }
   } catch (error: any) {
+    // This token was marked "seen" during signature validation. Since we're about to
+    // return a retryable 5xx, release it so Mailgun's retry (which resends the same
+    // token) isn't rejected as a replay and the message isn't lost.
+    if (sigToken) releaseSeenToken(sigToken)
     if (error instanceof TransientError) {
       throw createError({ statusCode: 503, statusMessage: 'Temporary failure, please retry' })
     }

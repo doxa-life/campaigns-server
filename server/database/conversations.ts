@@ -104,6 +104,17 @@ class ConversationService {
     return row ?? null
   }
 
+  // Most recent conversation for a subscriber (used to reuse a spam thread for repeat blocked senders).
+  async getLatestForSubscriber(subscriberId: number): Promise<Conversation | null> {
+    const [row] = await this.sql<Conversation[]>`
+      SELECT * FROM conversations
+      WHERE subscriber_id = ${subscriberId}
+      ORDER BY last_message_at DESC NULLS LAST, created_at DESC
+      LIMIT 1
+    `
+    return row ?? null
+  }
+
   private buildConditions(filters: ConversationListFilters): Fragment[] {
     const conditions: Fragment[] = []
 

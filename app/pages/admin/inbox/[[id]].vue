@@ -140,7 +140,7 @@
           @click="changeStatus('open')"
         >{{ $t('inbox.actions.reopen') }}</UButton>
         <UButton
-          v-if="selected.conversation.status !== 'spam'"
+          v-if="canSend && selected.conversation.status !== 'spam'"
           icon="i-lucide-shield-alert"
           color="error"
           variant="ghost"
@@ -148,7 +148,7 @@
           @click="askSpam"
         >{{ $t('inbox.actions.markSpam') }}</UButton>
         <UButton
-          v-else
+          v-else-if="canSend"
           icon="i-lucide-shield-off"
           color="neutral"
           variant="ghost"
@@ -182,7 +182,7 @@
                   <span class="msg-time">{{ formatTime(m.created_at) }}</span>
                 </span>
               </div>
-              <div class="msg-body" v-html="messageDisplayHtml(m)" />
+              <div class="msg-body" v-html="sanitizeMessageHtml(messageDisplayHtml(m))" />
               <UButton
                 v-if="m.direction === 'inbound' && m.body_stripped_html && m.body_html && m.body_html !== m.body_stripped_html"
                 variant="link"
@@ -305,6 +305,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { LANGUAGES } from '~/utils/languages'
+import { sanitizeMessageHtml } from '~/utils/sanitizeHtml'
 
 definePageMeta({ layout: 'admin', middleware: 'auth' })
 

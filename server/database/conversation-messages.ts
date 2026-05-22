@@ -98,12 +98,16 @@ class MessageService {
   }
 
   // Find the conversation a referenced message belongs to (threading fallback when no token).
+  // Matches either email_message_id or provider_message_id: a contact replying to a
+  // staff-forwarded message references the provider's id, which we keep separate from
+  // the row's email_message_id (that holds the inbound id for idempotency).
   async findConversationByMessageIds(messageIds: string[]): Promise<number | null> {
     const ids = messageIds.filter(Boolean)
     if (ids.length === 0) return null
     const [row] = await this.sql<{ conversation_id: number }[]>`
       SELECT conversation_id FROM conversation_messages
       WHERE email_message_id IN ${this.sql(ids)}
+         OR provider_message_id IN ${this.sql(ids)}
       ORDER BY created_at DESC LIMIT 1
     `
     return row?.conversation_id ?? null

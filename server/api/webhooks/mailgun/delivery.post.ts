@@ -1,5 +1,5 @@
 import { messageService } from '../../../database/conversation-messages'
-import { validateMailgunWebhook } from '../../../utils/mailgun-webhook'
+import { validateMailgunWebhook, releaseSeenToken } from '../../../utils/mailgun-webhook'
 
 /**
  * Mailgun delivery-event webhook. Updates the OUTBOUND message's delivery state only.
@@ -61,6 +61,8 @@ export default defineEventHandler(async (event) => {
 
     return { status: 'ignored', event: eventType }
   } catch (error: any) {
+    // Release the seen token so Mailgun's retry (same token) isn't rejected as a replay.
+    if (sig?.token) releaseSeenToken(sig.token)
     console.error('[DeliveryWebhook] Error:', error?.message || error)
     throw createError({ statusCode: 503, statusMessage: 'Temporary failure, please retry' })
   }

@@ -56,6 +56,17 @@ export function isReplayedToken(token: string): boolean {
 }
 
 /**
+ * Release a token previously marked seen by `isReplayedToken`. Call this when a
+ * webhook returns a retryable 5xx: Mailgun's retry resends the *same* token, so
+ * leaving it recorded would cause the retry to be rejected as a replay (and the
+ * message to be lost). A genuine replay attack only resends an already-*succeeded*
+ * webhook, which we never release.
+ */
+export function releaseSeenToken(token: string): void {
+  if (token) seenTokens.delete(token)
+}
+
+/**
  * Validate a Mailgun webhook signature, returning a reason on failure.
  * Skipped entirely in VITEST so tests can post synthetic payloads (set `skipInTest=false` to test the check).
  */
