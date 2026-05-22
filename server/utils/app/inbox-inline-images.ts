@@ -56,8 +56,12 @@ export function isInlineImageKey(key: string): boolean {
   return key.startsWith(INLINE_PREFIX) && !key.includes('..')
 }
 
-/** Validate (magic-byte sniff + size cap) and upload to the private bucket. */
-export async function uploadInlineImage(conversationId: number, data: Buffer): Promise<{ key: string }> {
+/**
+ * Validate (magic-byte sniff + size cap) and upload to the private bucket.
+ * `scope` is only a key-prefix segment for organization (a conversation id, or
+ * e.g. 'compose' for a not-yet-created conversation) — it isn't validated.
+ */
+export async function uploadInlineImage(scope: number | string, data: Buffer): Promise<{ key: string }> {
   if (!data || data.length === 0) {
     throw createError({ statusCode: 400, statusMessage: 'Image bytes are required' })
   }
@@ -75,7 +79,7 @@ export async function uploadInlineImage(conversationId: number, data: Buffer): P
   }
 
   const client = buildClient(cfg)
-  const key = `${INLINE_PREFIX}${conversationId}/${randomBytes(16).toString('hex')}.${EXT_BY_MIME[mimeType]}`
+  const key = `${INLINE_PREFIX}${scope}/${randomBytes(16).toString('hex')}.${EXT_BY_MIME[mimeType]}`
   await client.send(new PutObjectCommand({
     Bucket: cfg.bucket,
     Key: key,

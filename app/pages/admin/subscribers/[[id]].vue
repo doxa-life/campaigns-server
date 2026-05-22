@@ -443,6 +443,15 @@
 
         <template v-if="canAccess('inbox.view')" #side-conversations>
           <CrmFormSection :title="$t('inbox.conversations')">
+            <template v-if="canAccess('inbox.send') && selectedSubscriber?.primary_email" #header-extra>
+              <UButton
+                size="xs"
+                color="primary"
+                variant="soft"
+                icon="i-lucide-pen-line"
+                @click="showCompose = true"
+              >{{ $t('inbox.compose.newEmail') }}</UButton>
+            </template>
             <div v-if="loadingConversations" class="activity-loading">
               Loading...
             </div>
@@ -642,6 +651,18 @@
     :loading="deleting"
     @confirm="confirmDelete"
     @cancel="cancelDelete"
+  />
+
+  <ComposeEmailModal
+    v-if="selectedSubscriber"
+    v-model:open="showCompose"
+    :subscriber-id="selectedSubscriber.id"
+    :to-email="selectedSubscriber.primary_email"
+    :to-name="selectedSubscriber.name"
+    lock-recipient
+    :from-options="quickReplyFromOptions"
+    :my-alias="myInboxAlias"
+    @sent="onComposed"
   />
 </template>
 
@@ -954,6 +975,12 @@ async function loadConversations(subscriber: GeneralSubscriber) {
 const quickReplyFor = ref<number | null>(null)
 const quickReplyText = ref('')
 const quickReplySending = ref(false)
+
+// Compose a brand-new email to this contact (starts a new conversation).
+const showCompose = ref(false)
+async function onComposed() {
+  if (selectedSubscriber.value) await loadConversations(selectedSubscriber.value)
+}
 
 // From-identity selector for the quick-reply (personal alias vs general contact address)
 const inboxPublic = useRuntimeConfig().public as { inboxContactAddress?: string; inboxDomain?: string }

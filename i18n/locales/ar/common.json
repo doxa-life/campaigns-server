@@ -614,7 +614,13 @@
       "cannedResponse": "رد جاهز",
       "attach": "إرفاق ملف",
       "placeholder": "اكتب ردك…",
-      "language": "اللغة"
+      "language": "اللغة",
+      "newEmail": "بريد جديد",
+      "to": "إلى",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "الموضوع",
+      "bodyLabel": "الرسالة",
+      "bodyPlaceholder": "اكتب رسالتك…"
     },
     "actions": {
       "close": "إغلاق",
@@ -632,6 +638,7 @@
     },
     "toasts": {
       "sent": "تم إرسال الرد",
+      "emailSent": "تم إرسال البريد الإلكتروني",
       "draftSaved": "تم حفظ المسودة",
       "assigned": "تم إسناد المحادثة",
       "statusChanged": "تم تحديث الحالة",

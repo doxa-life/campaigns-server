@@ -614,7 +614,13 @@
       "cannedResponse": "Respuesta predefinida",
       "attach": "Adjuntar archivo",
       "placeholder": "Escribe tu respuesta…",
-      "language": "Idioma"
+      "language": "Idioma",
+      "newEmail": "Nuevo correo",
+      "to": "Para",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "Asunto",
+      "bodyLabel": "Mensaje",
+      "bodyPlaceholder": "Escribe tu mensaje…"
     },
     "actions": {
       "close": "Cerrar",
@@ -632,6 +638,7 @@
     },
     "toasts": {
       "sent": "Respuesta enviada",
+      "emailSent": "Correo enviado",
       "draftSaved": "Borrador guardado",
       "assigned": "Conversación asignada",
       "statusChanged": "Estado actualizado",

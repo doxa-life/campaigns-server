@@ -4,7 +4,9 @@ import { createPasteHandler } from '~/utils/editorPaste'
 
 const props = withDefaults(defineProps<{
   modelValue: string
-  conversationId: number
+  // Omitted when composing a brand-new email (no conversation yet) — then inline
+  // images upload to the conversation-less endpoint.
+  conversationId?: number
   placeholder?: string
 }>(), {
   modelValue: '',
@@ -76,10 +78,10 @@ async function onImagePicked(e: Event) {
     // they're CID-embedded into the email at send time (never a public URL).
     const fd = new FormData()
     fd.append('image', file)
-    const res = await $fetch<{ url: string }>(
-      `/api/admin/inbox/conversations/${props.conversationId}/inline-images`,
-      { method: 'POST', body: fd }
-    )
+    const endpoint = props.conversationId
+      ? `/api/admin/inbox/conversations/${props.conversationId}/inline-images`
+      : '/api/admin/inbox/inline-images'
+    const res = await $fetch<{ url: string }>(endpoint, { method: 'POST', body: fd })
     editor.chain().focus().setImage({ src: res.url }).run()
   } catch (err: any) {
     toast.add({ title: err?.data?.statusMessage || err?.message || 'Image upload failed', color: 'error' })

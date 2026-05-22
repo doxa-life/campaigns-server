@@ -614,7 +614,13 @@
       "cannedResponse": "तैयार उत्तर",
       "attach": "फ़ाइल संलग्न करें",
       "placeholder": "अपना उत्तर लिखें…",
-      "language": "भाषा"
+      "language": "भाषा",
+      "newEmail": "नया ईमेल",
+      "to": "प्रति",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "विषय",
+      "bodyLabel": "संदेश",
+      "bodyPlaceholder": "अपना संदेश लिखें…"
     },
     "actions": {
       "close": "बंद करें",
@@ -632,6 +638,7 @@
     },
     "toasts": {
       "sent": "उत्तर भेजा गया",
+      "emailSent": "ईमेल भेजा गया",
       "draftSaved": "ड्राफ्ट सहेजा गया",
       "assigned": "बातचीत सौंपी गई",
       "statusChanged": "स्थिति अपडेट हुई",

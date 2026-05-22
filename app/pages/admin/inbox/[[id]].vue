@@ -6,14 +6,23 @@
     <template #header>
       <div class="inbox-header">
         <h1 class="page-title">{{ $t('inbox.title') }}</h1>
-        <UButton
-          v-if="canSend"
-          icon="i-lucide-message-square-text"
-          variant="outline"
-          color="neutral"
-          size="sm"
-          @click="showCanned = true"
-        >{{ $t('inbox.canned.title') }}</UButton>
+        <div class="inbox-header-actions">
+          <UButton
+            v-if="canSend"
+            icon="i-lucide-pen-line"
+            color="primary"
+            size="sm"
+            @click="showCompose = true"
+          >{{ $t('inbox.compose.newEmail') }}</UButton>
+          <UButton
+            v-if="canSend"
+            icon="i-lucide-message-square-text"
+            variant="outline"
+            color="neutral"
+            size="sm"
+            @click="showCanned = true"
+          >{{ $t('inbox.canned.title') }}</UButton>
+        </div>
       </div>
     </template>
 
@@ -300,6 +309,12 @@
     @confirm="confirmSpam"
   />
   <CannedResponsesManager v-model:open="showCanned" @saved="loadAux" />
+  <ComposeEmailModal
+    v-model:open="showCompose"
+    :from-options="fromOptions"
+    :my-alias="myAlias"
+    @sent="onComposed"
+  />
 </template>
 
 <script setup lang="ts">
@@ -403,6 +418,13 @@ const pendingFiles = ref<File[]>([])
 const showCloseModal = ref(false)
 const showSpamModal = ref(false)
 const showCanned = ref(false)
+const showCompose = ref(false)
+
+// Open the freshly-created thread + refresh the list/counts.
+async function onComposed(id: number) {
+  await Promise.all([loadConversations(), loadCounts()])
+  await selectConversation(id)
+}
 
 const scopeViews = computed(() => [
   { key: 'all' as const, label: t('inbox.filters.all'), icon: 'i-lucide-inbox' },
@@ -781,6 +803,11 @@ onMounted(async () => {
   justify-content: space-between;
   gap: 1rem;
   width: 100%;
+}
+.inbox-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 .inbox-rail {
   display: flex;

@@ -610,7 +610,13 @@
       "cannedResponse": "Răspuns predefinit",
       "attach": "Atașează fișier",
       "placeholder": "Scrie răspunsul tău…",
-      "language": "Limbă"
+      "language": "Limbă",
+      "newEmail": "E-mail nou",
+      "to": "Către",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "Subiect",
+      "bodyLabel": "Mesaj",
+      "bodyPlaceholder": "Scrie mesajul tău…"
     },
     "actions": {
       "close": "Închide",
@@ -628,6 +634,7 @@
     },
     "toasts": {
       "sent": "Răspuns trimis",
+      "emailSent": "E-mail trimis",
       "draftSaved": "Ciornă salvată",
       "assigned": "Conversație atribuită",
       "statusChanged": "Stare actualizată",

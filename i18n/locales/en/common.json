@@ -614,7 +614,13 @@
       "cannedResponse": "Canned response",
       "attach": "Attach file",
       "placeholder": "Write your reply…",
-      "language": "Language"
+      "language": "Language",
+      "newEmail": "New email",
+      "to": "To",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "Subject",
+      "bodyLabel": "Message",
+      "bodyPlaceholder": "Write your message…"
     },
     "actions": {
       "close": "Close",
@@ -634,6 +640,7 @@
     },
     "toasts": {
       "sent": "Reply sent",
+      "emailSent": "Email sent",
       "draftSaved": "Draft saved",
       "assigned": "Conversation assigned",
       "statusChanged": "Status updated",

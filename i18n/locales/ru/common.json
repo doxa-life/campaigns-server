@@ -614,7 +614,13 @@
       "cannedResponse": "Шаблон ответа",
       "attach": "Прикрепить файл",
       "placeholder": "Напишите ваш ответ…",
-      "language": "Язык"
+      "language": "Язык",
+      "newEmail": "Новое письмо",
+      "to": "Кому",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "Тема",
+      "bodyLabel": "Сообщение",
+      "bodyPlaceholder": "Напишите ваше сообщение…"
     },
     "actions": {
       "close": "Закрыть",
@@ -632,6 +638,7 @@
     },
     "toasts": {
       "sent": "Ответ отправлен",
+      "emailSent": "Письмо отправлено",
       "draftSaved": "Черновик сохранён",
       "assigned": "Разговор назначен",
       "statusChanged": "Статус обновлён",

@@ -614,7 +614,13 @@
       "cannedResponse": "常用回复",
       "attach": "添加附件",
       "placeholder": "写下你的回复…",
-      "language": "语言"
+      "language": "语言",
+      "newEmail": "新邮件",
+      "to": "收件人",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "主题",
+      "bodyLabel": "正文",
+      "bodyPlaceholder": "写下你的消息…"
     },
     "actions": {
       "close": "关闭",
@@ -632,6 +638,7 @@
     },
     "toasts": {
       "sent": "回复已发送",
+      "emailSent": "邮件已发送",
       "draftSaved": "草稿已保存",
       "assigned": "会话已分配",
       "statusChanged": "状态已更新",

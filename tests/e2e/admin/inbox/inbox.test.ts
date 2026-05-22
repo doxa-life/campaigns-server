@@ -409,4 +409,120 @@ describe('Shared inbox', async () => {
     const msgs = await sql`SELECT * FROM conversation_messages WHERE conversation_id = ${convo.id}`
     expect(msgs.length).toBe(0)
   })
+
+  // --- Compose: start a new conversation (no prior inbound) ---
+
+  // Composing to a new address creates the subscriber + contact method, a pending
+  // conversation assigned to the sender, and a queued outbound message + job.
+  it('starts a conversation and queues an outbound email to a new address', async () => {
+    const email = `inbox-compose-new-${uuidv4().slice(0, 8)}@example.com`
+    const res = await $fetch<{ conversation: any; message: any; queued: boolean }>(
+      '/api/admin/inbox/conversations',
+      { method: 'POST', body: { to_email: email, to_name: 'Newcomer', subject: 'Hello', body_html: '<p>Hi there</p>', body_text: 'Hi there' }, ...agentAuth }
+    )
+    expect(res.queued).toBe(true)
+    expect(res.message.status).toBe('queued')
+    expect(res.message.direction).toBe('outbound')
+    expect(res.message.to_email).toBe(email)
+
+    const [c] = await sql`SELECT status, assigned_user_id, subject, subscriber_id FROM conversations WHERE id = ${res.conversation.id}`
+    expect(c!.status).toBe('pending')
+    expect(c!.assigned_user_id).toBe(agent.id)
+    expect(c!.subject).toBe('Hello')
+    createdSubscriberIds.push(c!.subscriber_id)
+
+    const cm = await sql`SELECT * FROM contact_methods WHERE type = 'email' AND LOWER(value) = LOWER(${email})`
+    expect(cm.length).toBe(1)
+    expect(cm[0]!.subscriber_id).toBe(c!.subscriber_id)
+
+    const jobs = await sql`SELECT * FROM jobs WHERE type = 'outbound_email' AND reference_id = ${res.conversation.id}`
+    expect(jobs.length).toBe(1)
+  })
+
+  // Composing by subscriber_id targets that contact's primary email.
+  it('emails an existing contact by subscriber_id', async () => {
+    const email = `inbox-compose-contact-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(email, { verified: true })
+
+    const res = await $fetch<{ conversation: any; message: any; queued: boolean }>(
+      '/api/admin/inbox/conversations',
+      { method: 'POST', body: { subscriber_id: subId, subject: 'Checking in', body_html: '<p>How are you?</p>' }, ...agentAuth }
+    )
+    expect(res.queued).toBe(true)
+    expect(res.message.to_email).toBe(email)
+
+    const [c] = await sql`SELECT subscriber_id FROM conversations WHERE id = ${res.conversation.id}`
+    expect(c!.subscriber_id).toBe(subId)
+  })
+
+  // Composing to a known contact's email reuses the existing subscriber (no duplicate).
+  it('reuses an existing subscriber when composing to a known email', async () => {
+    const email = `inbox-compose-dedupe-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(email)
+
+    const res = await $fetch<{ conversation: any }>(
+      '/api/admin/inbox/conversations',
+      { method: 'POST', body: { to_email: email, subject: 'Re-contact', body_html: '<p>Hi again</p>' }, ...agentAuth }
+    )
+    const [c] = await sql`SELECT subscriber_id FROM conversations WHERE id = ${res.conversation.id}`
+    expect(c!.subscriber_id).toBe(subId)
+
+    const cm = await sql`SELECT * FROM contact_methods WHERE type = 'email' AND LOWER(value) = LOWER(${email})`
+    expect(cm.length).toBe(1)
+  })
+
+  it('rejects compose with missing/invalid fields', async () => {
+    const valid = { to_email: `inbox-bad-${uuidv4().slice(0, 8)}@example.com`, subject: 'S', body_html: '<p>B</p>' }
+    const cases = [
+      { ...valid, to_email: undefined },               // no recipient
+      { ...valid, subject: '   ' },                    // empty subject
+      { ...valid, body_html: '' },                     // empty body
+      { ...valid, to_email: 'not-an-email' },          // malformed email
+    ]
+    for (const body of cases) {
+      let status = 0
+      try {
+        await $fetch('/api/admin/inbox/conversations', { method: 'POST', body, ...agentAuth })
+      } catch (err: any) {
+        status = err?.statusCode || err?.response?.status || 0
+      }
+      expect(status).toBe(400)
+    }
+  })
+
+  it('rejects compose to a contact with no email', async () => {
+    const [sub] = await sql`INSERT INTO subscribers (tracking_id, profile_id, name) VALUES (${uuidv4()}, ${uuidv4()}, 'No Email') RETURNING id`
+    createdSubscriberIds.push(sub!.id)
+    let status = 0
+    try {
+      await $fetch('/api/admin/inbox/conversations', { method: 'POST', body: { subscriber_id: sub!.id, subject: 'S', body_html: '<p>B</p>' }, ...agentAuth })
+    } catch (err: any) {
+      status = err?.statusCode || err?.response?.status || 0
+    }
+    expect(status).toBe(400)
+  })
+
+  it('rejects conversation-less inline-image upload without inbox.send', async () => {
+    const noRole = await createTestUser(sql, { email: `test-noimg-${uuidv4().slice(0, 8)}@example.com` })
+    const noRoleAuth = getAuthHeaders(noRole)
+    let status = 0
+    try {
+      await $fetch('/api/admin/inbox/inline-images', { method: 'POST', body: new FormData(), ...noRoleAuth })
+    } catch (err: any) {
+      status = err?.statusCode || err?.response?.status || 0
+    }
+    expect(status).toBe(403)
+  })
+
+  it('rejects compose for users without inbox.send', async () => {
+    const noRole = await createTestUser(sql, { email: `test-nosend-${uuidv4().slice(0, 8)}@example.com` })
+    const noRoleAuth = getAuthHeaders(noRole)
+    let status = 0
+    try {
+      await $fetch('/api/admin/inbox/conversations', { method: 'POST', body: { to_email: `x-${uuidv4().slice(0, 8)}@example.com`, subject: 'S', body_html: '<p>B</p>' }, ...noRoleAuth })
+    } catch (err: any) {
+      status = err?.statusCode || err?.response?.status || 0
+    }
+    expect(status).toBe(403)
+  })
 })

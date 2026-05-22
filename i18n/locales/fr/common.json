@@ -614,7 +614,13 @@
       "cannedResponse": "Réponse type",
       "attach": "Joindre un fichier",
       "placeholder": "Rédigez votre réponse…",
-      "language": "Langue"
+      "language": "Langue",
+      "newEmail": "Nouvel e-mail",
+      "to": "À",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "Objet",
+      "bodyLabel": "Message",
+      "bodyPlaceholder": "Rédigez votre message…"
     },
     "actions": {
       "close": "Fermer",
@@ -632,6 +638,7 @@
     },
     "toasts": {
       "sent": "Réponse envoyée",
+      "emailSent": "E-mail envoyé",
       "draftSaved": "Brouillon enregistré",
       "assigned": "Conversation attribuée",
       "statusChanged": "Statut mis à jour",
