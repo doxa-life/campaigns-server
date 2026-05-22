@@ -15,6 +15,10 @@ export interface InboxEmailAttachment {
   filename: string
   contentType: string
   data: Buffer
+  // When set, the part is embedded inline (Content-ID) rather than attached,
+  // and the HTML references it as `cid:<cid>`. For Mailgun the cid must equal
+  // the filename, so callers should set filename === cid for inline parts.
+  cid?: string
 }
 
 export interface InboxEmailOptions {
@@ -106,6 +110,7 @@ class InboxEmailService {
         filename: a.filename,
         content: a.data,
         contentType: a.contentType,
+        ...(a.cid ? { cid: a.cid } : {}),
       })),
     })
     return { success: true, providerMessageId: info.messageId }
@@ -132,7 +137,9 @@ class InboxEmailService {
     for (const att of options.attachments || []) {
       // Buffer is a valid BlobPart at runtime; cast to satisfy the DOM lib's ArrayBuffer typing.
       const blob = new Blob([att.data as unknown as BlobPart], { type: att.contentType || 'application/octet-stream' })
-      form.append('attachment', blob, att.filename)
+      // Inline parts (cid set) go in the `inline` field and are referenced as
+      // cid:<filename> in the HTML; everything else is a regular attachment.
+      form.append(att.cid ? 'inline' : 'attachment', blob, att.filename)
     }
 
     const url = `https://${host}/v3/${domain}/messages`

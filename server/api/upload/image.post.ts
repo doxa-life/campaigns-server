@@ -1,6 +1,4 @@
-import { mkdir, writeFile } from 'fs/promises'
-import { join } from 'path'
-import { existsSync } from 'fs'
+import { uploadPublicImage } from '#server/utils/app/public-image-storage'
 
 export default defineEventHandler(async (event) => {
   // Require authentication
@@ -20,59 +18,34 @@ export default defineEventHandler(async (event) => {
     // Get the file from form data
     const file = formData.find(item => item.name === 'image')
 
-    if (!file) {
+    if (!file || !file.data || file.data.length === 0) {
       throw createError({
         statusCode: 400,
         statusMessage: 'No image file found'
       })
     }
 
-    // Validate file type and get safe extension from MIME type
-    const mimeToExtension: Record<string, string> = {
-      'image/jpeg': 'jpg',
-      'image/jpg': 'jpg',
-      'image/png': 'png',
-      'image/gif': 'gif',
-      'image/webp': 'webp'
-    }
-    const extension = mimeToExtension[file.type || '']
-    if (!extension) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.'
-      })
-    }
+    // Upload to the public images bucket. The file type is validated by
+    // magic-byte sniffing inside uploadPublicImage (the browser-declared
+    // Content-Type is not trusted since the object is publicly served).
+    const { url } = await uploadPublicImage(file.data)
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'images')
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true })
-    }
-
-    // Generate unique filename using safe extension derived from MIME type
-    const timestamp = Date.now()
-    const filename = `${timestamp}-${Math.random().toString(36).substring(7)}.${extension}`
-    const filepath = join(uploadsDir, filename)
-
-    // Save file
-    await writeFile(filepath, file.data)
-
-    // Return URL in Editor.js format
+    // Return URL in Editor.js format (consumed by the Tiptap image upload
+    // extension and the inbox composer's image button).
     return {
       success: 1,
       file: {
-        url: `/uploads/images/${filename}`
+        url
       }
     }
   } catch (error: any) {
-    console.error('Upload error:', error)
-
     // Re-throw HTTP errors (from createError) - don't swallow validation errors
     if (error.statusCode) {
       throw error
     }
 
     // For unexpected errors, throw 500
+    console.error('Upload error:', error)
     throw createError({
       statusCode: 500,
       statusMessage: 'Failed to upload image'

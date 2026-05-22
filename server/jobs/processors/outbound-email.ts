@@ -7,6 +7,7 @@ import { contactMethodService } from '../../database/contact-methods'
 import { userService } from '../../database/users'
 import { inboxEmailService, type InboxEmailAttachment } from '../../utils/inbox-email'
 import { buildContactReplyAddress, buildFromAddress } from '../../utils/inbox-addressing'
+import { getInlineImageObject } from '../../utils/app/inbox-inline-images'
 
 /**
  * Sends a queued outbound inbox message. The generic queue only tracks *job* status;
@@ -64,7 +65,7 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
   const prior = (await messageService.listForConversation(conversation.id)).filter(m => m.id !== message.id)
   const quotedHtml = buildQuotedHtml(prior)
   const quotedText = buildQuotedText(prior)
-  const html = (message.body_html || '') + quotedHtml
+  let html = (message.body_html || '') + quotedHtml
   const text = (message.body_text || '') + quotedText
 
   // Re-attach any files linked to this outbound message
@@ -86,7 +87,19 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
         console.error('[OutboundEmail] Attachment fetch failed:', err?.message || err)
       }
     }
+
+    // Inline composer images are stored in the private bucket and referenced by
+    // an auth'd proxy URL (for in-app display). For the outbound email, embed
+    // them as CID parts and rewrite the src to cid:, so nothing private leaves
+    // the system on a public URL.
+    const inline = await embedInlineImages(html)
+    html = inline.html
+    attachments.push(...inline.attachments)
   }
+
+  // Cap image dimensions inline so they don't dominate the email (email clients
+  // ignore <style>/external CSS, so the constraint must live on each <img>).
+  html = constrainImages(html)
 
   const result = await inboxEmailService.send({
     from: fromAddress,
@@ -107,6 +120,51 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
 
   await messageService.markStatus(message.id, 'failed', { failed_reason: result.error || 'Send failed' })
   throw new Error(result.error || 'Send failed')
+}
+
+/**
+ * Replace inline-image proxy URLs (`/api/admin/inbox/inline-image/inline/…`)
+ * with CID references and return the matching inline attachments. Each unique
+ * key is fetched once; the object's basename (`<hex>.<ext>`) doubles as both the
+ * attachment filename and the Content-ID (Mailgun requires cid === filename).
+ * Images that can't be fetched are left as-is rather than failing the send.
+ */
+async function embedInlineImages(html: string): Promise<{ html: string; attachments: InboxEmailAttachment[] }> {
+  const attachments: InboxEmailAttachment[] = []
+  const keyRe = /\/api\/admin\/inbox\/inline-image\/(inline\/[A-Za-z0-9/_-]+\.(?:jpg|png|gif|webp))/g
+  const keys = new Set<string>()
+  let m: RegExpExecArray | null
+  while ((m = keyRe.exec(html)) !== null) keys.add(m[1]!)
+  if (keys.size === 0) return { html, attachments }
+
+  let out = html
+  for (const key of keys) {
+    const obj = await getInlineImageObject(key)
+    if (!obj) continue
+    const cid = key.split('/').pop() as string
+    attachments.push({ filename: cid, contentType: obj.contentType, data: obj.data, cid })
+    const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const urlRe = new RegExp(`(?:https?:\\/\\/[^"'\\s)]+)?\\/api\\/admin\\/inbox\\/inline-image\\/${escaped}`, 'g')
+    out = out.replace(urlRe, `cid:${cid}`)
+  }
+  return { html: out, attachments }
+}
+
+// Inject a responsive size cap onto every <img> in the outbound HTML. Merges
+// with any existing style (ours appended last so it wins). Covers inline CID
+// images, older public-URL images in quoted history, and inbound images.
+function constrainImages(html: string): string {
+  const STYLE = 'max-width:100%;max-height:480px;height:auto;'
+  return html.replace(/<img\b([^>]*?)\/?>/gi, (_full, attrs: string) => {
+    if (/\sstyle\s*=/i.test(attrs)) {
+      const merged = attrs.replace(
+        /(\sstyle\s*=\s*)("|')([\s\S]*?)\2/i,
+        (_m, prefix: string, quote: string, val: string) => `${prefix}${quote}${val};${STYLE}${quote}`,
+      )
+      return `<img${merged}>`
+    }
+    return `<img${attrs} style="${STYLE}">`
+  })
 }
 
 function escapeHtml(text: string): string {

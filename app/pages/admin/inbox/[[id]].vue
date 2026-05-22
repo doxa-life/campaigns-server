@@ -240,9 +240,9 @@
                 :title="$t('inbox.compose.language')"
               />
             </div>
-            <UEditor
+            <InboxEmailEditor
               v-model="replyHtml"
-              content-type="html"
+              :conversation-id="selected.conversation.id"
               :placeholder="$t('inbox.compose.placeholder')"
               class="composer-editor"
             />
@@ -848,6 +848,7 @@ onMounted(async () => {
 .msg-time { font-size: 0.7rem; color: var(--ui-text-muted); }
 .msg-body { font-size: 0.875rem; line-height: 1.5; word-break: break-word; }
 .msg-body :deep(p) { margin: 0.25rem 0; }
+.msg-body :deep(img) { max-width: 100%; max-height: 480px; height: auto; }
 .msg-attachments { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
 .attachment-chip { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; padding: 0.2rem 0.5rem; border: 1px solid var(--ui-border); border-radius: 4px; }
 
