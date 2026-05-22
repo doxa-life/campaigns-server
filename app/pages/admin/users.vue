@@ -514,7 +514,8 @@ const roleIcons: Record<string, string> = {
   progress_admin: 'i-lucide-bar-chart-3',
   content_editor: 'i-lucide-book-open',
   language_editor: 'i-lucide-languages',
-  people_group_editor: 'i-lucide-users'
+  people_group_editor: 'i-lucide-users',
+  inbox_agent: 'i-lucide-inbox'
 }
 
 const roleDisplayNames: Record<string, string> = {
@@ -522,7 +523,8 @@ const roleDisplayNames: Record<string, string> = {
   progress_admin: 'Progress Admin',
   content_editor: 'Content Editor',
   language_editor: 'Language Editor',
-  people_group_editor: 'People Group Editor'
+  people_group_editor: 'People Group Editor',
+  inbox_agent: 'Inbox Agent'
 }
 
 const permissionGroupLabels: Record<string, string> = {
@@ -530,7 +532,8 @@ const permissionGroupLabels: Record<string, string> = {
   groups: 'Groups',
   subscribers: 'Subscribers',
   content: 'Content',
-  users: 'Users'
+  users: 'Users',
+  inbox: 'Inbox'
 }
 
 const permissionDetails: Record<string, { title: string; description: string }> = {
@@ -550,7 +553,9 @@ const permissionDetails: Record<string, { title: string; description: string }> 
   'content.create': { title: 'Create Content', description: 'Create new content' },
   'content.edit': { title: 'Edit Content', description: 'Edit existing content' },
   'content.delete': { title: 'Delete Content', description: 'Delete content' },
-  'users.manage': { title: 'Manage Users', description: 'Invite, edit, and manage user roles' }
+  'users.manage': { title: 'Manage Users', description: 'Invite, edit, and manage user roles' },
+  'inbox.view': { title: 'View Inbox', description: 'View the shared email inbox and conversations' },
+  'inbox.send': { title: 'Send from Inbox', description: 'Reply to and send messages from the shared inbox' }
 }
 
 const allPermissions = Object.keys(permissionDetails)
