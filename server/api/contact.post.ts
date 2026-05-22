@@ -4,8 +4,7 @@ import { conversationService } from '../database/conversations'
 import { messageService } from '../database/conversation-messages'
 import { requireFormApiKey } from '../utils/form-api-key'
 import { handleApiError } from '#server/utils/api-helpers'
-import { notifyNewConversation } from '../utils/inbox-notification-email'
-import { sendInboxAutoAck } from '../utils/inbox-auto-ack-email'
+import { jobQueueService, type InboxEmailPayload } from '../database/job-queue'
 import { sendContactVerificationEmail } from '../utils/contact-verification-email'
 import countries from 'i18n-iso-countries'
 import { trackEventInBackground, userHashFromEmail } from '../utils/tracking'
@@ -101,11 +100,24 @@ export default defineEventHandler(async (event) => {
     await conversationService.touchLastMessage(conversation.id, firstMessage.created_at, 'inbound')
     logCreate('conversations', String(conversation.id), event, { message: 'Contact form conversation opened', direction: 'inbound' })
 
-    // Translated auto-acknowledgement in the form's language; notify staff with a signed Reply-To.
-    sendInboxAutoAck({ to: email, name: name || null, language, replyToken: conversation.reply_token })
-      .catch(err => console.error('Failed to send auto-ack:', err))
-    notifyNewConversation(conversation, firstMessage)
-      .catch(err => console.error('Failed to notify contact recipients:', err))
+    // Auto-ack (in the form's language) and the staff notification go through the job
+    // queue so a transient send failure is retried instead of silently lost.
+    try {
+      await jobQueueService.createJob<InboxEmailPayload>('inbox_email', {
+        kind: 'auto_ack',
+        conversation_id: conversation.id,
+        to: email,
+        name: name || null,
+        language,
+      }, { referenceType: 'conversation', referenceId: conversation.id })
+      await jobQueueService.createJob<InboxEmailPayload>('inbox_email', {
+        kind: 'new_conversation',
+        conversation_id: conversation.id,
+        message_id: firstMessage.id,
+      }, { referenceType: 'conversation', referenceId: conversation.id })
+    } catch (err) {
+      console.error('Failed to enqueue inbox emails:', err)
+    }
 
     trackEventInBackground(event, {
       eventType: 'contact_form_submitted',

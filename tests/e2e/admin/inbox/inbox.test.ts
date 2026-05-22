@@ -364,6 +364,34 @@ describe('Shared inbox', async () => {
     expect(jobs.length).toBe(1)
   })
 
+  // Regression: the auto-ack + staff notification are durable queued jobs, not
+  // fire-and-forget — so a transient send failure is retried, not silently lost.
+  it('enqueues durable auto-ack and notification jobs for a new cold conversation', async () => {
+    const email = `inbox-ack-${uuidv4().slice(0, 8)}@example.com`
+    const res = await postInbound({
+      recipient: CONTACT_ADDRESS,
+      from: `Asker <${email}>`,
+      sender: email,
+      subject: 'Question',
+      'body-html': '<p>Can you help?</p>',
+      'stripped-html': '<p>Can you help?</p>',
+      'body-plain': 'Can you help?',
+      'message-headers': headerJson([['Message-Id', `<ack-${uuidv4()}@example.com>`]]),
+    })
+    expect(res.status).toBe('contact')
+    const convoId = res.conversation_id
+    const [{ subscriber_id }] = await sql`SELECT subscriber_id FROM conversations WHERE id = ${convoId}`
+    createdSubscriberIds.push(subscriber_id)
+
+    const jobs = await sql`SELECT payload FROM jobs WHERE type = 'inbox_email' AND reference_id = ${convoId}`
+    const kinds = jobs.map((j: any) => j.payload.kind)
+    expect(kinds).toContain('auto_ack')
+    expect(kinds).toContain('new_conversation')
+    const ack = jobs.find((j: any) => j.payload.kind === 'auto_ack')
+    expect(ack!.payload.to).toBe(email)
+    expect(ack!.payload.language).toBeDefined()
+  })
+
   // 10. Subscriber delete cascades conversations + messages
   it('cascades conversations and messages when a subscriber is deleted', async () => {
     const email = `inbox-cascade-${uuidv4().slice(0, 8)}@example.com`

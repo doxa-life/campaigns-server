@@ -18,8 +18,7 @@ import {
 import { parseInboxRecipient, buildContactReplyAddress, buildFromAddress } from '../../../utils/inbox-addressing'
 import { resolveSignedStaffSender } from '../../../utils/inbox-reply-auth'
 import { inboxEmailService } from '../../../utils/inbox-email'
-import { notifyNewConversation, notifyAssignee, notifyHeldSender } from '../../../utils/inbox-notification-email'
-import { sendInboxAutoAck } from '../../../utils/inbox-auto-ack-email'
+import { jobQueueService, type InboxEmailPayload } from '../../../database/job-queue'
 
 // Transient failures bubble up as this so the catch can return a retryable 5xx.
 class TransientError extends Error {}
@@ -331,24 +330,26 @@ export default defineEventHandler(async (event) => {
       authenticated: auth.authenticated,
     })
 
-    // --- 8. Notify (after durable persist; failures don't fail the request) ---
+    // --- 8. Notify (after durable persist) — enqueued so a transient send failure is
+    // retried by the queue instead of being silently lost, and the webhook responds fast.
     try {
+      const refOpts = { referenceType: 'conversation', referenceId: conversation.id }
       if (outcome === 'held') {
-        await notifyNewConversation(conversation, storedMessage, { held: true })
-        await notifyHeldSender(fromEmail)
+        await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'new_conversation', conversation_id: conversation.id, message_id: storedMessage.id, held: true }, refOpts)
+        await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'held_sender', to: fromEmail }, refOpts)
       } else if (outcome === 'contact') {
         if (conversation.assigned_user_id) {
-          await notifyAssignee(conversation, storedMessage)
+          await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'assignee', conversation_id: conversation.id, message_id: storedMessage.id }, refOpts)
         } else {
-          await notifyNewConversation(conversation, storedMessage)
+          await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'new_conversation', conversation_id: conversation.id, message_id: storedMessage.id }, refOpts)
         }
         // Auto-ack only for brand-new cold conversations (not for ongoing replies)
         if (isNewConversation && !isAutoResponderOrBounce(headers, fromEmail)) {
-          await sendInboxAutoAck({ to: fromEmail, name: fromName, language: 'en', replyToken: conversation.reply_token })
+          await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'auto_ack', conversation_id: conversation.id, to: fromEmail, name: fromName, language: 'en' }, refOpts)
         }
       }
     } catch (notifyErr: any) {
-      console.error('[InboundWebhook] Notification failed:', notifyErr?.message || notifyErr)
+      console.error('[InboundWebhook] Enqueue of notifications failed:', notifyErr?.message || notifyErr)
     }
 
     return { status: outcome, conversation_id: conversation.id, message_id: storedMessage.id }

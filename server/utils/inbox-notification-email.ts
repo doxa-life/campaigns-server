@@ -83,16 +83,16 @@ function renderNotification(opts: {
 }
 
 /** Notify the configured contact_us recipient list about a new/unassigned/held conversation. */
-export async function notifyNewConversation(conversation: Conversation, message: ConversationMessage, opts: { held?: boolean } = {}): Promise<void> {
+export async function notifyNewConversation(conversation: Conversation, message: ConversationMessage, opts: { held?: boolean } = {}): Promise<boolean> {
   const cfg = getConfig()
   const recipients = await notificationRecipientService.getByGroup('contact_us')
-  if (recipients.length === 0) return
+  if (recipients.length === 0) return true
 
   const conversationUrl = `${cfg.siteUrl}/admin/inbox/${conversation.id}`
   const contactName = message.from_name || message.from_email || 'Contact'
   const contactEmail = message.from_email || ''
 
-  await Promise.allSettled(recipients.map(async (r) => {
+  const results = await Promise.allSettled(recipients.map(async (r) => {
     const replyTo = await replyToFor(r.email, conversation, cfg)
     const { html, text } = renderNotification({
       appName: cfg.appName,
@@ -111,14 +111,18 @@ export async function notifyNewConversation(conversation: Conversation, message:
       replyTo,
     })
   }))
+
+  // Retry (via the queue) only if every recipient failed — a partial success must not
+  // re-send to those who already received it, since per-recipient sends aren't idempotent.
+  return results.some(r => r.status === 'fulfilled' && r.value?.success)
 }
 
 /** Notify the assignee about a reply on a conversation they own. */
-export async function notifyAssignee(conversation: Conversation, message: ConversationMessage): Promise<void> {
-  if (!conversation.assigned_user_id) return
+export async function notifyAssignee(conversation: Conversation, message: ConversationMessage): Promise<boolean> {
+  if (!conversation.assigned_user_id) return true
   const cfg = getConfig()
   const assignee = await userService.getUserById(conversation.assigned_user_id)
-  if (!assignee?.email) return
+  if (!assignee?.email) return true
 
   const replyTo = await replyToFor(assignee.email, conversation, cfg)
   const conversationUrl = `${cfg.siteUrl}/admin/inbox/${conversation.id}`
@@ -131,7 +135,7 @@ export async function notifyAssignee(conversation: Conversation, message: Conver
     held: false,
   })
 
-  await inboxEmailService.send({
+  const result = await inboxEmailService.send({
     from: `"${cfg.appName}" <${cfg.contactAddress}>`,
     to: assignee.email,
     subject: `New reply: ${conversation.subject || 'Inbox'}`,
@@ -139,11 +143,12 @@ export async function notifyAssignee(conversation: Conversation, message: Conver
     text,
     replyTo,
   })
+  return result.success
 }
 
 /** Email a sender whose message was held that they should log in to resolve it. */
-export async function notifyHeldSender(toEmail: string, cfgOverride?: { appName?: string; contactAddress?: string }): Promise<void> {
-  if (!toEmail) return
+export async function notifyHeldSender(toEmail: string, cfgOverride?: { appName?: string; contactAddress?: string }): Promise<boolean> {
+  if (!toEmail) return true
   const cfg = getConfig()
   const appName = cfgOverride?.appName || cfg.appName
   const html = `
@@ -154,11 +159,12 @@ export async function notifyHeldSender(toEmail: string, cfgOverride?: { appName?
       <p>— ${escapeHtml(appName)}</p>
     </body></html>
   `
-  await inboxEmailService.send({
+  const result = await inboxEmailService.send({
     from: `"${appName}" <${cfgOverride?.contactAddress || cfg.contactAddress}>`,
     to: toEmail,
     subject: 'We received your message',
     html,
     text: 'Thanks for your message. A member of our team will review it shortly.',
   })
+  return result.success
 }

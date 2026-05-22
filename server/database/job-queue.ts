@@ -1,6 +1,6 @@
 import { getSql } from './db'
 
-export type JobType = 'marketing_email' | 'translation_batch' | 'import' | 'outbound_email'
+export type JobType = 'marketing_email' | 'translation_batch' | 'import' | 'outbound_email' | 'inbox_email'
 
 export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
@@ -55,6 +55,20 @@ export interface TranslationBatchPayload {
 
 export interface OutboundEmailPayload {
   message_id: number
+}
+
+/**
+ * Durable inbox side-emails (auto-ack, staff notifications). Routed through the queue
+ * instead of fire-and-forget so a transient send failure is retried, not silently lost.
+ */
+export interface InboxEmailPayload {
+  kind: 'auto_ack' | 'new_conversation' | 'assignee' | 'held_sender'
+  conversation_id?: number
+  message_id?: number
+  to?: string // recipient for auto_ack / held_sender
+  name?: string | null // auto_ack contact name
+  language?: string | null // auto_ack language (captured from the form)
+  held?: boolean // new_conversation: render the "needs review" variant
 }
 
 class JobQueueService {

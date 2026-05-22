@@ -43,3 +43,4 @@ wip
 /scripts/
 /.nuxtrc
 context
+.claude/plans/
