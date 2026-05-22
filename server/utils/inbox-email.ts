@@ -46,7 +46,19 @@ export const inboxEmailService = {
     const host = String(config.mailgunHost || 'api.mailgun.net').replace(/^https?:\/\//, '')
 
     if (!domain || !apiKey) {
-      throw new Error('MAILGUN_DOMAIN and MAILGUN_API_KEY are required for inbox email')
+      const sent = await sendEmail({
+        from: formatAddress(payload.from, payload.fromName),
+        to: payload.to,
+        subject: payload.subject,
+        html: payload.html || payload.text || '',
+        text: payload.text
+      })
+
+      if (!sent) {
+        throw new Error('Inbox email SMTP fallback failed')
+      }
+
+      return null
     }
 
     const form = new FormData()
