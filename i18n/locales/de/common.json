@@ -493,6 +493,10 @@
       "headerDefault": "{appName} Neuigkeiten",
       "footer": "Sie haben diese E-Mail erhalten, weil Sie sich für Updates von {appName} angemeldet haben."
     },
+    "inboxAutoAck": {
+      "subject": "Wir haben Ihre Nachricht erhalten",
+      "body": "Danke, dass Sie Doxa kontaktiert haben. Wir haben Ihre Nachricht erhalten und jemand aus unserem Team wird bald antworten."
+    },
     "days": {
       "sunday": "Sonntag",
       "monday": "Montag",

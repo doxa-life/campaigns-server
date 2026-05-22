@@ -48,6 +48,11 @@ export async function cleanupTestData(sql: ReturnType<typeof postgres>) {
 
   // Clean comments on test groups and test subscribers
   await sql`DELETE FROM comments WHERE (record_type = 'group' AND record_id IN (SELECT id FROM groups WHERE name LIKE 'Test %')) OR (record_type = 'subscriber' AND record_id IN (SELECT id FROM subscribers WHERE name LIKE 'Test %'))`
+  await sql`DELETE FROM comments WHERE record_type = 'conversation' AND record_id IN (SELECT id FROM conversations WHERE subscriber_id IN (SELECT id FROM subscribers WHERE name LIKE 'Test %'))`
+  await sql`DELETE FROM spam_senders WHERE email LIKE 'test-%@example.com'`
+  await sql`DELETE FROM canned_response_translations WHERE canned_response_id IN (SELECT id FROM canned_responses WHERE title LIKE 'Test %')`
+  await sql`DELETE FROM canned_responses WHERE title LIKE 'Test %'`
+  await sql`DELETE FROM conversations WHERE subscriber_id IN (SELECT id FROM subscribers WHERE name LIKE 'Test %')`
 
   // Clean groups
   await sql`DELETE FROM groups WHERE name LIKE 'Test %'`
