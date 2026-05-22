@@ -41,6 +41,16 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   ssr: false,
 
+  // Keep the file watcher out of large non-source trees (e.g. agent git
+  // worktrees under .claude/worktrees/, each carrying their own node_modules).
+  // Without this the core builder watcher walks them and hits EMFILE.
+  ignore: ['**/.claude/**', '**/wip/**'],
+  watchers: {
+    chokidar: {
+      ignored: ['**/.claude/**', '**/wip/**']
+    }
+  },
+
   css: ['~/assets/css/main.css'],
 
   app: {
@@ -80,7 +90,7 @@ export default defineNuxtConfig({
 
   nitro: {
     watchOptions: {
-      ignored: ['**/node_modules/.c12/**', '**/.layers/**']
+      ignored: ['**/node_modules/.c12/**', '**/.layers/**', '**/.claude/**']
     },
     imports: {
       // Exclude server/utils/app from auto-imports to avoid conflicts with base layer
@@ -105,12 +115,12 @@ export default defineNuxtConfig({
     }
   },
 
-  watch: ['!node_modules/.c12/**', '!.layers/**'],
+  watch: ['!node_modules/.c12/**', '!.layers/**', '!.claude/**'],
 
   vite: {
     server: {
       watch: {
-        ignored: ['**/node_modules/.c12/**', '**/.layers/**']
+        ignored: ['**/node_modules/.c12/**', '**/.layers/**', '**/.claude/**']
       }
     },
     optimizeDeps: {
