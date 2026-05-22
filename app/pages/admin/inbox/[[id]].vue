@@ -861,7 +861,7 @@ onMounted(async () => {
 .canned-select { min-width: 200px; }
 .lang-select { width: 150px; }
 .composer-editor { border: 1px solid var(--ui-border); border-radius: 8px; min-height: 120px; margin-bottom: 0.5rem; }
-.composer-actions { display: flex; align-items: center; gap: 0.5rem; }
+.composer-actions { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 3.5rem; }
 .composer-spacer { flex: 1; }
 .hidden-file { display: none; }
 .pending-files { font-size: 0.75rem; color: var(--ui-text-muted); }

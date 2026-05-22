@@ -158,12 +158,25 @@ async function onImagePicked(e: Event) {
 }
 
 .email-editor-content {
-  padding: 0.75rem 1rem;
-  min-height: 160px;
-  cursor: text;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Make the editable area fill the box so clicking anywhere focuses it. */
+.email-editor-content :deep([data-slot="content"]) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 :deep(.ProseMirror) {
+  flex: 1;
+  min-height: 320px;
+  padding: 0.75rem 1rem;
+  cursor: text;
   outline: none;
   font-size: 0.9rem;
   line-height: 1.6;
