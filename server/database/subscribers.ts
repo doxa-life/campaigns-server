@@ -178,6 +178,69 @@ class SubscriberService {
     return { subscriber, isNew: true }
   }
 
+  /**
+   * Find a subscriber by the app-provided tracking_id, or create an anonymous
+   * one bound to it. Unlike createSubscriber, this never re-mints the id on
+   * conflict — it re-fetches, so the app's stored tracking_id stays valid.
+   */
+  async findOrCreateByTrackingId(
+    trackingId: string | null | undefined,
+    language: string = 'en'
+  ): Promise<{ subscriber: Subscriber; isNew: boolean }> {
+    if (isUuid(trackingId)) {
+      const existing = await this.getSubscriberByTrackingId(trackingId)
+      if (existing) return { subscriber: existing, isNew: false }
+
+      const profile_id = randomUUID()
+      const [row] = await this.sql<Subscriber[]>`
+        INSERT INTO subscribers (tracking_id, profile_id, name, preferred_language)
+        VALUES (${trackingId}, ${profile_id}, ${'Anonymous'}, ${language})
+        ON CONFLICT (tracking_id) DO NOTHING
+        RETURNING *
+      `
+      if (row) return { subscriber: row, isNew: true }
+
+      // Lost a race to a concurrent insert with the same tracking_id — reuse it.
+      const raced = await this.getSubscriberByTrackingId(trackingId)
+      if (raced) return { subscriber: raced, isNew: false }
+    }
+
+    const subscriber = await this.createSubscriber('Anonymous', language)
+    return { subscriber, isNew: true }
+  }
+
+  /**
+   * Resolve the subscriber for a news signup. Email is the canonical identity:
+   * 1) if the email already exists, use its subscriber;
+   * 2) else attach the email to the anonymous subscriber named by trackingId;
+   * 3) else create a fresh subscriber.
+   */
+  async findOrCreateForNews(input: {
+    email: string
+    name: string
+    country?: string | null
+    language?: string
+    trackingId?: string | null
+  }): Promise<{ subscriber: Subscriber; isNew: boolean }> {
+    const emailContact = await contactMethodService.getByValue('email', input.email)
+    if (emailContact) {
+      const subscriber = await this.getSubscriberById(emailContact.subscriber_id)
+      if (subscriber) return { subscriber, isNew: false }
+    }
+
+    if (isUuid(input.trackingId)) {
+      const existing = await this.getSubscriberByTrackingId(input.trackingId)
+      if (existing) {
+        await contactMethodService.addContactMethod(existing.id, 'email', input.email)
+        return { subscriber: existing, isNew: false }
+      }
+    }
+
+    const subscriber = await this.createSubscriber(input.name, input.language, input.country || null, input.trackingId)
+    await contactMethodService.addContactMethod(subscriber.id, 'email', input.email)
+    return { subscriber, isNew: true }
+  }
+
   async getAllSubscribers(options?: {
     limit?: number
     offset?: number

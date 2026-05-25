@@ -15,6 +15,14 @@ if (env.JWT_SECRET) {
   process.env.JWT_SECRET = env.JWT_SECRET
 }
 
+// Pass signup secrets so tests can send the required headers
+if (env.ANON_SIGNUP_SECRET) {
+  process.env.ANON_SIGNUP_SECRET = env.ANON_SIGNUP_SECRET
+}
+if (env.FORM_API_KEY) {
+  process.env.FORM_API_KEY = env.FORM_API_KEY
+}
+
 export default defineVitestConfig({
   // Externalize bun:test to avoid bundling issues
   resolve: {
