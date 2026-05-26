@@ -108,8 +108,13 @@
       <div v-if="selected" class="detail-head">
         <h2>{{ selected.conversation.subject || $t('inbox.conversation') }}</h2>
         <div class="detail-contact">
-          <span v-if="selected.conversation.subscriber_name" class="contact-name">{{ selected.conversation.subscriber_name }}</span>
-          <a v-if="selected.conversation.subscriber_email" :href="`mailto:${selected.conversation.subscriber_email}`" class="contact-email">{{ selected.conversation.subscriber_email }}</a>
+          <NuxtLink
+            v-if="selected.conversation.subscriber_name && selected.conversation.subscriber_id"
+            :to="`/admin/subscribers/${selected.conversation.subscriber_id}`"
+            class="contact-name"
+          >{{ selected.conversation.subscriber_name }}</NuxtLink>
+          <span v-else-if="selected.conversation.subscriber_name" class="contact-name">{{ selected.conversation.subscriber_name }}</span>
+          <span v-if="selected.conversation.subscriber_email" class="contact-email">{{ selected.conversation.subscriber_email }}</span>
         </div>
       </div>
     </template>
@@ -359,6 +364,7 @@ interface ConversationDetail {
   status: string
   assigned_user_id: string | null
   needs_review: boolean
+  subscriber_id: number | null
   subscriber_name: string | null
   subscriber_email: string | null
 }
@@ -863,9 +869,9 @@ onMounted(async () => {
 
 .detail-head { min-width: 0; }
 .detail-contact { display: flex; gap: 0.5rem; align-items: baseline; font-size: 0.8rem; margin-top: 0.15rem; }
-.detail-contact .contact-name { color: var(--ui-text); font-weight: 500; }
-.detail-contact .contact-email { color: var(--ui-text-muted); text-decoration: none; }
-.detail-contact .contact-email:hover { text-decoration: underline; }
+.detail-contact .contact-name { color: var(--ui-text); font-weight: 500; text-decoration: none; }
+a.contact-name:hover { text-decoration: underline; }
+.detail-contact .contact-email { color: var(--ui-text-muted); }
 
 .thread { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
 .msg { border: 1px solid var(--ui-border); border-radius: 8px; padding: 0.75rem 1rem; }
