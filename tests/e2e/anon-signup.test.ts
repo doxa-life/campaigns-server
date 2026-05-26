@@ -12,6 +12,9 @@ import {
 } from '../helpers/db'
 
 const SECRET = process.env.ANON_SIGNUP_SECRET || ''
+if (!SECRET) {
+  throw new Error('ANON_SIGNUP_SECRET must be set in .env to run these tests (forwarded via vitest.config.ts)')
+}
 const headers = { 'x-app-secret': SECRET }
 
 describe('POST /api/people-groups/[slug]/anon-signup', async () => {
@@ -187,6 +190,55 @@ describe('POST /api/people-groups/[slug]/anon-signup', async () => {
       expect(contact!.verified).toBe(false)
       expect(contact!.consent_doxa_general).toBe(true)
       expect(contact!.consented_people_group_ids).toContain(pg.id)
+    })
+
+    it('does not send verification or tag news source when email is supplied without consent', async () => {
+      const pg = await createTestPeopleGroup(sql)
+      const email = `test-anon-nocons-${Date.now()}@example.com`
+
+      const res = await $fetch(`/api/people-groups/${pg.slug}/anon-signup`, {
+        method: 'POST',
+        headers,
+        body: {
+          frequency: 'daily',
+          time: '08:00',
+          email,
+          name: 'Test Anon NoConsent'
+          // no consent flags — email is here purely for dedup
+        }
+      })
+
+      const [subscriber] = await sql`SELECT * FROM subscribers WHERE tracking_id = ${res.tracking_id}`
+      const contact = await getTestContactMethod(sql, subscriber.id, 'email')
+      expect(contact).toBeDefined()
+      expect(contact!.verified).toBe(false)
+      expect(contact!.verification_token).toBeNull()
+      expect(contact!.consent_doxa_general).toBe(false)
+      expect(subscriber.sources).not.toContain('news')
+      expect(subscriber.sources).toContain('anon-app')
+    })
+  })
+
+  describe('Concurrency', () => {
+    it('does not create duplicate app subscriptions under concurrent calls with the same tracking_id', async () => {
+      const pg = await createTestPeopleGroup(sql)
+      const trackingId = '99999999-aaaa-bbbb-cccc-dddddddddddd'
+      const body = { tracking_id: trackingId, frequency: 'daily', time: '08:00' }
+
+      const [r1, r2] = await Promise.all([
+        $fetch(`/api/people-groups/${pg.slug}/anon-signup`, { method: 'POST', headers, body }),
+        $fetch(`/api/people-groups/${pg.slug}/anon-signup`, { method: 'POST', headers, body })
+      ])
+
+      expect(r1.tracking_id).toBe(trackingId)
+      expect(r2.tracking_id).toBe(trackingId)
+
+      const [subscriber] = await sql`SELECT * FROM subscribers WHERE tracking_id = ${trackingId}`
+      expect(subscriber).toBeDefined()
+
+      const subs = await getAllTestSubscriptions(sql, pg.id, subscriber.id)
+      const appSubs = subs.filter(s => s.delivery_method === 'app')
+      expect(appSubs.length).toBe(1)
     })
   })
 })

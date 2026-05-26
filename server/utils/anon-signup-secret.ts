@@ -32,6 +32,10 @@ export function requireAnonSignupSecret(event: H3Event): void {
 export function requireAppSecretOrFormApiKey(event: H3Event): void {
   const config = useRuntimeConfig()
 
+  if (!config.anonSignupSecret && !config.formApiKey) {
+    throw createError({ statusCode: 500, statusMessage: 'No signup auth configured' })
+  }
+
   const appSecret = getHeader(event, 'x-app-secret')
   if (config.anonSignupSecret && appSecret && appSecret === config.anonSignupSecret) {
     return

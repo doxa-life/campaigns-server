@@ -13,6 +13,9 @@ import {
 
 const SECRET = process.env.ANON_SIGNUP_SECRET || ''
 const FORM_KEY = process.env.FORM_API_KEY || ''
+if (!SECRET) {
+  throw new Error('ANON_SIGNUP_SECRET must be set in .env to run these tests (forwarded via vitest.config.ts)')
+}
 
 describe('POST /api/news-signup', async () => {
   const sql = getTestDatabase()

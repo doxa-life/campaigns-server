@@ -61,9 +61,29 @@ export default defineEventHandler(async (event) => {
       ? await subscriberService.findOrCreateForNews({ email, name: name || email, language, trackingId: body.tracking_id })
       : await subscriberService.findOrCreateByTrackingId(body.tracking_id, language)
     await subscriberService.addSource(subscriber.id, 'anon-app')
-    if (email) await subscriberService.addSource(subscriber.id, 'news')
+    // Only tag the 'news' source when at least one consent was actually
+    // requested — an email supplied purely for dedup isn't a newsletter signup.
+    if (email && (body.consent_doxa_general || body.consent_people_group_updates)) {
+      await subscriberService.addSource(subscriber.id, 'news')
+    }
 
     // Upsert the single app subscription for this (subscriber, people group).
+    // A partial unique index on (subscriber_id, people_group_id) WHERE
+    // delivery_method = 'app' enforces uniqueness; we retry on 23505 in case
+    // a concurrent call (e.g. mobile double-tap) wins the race.
+    const updateAppSub = async (id: number, status: string) => {
+      await peopleGroupSubscriptionService.updateSubscription(id, {
+        frequency: body.frequency,
+        days_of_week,
+        time_preference: body.time,
+        timezone
+      })
+      if (status !== 'active') {
+        await peopleGroupSubscriptionService.resubscribe(id)
+      }
+      return (await peopleGroupSubscriptionService.getById(id))!
+    }
+
     const existing = await peopleGroupSubscriptionService.getAllBySubscriberAndPeopleGroup(
       subscriber.id,
       peopleGroup.id
@@ -72,27 +92,29 @@ export default defineEventHandler(async (event) => {
 
     let subscription
     if (appSub) {
-      await peopleGroupSubscriptionService.updateSubscription(appSub.id, {
-        frequency: body.frequency,
-        days_of_week,
-        time_preference: body.time,
-        timezone
-      })
-      if (appSub.status !== 'active') {
-        await peopleGroupSubscriptionService.resubscribe(appSub.id)
-      }
-      subscription = (await peopleGroupSubscriptionService.getById(appSub.id))!
+      subscription = await updateAppSub(appSub.id, appSub.status)
     } else {
-      subscription = await peopleGroupSubscriptionService.createSubscription({
-        people_group_id: peopleGroup.id,
-        subscriber_id: subscriber.id,
-        delivery_method: 'app',
-        frequency: body.frequency,
-        days_of_week,
-        time_preference: body.time,
-        timezone,
-        status: 'active'
-      })
+      try {
+        subscription = await peopleGroupSubscriptionService.createSubscription({
+          people_group_id: peopleGroup.id,
+          subscriber_id: subscriber.id,
+          delivery_method: 'app',
+          frequency: body.frequency,
+          days_of_week,
+          time_preference: body.time,
+          timezone,
+          status: 'active'
+        })
+      } catch (err: any) {
+        if (err?.code !== '23505') throw err
+        const refreshed = await peopleGroupSubscriptionService.getAllBySubscriberAndPeopleGroup(
+          subscriber.id,
+          peopleGroup.id
+        )
+        const raced = refreshed.find(s => s.delivery_method === 'app')
+        if (!raced) throw err
+        subscription = await updateAppSub(raced.id, raced.status)
+      }
     }
 
     if (email) {

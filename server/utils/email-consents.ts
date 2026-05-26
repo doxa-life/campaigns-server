@@ -26,7 +26,11 @@ export async function applyEmailConsents(input: {
     await contactMethodService.addPeopleGroupConsent(emailContact.id, input.peopleGroupId)
   }
 
-  if (!emailContact.verified) {
+  // Only send the double-opt-in verification when at least one consent was
+  // actually requested. Otherwise the user supplied their email purely for
+  // dedup/identity and a "verify your email" message would be unsolicited.
+  const consentRequested = input.consentDoxaGeneral || input.consentPeopleGroupUpdates
+  if (!emailContact.verified && consentRequested) {
     const token = await contactMethodService.generateVerificationToken(emailContact.id)
     sendContactVerificationEmail(input.email, token, input.name, input.language)
       .catch(err => console.error('Failed to send verification email:', err))

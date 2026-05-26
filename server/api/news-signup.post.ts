@@ -37,9 +37,15 @@ export default defineEventHandler(async (event) => {
   const name = body.name?.trim() || ''
   const language = body.language && ['en', 'es', 'fr'].includes(body.language) ? body.language : 'en'
   const rawCountry = body.country?.trim().toUpperCase() || null
-  const country = rawCountry
-    ? (rawCountry.length === 3 ? countries.alpha3ToAlpha2(rawCountry) : rawCountry) || null
-    : null
+  let country: string | null = null
+  if (rawCountry) {
+    if (rawCountry.length === 3) {
+      country = countries.alpha3ToAlpha2(rawCountry) || null
+    } else if (rawCountry.length === 2 && countries.isValid(rawCountry)) {
+      country = rawCountry
+    }
+    // Other lengths or invalid codes → null (data hygiene).
+  }
 
   try {
     const { subscriber } = await subscriberService.findOrCreateForNews({
