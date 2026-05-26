@@ -10,8 +10,6 @@ export interface User {
   superadmin: boolean
   roles: string[]
   token_key: string
-  email_alias: string | null
-  email_signature: string | null
   created: string
   updated: string
   activity_email_preferences: { daily: boolean; weekly: boolean; monthly: boolean; yearly: boolean } | null
@@ -50,7 +48,7 @@ export class UserService {
 
   async getUserById(id: string): Promise<User | null> {
     const [row] = await this.sql`
-      SELECT id, email, display_name, verified, superadmin, roles, token_key, email_alias, email_signature, created, updated, activity_email_preferences
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences
       FROM users WHERE id = ${id}
     `
     return (row as User) ?? null
@@ -58,7 +56,7 @@ export class UserService {
 
   async getUserByEmail(email: string): Promise<User | null> {
     const [row] = await this.sql`
-      SELECT id, email, display_name, verified, superadmin, roles, token_key, email_alias, email_signature, created, updated, activity_email_preferences
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences
       FROM users WHERE email = ${email}
     `
     return (row as User) ?? null
@@ -66,14 +64,14 @@ export class UserService {
 
   async getAllUsers(): Promise<User[]> {
     return await this.sql`
-      SELECT id, email, display_name, verified, superadmin, roles, token_key, email_alias, email_signature, created, updated, activity_email_preferences
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences
       FROM users ORDER BY created DESC
     ` as any
   }
 
   async getAdminUsers(): Promise<User[]> {
     return await this.sql`
-      SELECT id, email, display_name, verified, superadmin, roles, token_key, email_alias, email_signature, created, updated, activity_email_preferences
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences
       FROM users WHERE 'admin' = ANY(roles) OR superadmin = TRUE ORDER BY created DESC
     ` as any
   }
@@ -84,17 +82,6 @@ export class UserService {
       WHERE id = ${id}
     `
     return result.count > 0
-  }
-
-  async updateInboxIdentity(id: string, updates: { email_alias?: string | null; email_signature?: string | null }): Promise<User | null> {
-    await this.sql`
-      UPDATE users
-      SET email_alias = ${updates.email_alias === undefined ? null : updates.email_alias},
-          email_signature = ${updates.email_signature === undefined ? null : updates.email_signature},
-          updated = NOW()
-      WHERE id = ${id}
-    `
-    return this.getUserById(id)
   }
 }
 

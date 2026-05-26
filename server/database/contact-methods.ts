@@ -150,21 +150,6 @@ class ContactMethodService {
     return { success: true, contactMethod: (await this.getById(contactMethod.id))! }
   }
 
-  async verifyByValue(type: 'email' | 'phone', value: string): Promise<ContactMethod | null> {
-    const contactMethod = await this.getByValue(type, value)
-    if (!contactMethod) return null
-
-    await this.sql`
-      UPDATE contact_methods
-      SET verified = true,
-          verified_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
-          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ${contactMethod.id}
-    `
-
-    return this.getById(contactMethod.id)
-  }
-
   async regenerateVerificationToken(contactMethodId: number): Promise<string | null> {
     const contactMethod = await this.getById(contactMethodId)
     if (!contactMethod || contactMethod.verified) return null

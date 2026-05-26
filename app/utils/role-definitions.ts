@@ -1,4 +1,4 @@
-export type RoleName = 'admin' | 'progress_admin' | 'content_editor' | 'language_editor' | 'people_group_editor' | 'inbox_agent'
+export type RoleName = 'admin' | 'progress_admin' | 'content_editor' | 'language_editor' | 'people_group_editor'
 
 export const ROLES: Record<RoleName, { name: RoleName; description: string; permissions: string[] }> = {
   admin: {
@@ -21,9 +21,7 @@ export const ROLES: Record<RoleName, { name: RoleName; description: string; perm
       'content.create',
       'content.edit',
       'content.delete',
-      'users.manage',
-      'inbox.view',
-      'inbox.send'
+      'users.manage'
     ]
   },
   progress_admin: {
@@ -78,14 +76,6 @@ export const ROLES: Record<RoleName, { name: RoleName; description: string; perm
       'content.create',
       'content.edit',
       'content.delete'
-    ]
-  },
-  inbox_agent: {
-    name: 'inbox_agent',
-    description: 'Can view the shared inbox and send one-to-one email replies',
-    permissions: [
-      'inbox.view',
-      'inbox.send'
     ]
   }
 }

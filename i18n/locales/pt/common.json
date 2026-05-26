@@ -493,10 +493,6 @@
       "headerDefault": "Atualizacoes de {appName}",
       "footer": "Voce recebeu este e-mail porque optou por receber atualizacoes de {appName}."
     },
-    "inboxAutoAck": {
-      "subject": "Recebemos sua mensagem",
-      "body": "Obrigado por entrar em contato com a Doxa. Recebemos sua mensagem e alguem da nossa equipe respondera em breve."
-    },
     "days": {
       "sunday": "Domingo",
       "monday": "Segunda-feira",

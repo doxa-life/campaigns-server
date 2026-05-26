@@ -445,28 +445,6 @@
           <RecordComments record-type="subscriber" :record-id="selectedSubscriber.id" @update:count="commentCount = $event" />
         </template>
 
-        <template #side-conversations>
-          <CrmFormSection title="Conversations">
-            <div v-if="loadingSubscriberConversations" class="activity-loading">Loading...</div>
-            <div v-else-if="subscriberConversations.length === 0" class="activity-empty">No conversations yet</div>
-            <div v-else class="activity-list">
-              <NuxtLink
-                v-for="conversation in subscriberConversations"
-                :key="conversation.id"
-                :to="`/admin/inbox/${conversation.id}`"
-                class="conversation-link"
-              >
-                <div class="activity-header">
-                  <UBadge :label="conversation.status" size="xs" variant="subtle" />
-                  <span class="activity-time">{{ formatDateTime(conversation.last_message_at || conversation.created_at) }}</span>
-                </div>
-                <div class="activity-detail">{{ conversation.subject || 'No subject' }}</div>
-                <div class="conversation-preview">{{ conversation.latest_body || 'No messages yet' }}</div>
-              </NuxtLink>
-            </div>
-          </CrmFormSection>
-        </template>
-
         <template #side-activity>
           <CrmFormSection title="Activity Log">
             <div v-if="loadingActivityLog" class="activity-loading">
@@ -677,15 +655,6 @@ interface SubscriptionForm {
   status: 'active' | 'inactive' | 'unsubscribed' | 'pending'
 }
 
-interface SubscriberConversation {
-  id: number
-  subject: string | null
-  status: string
-  latest_body: string | null
-  last_message_at: string | null
-  created_at: string
-}
-
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
@@ -695,8 +664,6 @@ const subscriberGroups = ref<{ group_id: number; name: string }[]>([])
 const subscribers = ref<GeneralSubscriber[]>([])
 const peopleGroups = ref<PeopleGroup[]>([])
 const selectedSubscriber = ref<GeneralSubscriber | null>(null)
-const subscriberConversations = ref<SubscriberConversation[]>([])
-const loadingSubscriberConversations = ref(false)
 
 // Loading states
 const loading = ref(true)
@@ -845,7 +812,6 @@ const subscriberStatus = computed(() => {
 })
 const sideTabs = computed(() => [
   { label: 'Activity', slot: 'activity', icon: 'i-lucide-activity' },
-  { label: 'Conversations', slot: 'conversations', icon: 'i-lucide-inbox' },
   { label: 'Comments', slot: 'comments', icon: 'i-lucide-message-square', badge: commentCount.value || undefined }
 ])
 
@@ -1169,27 +1135,12 @@ async function selectSubscriber(subscriber: GeneralSubscriber, updateUrl = true)
   }
 
   await loadActivityLog(subscriber)
-  await loadSubscriberConversations(subscriber.id)
 
   try {
     const res = await $fetch<{ groups: { group_id: number; name: string }[] }>(`/api/admin/subscribers/${subscriber.id}/groups`)
     subscriberGroups.value = res.groups
   } catch {
     subscriberGroups.value = []
-  }
-}
-
-async function loadSubscriberConversations(subscriberId: number) {
-  loadingSubscriberConversations.value = true
-  try {
-    const res = await $fetch<{ items: SubscriberConversation[] }>(`/api/admin/inbox/conversations`, {
-      query: { subscriber_id: subscriberId, limit: 20 }
-    })
-    subscriberConversations.value = res.items
-  } catch {
-    subscriberConversations.value = []
-  } finally {
-    loadingSubscriberConversations.value = false
   }
 }
 

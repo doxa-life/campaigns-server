@@ -4,9 +4,6 @@ import { requireFormApiKey } from '../utils/form-api-key'
 import { handleApiError } from '#server/utils/api-helpers'
 import { notifyContactRecipients } from '../utils/contact-notification-email'
 import { sendContactVerificationEmail } from '../utils/contact-verification-email'
-import { conversationService } from '../database/conversations'
-import { messageService } from '../database/conversation-messages'
-import { sendInboxAutoAckEmail } from '../utils/inbox-auto-ack-email'
 import countries from 'i18n-iso-countries'
 import { trackEventInBackground, userHashFromEmail } from '../utils/tracking'
 
@@ -71,41 +68,11 @@ export default defineEventHandler(async (event) => {
       form_values: { name, email, message, country, consent_doxa_general: body.consent_doxa_general ?? false },
     })
 
-    const conversation = await conversationService.create({
-      subscriber_id: subscriber.id,
-      subject: 'Contact form submission',
-      status: 'open'
-    })
-    const inboxDomain = String(useRuntimeConfig().inboxDomain || 'doxa.life')
-    const replyTo = `contact+${conversation.reply_token}@${inboxDomain}`
-
-    await messageService.create({
-      conversation_id: conversation.id,
-      direction: 'inbound',
-      status: 'received',
-      from_email: email,
-      from_name: name || email,
-      to_email: String(useRuntimeConfig().inboxContactAddress || `contact@${inboxDomain}`),
-      subject: 'Contact form submission',
-      body_text: message,
-      body_html: message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>'),
-      body_stripped_html: message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>')
-    })
-    await conversationService.touchLastMessage(conversation.id, 'inbound', 'open')
-
-    sendInboxAutoAckEmail({
-      to: email,
-      language,
-      replyTo
-    }).catch(err => console.error('Failed to send inbox auto-ack:', err))
-
     notifyContactRecipients({
       name: name || email,
       email,
       message,
       subscriberId: subscriber.id,
-      conversationId: conversation.id,
-      replyTo,
     }).catch(err => console.error('Failed to notify contact recipients:', err))
 
     trackEventInBackground(event, {

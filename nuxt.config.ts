@@ -144,14 +144,6 @@ export default defineNuxtConfig({
     smtpSecure: process.env.SMTP_SECURE || 'false',
     smtpRejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED || 'true',
 
-    // Shared inbox / Mailgun configuration
-    mailgunDomain: process.env.MAILGUN_DOMAIN || '',
-    mailgunApiKey: process.env.MAILGUN_API_KEY || '',
-    mailgunHost: process.env.MAILGUN_HOST || 'api.mailgun.net',
-    mailgunWebhookSigningKey: process.env.MAILGUN_WEBHOOK_SIGNING_KEY || '',
-    inboxContactAddress: process.env.INBOX_CONTACT_ADDRESS || 'contact@doxa.life',
-    inboxDomain: process.env.INBOX_DOMAIN || 'doxa.life',
-
     // S3 configuration (base layer)
     s3Endpoint: process.env.S3_ENDPOINT || '',
     s3Region: process.env.S3_REGION || '',

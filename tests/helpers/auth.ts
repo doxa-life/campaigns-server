@@ -28,7 +28,7 @@ export async function createTestUser(
     email?: string
     display_name?: string
     password?: string
-    role?: 'admin' | 'people_group_editor' | 'inbox_agent' | null
+    role?: 'admin' | 'people_group_editor' | null
     verified?: boolean
     superadmin?: boolean
   } = {}
@@ -88,7 +88,7 @@ export function getAuthHeaders(user: TestUser): AuthHeaders {
  */
 export async function createAndLoginUser(
   sql: ReturnType<typeof postgres>,
-  role: 'admin' | 'people_group_editor' | 'inbox_agent' | null = null,
+  role: 'admin' | 'people_group_editor' | null = null,
   options: {
     email?: string
     display_name?: string
@@ -125,16 +125,6 @@ export async function createEditorUser(
   } = {}
 ): Promise<{ user: TestUser; auth: AuthHeaders }> {
   return createAndLoginUser(sql, 'people_group_editor', options)
-}
-
-export async function createInboxAgentUser(
-  sql: ReturnType<typeof postgres>,
-  options: {
-    email?: string
-    display_name?: string
-  } = {}
-): Promise<{ user: TestUser; auth: AuthHeaders }> {
-  return createAndLoginUser(sql, 'inbox_agent', options)
 }
 
 /**

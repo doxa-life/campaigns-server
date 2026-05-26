@@ -1,7 +1,6 @@
 import type { Job } from '../../database/job-queue'
 import { processMarketingEmail } from './marketing-email'
 import { processBatchTranslation } from './translation'
-import { processOutboundEmail } from './outbound-email'
 
 export interface ProcessorResult {
   success: boolean
@@ -12,8 +11,7 @@ export type JobProcessor = (job: Job) => Promise<ProcessorResult>
 
 const processors: Record<string, JobProcessor> = {
   marketing_email: processMarketingEmail,
-  translation_batch: processBatchTranslation,
-  outbound_email: processOutboundEmail
+  translation_batch: processBatchTranslation
 }
 
 export function getProcessor(type: string): JobProcessor {

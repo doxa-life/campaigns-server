@@ -493,10 +493,6 @@
       "headerDefault": "{appName}更新",
       "footer": "您收到此邮件是因为您选择接收来自{appName}的更新。"
     },
-    "inboxAutoAck": {
-      "subject": "我们已收到您的信息",
-      "body": "感谢您联系 Doxa。我们已收到您的信息，团队成员会尽快回复。"
-    },
     "days": {
       "sunday": "周日",
       "monday": "周一",

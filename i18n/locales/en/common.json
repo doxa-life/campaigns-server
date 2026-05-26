@@ -493,10 +493,6 @@
       "headerDefault": "{appName} Updates",
       "footer": "You received this email because you opted in to receive updates from {appName}."
     },
-    "inboxAutoAck": {
-      "subject": "We received your message",
-      "body": "Thank you for contacting Doxa. We received your message and someone from our team will reply soon."
-    },
     "days": {
       "sunday": "Sunday",
       "monday": "Monday",

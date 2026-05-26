@@ -6,8 +6,7 @@ const TABLE_PERMISSIONS: Record<string, string> = {
   subscribers: 'subscribers.view',
   libraries: 'content.view',
   people_group_adoptions: 'groups.view',
-  users: 'users.manage',
-  conversations: 'inbox.view'
+  users: 'users.manage'
 }
 
 export default defineEventHandler(async (event) => {
