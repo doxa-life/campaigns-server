@@ -1,10 +1,13 @@
 import { notificationRecipientService } from '../database/notification-recipients'
+import { inboxEmailService } from './inbox-email'
 
 interface ContactNotificationData {
   name: string
   email: string
   message: string
   subscriberId: number
+  replyTo?: string
+  conversationId?: number
 }
 
 function escapeHtml(text: string): string {
@@ -64,7 +67,15 @@ function sendContactNotificationEmail(to: string, data: ContactNotificationData)
     `Message: ${data.message}`,
   ].join('\n')
 
-  return sendEmail({ to, subject, html, text })
+  return inboxEmailService.send({
+    from: String(config.inboxContactAddress || 'contact@doxa.life'),
+    fromName: 'Doxa Inbox',
+    to,
+    subject,
+    html,
+    text,
+    replyTo: data.replyTo
+  }).then(() => true)
 }
 
 export async function notifyContactRecipients(data: ContactNotificationData) {

@@ -489,6 +489,10 @@
       "headerDefault": "Actualizări {appName}",
       "footer": "Ai primit acest email deoarece ai optat să primești actualizări de la {appName}."
     },
+    "inboxAutoAck": {
+      "subject": "Am primit mesajul tau",
+      "body": "Multumim ca ai contactat Doxa. Am primit mesajul tau si cineva din echipa noastra va raspunde in curand."
+    },
     "days": {
       "sunday": "Duminică",
       "monday": "Luni",

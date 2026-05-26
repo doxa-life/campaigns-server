@@ -73,6 +73,24 @@
                   <span v-if="!(row.original as User).hasScopedAccess" class="text-[var(--ui-text-muted)]">—</span>
                 </div>
               </template>
+              <template #inbox-cell="{ row }">
+                <div class="flex items-center gap-2">
+                  <UBadge
+                    v-if="(row.original as User).email_alias"
+                    :label="`${(row.original as User).email_alias}@${inboxDomain}`"
+                    color="info"
+                    variant="subtle"
+                  />
+                  <span v-else class="text-[var(--ui-text-muted)]">—</span>
+                  <UButton
+                    v-if="canSendInbox(row.original as User)"
+                    @click="openInboxIdentityModal(row.original as User)"
+                    variant="ghost"
+                    size="xs"
+                    icon="i-lucide-pencil"
+                  />
+                </div>
+              </template>
               <template #created-cell="{ row }">
                 {{ formatDate((row.original as User).created) }}
               </template>
@@ -225,6 +243,35 @@
           >
             Save Changes
           </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <UModal v-model:open="showInboxIdentityModal" title="Inbox Identity">
+      <template #body>
+        <form class="space-y-4" @submit.prevent="saveInboxIdentity">
+          <p>
+            Configure the doxa.life identity for <strong>{{ selectedUser?.display_name || selectedUser?.email }}</strong>.
+          </p>
+          <UFormField label="Email Alias">
+            <UInput
+              v-model="inboxIdentityForm.email_alias"
+              placeholder="george"
+              class="w-full"
+            >
+              <template #trailing>@{{ inboxDomain }}</template>
+            </UInput>
+          </UFormField>
+          <UFormField label="Signature HTML">
+            <UTextarea v-model="inboxIdentityForm.email_signature" :rows="6" class="w-full" />
+          </UFormField>
+        </form>
+      </template>
+
+      <template #footer="{ close }">
+        <div class="flex justify-end gap-2">
+          <UButton @click="close" variant="outline">Cancel</UButton>
+          <UButton @click="saveInboxIdentity" :loading="inboxIdentitySubmitting">Save</UButton>
         </div>
       </template>
     </UModal>
@@ -419,6 +466,8 @@ interface User {
   roles: { name: string; description: string }[]
   hasScopedAccess: boolean
   peopleGroupCount: number
+  email_alias: string | null
+  email_signature: string | null
 }
 
 interface PeopleGroup {
@@ -460,7 +509,8 @@ const roleIcons: Record<string, string> = {
   progress_admin: 'i-lucide-bar-chart-3',
   content_editor: 'i-lucide-book-open',
   language_editor: 'i-lucide-languages',
-  people_group_editor: 'i-lucide-users'
+  people_group_editor: 'i-lucide-users',
+  inbox_agent: 'i-lucide-inbox'
 }
 
 const roleDisplayNames: Record<string, string> = {
@@ -468,7 +518,8 @@ const roleDisplayNames: Record<string, string> = {
   progress_admin: 'Progress Admin',
   content_editor: 'Content Editor',
   language_editor: 'Language Editor',
-  people_group_editor: 'People Group Editor'
+  people_group_editor: 'People Group Editor',
+  inbox_agent: 'Inbox Agent'
 }
 
 const permissionGroupLabels: Record<string, string> = {
@@ -476,7 +527,8 @@ const permissionGroupLabels: Record<string, string> = {
   groups: 'Groups',
   subscribers: 'Subscribers',
   content: 'Content',
-  users: 'Users'
+  users: 'Users',
+  inbox: 'Inbox'
 }
 
 const permissionDetails: Record<string, { title: string; description: string }> = {
@@ -496,7 +548,9 @@ const permissionDetails: Record<string, { title: string; description: string }> 
   'content.create': { title: 'Create Content', description: 'Create new content' },
   'content.edit': { title: 'Edit Content', description: 'Edit existing content' },
   'content.delete': { title: 'Delete Content', description: 'Delete content' },
-  'users.manage': { title: 'Manage Users', description: 'Invite, edit, and manage user roles' }
+  'users.manage': { title: 'Manage Users', description: 'Invite, edit, and manage user roles' },
+  'inbox.view': { title: 'View Inbox', description: 'View and triage shared inbox conversations' },
+  'inbox.send': { title: 'Send Inbox Email', description: 'Compose replies and manage inbox sending tools' }
 }
 
 const allPermissions = Object.keys(permissionDetails)
@@ -586,6 +640,11 @@ const revoking = ref(false)
 
 // Toast
 const toast = useToast()
+const inboxDomain = 'doxa.life'
+
+const showInboxIdentityModal = ref(false)
+const inboxIdentitySubmitting = ref(false)
+const inboxIdentityForm = ref({ email_alias: '', email_signature: '' })
 
 // Table columns
 const userColumns = [
@@ -594,6 +653,7 @@ const userColumns = [
   { accessorKey: 'roles', header: 'Roles' },
   { accessorKey: 'status', header: 'Status' },
   { accessorKey: 'access', header: 'Access' },
+  { accessorKey: 'inbox', header: 'Inbox Identity' },
   { accessorKey: 'created', header: 'Joined' }
 ]
 
@@ -618,6 +678,44 @@ function formatRoleName(roleName: string): string {
   return roleDisplayNames[roleName] || roleName
 }
 
+function canSendInbox(user: User) {
+  return user.roles.some(role => role.name === 'admin' || role.name === 'inbox_agent')
+}
+
+function openInboxIdentityModal(user: User) {
+  selectedUser.value = user
+  inboxIdentityForm.value = {
+    email_alias: user.email_alias || '',
+    email_signature: user.email_signature || ''
+  }
+  showInboxIdentityModal.value = true
+}
+
+async function saveInboxIdentity() {
+  if (!selectedUser.value) return
+  inboxIdentitySubmitting.value = true
+  try {
+    await $fetch(`/api/admin/users/${selectedUser.value.id}/inbox`, {
+      method: 'PUT',
+      body: {
+        email_alias: inboxIdentityForm.value.email_alias || null,
+        email_signature: inboxIdentityForm.value.email_signature || null
+      }
+    })
+    toast.add({ title: 'Success', description: 'Inbox identity saved', color: 'success' })
+    showInboxIdentityModal.value = false
+    await loadData()
+  } catch (err: any) {
+    toast.add({
+      title: 'Error',
+      description: err.data?.statusMessage || 'Failed to save inbox identity',
+      color: 'error'
+    })
+  } finally {
+    inboxIdentitySubmitting.value = false
+  }
+}
+
 function getStatusColor(status: string): 'success' | 'warning' | 'error' | 'neutral' {
   switch (status) {
     case 'accepted': return 'success'
@@ -636,7 +734,7 @@ async function loadData() {
     const [usersResponse, invitationsResponse, rolesResponse] = await Promise.all([
       $fetch<{ users: User[] }>('/api/admin/users'),
       $fetch<{ invitations: Invitation[] }>('/api/admin/users/invitations'),
-      $fetch<{ roles: Role[] }>('/api/admin/roles')
+      $fetch<{ roles: RoleWithPermissions[] }>('/api/admin/roles')
     ])
 
     users.value = usersResponse.users
