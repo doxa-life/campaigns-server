@@ -123,7 +123,8 @@ export async function trackEvent(event: H3Event | undefined, input: TrackEventIn
         value: input.value ?? null,
         language: input.language ?? null,
         anonymous_hash: input.anonymousHash || undefined,
-        user_hash: input.userHash || userHashFromEmail(input.email)
+        user_hash: input.userHash || userHashFromEmail(input.email),
+        geo: buildGeoFromEvent(event)
       }
     })
   } catch (error: any) {
