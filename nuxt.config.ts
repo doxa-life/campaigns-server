@@ -161,6 +161,9 @@ export default defineNuxtConfig({
     // Form API key for external form submissions (WordPress, etc.)
     formApiKey: process.env.FORM_API_KEY || '',
 
+    // Shared secret bundled into the mobile app for anonymous + news signup
+    anonSignupSecret: process.env.ANON_SIGNUP_SECRET || '',
+
     // Statinator analytics
     statinatorApiKey: process.env.STATINATOR_API_KEY || '',
 

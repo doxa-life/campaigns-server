@@ -68,21 +68,35 @@ function getHostname(event?: H3Event, fallback?: string | null): string | null {
 function getForwardedHeaders(event?: H3Event): Record<string, string> {
   if (!event) return {}
 
+  // Only forward user-agent. The original client geo travels in the request body
+  // (see buildGeoFromEvent) so Statinator gets correct per-user geo regardless of
+  // the network path. Forwarding cf-connecting-ip is poisonous when Statinator is
+  // behind Cloudflare — CF rejects it with error 1000 (loop protection).
   const headers: Record<string, string> = {}
-  for (const name of [
-    'user-agent',
-    'cf-connecting-ip',
-    'x-forwarded-for',
-    'cf-ipcountry',
-    'cf-ipregion',
-    'cf-ipcity',
-    'cf-iplatitude',
-    'cf-iplongitude'
-  ]) {
-    const value = getHeader(event, name)
-    if (value) headers[name] = value
-  }
+  const ua = getHeader(event, 'user-agent')
+  if (ua) headers['user-agent'] = ua
   return headers
+}
+
+function buildGeoFromEvent(event?: H3Event): Record<string, string> | undefined {
+  if (!event) return undefined
+  const ip = getHeader(event, 'cf-connecting-ip')
+    || getHeader(event, 'x-forwarded-for')?.split(',')[0]?.trim()
+  const country = getHeader(event, 'cf-ipcountry')
+  const region = getHeader(event, 'cf-ipregion')
+  const city = getHeader(event, 'cf-ipcity')
+  const lat = getHeader(event, 'cf-iplatitude')
+  const lon = getHeader(event, 'cf-iplongitude')
+
+  const geo: Record<string, string> = {}
+  if (ip) geo.ip = ip
+  if (country) geo.country = country
+  if (region) geo.region = region
+  if (city) geo.city = city
+  if (lat) geo.lat = lat
+  if (lon) geo.lon = lon
+
+  return Object.keys(geo).length > 0 ? geo : undefined
 }
 
 export async function trackEvent(event: H3Event | undefined, input: TrackEventInput): Promise<void> {
@@ -109,7 +123,8 @@ export async function trackEvent(event: H3Event | undefined, input: TrackEventIn
         value: input.value ?? null,
         language: input.language ?? null,
         anonymous_hash: input.anonymousHash || undefined,
-        user_hash: input.userHash || userHashFromEmail(input.email)
+        user_hash: input.userHash || userHashFromEmail(input.email),
+        geo: buildGeoFromEvent(event)
       }
     })
   } catch (error: any) {
