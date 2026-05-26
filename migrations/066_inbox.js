@@ -13,7 +13,7 @@ class BaseMigration {
 }
 
 export default class InboxMigration extends BaseMigration {
-  id = 63
+  id = 66
   name = 'Create shared inbox (conversations, messages, attachments, canned responses, spam senders)'
 
   async up(sql) {

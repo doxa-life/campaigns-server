@@ -230,6 +230,177 @@ paths:
         '500':
           description: Failed to create signup
 
+  /api/people-groups/{slug}/anon-signup:
+    post:
+      tags:
+        - Signups
+      summary: Anonymous mobile-app prayer signup
+      description: >
+        Records a prayer signup for a people group from the mobile app without
+        requiring contact information. Notifications are handled on-device; the
+        server only records the schedule. Upserts a single app subscription per
+        (subscriber, people group) and returns a stable anonymous identity. An
+        email may optionally be supplied to dedup against an existing subscriber
+        and attach news consents.
+      operationId: anonSignupForPeopleGroup
+      security:
+        - appSecret: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: People group slug identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - frequency
+                - time
+              properties:
+                tracking_id:
+                  type: string
+                  format: uuid
+                  description: Persistent device identity; omit on first call, send the returned value afterwards
+                frequency:
+                  type: string
+                  enum: [daily, weekly]
+                  example: daily
+                time:
+                  type: string
+                  description: Reminder time, HH:MM (24h, local)
+                  example: "08:00"
+                days_of_week:
+                  type: array
+                  items:
+                    type: integer
+                  description: Required when frequency is weekly. 0=Sunday .. 6=Saturday
+                  example: [1, 3, 5]
+                timezone:
+                  type: string
+                  description: IANA timezone (defaults to UTC if invalid/missing)
+                  example: Europe/London
+                language:
+                  type: string
+                  enum: [en, es, fr]
+                  example: en
+                email:
+                  type: string
+                  format: email
+                  description: Optional; enables dedup against an existing subscriber and news consents
+                name:
+                  type: string
+                  description: Optional; used only when an email is supplied
+                consent_doxa_general:
+                  type: boolean
+                  description: Optional; only applied when an email is supplied
+                consent_people_group_updates:
+                  type: boolean
+                  description: Optional; only applied when an email is supplied
+      responses:
+        '200':
+          description: Signup recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tracking_id:
+                    type: string
+                    format: uuid
+                  profile_id:
+                    type: string
+                    format: uuid
+                  subscription_id:
+                    type: integer
+        '400':
+          description: Missing/invalid fields (weekly without days_of_week, bad time, invalid email)
+        '403':
+          description: Missing or invalid app secret
+        '404':
+          description: People group not found
+        '500':
+          description: Failed to create anonymous signup
+
+  /api/news-signup:
+    post:
+      tags:
+        - Signups
+      summary: News / newsletter signup
+      description: >
+        Subscribes an email to news/marketing updates (and optionally
+        people-group updates) with double opt-in verification. No prayer schedule
+        required. Accepts either the mobile app secret (X-App-Secret) or the form
+        API key (X-API-Key / Bearer). Email is the canonical identity, so this
+        dedups against existing subscribers.
+      operationId: newsSignup
+      security:
+        - appSecret: []
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: jane@example.com
+                name:
+                  type: string
+                  example: Jane Doe
+                consent_doxa_general:
+                  type: boolean
+                  description: Opt in to general Doxa updates
+                consent_people_group_updates:
+                  type: boolean
+                  description: Opt in to updates for the people group named by people_group_slug
+                people_group_slug:
+                  type: string
+                  description: Required to record people-group update consent
+                country:
+                  type: string
+                  description: ISO alpha-2 or alpha-3 country code
+                  example: GB
+                language:
+                  type: string
+                  enum: [en, es, fr]
+                tracking_id:
+                  type: string
+                  format: uuid
+                  description: Optional; links the email to an existing anonymous subscriber
+      responses:
+        '200':
+          description: News signup recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  tracking_id:
+                    type: string
+                    format: uuid
+                  profile_id:
+                    type: string
+                    format: uuid
+        '400':
+          description: Invalid email
+        '403':
+          description: Missing or invalid auth (app secret or form API key)
+        '500':
+          description: Failed to process news signup
+
   /api/people-groups/{slug}/prayer-content/{date}:
     get:
       tags:
@@ -530,6 +701,11 @@ components:
       in: header
       name: x-api-key
       description: API key for admin endpoints
+    appSecret:
+      type: apiKey
+      in: header
+      name: x-app-secret
+      description: Shared secret bundled into the mobile app (anonymous + news signup)
 
   schemas:
     ValueLabel:

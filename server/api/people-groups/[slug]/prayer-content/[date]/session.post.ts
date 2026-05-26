@@ -5,6 +5,13 @@
 import { peopleGroupService } from '#server/database/people-groups'
 import { getSql } from '#server/database/db'
 import { handleApiError } from '#server/utils/api-helpers'
+import { trackEventInBackground } from '#server/utils/tracking'
+
+// When the client sets `body.trackEvent` to one of these values, the session
+// save also fires the corresponding event to Statinator via the server-side
+// forwarder (`trackEventInBackground`). The browser builds no Statinator
+// payload itself — only the string flag and the language.
+const ALLOWED_TRACK_EVENTS = new Set(['prayer_auto_tracked', 'prayer_logged'])
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
@@ -69,6 +76,24 @@ export default defineEventHandler(async (event) => {
       ON CONFLICT (session_id) WHERE session_id IS NOT NULL
       DO UPDATE SET duration = EXCLUDED.duration, timestamp = EXCLUDED.timestamp, content_date = EXCLUDED.content_date
     `
+
+    // Optional Statinator forward. The browser sets `trackEvent` only on saves
+    // that should fire an event (the 30s checkpoint and the explicit
+    // mark-as-prayed) — every other auto-save just upserts the row.
+    if (typeof body.trackEvent === 'string' && ALLOWED_TRACK_EVENTS.has(body.trackEvent)) {
+      const source = body.trackEvent === 'prayer_logged' ? 'explicit' : 'auto'
+      trackEventInBackground(event, {
+        eventType: body.trackEvent,
+        value: typeof duration === 'number' ? duration : null,
+        anonymousHash: trackingId || null,
+        language: typeof body.language === 'string' ? body.language.slice(0, 32) : null,
+        metadata: {
+          people_group_slug: slug,
+          content_date: dateParam,
+          source
+        }
+      })
+    }
 
     return {
       message: 'Prayer session recorded'

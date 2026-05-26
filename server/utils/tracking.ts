@@ -12,6 +12,9 @@ interface TrackEventInput {
   userHash?: string | null
   email?: string | null
   hostname?: string | null
+  url?: string | null
+  referrer?: string | null
+  screenSize?: string | null
 }
 
 const PII_METADATA_KEYS = new Set([
@@ -68,33 +71,47 @@ function getHostname(event?: H3Event, fallback?: string | null): string | null {
 function getForwardedHeaders(event?: H3Event): Record<string, string> {
   if (!event) return {}
 
+  // Only forward user-agent. The original client geo travels in the request body
+  // (see buildGeoFromEvent) so Statinator gets correct per-user geo regardless of
+  // the network path. Forwarding cf-connecting-ip is poisonous when Statinator is
+  // behind Cloudflare — CF rejects it with error 1000 (loop protection).
   const headers: Record<string, string> = {}
-  for (const name of [
-    'user-agent',
-    'cf-connecting-ip',
-    'x-forwarded-for',
-    'cf-ipcountry',
-    'cf-ipregion',
-    'cf-ipcity',
-    'cf-iplatitude',
-    'cf-iplongitude'
-  ]) {
-    const value = getHeader(event, name)
-    if (value) headers[name] = value
-  }
+  const ua = getHeader(event, 'user-agent')
+  if (ua) headers['user-agent'] = ua
   return headers
 }
 
-export async function trackEvent(event: H3Event | undefined, input: TrackEventInput): Promise<void> {
+function buildGeoFromEvent(event?: H3Event): Record<string, string> | undefined {
+  if (!event) return undefined
+  const ip = getHeader(event, 'cf-connecting-ip')
+    || getHeader(event, 'x-forwarded-for')?.split(',')[0]?.trim()
+  const country = getHeader(event, 'cf-ipcountry')
+  const region = getHeader(event, 'cf-ipregion')
+  const city = getHeader(event, 'cf-ipcity')
+  const lat = getHeader(event, 'cf-iplatitude')
+  const lon = getHeader(event, 'cf-iplongitude')
+
+  const geo: Record<string, string> = {}
+  if (ip) geo.ip = ip
+  if (country) geo.country = country
+  if (region) geo.region = region
+  if (city) geo.city = city
+  if (lat) geo.lat = lat
+  if (lon) geo.lon = lon
+
+  return Object.keys(geo).length > 0 ? geo : undefined
+}
+
+async function sendEvent(event: H3Event | undefined, input: TrackEventInput): Promise<{ id: number } | null> {
   const config = useRuntimeConfig()
   const statinatorUrl = String(config.public.statinatorUrl || '').replace(/\/$/, '')
   const apiKey = String(config.statinatorApiKey || '')
   const projectId = String(config.public.statinatorProjectId || 'doxa')
 
-  if (!statinatorUrl || !apiKey) return
+  if (!statinatorUrl || !apiKey) return null
 
   try {
-    await $fetch(`${statinatorUrl}/api/events`, {
+    const response = await $fetch<{ id: number | string }>(`${statinatorUrl}/api/events`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
@@ -104,19 +121,36 @@ export async function trackEvent(event: H3Event | undefined, input: TrackEventIn
       body: {
         project_id: projectId,
         event_type: input.eventType,
+        url: input.url || undefined,
+        referrer: input.referrer || undefined,
+        screen_size: input.screenSize || undefined,
         hostname: getHostname(event, input.hostname || config.public.siteUrl),
         metadata: sanitizeMetadata(input.metadata),
         value: input.value ?? null,
         language: input.language ?? null,
         anonymous_hash: input.anonymousHash || undefined,
-        user_hash: input.userHash || userHashFromEmail(input.email)
+        user_hash: input.userHash || userHashFromEmail(input.email),
+        geo: buildGeoFromEvent(event)
       }
     })
+    const id = typeof response?.id === 'string' ? Number(response.id) : response?.id
+    return typeof id === 'number' && Number.isFinite(id) ? { id } : null
   } catch (error: any) {
     const status = error?.status ?? error?.statusCode ?? error?.response?.status
     const detail = error?.data ? JSON.stringify(error.data) : (error?.message || String(error))
     console.error(`Statinator tracking failed for event: ${input.eventType} (status=${status ?? 'n/a'}): ${detail}`)
+    return null
   }
+}
+
+export async function trackEvent(event: H3Event | undefined, input: TrackEventInput): Promise<void> {
+  await sendEvent(event, input)
+}
+
+// Same as trackEvent but awaits the response and returns the inserted event id.
+// Used by the pageview relay (the client needs the id to seed its heartbeat loop).
+export async function trackEventReturningId(event: H3Event | undefined, input: TrackEventInput): Promise<{ id: number } | null> {
+  return sendEvent(event, input)
 }
 
 export function trackEventInBackground(event: H3Event, input: TrackEventInput): void {
@@ -127,5 +161,37 @@ export function trackEventInBackground(event: H3Event, input: TrackEventInput): 
     waitUntil.call(event, promise)
   } else {
     void promise
+  }
+}
+
+// Forward a heartbeat update to Statinator's /api/heartbeat.
+// Authenticates via the server-to-server api key (Statinator's heartbeat endpoint
+// gained an api-key branch alongside its existing domain auth).
+export async function forwardHeartbeat(event: H3Event | undefined, input: { eventId: number | string; value: number }): Promise<void> {
+  const config = useRuntimeConfig()
+  const statinatorUrl = String(config.public.statinatorUrl || '').replace(/\/$/, '')
+  const apiKey = String(config.statinatorApiKey || '')
+  const projectId = String(config.public.statinatorProjectId || 'doxa')
+
+  if (!statinatorUrl || !apiKey) return
+
+  try {
+    await $fetch(`${statinatorUrl}/api/heartbeat`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        ...getForwardedHeaders(event)
+      },
+      body: {
+        project_id: projectId,
+        event_id: input.eventId,
+        value: input.value
+      }
+    })
+  } catch (error: any) {
+    const status = error?.status ?? error?.statusCode ?? error?.response?.status
+    const detail = error?.data ? JSON.stringify(error.data) : (error?.message || String(error))
+    console.error(`Statinator heartbeat forward failed for event ${input.eventId} (status=${status ?? 'n/a'}): ${detail}`)
   }
 }

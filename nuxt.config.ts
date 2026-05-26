@@ -181,6 +181,9 @@ export default defineNuxtConfig({
     // Secret for signing reply-by-email addresses (contact+<token>.<sig>@). Falls back to JWT secret.
     inboxReplySecret: process.env.INBOX_REPLY_SECRET || process.env.JWT_SECRET || '',
 
+    // Shared secret bundled into the mobile app for anonymous + news signup
+    anonSignupSecret: process.env.ANON_SIGNUP_SECRET || '',
+
     // Statinator analytics
     statinatorApiKey: process.env.STATINATOR_API_KEY || '',
 

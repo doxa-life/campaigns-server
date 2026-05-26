@@ -292,6 +292,83 @@ class PeopleGroupSubscriptionService {
     return false
   }
 
+  async markInactiveAppSubscriptions(thresholdDays: number = 30): Promise<Array<{
+    id: number
+    subscriber_id: number
+    people_group_id: number
+    people_group_name: string
+    people_group_slug: string
+  }>> {
+    const rows = await this.sql`
+      UPDATE campaign_subscriptions cs
+      SET status = 'inactive', updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      FROM (
+        SELECT cs2.id, pg.name AS pg_name, pg.slug AS pg_slug
+        FROM campaign_subscriptions cs2
+        JOIN subscribers s ON s.id = cs2.subscriber_id
+        JOIN people_groups pg ON pg.id = cs2.people_group_id
+        WHERE cs2.delivery_method = 'app'
+          AND cs2.status = 'active'
+          AND cs2.created_at < (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') - (${thresholdDays}::int * INTERVAL '1 day')
+          AND NOT EXISTS (
+            SELECT 1 FROM prayer_activity pa
+            WHERE pa.tracking_id = s.tracking_id
+              AND pa.people_group_id = cs2.people_group_id
+              AND pa.timestamp > (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') - (${thresholdDays}::int * INTERVAL '1 day')
+          )
+      ) candidates
+      WHERE cs.id = candidates.id
+      RETURNING cs.id, cs.subscriber_id, cs.people_group_id,
+                candidates.pg_name AS people_group_name, candidates.pg_slug AS people_group_slug
+    `
+    return rows as unknown as Array<{
+      id: number
+      subscriber_id: number
+      people_group_id: number
+      people_group_name: string
+      people_group_slug: string
+    }>
+  }
+
+  async reactivateAppSubscriptionsWithRecentActivity(thresholdDays: number = 30): Promise<Array<{
+    id: number
+    subscriber_id: number
+    people_group_id: number
+    people_group_name: string
+    people_group_slug: string
+  }>> {
+    // Only flips 'inactive' → 'active'. Manual 'unsubscribed' stays sticky so
+    // a user/admin opt-out is never silently reversed by background activity.
+    const rows = await this.sql`
+      UPDATE campaign_subscriptions cs
+      SET status = 'active', updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      FROM (
+        SELECT cs2.id, pg.name AS pg_name, pg.slug AS pg_slug
+        FROM campaign_subscriptions cs2
+        JOIN subscribers s ON s.id = cs2.subscriber_id
+        JOIN people_groups pg ON pg.id = cs2.people_group_id
+        WHERE cs2.delivery_method = 'app'
+          AND cs2.status = 'inactive'
+          AND EXISTS (
+            SELECT 1 FROM prayer_activity pa
+            WHERE pa.tracking_id = s.tracking_id
+              AND pa.people_group_id = cs2.people_group_id
+              AND pa.timestamp > (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') - (${thresholdDays}::int * INTERVAL '1 day')
+          )
+      ) candidates
+      WHERE cs.id = candidates.id
+      RETURNING cs.id, cs.subscriber_id, cs.people_group_id,
+                candidates.pg_name AS people_group_name, candidates.pg_slug AS people_group_slug
+    `
+    return rows as unknown as Array<{
+      id: number
+      subscriber_id: number
+      people_group_id: number
+      people_group_name: string
+      people_group_slug: string
+    }>
+  }
+
   async deleteSubscription(id: number): Promise<boolean> {
     const result = await this.sql`DELETE FROM campaign_subscriptions WHERE id = ${id}`
     return result.count > 0
