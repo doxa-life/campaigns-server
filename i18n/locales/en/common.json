@@ -567,5 +567,107 @@
     "downloadIcs": "Other calendars",
     "eventTitle": "Prayer for the {campaign}",
     "eventDescription": "{duration}-minute prayer session for the {campaign}"
+  },
+  "inbox": {
+    "title": "Inbox",
+    "searchPlaceholder": "Search conversations",
+    "empty": "No conversations",
+    "selectPrompt": "Select a conversation to view it",
+    "conversation": "Conversation",
+    "conversations": "Conversations",
+    "internalNotes": "Internal Notes",
+    "activity": "Activity",
+    "needsReview": "Needs review",
+    "unassigned": "Unassigned",
+    "assignedTo": "Assigned to {name}",
+    "assignToMe": "Assign to me",
+    "assign": "Assign",
+    "unassign": "Unassign",
+    "spamScore": "Spam score",
+    "filters": {
+      "all": "All",
+      "unassigned": "Unassigned",
+      "mine": "Mine",
+      "open": "Open",
+      "pending": "Pending",
+      "closed": "Closed",
+      "spam": "Spam",
+      "held": "Held"
+    },
+    "status": {
+      "open": "Open",
+      "pending": "Pending",
+      "closed": "Closed",
+      "spam": "Spam"
+    },
+    "direction": {
+      "inbound": "Received",
+      "outbound": "Sent"
+    },
+    "compose": {
+      "from": "From",
+      "reply": "Reply",
+      "send": "Send",
+      "saveDraft": "Save Draft",
+      "draft": "Draft",
+      "sending": "Sending…",
+      "cannedResponse": "Canned response",
+      "attach": "Attach file",
+      "placeholder": "Write your reply…",
+      "language": "Language",
+      "newEmail": "New email",
+      "to": "To",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "Subject",
+      "bodyLabel": "Message",
+      "bodyPlaceholder": "Write your message…"
+    },
+    "actions": {
+      "close": "Close",
+      "reopen": "Reopen",
+      "markSpam": "Spam",
+      "unmarkSpam": "Not spam",
+      "showQuoted": "Show quoted text",
+      "hideQuoted": "Hide quoted text",
+      "flagReview": "For review",
+      "unflagReview": "Clear review"
+    },
+    "confirm": {
+      "closeTitle": "Close conversation",
+      "closeMessage": "Close this conversation? It will reopen automatically if the contact replies.",
+      "spamTitle": "Mark as spam",
+      "spamMessage": "Block this sender and close the conversation? Future messages from them will be auto-closed."
+    },
+    "toasts": {
+      "sent": "Reply sent",
+      "emailSent": "Email sent",
+      "draftSaved": "Draft saved",
+      "assigned": "Conversation assigned",
+      "statusChanged": "Status updated",
+      "markedSpam": "Marked as spam",
+      "unmarkedSpam": "Removed from spam",
+      "error": "Something went wrong"
+    },
+    "identity": {
+      "alias": "Email alias",
+      "aliasHint": "Local part only — george becomes george{'@'}doxa.life",
+      "signature": "Email signature",
+      "save": "Save"
+    },
+    "canned": {
+      "title": "Canned responses",
+      "new": "New canned response",
+      "name": "Title",
+      "body": "Body",
+      "save": "Save",
+      "delete": "Delete"
+    },
+    "autoAck": {
+      "subject": "We received your message",
+      "greeting": "Hello,",
+      "greetingNamed": "Hello {name},",
+      "body": "Thanks for reaching out to {appName}. We have received your message and a member of our team will get back to you soon.",
+      "signoff": "In Christ,\nThe {appName} Team"
+    }
   }
 }

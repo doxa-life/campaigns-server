@@ -563,5 +563,105 @@
     "downloadIcs": "Alte calendare",
     "eventTitle": "Rugăciune pentru {campaign}",
     "eventDescription": "Sesiune de rugăciune de {duration} minute pentru {campaign}"
+  },
+  "inbox":   {
+    "title": "Mesaje primite",
+    "searchPlaceholder": "Caută conversații",
+    "empty": "Nicio conversație",
+    "selectPrompt": "Selectează o conversație pentru a o vizualiza",
+    "conversation": "Conversație",
+    "conversations": "Conversații",
+    "internalNotes": "Note interne",
+    "activity": "Activitate",
+    "needsReview": "Necesită revizuire",
+    "unassigned": "Neatribuită",
+    "assignedTo": "Atribuită lui {name}",
+    "assignToMe": "Atribuie-mi",
+    "assign": "Atribuie",
+    "unassign": "Anulează atribuirea",
+    "spamScore": "Scor spam",
+    "filters": {
+      "all": "Toate",
+      "unassigned": "Neatribuite",
+      "mine": "Ale mele",
+      "open": "Deschise",
+      "pending": "În așteptare",
+      "closed": "Închise",
+      "spam": "Spam",
+      "held": "Reținute"
+    },
+    "status": {
+      "open": "Deschisă",
+      "pending": "În așteptare",
+      "closed": "Închisă",
+      "spam": "Spam"
+    },
+    "direction": {
+      "inbound": "Primit",
+      "outbound": "Trimis"
+    },
+    "compose": {
+      "from": "De la",
+      "reply": "Răspunde",
+      "send": "Trimite",
+      "saveDraft": "Salvează ciorna",
+      "draft": "Ciornă",
+      "sending": "Se trimite…",
+      "cannedResponse": "Răspuns predefinit",
+      "attach": "Atașează fișier",
+      "placeholder": "Scrie răspunsul tău…",
+      "language": "Limbă",
+      "newEmail": "E-mail nou",
+      "to": "Către",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "Subiect",
+      "bodyLabel": "Mesaj",
+      "bodyPlaceholder": "Scrie mesajul tău…"
+    },
+    "actions": {
+      "close": "Închide",
+      "reopen": "Redeschide",
+      "markSpam": "Marchează ca spam",
+      "unmarkSpam": "Nu este spam",
+      "showQuoted": "Arată textul citat",
+      "hideQuoted": "Ascunde textul citat"
+    },
+    "confirm": {
+      "closeTitle": "Închide conversația",
+      "closeMessage": "Închizi această conversație? Se va redeschide automat dacă persoana de contact răspunde.",
+      "spamTitle": "Marchează ca spam",
+      "spamMessage": "Blochezi acest expeditor și închizi conversația? Mesajele lui viitoare vor fi închise automat."
+    },
+    "toasts": {
+      "sent": "Răspuns trimis",
+      "emailSent": "E-mail trimis",
+      "draftSaved": "Ciornă salvată",
+      "assigned": "Conversație atribuită",
+      "statusChanged": "Stare actualizată",
+      "markedSpam": "Marcată ca spam",
+      "unmarkedSpam": "Eliminată din spam",
+      "error": "Ceva nu a mers bine"
+    },
+    "identity": {
+      "alias": "Alias e-mail",
+      "aliasHint": "Doar partea locală — george devine george{'@'}doxa.life",
+      "signature": "Semnătură e-mail",
+      "save": "Salvează"
+    },
+    "canned": {
+      "title": "Răspunsuri predefinite",
+      "new": "Răspuns predefinit nou",
+      "name": "Titlu",
+      "body": "Conținut",
+      "save": "Salvează",
+      "delete": "Șterge"
+    },
+    "autoAck": {
+      "subject": "Am primit mesajul tău",
+      "greeting": "Bună,",
+      "greetingNamed": "Bună {name},",
+      "body": "Îți mulțumim că ai contactat {appName}. Am primit mesajul tău și un membru al echipei noastre îți va răspunde în curând.",
+      "signoff": "În Hristos,\nEchipa {appName}"
+    }
   }
 }

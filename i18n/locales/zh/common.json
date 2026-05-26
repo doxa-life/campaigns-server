@@ -567,5 +567,105 @@
     "downloadIcs": "其他日历",
     "eventTitle": "为{campaign}祷告",
     "eventDescription": "为{campaign}进行{duration}分钟的祷告"
+  },
+  "inbox":   {
+    "title": "收件箱",
+    "searchPlaceholder": "搜索会话",
+    "empty": "没有会话",
+    "selectPrompt": "选择一个会话以查看",
+    "conversation": "会话",
+    "conversations": "会话",
+    "internalNotes": "内部备注",
+    "activity": "活动记录",
+    "needsReview": "需要审核",
+    "unassigned": "未分配",
+    "assignedTo": "已分配给 {name}",
+    "assignToMe": "分配给我",
+    "assign": "分配",
+    "unassign": "取消分配",
+    "spamScore": "垃圾邮件评分",
+    "filters": {
+      "all": "全部",
+      "unassigned": "未分配",
+      "mine": "我的",
+      "open": "待处理",
+      "pending": "等待回复",
+      "closed": "已关闭",
+      "spam": "垃圾邮件",
+      "held": "已保留"
+    },
+    "status": {
+      "open": "待处理",
+      "pending": "等待回复",
+      "closed": "已关闭",
+      "spam": "垃圾邮件"
+    },
+    "direction": {
+      "inbound": "收到",
+      "outbound": "发送"
+    },
+    "compose": {
+      "from": "发件人",
+      "reply": "回复",
+      "send": "发送",
+      "saveDraft": "保存草稿",
+      "draft": "草稿",
+      "sending": "发送中…",
+      "cannedResponse": "常用回复",
+      "attach": "添加附件",
+      "placeholder": "写下你的回复…",
+      "language": "语言",
+      "newEmail": "新邮件",
+      "to": "收件人",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "主题",
+      "bodyLabel": "正文",
+      "bodyPlaceholder": "写下你的消息…"
+    },
+    "actions": {
+      "close": "关闭",
+      "reopen": "重新打开",
+      "markSpam": "标记为垃圾邮件",
+      "unmarkSpam": "不是垃圾邮件",
+      "showQuoted": "显示引用内容",
+      "hideQuoted": "隐藏引用内容"
+    },
+    "confirm": {
+      "closeTitle": "关闭会话",
+      "closeMessage": "关闭此会话？如果联系人回复，它将自动重新打开。",
+      "spamTitle": "标记为垃圾邮件",
+      "spamMessage": "屏蔽此发件人并关闭会话？以后来自他们的邮件将被自动关闭。"
+    },
+    "toasts": {
+      "sent": "回复已发送",
+      "emailSent": "邮件已发送",
+      "draftSaved": "草稿已保存",
+      "assigned": "会话已分配",
+      "statusChanged": "状态已更新",
+      "markedSpam": "已标记为垃圾邮件",
+      "unmarkedSpam": "已从垃圾邮件中移除",
+      "error": "出错了"
+    },
+    "identity": {
+      "alias": "邮箱别名",
+      "aliasHint": "仅限本地部分——george 将成为 george{'@'}doxa.life",
+      "signature": "邮件签名",
+      "save": "保存"
+    },
+    "canned": {
+      "title": "常用回复",
+      "new": "新建常用回复",
+      "name": "标题",
+      "body": "内容",
+      "save": "保存",
+      "delete": "删除"
+    },
+    "autoAck": {
+      "subject": "我们已收到您的消息",
+      "greeting": "您好，",
+      "greetingNamed": "您好 {name}，",
+      "body": "感谢您联系 {appName}。我们已收到您的消息，我们团队的成员将很快回复您。",
+      "signoff": "靠主同行，\n{appName} 团队"
+    }
   }
 }

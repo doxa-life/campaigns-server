@@ -74,6 +74,14 @@ export class RoleService {
   getRoleByName(name: string) {
     return ROLES[name as RoleName] || null
   }
+
+  /** Role names that grant the given permission (or its _scoped variant). */
+  getRoleNamesWithPermission(permission: string): RoleName[] {
+    const scoped = permission + '_scoped'
+    return Object.values(ROLES)
+      .filter(r => r.permissions.includes(permission) || r.permissions.includes(scoped))
+      .map(r => r.name)
+  }
 }
 
 export const roleService = new RoleService()

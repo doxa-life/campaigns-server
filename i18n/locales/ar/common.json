@@ -567,5 +567,105 @@
     "downloadIcs": "تقويمات أخرى",
     "eventTitle": "صلاة من أجل {campaign}",
     "eventDescription": "جلسة صلاة مدتها {duration} دقيقة من أجل {campaign}"
+  },
+  "inbox":   {
+    "title": "صندوق الوارد",
+    "searchPlaceholder": "البحث في المحادثات",
+    "empty": "لا توجد محادثات",
+    "selectPrompt": "اختر محادثة لعرضها",
+    "conversation": "محادثة",
+    "conversations": "المحادثات",
+    "internalNotes": "ملاحظات داخلية",
+    "activity": "النشاط",
+    "needsReview": "بحاجة إلى مراجعة",
+    "unassigned": "غير مُسندة",
+    "assignedTo": "مُسندة إلى {name}",
+    "assignToMe": "إسنادها إليّ",
+    "assign": "إسناد",
+    "unassign": "إلغاء الإسناد",
+    "spamScore": "درجة البريد المزعج",
+    "filters": {
+      "all": "الكل",
+      "unassigned": "غير مُسندة",
+      "mine": "الخاصة بي",
+      "open": "مفتوحة",
+      "pending": "قيد الانتظار",
+      "closed": "مغلقة",
+      "spam": "بريد مزعج",
+      "held": "محتجزة"
+    },
+    "status": {
+      "open": "مفتوحة",
+      "pending": "قيد الانتظار",
+      "closed": "مغلقة",
+      "spam": "بريد مزعج"
+    },
+    "direction": {
+      "inbound": "وارد",
+      "outbound": "صادر"
+    },
+    "compose": {
+      "from": "من",
+      "reply": "رد",
+      "send": "إرسال",
+      "saveDraft": "حفظ المسودة",
+      "draft": "مسودة",
+      "sending": "جارٍ الإرسال…",
+      "cannedResponse": "رد جاهز",
+      "attach": "إرفاق ملف",
+      "placeholder": "اكتب ردك…",
+      "language": "اللغة",
+      "newEmail": "بريد جديد",
+      "to": "إلى",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "الموضوع",
+      "bodyLabel": "الرسالة",
+      "bodyPlaceholder": "اكتب رسالتك…"
+    },
+    "actions": {
+      "close": "إغلاق",
+      "reopen": "إعادة الفتح",
+      "markSpam": "وضع علامة بريد مزعج",
+      "unmarkSpam": "ليس بريدًا مزعجًا",
+      "showQuoted": "إظهار النص المقتبس",
+      "hideQuoted": "إخفاء النص المقتبس"
+    },
+    "confirm": {
+      "closeTitle": "إغلاق المحادثة",
+      "closeMessage": "إغلاق هذه المحادثة؟ ستُفتح تلقائيًا إذا رد جهة الاتصال.",
+      "spamTitle": "وضع علامة بريد مزعج",
+      "spamMessage": "حظر هذا المُرسِل وإغلاق المحادثة؟ ستُغلق رسائله المستقبلية تلقائيًا."
+    },
+    "toasts": {
+      "sent": "تم إرسال الرد",
+      "emailSent": "تم إرسال البريد الإلكتروني",
+      "draftSaved": "تم حفظ المسودة",
+      "assigned": "تم إسناد المحادثة",
+      "statusChanged": "تم تحديث الحالة",
+      "markedSpam": "تم وضع علامة بريد مزعج",
+      "unmarkedSpam": "تمت الإزالة من البريد المزعج",
+      "error": "حدث خطأ ما"
+    },
+    "identity": {
+      "alias": "الاسم المستعار للبريد",
+      "aliasHint": "الجزء المحلي فقط — يصبح george هو george{'@'}doxa.life",
+      "signature": "توقيع البريد",
+      "save": "حفظ"
+    },
+    "canned": {
+      "title": "الردود الجاهزة",
+      "new": "رد جاهز جديد",
+      "name": "العنوان",
+      "body": "المحتوى",
+      "save": "حفظ",
+      "delete": "حذف"
+    },
+    "autoAck": {
+      "subject": "لقد استلمنا رسالتك",
+      "greeting": "مرحبًا،",
+      "greetingNamed": "مرحبًا {name}،",
+      "body": "شكرًا لتواصلك مع {appName}. لقد استلمنا رسالتك وسيرد عليك أحد أعضاء فريقنا قريبًا.",
+      "signoff": "في المسيح،\nفريق {appName}"
+    }
   }
 }

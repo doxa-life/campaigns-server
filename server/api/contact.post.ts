@@ -1,11 +1,22 @@
 import { subscriberService } from '../database/subscribers'
 import { contactMethodService } from '../database/contact-methods'
+import { conversationService } from '../database/conversations'
+import { messageService } from '../database/conversation-messages'
 import { requireFormApiKey } from '../utils/form-api-key'
 import { handleApiError } from '#server/utils/api-helpers'
-import { notifyContactRecipients } from '../utils/contact-notification-email'
+import { jobQueueService, type InboxEmailPayload } from '../database/job-queue'
 import { sendContactVerificationEmail } from '../utils/contact-verification-email'
 import countries from 'i18n-iso-countries'
 import { trackEventInBackground, userHashFromEmail } from '../utils/tracking'
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
 
 export default defineEventHandler(async (event) => {
   requireFormApiKey(event)
@@ -68,12 +79,45 @@ export default defineEventHandler(async (event) => {
       form_values: { name, email, message, country, consent_doxa_general: body.consent_doxa_general ?? false },
     })
 
-    notifyContactRecipients({
-      name: name || email,
-      email,
-      message,
-      subscriberId: subscriber.id,
-    }).catch(err => console.error('Failed to notify contact recipients:', err))
+    // Open a conversation in the shared inbox with the form message as the first inbound message.
+    const subject = (message.split('\n')[0] || 'Contact form message').slice(0, 120)
+    const conversation = await conversationService.create({
+      subscriber_id: subscriber.id,
+      subject,
+      status: 'open',
+    })
+    const firstMessage = await messageService.create({
+      conversation_id: conversation.id,
+      direction: 'inbound',
+      status: 'received',
+      from_email: email,
+      from_name: name || email,
+      to_email: useRuntimeConfig().inboxContactAddress || 'contact@doxa.life',
+      subject,
+      body_html: `<p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`,
+      body_text: message,
+    })
+    await conversationService.touchLastMessage(conversation.id, firstMessage.created_at, 'inbound')
+    logCreate('conversations', String(conversation.id), event, { message: 'Contact form conversation opened', direction: 'inbound' })
+
+    // Auto-ack (in the form's language) and the staff notification go through the job
+    // queue so a transient send failure is retried instead of silently lost.
+    try {
+      await jobQueueService.createJob<InboxEmailPayload>('inbox_email', {
+        kind: 'auto_ack',
+        conversation_id: conversation.id,
+        to: email,
+        name: name || null,
+        language,
+      }, { referenceType: 'conversation', referenceId: conversation.id })
+      await jobQueueService.createJob<InboxEmailPayload>('inbox_email', {
+        kind: 'new_conversation',
+        conversation_id: conversation.id,
+        message_id: firstMessage.id,
+      }, { referenceType: 'conversation', referenceId: conversation.id })
+    } catch (err) {
+      console.error('Failed to enqueue inbox emails:', err)
+    }
 
     trackEventInBackground(event, {
       eventType: 'contact_form_submitted',

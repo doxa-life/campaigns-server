@@ -41,6 +41,16 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   ssr: false,
 
+  // Keep the file watcher out of large non-source trees (e.g. agent git
+  // worktrees under .claude/worktrees/, each carrying their own node_modules).
+  // Without this the core builder watcher walks them and hits EMFILE.
+  ignore: ['**/.claude/**', '**/wip/**'],
+  watchers: {
+    chokidar: {
+      ignored: ['**/.claude/**', '**/wip/**']
+    }
+  },
+
   css: ['~/assets/css/main.css'],
 
   app: {
@@ -80,7 +90,7 @@ export default defineNuxtConfig({
 
   nitro: {
     watchOptions: {
-      ignored: ['**/node_modules/.c12/**', '**/.layers/**']
+      ignored: ['**/node_modules/.c12/**', '**/.layers/**', '**/.claude/**']
     },
     imports: {
       // Exclude server/utils/app from auto-imports to avoid conflicts with base layer
@@ -105,12 +115,12 @@ export default defineNuxtConfig({
     }
   },
 
-  watch: ['!node_modules/.c12/**', '!.layers/**'],
+  watch: ['!node_modules/.c12/**', '!.layers/**', '!.claude/**'],
 
   vite: {
     server: {
       watch: {
-        ignored: ['**/node_modules/.c12/**', '**/.layers/**']
+        ignored: ['**/node_modules/.c12/**', '**/.layers/**', '**/.claude/**']
       }
     },
     optimizeDeps: {
@@ -161,6 +171,16 @@ export default defineNuxtConfig({
     // Form API key for external form submissions (WordPress, etc.)
     formApiKey: process.env.FORM_API_KEY || '',
 
+    // Mailgun shared-inbox transport + inbound/delivery webhooks
+    mailgunApiKey: process.env.MAILGUN_API_KEY || '',
+    mailgunDomain: process.env.MAILGUN_DOMAIN || '',
+    mailgunHost: process.env.MAILGUN_HOST || 'api.mailgun.net',
+    mailgunWebhookSigningKey: process.env.MAILGUN_WEBHOOK_SIGNING_KEY || '',
+    inboxContactAddress: process.env.INBOX_CONTACT_ADDRESS || 'contact@doxa.life',
+    inboxDomain: process.env.INBOX_DOMAIN || 'doxa.life',
+    // Secret for signing reply-by-email addresses (contact+<token>.<sig>@). Falls back to JWT secret.
+    inboxReplySecret: process.env.INBOX_REPLY_SECRET || process.env.JWT_SECRET || '',
+
     // Shared secret bundled into the mobile app for anonymous + news signup
     anonSignupSecret: process.env.ANON_SIGNUP_SECRET || '',
 
@@ -172,6 +192,9 @@ export default defineNuxtConfig({
       appName: appTitle,
       nodeEnv: process.env.NODE_ENV || 'development',
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+      // Inbox sending identity (used by the composer's From selector)
+      inboxContactAddress: process.env.INBOX_CONTACT_ADDRESS || 'contact@doxa.life',
+      inboxDomain: process.env.INBOX_DOMAIN || 'doxa.life',
       statinatorUrl: process.env.NUXT_PUBLIC_STATINATOR_URL || 'https://statinator.doxa.life',
       statinatorProjectId: process.env.NUXT_PUBLIC_STATINATOR_PROJECT_ID || 'doxa',
       statinatorEnabled: process.env.NUXT_PUBLIC_STATINATOR_ENABLED === 'true',

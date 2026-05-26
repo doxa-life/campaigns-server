@@ -6,7 +6,10 @@
 
     <div v-if="error" class="error">{{ error }}</div>
 
-    <div v-else class="crm-layout">
+    <div v-else class="crm-layout" :class="{ 'has-rail': !!$slots['list-rail'] }">
+      <aside v-if="$slots['list-rail']" class="rail-panel">
+        <slot name="list-rail" />
+      </aside>
       <div class="list-panel">
         <slot name="list-header" />
         <div class="list-items">
@@ -32,6 +35,8 @@
           </div>
           <div class="slideover-header-actions">
             <slot name="detail-actions" />
+          </div>
+          <div class="slideover-close">
             <UButton
               icon="i-lucide-x"
               variant="ghost"
@@ -93,6 +98,38 @@ const slideoverOpen = computed({
   min-height: 600px;
 }
 
+.crm-layout.has-rail {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.crm-layout.has-rail .list-panel {
+  flex: 1;
+  min-width: 0;
+}
+
+.rail-panel {
+  width: 210px;
+  flex-shrink: 0;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  overflow-y: auto;
+  max-height: calc(100vh - 150px);
+}
+
+@media (max-width: 768px) {
+  .crm-layout.has-rail {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rail-panel {
+    width: 100%;
+    max-height: none;
+  }
+}
+
 .list-panel {
   border: 1px solid var(--ui-border);
   border-radius: 8px;
@@ -137,5 +174,35 @@ const slideoverOpen = computed({
   display: flex;
   gap: 0.5rem;
   flex-shrink: 0;
+}
+
+.slideover-close {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .slideover-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    position: relative;
+  }
+
+  .slideover-header-actions {
+    flex-wrap: wrap;
+  }
+
+  /* Keep the close button pinned top-right while everything else stacks. */
+  .slideover-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+
+  .slideover-header-info {
+    padding-right: 2.5rem;
+  }
 }
 </style>

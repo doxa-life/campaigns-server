@@ -567,5 +567,105 @@
     "downloadIcs": "Otros calendarios",
     "eventTitle": "Oración por los {campaign}",
     "eventDescription": "Sesión de oración de {duration} minutos por los {campaign}"
+  },
+  "inbox":   {
+    "title": "Bandeja de entrada",
+    "searchPlaceholder": "Buscar conversaciones",
+    "empty": "Sin conversaciones",
+    "selectPrompt": "Selecciona una conversación para verla",
+    "conversation": "Conversación",
+    "conversations": "Conversaciones",
+    "internalNotes": "Notas internas",
+    "activity": "Actividad",
+    "needsReview": "Requiere revisión",
+    "unassigned": "Sin asignar",
+    "assignedTo": "Asignada a {name}",
+    "assignToMe": "Asignármela",
+    "assign": "Asignar",
+    "unassign": "Quitar asignación",
+    "spamScore": "Puntuación de spam",
+    "filters": {
+      "all": "Todas",
+      "unassigned": "Sin asignar",
+      "mine": "Mías",
+      "open": "Abiertas",
+      "pending": "Pendientes",
+      "closed": "Cerradas",
+      "spam": "Spam",
+      "held": "Retenidas"
+    },
+    "status": {
+      "open": "Abierta",
+      "pending": "Pendiente",
+      "closed": "Cerrada",
+      "spam": "Spam"
+    },
+    "direction": {
+      "inbound": "Recibido",
+      "outbound": "Enviado"
+    },
+    "compose": {
+      "from": "De",
+      "reply": "Responder",
+      "send": "Enviar",
+      "saveDraft": "Guardar borrador",
+      "draft": "Borrador",
+      "sending": "Enviando…",
+      "cannedResponse": "Respuesta predefinida",
+      "attach": "Adjuntar archivo",
+      "placeholder": "Escribe tu respuesta…",
+      "language": "Idioma",
+      "newEmail": "Nuevo correo",
+      "to": "Para",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "Asunto",
+      "bodyLabel": "Mensaje",
+      "bodyPlaceholder": "Escribe tu mensaje…"
+    },
+    "actions": {
+      "close": "Cerrar",
+      "reopen": "Reabrir",
+      "markSpam": "Marcar como spam",
+      "unmarkSpam": "No es spam",
+      "showQuoted": "Mostrar texto citado",
+      "hideQuoted": "Ocultar texto citado"
+    },
+    "confirm": {
+      "closeTitle": "Cerrar conversación",
+      "closeMessage": "¿Cerrar esta conversación? Se reabrirá automáticamente si el contacto responde.",
+      "spamTitle": "Marcar como spam",
+      "spamMessage": "¿Bloquear a este remitente y cerrar la conversación? Sus futuros mensajes se cerrarán automáticamente."
+    },
+    "toasts": {
+      "sent": "Respuesta enviada",
+      "emailSent": "Correo enviado",
+      "draftSaved": "Borrador guardado",
+      "assigned": "Conversación asignada",
+      "statusChanged": "Estado actualizado",
+      "markedSpam": "Marcada como spam",
+      "unmarkedSpam": "Quitada de spam",
+      "error": "Algo salió mal"
+    },
+    "identity": {
+      "alias": "Alias de correo",
+      "aliasHint": "Solo la parte local: george se convierte en george{'@'}doxa.life",
+      "signature": "Firma de correo",
+      "save": "Guardar"
+    },
+    "canned": {
+      "title": "Respuestas predefinidas",
+      "new": "Nueva respuesta predefinida",
+      "name": "Título",
+      "body": "Contenido",
+      "save": "Guardar",
+      "delete": "Eliminar"
+    },
+    "autoAck": {
+      "subject": "Hemos recibido tu mensaje",
+      "greeting": "Hola:",
+      "greetingNamed": "Hola {name}:",
+      "body": "Gracias por escribir a {appName}. Hemos recibido tu mensaje y un miembro de nuestro equipo te responderá pronto.",
+      "signoff": "En Cristo,\nEl equipo de {appName}"
+    }
   }
 }

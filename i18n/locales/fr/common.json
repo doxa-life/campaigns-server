@@ -567,5 +567,105 @@
     "downloadIcs": "Autres calendriers",
     "eventTitle": "Prière pour les {campaign}",
     "eventDescription": "Session de prière de {duration} minutes pour les {campaign}"
+  },
+  "inbox":   {
+    "title": "Boîte de réception",
+    "searchPlaceholder": "Rechercher des conversations",
+    "empty": "Aucune conversation",
+    "selectPrompt": "Sélectionnez une conversation pour l’afficher",
+    "conversation": "Conversation",
+    "conversations": "Conversations",
+    "internalNotes": "Notes internes",
+    "activity": "Activité",
+    "needsReview": "À examiner",
+    "unassigned": "Non attribuée",
+    "assignedTo": "Attribuée à {name}",
+    "assignToMe": "M’attribuer",
+    "assign": "Attribuer",
+    "unassign": "Retirer l’attribution",
+    "spamScore": "Score de spam",
+    "filters": {
+      "all": "Toutes",
+      "unassigned": "Non attribuées",
+      "mine": "Les miennes",
+      "open": "Ouvertes",
+      "pending": "En attente",
+      "closed": "Fermées",
+      "spam": "Spam",
+      "held": "En attente de revue"
+    },
+    "status": {
+      "open": "Ouverte",
+      "pending": "En attente",
+      "closed": "Fermée",
+      "spam": "Spam"
+    },
+    "direction": {
+      "inbound": "Reçu",
+      "outbound": "Envoyé"
+    },
+    "compose": {
+      "from": "De",
+      "reply": "Répondre",
+      "send": "Envoyer",
+      "saveDraft": "Enregistrer le brouillon",
+      "draft": "Brouillon",
+      "sending": "Envoi…",
+      "cannedResponse": "Réponse type",
+      "attach": "Joindre un fichier",
+      "placeholder": "Rédigez votre réponse…",
+      "language": "Langue",
+      "newEmail": "Nouvel e-mail",
+      "to": "À",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "Objet",
+      "bodyLabel": "Message",
+      "bodyPlaceholder": "Rédigez votre message…"
+    },
+    "actions": {
+      "close": "Fermer",
+      "reopen": "Rouvrir",
+      "markSpam": "Marquer comme spam",
+      "unmarkSpam": "Pas un spam",
+      "showQuoted": "Afficher le texte cité",
+      "hideQuoted": "Masquer le texte cité"
+    },
+    "confirm": {
+      "closeTitle": "Fermer la conversation",
+      "closeMessage": "Fermer cette conversation ? Elle se rouvrira automatiquement si le contact répond.",
+      "spamTitle": "Marquer comme spam",
+      "spamMessage": "Bloquer cet expéditeur et fermer la conversation ? Ses futurs messages seront fermés automatiquement."
+    },
+    "toasts": {
+      "sent": "Réponse envoyée",
+      "emailSent": "E-mail envoyé",
+      "draftSaved": "Brouillon enregistré",
+      "assigned": "Conversation attribuée",
+      "statusChanged": "Statut mis à jour",
+      "markedSpam": "Marquée comme spam",
+      "unmarkedSpam": "Retirée du spam",
+      "error": "Une erreur est survenue"
+    },
+    "identity": {
+      "alias": "Alias e-mail",
+      "aliasHint": "Partie locale uniquement — george devient george{'@'}doxa.life",
+      "signature": "Signature e-mail",
+      "save": "Enregistrer"
+    },
+    "canned": {
+      "title": "Réponses types",
+      "new": "Nouvelle réponse type",
+      "name": "Titre",
+      "body": "Contenu",
+      "save": "Enregistrer",
+      "delete": "Supprimer"
+    },
+    "autoAck": {
+      "subject": "Nous avons bien reçu votre message",
+      "greeting": "Bonjour,",
+      "greetingNamed": "Bonjour {name},",
+      "body": "Merci d’avoir contacté {appName}. Nous avons bien reçu votre message et un membre de notre équipe vous répondra bientôt.",
+      "signoff": "En Christ,\nL’équipe {appName}"
+    }
   }
 }

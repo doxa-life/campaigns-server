@@ -567,5 +567,105 @@
     "downloadIcs": "Andere Kalender",
     "eventTitle": "Gebet für die {campaign}",
     "eventDescription": "{duration}-minütige Gebetszeit für die {campaign}"
+  },
+  "inbox":   {
+    "title": "Posteingang",
+    "searchPlaceholder": "Unterhaltungen suchen",
+    "empty": "Keine Unterhaltungen",
+    "selectPrompt": "Wählen Sie eine Unterhaltung aus, um sie anzuzeigen",
+    "conversation": "Unterhaltung",
+    "conversations": "Unterhaltungen",
+    "internalNotes": "Interne Notizen",
+    "activity": "Aktivität",
+    "needsReview": "Zu prüfen",
+    "unassigned": "Nicht zugewiesen",
+    "assignedTo": "Zugewiesen an {name}",
+    "assignToMe": "Mir zuweisen",
+    "assign": "Zuweisen",
+    "unassign": "Zuweisung aufheben",
+    "spamScore": "Spam-Bewertung",
+    "filters": {
+      "all": "Alle",
+      "unassigned": "Nicht zugewiesen",
+      "mine": "Meine",
+      "open": "Offen",
+      "pending": "Ausstehend",
+      "closed": "Geschlossen",
+      "spam": "Spam",
+      "held": "Zurückgehalten"
+    },
+    "status": {
+      "open": "Offen",
+      "pending": "Ausstehend",
+      "closed": "Geschlossen",
+      "spam": "Spam"
+    },
+    "direction": {
+      "inbound": "Empfangen",
+      "outbound": "Gesendet"
+    },
+    "compose": {
+      "from": "Von",
+      "reply": "Antworten",
+      "send": "Senden",
+      "saveDraft": "Entwurf speichern",
+      "draft": "Entwurf",
+      "sending": "Senden…",
+      "cannedResponse": "Vorlage",
+      "attach": "Datei anhängen",
+      "placeholder": "Schreiben Sie Ihre Antwort…",
+      "language": "Sprache",
+      "newEmail": "Neue E-Mail",
+      "to": "An",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "Betreff",
+      "bodyLabel": "Nachricht",
+      "bodyPlaceholder": "Schreiben Sie Ihre Nachricht…"
+    },
+    "actions": {
+      "close": "Schließen",
+      "reopen": "Wieder öffnen",
+      "markSpam": "Als Spam markieren",
+      "unmarkSpam": "Kein Spam",
+      "showQuoted": "Zitierten Text anzeigen",
+      "hideQuoted": "Zitierten Text ausblenden"
+    },
+    "confirm": {
+      "closeTitle": "Unterhaltung schließen",
+      "closeMessage": "Diese Unterhaltung schließen? Sie wird automatisch wieder geöffnet, wenn der Kontakt antwortet.",
+      "spamTitle": "Als Spam markieren",
+      "spamMessage": "Diesen Absender blockieren und die Unterhaltung schließen? Zukünftige Nachrichten von ihm werden automatisch geschlossen."
+    },
+    "toasts": {
+      "sent": "Antwort gesendet",
+      "emailSent": "E-Mail gesendet",
+      "draftSaved": "Entwurf gespeichert",
+      "assigned": "Unterhaltung zugewiesen",
+      "statusChanged": "Status aktualisiert",
+      "markedSpam": "Als Spam markiert",
+      "unmarkedSpam": "Aus Spam entfernt",
+      "error": "Etwas ist schiefgelaufen"
+    },
+    "identity": {
+      "alias": "E-Mail-Alias",
+      "aliasHint": "Nur der lokale Teil — george wird zu george{'@'}doxa.life",
+      "signature": "E-Mail-Signatur",
+      "save": "Speichern"
+    },
+    "canned": {
+      "title": "Vorlagen",
+      "new": "Neue Vorlage",
+      "name": "Titel",
+      "body": "Inhalt",
+      "save": "Speichern",
+      "delete": "Löschen"
+    },
+    "autoAck": {
+      "subject": "Wir haben Ihre Nachricht erhalten",
+      "greeting": "Hallo,",
+      "greetingNamed": "Hallo {name},",
+      "body": "Vielen Dank, dass Sie sich an {appName} gewandt haben. Wir haben Ihre Nachricht erhalten und ein Mitglied unseres Teams wird sich bald bei Ihnen melden.",
+      "signoff": "In Christus,\nIhr {appName}-Team"
+    }
   }
 }
