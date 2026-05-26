@@ -5,7 +5,7 @@ class BaseMigration {
 }
 
 export default class InboxMigration extends BaseMigration {
-  id = 63
+  id = 64
   name = 'Create shared inbox tables'
 
   async up(sql) {
