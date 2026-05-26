@@ -1,13 +1,12 @@
 import { type ComputedRef, type Ref, ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute, useToast, useI18n, useTracking, getVisitorId } from '#imports'
+import { useRoute, useToast, useI18n, getVisitorId } from '#imports'
 
 const MAX_PRAYER_DURATION_SECONDS = 2 * 60 * 60
 
 export function usePrayerSession(slug: string, contentDate: ComputedRef<string> | Ref<string>, peopleGroupId?: ComputedRef<number | undefined> | Ref<number | undefined>) {
   const route = useRoute()
   const toast = useToast()
-  const { t } = useI18n()
-  const { trackEvent } = useTracking()
+  const { t, locale } = useI18n()
 
   const trackingId = computed(() => {
     return (route.query.uid as string) || getVisitorId()
@@ -26,29 +25,18 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
     return Math.min(rawDuration, MAX_PRAYER_DURATION_SECONDS)
   }
 
-  function trackAutoCheckpoint() {
-    if (autoCheckpointTracked.value) return
-    autoCheckpointTracked.value = true
-
-    const duration = getDurationSeconds()
-    if (duration <= 0) return
-
-    trackEvent('prayer_auto_tracked', {
-      value: duration,
-      metadata: {
-        people_group_slug: slug,
-        content_date: contentDate.value,
-        source: 'auto'
-      }
-    })
-  }
-
   async function autoSavePrayerSession(trackCheckpoint = false) {
     if (prayedMarked.value || autoSaveComplete.value) return
 
     try {
       const duration = getDurationSeconds()
       const timestamp = new Date().toISOString()
+
+      // The browser sets `trackEvent` only on the save that should fan out to
+      // Statinator (the 30s checkpoint). The session endpoint handles the
+      // forward via trackEventInBackground; no separate analytics call needed.
+      const shouldTrack = trackCheckpoint && !autoCheckpointTracked.value && duration > 0
+      if (shouldTrack) autoCheckpointTracked.value = true
 
       await $fetch(`/api/people-groups/${slug}/prayer-content/${contentDate.value}/session`, {
         method: 'POST',
@@ -57,13 +45,11 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
           trackingId: trackingId.value || null,
           duration,
           timestamp,
-          peopleGroupId: peopleGroupId?.value
+          peopleGroupId: peopleGroupId?.value,
+          trackEvent: shouldTrack ? 'prayer_auto_tracked' : undefined,
+          language: locale.value
         }
       })
-
-      if (trackCheckpoint) {
-        trackAutoCheckpoint()
-      }
     } catch (err: any) {
       console.error('Failed to auto-save prayer session:', err)
     }
@@ -92,19 +78,13 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
           trackingId: trackingId.value || null,
           duration,
           timestamp,
-          peopleGroupId: peopleGroupId?.value
+          peopleGroupId: peopleGroupId?.value,
+          trackEvent: 'prayer_logged',
+          language: locale.value
         }
       })
 
       prayedMarked.value = true
-      trackEvent('prayer_logged', {
-        value: duration,
-        metadata: {
-          people_group_slug: slug,
-          content_date: contentDate.value,
-          source: 'explicit'
-        }
-      })
     } catch (err: any) {
       console.error('Failed to record prayer:', err)
       toast.add({

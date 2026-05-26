@@ -1,14 +1,31 @@
+// First-party analytics client. The browser only posts to `/api/collect` on the
+// same host as the page (no third-party script load, no third-party request).
+// Doxa's server forwards each event to Statinator and returns the inserted
+// event id, which seeds a per-page engagement heartbeat loop.
+//
+// Critical correctness rule: a SINGLE heartbeat interval at any time, with
+// handoff across SPA navigations (flush the previous pageview's engagement,
+// clear its timer, then start a new one keyed by the new event id). Spawning
+// one loop per pageview would multiply engagement on every route change.
+
 import type { RouteLocationNormalizedLoaded, RouteLocationNormalized } from 'vue-router'
 import { LANGUAGE_CODES } from '../../config/languages'
 
 const ANON_STORAGE_KEY = 'prayertools_anon_id'
 const ANON_COOKIE_NAME = 'doxa_vid'
+const SESSION_STARTED_KEY = '_doxa_session_started'
+const HEARTBEAT_INTERVAL_MS = 30_000
+const HEARTBEAT_PATH = '/api/collect/heartbeat'
 
 function writeAnonCookie(value: string, domain: string) {
   if (typeof document === 'undefined') return
-  const domainPart = domain ? `; Domain=${domain}` : ''
-  const securePart = location.protocol === 'https:' ? '; Secure' : ''
-  document.cookie = `${ANON_COOKIE_NAME}=${encodeURIComponent(value)}; Path=/; Max-Age=63072000; SameSite=Lax${securePart}${domainPart}`
+  try {
+    const domainPart = domain ? `; Domain=${domain}` : ''
+    const securePart = location.protocol === 'https:' ? '; Secure' : ''
+    document.cookie = `${ANON_COOKIE_NAME}=${encodeURIComponent(value)}; Path=/; Max-Age=63072000; SameSite=Lax${securePart}${domainPart}`
+  } catch {
+    // ignore
+  }
 }
 
 function stripLocale(path: string): string {
@@ -73,77 +90,156 @@ function routeMetadata(route: RouteLocationNormalizedLoaded | RouteLocationNorma
 function setRouteUid(route: RouteLocationNormalizedLoaded | RouteLocationNormalized, cookieDomain: string) {
   const uid = typeof route.query.uid === 'string' ? route.query.uid : null
   if (!uid) return
-  localStorage.setItem(ANON_STORAGE_KEY, uid)
+  try {
+    localStorage.setItem(ANON_STORAGE_KEY, uid)
+  } catch {
+    // ignore
+  }
   writeAnonCookie(uid, cookieDomain)
+}
+
+function getUtmParams(): Record<string, string> | null {
+  if (typeof window === 'undefined') return null
+  const params = new URLSearchParams(window.location.search)
+  const utm: Record<string, string> = {}
+  for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content']) {
+    const val = params.get(key)
+    if (val) utm[key] = val
+  }
+  return Object.keys(utm).length > 0 ? utm : null
+}
+
+function markSessionStartOnce(): boolean {
+  try {
+    if (sessionStorage.getItem(SESSION_STARTED_KEY)) return false
+    sessionStorage.setItem(SESSION_STARTED_KEY, '1')
+    return true
+  } catch {
+    return false
+  }
 }
 
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig()
   if (!config.public.statinatorEnabled) return
 
-  const projectId = String(config.public.statinatorProjectId || 'doxa')
-  const statinatorUrl = String(config.public.statinatorUrl || '').replace(/\/$/, '')
   const cookieDomain = String(config.public.statinatorCookieDomain || '')
-  if (!statinatorUrl || !projectId) return
-
   const route = useRoute()
   const router = useRouter()
   const i18n = nuxtApp.$i18n as { locale: { value: string } }
   const { trackPageview } = useTracking()
 
-  let scriptLoad: Promise<void> | null = null
+  // Single heartbeat loop with handoff. One interval at a time, keyed by the
+  // current pageview's event id. On each new pageview we flush the previous
+  // pageview's accumulated engagement, clear the interval, then start fresh
+  // with the new id. Per-pageview loops would multiply engagement across SPA
+  // navigations — don't.
+  let currentEventId: number | null = null
+  let heartbeatInterval: ReturnType<typeof setInterval> | null = null
+  let engagedStart: number | null = null
+  let totalEngaged = 0
+  let isVisible = typeof document === 'undefined' || document.visibilityState !== 'hidden'
+  // Dedupe pageviews by fullPath. Both app:mounted and router.afterEach can
+  // fire for the initial route; the first wins.
+  let lastSentPath = ''
+  // Monotonic counter for pageview attempts. Each `sendPageview` captures its
+  // generation; if a newer navigation has started by the time the await
+  // resolves, we drop the stale result on the floor (else a late-arriving
+  // response would bind the heartbeat loop to the wrong event id).
+  let pageviewGen = 0
 
-  function loadScript() {
-    if (window.goStats) return Promise.resolve()
-    if (scriptLoad) return scriptLoad
+  function flushHeartbeat() {
+    if (currentEventId == null) return
+    // `value` is cumulative engaged seconds for this pageview. Statinator's
+    // /api/heartbeat REPLACES the events row's value (not adds to it), so
+    // sending growing totals is correct — don't switch to deltas.
+    const now = Date.now()
+    if (isVisible && engagedStart != null) {
+      totalEngaged += (now - engagedStart) / 1000
+      engagedStart = now
+    }
+    const value = Math.round(totalEngaged)
+    if (value <= 0) return
+    const body = JSON.stringify({ event_id: currentEventId, value })
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+        const blob = new Blob([body], { type: 'application/json' })
+        if (navigator.sendBeacon(HEARTBEAT_PATH, blob)) return
+      }
+    } catch {
+      // fall through to fetch
+    }
+    try {
+      void fetch(HEARTBEAT_PATH, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body,
+        keepalive: true
+      })
+    } catch {
+      // analytics non-critical
+    }
+  }
 
-    scriptLoad = new Promise((resolve, reject) => {
-      const script = document.createElement('script')
-      script.async = true
-      script.src = `${statinatorUrl}/api/script.js`
-      script.dataset.project = projectId
-      script.dataset.storage = 'cookie+local'
-      script.dataset.hashKey = ANON_STORAGE_KEY
-      script.dataset.cookieName = ANON_COOKIE_NAME
-      if (cookieDomain) script.dataset.cookieDomain = cookieDomain
-      script.dataset.autoPageview = 'false'
-      script.onload = () => resolve()
-      script.onerror = () => reject(new Error('Failed to load Statinator script'))
-      document.head.appendChild(script)
-    })
+  function clearHeartbeat() {
+    if (heartbeatInterval != null) {
+      clearInterval(heartbeatInterval)
+      heartbeatInterval = null
+    }
+  }
 
-    return scriptLoad
+  function startHeartbeat(eventId: number) {
+    clearHeartbeat()
+    currentEventId = eventId
+    totalEngaged = 0
+    engagedStart = isVisible ? Date.now() : null
+    heartbeatInterval = setInterval(flushHeartbeat, HEARTBEAT_INTERVAL_MS)
+  }
+
+  function startEngagement() {
+    if (engagedStart == null) engagedStart = Date.now()
+    isVisible = true
+  }
+
+  function pauseEngagement() {
+    if (engagedStart != null) {
+      totalEngaged += (Date.now() - engagedStart) / 1000
+      engagedStart = null
+    }
+    isVisible = false
   }
 
   async function sendPageview(to: RouteLocationNormalizedLoaded | RouteLocationNormalized) {
-    if (!shouldTrackRoute(to.path)) {
-      window.__doxaTrackQueue = []
-      return
-    }
+    if (!shouldTrackRoute(to.path)) return
+    if (to.fullPath === lastSentPath) return
+    lastSentPath = to.fullPath
+    const myGen = ++pageviewGen
+
+    // Handoff: flush remaining engagement for the previous pageview and clear
+    // its timer before we await the new pageview's id.
+    flushHeartbeat()
+    clearHeartbeat()
+    currentEventId = null
 
     setRouteUid(to, cookieDomain)
+
+    const metadata: Record<string, unknown> = { ...routeMetadata(to, i18n.locale.value) }
+    const utm = getUtmParams()
+    if (utm) Object.assign(metadata, utm)
+    if (markSessionStartOnce()) metadata.session_start = true
+
     try {
-      await loadScript()
-      flushQueuedEvents()
-      trackPageview({
+      const { id } = await trackPageview({
         url: to.fullPath,
-        metadata: routeMetadata(to, i18n.locale.value)
+        metadata
       })
+      // Rapid SPA navigations can leave older awaits resolving after newer
+      // ones. If we're no longer the latest pageview attempt, drop the id —
+      // its heartbeat would be attributed to a page the user has already left.
+      if (myGen !== pageviewGen) return
+      if (id != null) startHeartbeat(id)
     } catch {
       // Analytics is non-critical.
-    }
-  }
-
-  function flushQueuedEvents() {
-    if (!window.goStats || !window.__doxaTrackQueue?.length) return
-
-    const queued = window.__doxaTrackQueue.splice(0)
-    for (const item of queued) {
-      if (item.type === 'event') {
-        window.goStats.track(item.eventType, item.options)
-      } else {
-        window.goStats.pageview(item.options)
-      }
     }
   }
 
@@ -154,4 +250,22 @@ export default defineNuxtPlugin((nuxtApp) => {
   router.afterEach((to) => {
     void sendPageview(to)
   })
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        pauseEngagement()
+        flushHeartbeat()
+      } else {
+        startEngagement()
+      }
+    })
+  }
+  if (typeof window !== 'undefined') {
+    window.addEventListener('pagehide', () => {
+      pauseEngagement()
+      flushHeartbeat()
+      clearHeartbeat()
+    })
+  }
 })
