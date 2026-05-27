@@ -623,28 +623,6 @@ function askClose() { showCloseModal.value = true }
 function confirmClose() { showCloseModal.value = false; changeStatus('closed') }
 
 function askSpam() { showSpamModal.value = true }
-
-const statusChoices = computed(() => (
-  ['open', 'pending', 'closed', 'spam'] as const
-).map(v => ({ label: t('inbox.status.' + v), value: v as string })))
-
-async function onStatusChange(next: string) {
-  if (!selected.value) return
-  const current = selected.value.conversation.status
-  if (next === current) return
-  // Destructive transitions keep their existing confirmation step.
-  if (next === 'spam') { askSpam(); return }
-  if (next === 'closed') { askClose(); return }
-  // Leaving spam goes through the spam endpoint so the sender is removed from
-  // the blocklist (it always lands on 'open'); then bump to the requested
-  // status if the admin picked pending instead.
-  if (current === 'spam') {
-    await unmarkSpam()
-    if (next !== 'open') await changeStatus(next)
-    return
-  }
-  await changeStatus(next)
-}
 async function confirmSpam() {
   showSpamModal.value = false
   if (!selected.value) return
@@ -675,6 +653,28 @@ async function unmarkSpam() {
   } catch {
     toast.add({ title: t('inbox.toasts.error'), color: 'error' })
   }
+}
+
+// Status dropdown in the conversation header — routes destructive transitions
+// (closed, spam) through their existing confirm modals; everything else applies
+// immediately. Leaving spam routes via the /spam endpoint so the sender is
+// removed from the blocklist.
+const statusChoices = computed(() => (
+  ['open', 'pending', 'closed', 'spam'] as const
+).map(v => ({ label: t('inbox.status.' + v), value: v as string })))
+
+async function onStatusChange(next: string) {
+  if (!selected.value) return
+  const current = selected.value.conversation.status
+  if (next === current) return
+  if (next === 'spam') { askSpam(); return }
+  if (next === 'closed') { askClose(); return }
+  if (current === 'spam') {
+    await unmarkSpam()
+    if (next !== 'open') await changeStatus(next)
+    return
+  }
+  await changeStatus(next)
 }
 
 function htmlToText(html: string): string {

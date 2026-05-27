@@ -201,7 +201,11 @@ class ConversationService {
     // badge stays meaningful when a different status tab is selected.
     const scopeCond = () => {
       if (opts.scope === 'unassigned') return this.sql`c.assigned_user_id IS NULL`
-      if (opts.scope === 'mine' && mineId) return this.sql`c.assigned_user_id = ${mineId}`
+      if (opts.scope === 'mine') {
+        // "Mine" with no user id is meaningless — return zero rather than
+        // silently widening to the whole table.
+        return mineId ? this.sql`c.assigned_user_id = ${mineId}` : this.sql`FALSE`
+      }
       if (opts.scope === 'held') return this.sql`c.needs_review = true`
       return this.sql`TRUE`
     }
