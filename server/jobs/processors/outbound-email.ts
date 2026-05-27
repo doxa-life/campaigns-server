@@ -8,8 +8,8 @@ import { userService } from '../../database/users'
 import { inboxEmailService, type InboxEmailAttachment } from '../../utils/inbox-email'
 import { buildContactReplyAddress, buildFromAddress } from '../../utils/inbox-addressing'
 import { getInlineImageObject } from '../../utils/app/inbox-inline-images'
-import { sanitizeEmailHtml } from '../../utils/inbox-sanitize-html'
 import { renderInboxMessageEmail } from '../../utils/inbox-email-layout'
+import { buildQuotedHtml, buildQuotedText } from '../../utils/inbox-quote'
 
 /**
  * Sends a queued outbound inbox message. The generic queue only tracks *job* status;
@@ -182,39 +182,3 @@ function constrainImages(html: string): string {
   })
 }
 
-function escapeHtml(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-}
-
-function quoteAuthor(m: { direction: string; sender_name?: string | null; from_name: string | null; from_email: string | null }): string {
-  if (m.direction === 'outbound') return m.sender_name || m.from_name || 'Doxa Prayer'
-  return m.from_name || m.from_email || 'Contact'
-}
-
-// Gmail-style quoted history, newest message on top, each as an attributed blockquote.
-function buildQuotedHtml(messages: any[]): string {
-  if (messages.length === 0) return ''
-  let out = '<br><br>'
-  for (const m of [...messages].reverse()) {
-    const when = new Date(m.created_at).toUTCString()
-    // Prior messages can include untrusted inbound HTML — sanitize before quoting it into outbound email.
-    const body = sanitizeEmailHtml(m.body_stripped_html || m.body_html || (m.body_text || '').replace(/\n/g, '<br>'))
-    out += `<blockquote style="margin:0 0 0 0.8ex;border-left:2px solid #ccc;padding-left:1ex;color:#555;">`
-    out += `<div style="font-size:12px;color:#888;margin-bottom:4px;">On ${escapeHtml(when)}, ${escapeHtml(quoteAuthor(m))} wrote:</div>`
-    out += body
-    out += `</blockquote>`
-  }
-  return out
-}
-
-function buildQuotedText(messages: any[]): string {
-  if (messages.length === 0) return ''
-  let out = '\n\n'
-  for (const m of [...messages].reverse()) {
-    const when = new Date(m.created_at).toUTCString()
-    const body = m.body_text || (m.body_stripped_html || m.body_html || '').replace(/<[^>]*>/g, '')
-    const quoted = body.split('\n').map((l: string) => '> ' + l).join('\n')
-    out += `On ${when}, ${quoteAuthor(m)} wrote:\n${quoted}\n\n`
-  }
-  return out
-}

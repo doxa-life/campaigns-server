@@ -181,20 +181,44 @@ class ConversationService {
   // Rail badge counts (ignores search). The all/unassigned/mine tallies respect the status
   // filter so they match the visible list. `held` (needs-review) is status-independent — it's
   // an alarm for the whole review queue, surfaced regardless of which status tab is active.
-  async counts(opts: { status?: ConversationStatus; mine?: string } = {}): Promise<{
+  async counts(opts: {
+    status?: ConversationStatus
+    mine?: string
+    scope?: 'all' | 'unassigned' | 'mine' | 'held'
+  } = {}): Promise<{
     all: number
     unassigned: number
     mine: number
     held: number
+    open: number
+    pending: number
   }> {
     const statusCond = () => opts.status ? this.sql`c.status = ${opts.status}` : this.sql`TRUE`
     const mineId = opts.mine ?? null
-    const [row] = await this.sql<{ all: string; unassigned: string; mine: string; held: string }[]>`
+    // Per-status counts (used for the status-strip badges) reflect the active
+    // scope rail so the number matches what the list will show when that tab
+    // is opened. They intentionally ignore the current status filter so each
+    // badge stays meaningful when a different status tab is selected.
+    const scopeCond = () => {
+      if (opts.scope === 'unassigned') return this.sql`c.assigned_user_id IS NULL`
+      if (opts.scope === 'mine') {
+        // "Mine" with no user id is meaningless — return zero rather than
+        // silently widening to the whole table.
+        return mineId ? this.sql`c.assigned_user_id = ${mineId}` : this.sql`FALSE`
+      }
+      if (opts.scope === 'held') return this.sql`c.needs_review = true`
+      return this.sql`TRUE`
+    }
+    const [row] = await this.sql<{
+      all: string; unassigned: string; mine: string; held: string; open: string; pending: string
+    }[]>`
       SELECT
         COUNT(*) FILTER (WHERE ${statusCond()}) AS all,
         COUNT(*) FILTER (WHERE ${statusCond()} AND c.assigned_user_id IS NULL) AS unassigned,
         COUNT(*) FILTER (WHERE ${statusCond()} AND c.assigned_user_id = ${mineId}) AS mine,
-        COUNT(*) FILTER (WHERE c.needs_review = true) AS held
+        COUNT(*) FILTER (WHERE c.needs_review = true) AS held,
+        COUNT(*) FILTER (WHERE c.status = 'open' AND ${scopeCond()}) AS open,
+        COUNT(*) FILTER (WHERE c.status = 'pending' AND ${scopeCond()}) AS pending
       FROM conversations c
     `
     return {
@@ -202,6 +226,8 @@ class ConversationService {
       unassigned: Number(row?.unassigned ?? 0),
       mine: Number(row?.mine ?? 0),
       held: Number(row?.held ?? 0),
+      open: Number(row?.open ?? 0),
+      pending: Number(row?.pending ?? 0),
     }
   }
 

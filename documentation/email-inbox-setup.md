@@ -9,10 +9,10 @@ Operational guide for turning on the two-way shared inbox (send replies from `do
 ## 1. How it works (at a glance)
 
 ```
-Contact ──email──▶ doxa.life MX ──▶ Mailgun ──route(forward)──▶ POST /webhooks/mailgun/inbound ──▶ app
-  ▲                                                                                                  │
-  └──────────────── Mailgun messages API ◀── inboxEmailService ◀── reply / auto-ack ◀───────────────┘
-                          (delivery events) ──▶ POST /webhooks/mailgun/delivery ──▶ app
+Contact ──email──▶ doxa.life MX ──▶ Mailgun ──route(forward)──▶ POST /api/webhooks/mailgun/inbound ──▶ app
+  ▲                                                                                                      │
+  └──────────────── Mailgun messages API ◀── inboxEmailService ◀── reply / auto-ack ◀───────────────────┘
+                          (delivery events) ──▶ POST /api/webhooks/mailgun/delivery ──▶ app
 ```
 
 - **Sending** goes through the Mailgun messages API (`server/utils/inbox-email.ts`), which sets the per-message `From`, `Reply-To`, threading headers, and attachments.
@@ -78,7 +78,7 @@ Mailgun → **Receiving → Create Route**:
 
 - **Expression type:** Match Recipient
 - **Recipient:** `.*@doxa.life` (catch-all, regex)
-- **Actions:** `Forward` → `https://pray.doxa.life/webhooks/mailgun/inbound`
+- **Actions:** `Forward` → `https://pray.doxa.life/api/webhooks/mailgun/inbound`
 - **Priority:** `0`
 - (Leave **Stop** unchecked unless you add more routes; if you do, make this the last/lowest-priority route.)
 
@@ -89,7 +89,7 @@ Mailgun's forward action POSTs the parsed message (sender, recipient, `body-html
 The app tracks per-user aliases in-app, so you normally **don't** need external forwarding. If you ever want a specific address to *also* drop into someone's personal mailbox, add a **higher-priority** route above the catch-all:
 
 - Recipient: `george@doxa.life`
-- Actions: `Forward("george.personal@gmail.com")` and (optionally) `Forward("https://pray.doxa.life/webhooks/mailgun/inbound")`
+- Actions: `Forward("george.personal@gmail.com")` and (optionally) `Forward("https://pray.doxa.life/api/webhooks/mailgun/inbound")`
 - Check **Stop** if it should not also fall through to the catch-all.
 
 ---
@@ -98,7 +98,7 @@ The app tracks per-user aliases in-app, so you normally **don't** need external 
 
 To capture deliveries and bounces (drives the in-thread delivery flag; never sets `verified`):
 
-Mailgun → **Sending → Webhooks**, add the webhook URL `https://pray.doxa.life/webhooks/mailgun/delivery` for these events:
+Mailgun → **Sending → Webhooks**, add the webhook URL `https://pray.doxa.life/api/webhooks/mailgun/delivery` for these events:
 
 - `delivered`
 - `permanent_failure` (and `temporary_failure` if you want soft-bounce visibility)
@@ -137,7 +137,7 @@ Set these in the deployment environment (DigitalOcean App Platform → component
 Quick webhook reachability check (should be 200/4xx from the app, not a 404/timeout):
 
 ```bash
-curl -i -X POST https://pray.doxa.life/webhooks/mailgun/inbound
+curl -i -X POST https://pray.doxa.life/api/webhooks/mailgun/inbound
 ```
 
 (An unsigned request is rejected by the app — that's expected; you're just confirming the route exists.)
@@ -146,7 +146,7 @@ curl -i -X POST https://pray.doxa.life/webhooks/mailgun/inbound
 
 ## 9. Local development
 
-No DNS/Mailgun needed locally. With `EMAIL_PROVIDER` unset (or not `mailgun`), `inboxEmailService` sends via SMTP to **MailHog** (`localhost:1025`); view outgoing mail at **http://localhost:8025**. To exercise the inbound path locally, POST a sample Mailgun payload to `/webhooks/mailgun/inbound` (signature verification is skipped under `VITEST`; for manual local testing, mirror a captured Mailgun payload). The e2e tests under `tests/e2e/admin/inbox/` cover the full flow with the Mailgun network call short-circuited.
+No DNS/Mailgun needed locally. With `EMAIL_PROVIDER` unset (or not `mailgun`), `inboxEmailService` sends via SMTP to **MailHog** (`localhost:1025`); view outgoing mail at **http://localhost:8025**. To exercise the inbound path locally, POST a sample Mailgun payload to `/api/webhooks/mailgun/inbound` (signature verification is skipped under `VITEST`; for manual local testing, mirror a captured Mailgun payload). The e2e tests under `tests/e2e/admin/inbox/` cover the full flow with the Mailgun network call short-circuited.
 
 ---
 
