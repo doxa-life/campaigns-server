@@ -7,9 +7,10 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const status = query.status as ConversationStatus | undefined
   const mine = query.mine as string | undefined
+  const scope = query.scope as 'all' | 'unassigned' | 'mine' | 'held' | undefined
 
   try {
-    return await conversationService.counts({ status, mine })
+    return await conversationService.counts({ status, mine, scope })
   } catch (error) {
     handleApiError(error, 'Failed to count conversations')
   }

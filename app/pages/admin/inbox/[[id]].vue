@@ -74,7 +74,15 @@
               :color="statusFilter === s.key ? 'primary' : 'neutral'"
               size="xs"
               @click="setStatus(s.key)"
-            >{{ s.label }}</UButton>
+            >
+              {{ s.label }}
+              <UBadge
+                v-if="(s.key === 'open' || s.key === 'pending') && counts[s.key] > 0"
+                :color="statusFilter === s.key ? 'neutral' : 'primary'"
+                variant="subtle"
+                size="xs"
+              >{{ counts[s.key] }}</UBadge>
+            </UButton>
           </div>
         </template>
       </CrmListPanel>
@@ -361,7 +369,7 @@ const search = ref('')
 // review queue regardless of assignment.
 const view = ref<'all' | 'unassigned' | 'mine' | 'held'>('all')
 const statusFilter = ref<'all' | 'open' | 'pending' | 'closed' | 'spam'>('open')
-const counts = ref<{ all: number; unassigned: number; mine: number; held: number }>({ all: 0, unassigned: 0, mine: 0, held: 0 })
+const counts = ref<{ all: number; unassigned: number; mine: number; held: number; open: number; pending: number }>({ all: 0, unassigned: 0, mine: 0, held: 0, open: 0, pending: 0 })
 
 const selected = ref<SelectedConversation | null>(null)
 const slideoverOpen = ref(false)
@@ -505,6 +513,9 @@ async function loadCounts() {
     const params: Record<string, string> = {}
     if (statusFilter.value !== 'all') params.status = statusFilter.value
     if (user.value?.id) params.mine = String(user.value.id)
+    // Pass the active scope so the per-status badges (open / pending) reflect
+    // what the list will show under the current rail selection.
+    params.scope = view.value
     counts.value = await $fetch('/api/admin/inbox/conversations/counts', { params })
   } catch {
     // non-fatal
@@ -523,9 +534,10 @@ function setView(key: 'all' | 'unassigned' | 'mine' | 'held') {
   // The Held queue spans every status, so jump to the All tab to show the whole review backlog.
   if (key === 'held' && statusFilter.value !== 'all') {
     statusFilter.value = 'all'
-    loadCounts()
   }
   loadConversations()
+  // Reload counts so the per-status (open / pending) badges reflect the new scope.
+  loadCounts()
 }
 
 function setStatus(key: 'all' | 'open' | 'pending' | 'closed' | 'spam') {
