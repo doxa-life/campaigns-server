@@ -114,6 +114,12 @@
 const config = useRuntimeConfig()
 const { user, isAdmin, isSuperAdmin, hasRole, canAccess, canAccessUnscoped, checkAuth } = useAuthUser()
 
+if (config.public.feedbackProjectId && config.public.feedbackApiBase) {
+  useHead({
+    link: [{ rel: 'preconnect', href: String(config.public.feedbackApiBase) }]
+  })
+}
+
 const route = useRoute()
 const sidebarOpen = ref(false)
 const sidebarCollapsed = ref(true)
