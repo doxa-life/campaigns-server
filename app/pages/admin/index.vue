@@ -317,6 +317,52 @@
           </div>
         </UCard>
 
+        <UCard v-if="subscribersDaily">
+          <template #header>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <UIcon name="i-lucide-trending-up" class="text-[var(--ui-primary)] text-lg" />
+                <span class="font-semibold">Daily Subscribes vs. Unsubscribes</span>
+                <span class="text-sm text-[var(--ui-text-dimmed)]">(last 30 days)</span>
+              </div>
+              <div class="flex items-center gap-3 text-xs">
+                <span class="flex items-center gap-1">
+                  <span class="inline-block w-2.5 h-2.5 rounded-sm bg-[#92b195]" />
+                  Subscribed
+                </span>
+                <span class="flex items-center gap-1">
+                  <span class="inline-block w-2.5 h-2.5 rounded-sm bg-[#c97a7a]" />
+                  Unsubscribed
+                </span>
+              </div>
+            </div>
+          </template>
+          <div class="flex items-end gap-1 h-48">
+            <div
+              v-for="day in subscribersDaily"
+              :key="day.date"
+              class="flex-1 flex flex-col items-center justify-end h-full group relative"
+            >
+              <div class="w-full flex items-end justify-center gap-px h-full">
+                <div
+                  class="flex-1 rounded-t-sm bg-[#92b195] opacity-80 group-hover:opacity-100 transition-all min-w-[2px]"
+                  :style="{ height: subChurnBarHeight(day.subscribed) }"
+                />
+                <div
+                  class="flex-1 rounded-t-sm bg-[#c97a7a] opacity-80 group-hover:opacity-100 transition-all min-w-[2px]"
+                  :style="{ height: subChurnBarHeight(day.unsubscribed) }"
+                />
+              </div>
+              <span class="text-[10px] text-[var(--ui-text-dimmed)] mt-1 tabular-nums leading-none">
+                {{ day.date.slice(8) }}
+              </span>
+              <div class="absolute bottom-full mb-1 px-1.5 py-0.5 rounded text-xs bg-[var(--ui-bg-inverted)] text-[var(--ui-text-inverted)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                {{ formatChartDate(day.date) }}: +{{ day.subscribed }} / -{{ day.unsubscribed }}
+              </div>
+            </div>
+          </div>
+        </UCard>
+
       </div>
     </template>
 
@@ -490,6 +536,7 @@ const tabs = [
 const { data, status } = useFetch('/api/admin/dashboard/stats')
 const { data: prayerDaily, status: prayerStatus } = useFetch('/api/admin/dashboard/prayer-daily')
 const { data: subscribersData, status: subscribersStatus } = useFetch('/api/admin/dashboard/subscribers')
+const { data: subscribersDaily } = useFetch<{ date: string; subscribed: number; unsubscribed: number }[]>('/api/admin/dashboard/subscribers-daily')
 const { data: pgSubscribers } = useFetch<{ id: number; name: string; slug: string; subscriber_count: number }[]>('/api/admin/dashboard/people-group-subscribers')
 
 const maxPgSubscribers = computed(() =>
@@ -520,6 +567,17 @@ const maxPrayerTime = computed(() => {
 function prayerTimeBarHeight(minutes: number): string {
   if (minutes === 0) return '0%'
   const pct = (minutes / maxPrayerTime.value) * 100
+  return `${Math.max(pct, 2)}%`
+}
+
+const maxSubChurn = computed(() => {
+  if (!subscribersDaily.value) return 1
+  return Math.max(1, ...subscribersDaily.value.map(d => Math.max(d.subscribed, d.unsubscribed)))
+})
+
+function subChurnBarHeight(count: number): string {
+  if (count === 0) return '0%'
+  const pct = (count / maxSubChurn.value) * 100
   return `${Math.max(pct, 2)}%`
 }
 
