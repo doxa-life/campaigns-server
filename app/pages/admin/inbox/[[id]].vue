@@ -74,7 +74,15 @@
               :color="statusFilter === s.key ? 'primary' : 'neutral'"
               size="xs"
               @click="setStatus(s.key)"
-            >{{ s.label }}</UButton>
+            >
+              {{ s.label }}
+              <UBadge
+                v-if="(s.key === 'open' || s.key === 'pending') && counts[s.key] > 0"
+                :color="statusFilter === s.key ? 'neutral' : 'primary'"
+                variant="subtle"
+                size="xs"
+              >{{ counts[s.key] }}</UBadge>
+            </UButton>
           </div>
         </template>
       </CrmListPanel>
@@ -108,8 +116,13 @@
       <div v-if="selected" class="detail-head">
         <h2>{{ selected.conversation.subject || $t('inbox.conversation') }}</h2>
         <div class="detail-contact">
-          <span v-if="selected.conversation.subscriber_name" class="contact-name">{{ selected.conversation.subscriber_name }}</span>
-          <a v-if="selected.conversation.subscriber_email" :href="`mailto:${selected.conversation.subscriber_email}`" class="contact-email">{{ selected.conversation.subscriber_email }}</a>
+          <NuxtLink
+            v-if="selected.conversation.subscriber_name && selected.conversation.subscriber_id"
+            :to="`/admin/subscribers/${selected.conversation.subscriber_id}`"
+            class="contact-name"
+          >{{ selected.conversation.subscriber_name }}</NuxtLink>
+          <span v-else-if="selected.conversation.subscriber_name" class="contact-name">{{ selected.conversation.subscriber_name }}</span>
+          <span v-if="selected.conversation.subscriber_email" class="contact-email">{{ selected.conversation.subscriber_email }}</span>
         </div>
       </div>
     </template>
@@ -125,6 +138,14 @@
           class="w-32 shrink-0"
           @update:model-value="onAssign"
         />
+        <USelectMenu
+          :model-value="selected.conversation.status"
+          :items="statusChoices"
+          value-key="value"
+          size="xs"
+          class="w-28 shrink-0"
+          @update:model-value="onStatusChange"
+        />
         <UButton
           :icon="selected.conversation.needs_review ? 'i-lucide-flag-off' : 'i-lucide-flag'"
           :color="selected.conversation.needs_review ? 'warning' : 'neutral'"
@@ -132,38 +153,6 @@
           size="xs"
           @click="toggleNeedsReview"
         >{{ selected.conversation.needs_review ? $t('inbox.actions.unflagReview') : $t('inbox.actions.flagReview') }}</UButton>
-        <UButton
-          v-if="selected.conversation.status !== 'closed'"
-          icon="i-lucide-check"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          @click="askClose"
-        >{{ $t('inbox.actions.close') }}</UButton>
-        <UButton
-          v-else
-          icon="i-lucide-rotate-ccw"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          @click="changeStatus('open')"
-        >{{ $t('inbox.actions.reopen') }}</UButton>
-        <UButton
-          v-if="canSend && selected.conversation.status !== 'spam'"
-          icon="i-lucide-shield-alert"
-          color="error"
-          variant="ghost"
-          size="xs"
-          @click="askSpam"
-        >{{ $t('inbox.actions.markSpam') }}</UButton>
-        <UButton
-          v-else-if="canSend"
-          icon="i-lucide-shield-off"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          @click="unmarkSpam"
-        >{{ $t('inbox.actions.unmarkSpam') }}</UButton>
       </template>
     </template>
 
@@ -359,6 +348,7 @@ interface ConversationDetail {
   status: string
   assigned_user_id: string | null
   needs_review: boolean
+  subscriber_id: number | null
   subscriber_name: string | null
   subscriber_email: string | null
 }
@@ -379,7 +369,7 @@ const search = ref('')
 // review queue regardless of assignment.
 const view = ref<'all' | 'unassigned' | 'mine' | 'held'>('all')
 const statusFilter = ref<'all' | 'open' | 'pending' | 'closed' | 'spam'>('open')
-const counts = ref<{ all: number; unassigned: number; mine: number; held: number }>({ all: 0, unassigned: 0, mine: 0, held: 0 })
+const counts = ref<{ all: number; unassigned: number; mine: number; held: number; open: number; pending: number }>({ all: 0, unassigned: 0, mine: 0, held: 0, open: 0, pending: 0 })
 
 const selected = ref<SelectedConversation | null>(null)
 const slideoverOpen = ref(false)
@@ -523,6 +513,9 @@ async function loadCounts() {
     const params: Record<string, string> = {}
     if (statusFilter.value !== 'all') params.status = statusFilter.value
     if (user.value?.id) params.mine = String(user.value.id)
+    // Pass the active scope so the per-status badges (open / pending) reflect
+    // what the list will show under the current rail selection.
+    params.scope = view.value
     counts.value = await $fetch('/api/admin/inbox/conversations/counts', { params })
   } catch {
     // non-fatal
@@ -541,9 +534,10 @@ function setView(key: 'all' | 'unassigned' | 'mine' | 'held') {
   // The Held queue spans every status, so jump to the All tab to show the whole review backlog.
   if (key === 'held' && statusFilter.value !== 'all') {
     statusFilter.value = 'all'
-    loadCounts()
   }
   loadConversations()
+  // Reload counts so the per-status (open / pending) badges reflect the new scope.
+  loadCounts()
 }
 
 function setStatus(key: 'all' | 'open' | 'pending' | 'closed' | 'spam') {
@@ -659,6 +653,28 @@ async function unmarkSpam() {
   } catch {
     toast.add({ title: t('inbox.toasts.error'), color: 'error' })
   }
+}
+
+// Status dropdown in the conversation header — routes destructive transitions
+// (closed, spam) through their existing confirm modals; everything else applies
+// immediately. Leaving spam routes via the /spam endpoint so the sender is
+// removed from the blocklist.
+const statusChoices = computed(() => (
+  ['open', 'pending', 'closed', 'spam'] as const
+).map(v => ({ label: t('inbox.status.' + v), value: v as string })))
+
+async function onStatusChange(next: string) {
+  if (!selected.value) return
+  const current = selected.value.conversation.status
+  if (next === current) return
+  if (next === 'spam') { askSpam(); return }
+  if (next === 'closed') { askClose(); return }
+  if (current === 'spam') {
+    await unmarkSpam()
+    if (next !== 'open') await changeStatus(next)
+    return
+  }
+  await changeStatus(next)
 }
 
 function htmlToText(html: string): string {
@@ -863,9 +879,9 @@ onMounted(async () => {
 
 .detail-head { min-width: 0; }
 .detail-contact { display: flex; gap: 0.5rem; align-items: baseline; font-size: 0.8rem; margin-top: 0.15rem; }
-.detail-contact .contact-name { color: var(--ui-text); font-weight: 500; }
-.detail-contact .contact-email { color: var(--ui-text-muted); text-decoration: none; }
-.detail-contact .contact-email:hover { text-decoration: underline; }
+.detail-contact .contact-name { color: var(--ui-text); font-weight: 500; text-decoration: none; }
+a.contact-name:hover { text-decoration: underline; }
+.detail-contact .contact-email { color: var(--ui-text-muted); }
 
 .thread { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
 .msg { border: 1px solid var(--ui-border); border-radius: 8px; padding: 0.75rem 1rem; }

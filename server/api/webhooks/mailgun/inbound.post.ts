@@ -7,6 +7,8 @@ import { contactMethodService } from '../../../database/contact-methods'
 import { userService } from '../../../database/users'
 import { validateMailgunWebhook, releaseSeenToken } from '../../../utils/mailgun-webhook'
 import { sanitizeEmailHtml } from '../../../utils/inbox-sanitize-html'
+import { buildQuotedHtml, buildQuotedText } from '../../../utils/inbox-quote'
+import { renderInboxMessageEmail } from '../../../utils/inbox-email-layout'
 import {
   parseMessageHeaders,
   parseAuthentication,
@@ -213,12 +215,29 @@ export default defineEventHandler(async (event) => {
           domain: inboxDomain,
           contactAddress: config.inboxContactAddress || 'contact@doxa.life',
         })
+        // Forward only the staff's new content to the contact — never the
+        // notification chrome their mail client quoted back ("open the
+        // conversation" link, automated-notification footer, admin-only "From:"
+        // header). Mailgun's stripped-html removes that block.
+        //
+        // Then append the conversation's prior messages as a Gmail-style
+        // quoted history so the contact has context for what's being answered
+        // (matters when the original came from a contact form, when the
+        // contact sent multiple messages, or when their client doesn't thread).
+        // Mirrors what the UI reply path does in the outbound-email job.
+        const priorMessages = await messageService.listForConversation(conversation.id)
+        const newHtml = sanitizeEmailHtml(bodyStrippedHtml || bodyHtml)
+        const composedHtml = renderInboxMessageEmail({
+          bodyHtml: newHtml + buildQuotedHtml(priorMessages),
+          subject: subject || conversation.subject || undefined,
+        })
+        const composedText = (bodyText || '') + buildQuotedText(priorMessages)
         const sent = await inboxEmailService.send({
           from: fromAddress,
           to: contactEmail,
           subject: subject || conversation.subject || 'Re:',
-          html: sanitizeEmailHtml(bodyHtml || bodyStrippedHtml),
-          text: bodyText,
+          html: composedHtml,
+          text: composedText || undefined,
           replyTo: buildContactReplyAddress(conversation.reply_token, config.inboxContactAddress || 'contact@doxa.life'),
           inReplyTo: lastInbound?.email_message_id || undefined,
           references: lastInbound?.email_message_id || undefined,
@@ -273,8 +292,10 @@ export default defineEventHandler(async (event) => {
         authenticated: auth.authenticated,
         auth_result: auth.authResult,
       })
-      // Reopen a closed conversation on new inbound
-      if (conversation.status === 'closed') {
+      // Contact replied → the ball is back with the team. Flip pending
+      // ("waiting on the contact") or closed ("done") back to open so it
+      // surfaces as needing attention. Leave spam alone.
+      if (conversation.status === 'pending' || conversation.status === 'closed') {
         await conversationService.updateStatus(conversation.id, 'open')
       }
       await conversationService.touchLastMessage(conversation.id, storedMessage.created_at, 'inbound')
