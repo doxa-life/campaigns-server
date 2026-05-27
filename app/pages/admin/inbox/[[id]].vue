@@ -130,6 +130,14 @@
           class="w-32 shrink-0"
           @update:model-value="onAssign"
         />
+        <USelectMenu
+          :model-value="selected.conversation.status"
+          :items="statusChoices"
+          value-key="value"
+          size="xs"
+          class="w-28 shrink-0"
+          @update:model-value="onStatusChange"
+        />
         <UButton
           :icon="selected.conversation.needs_review ? 'i-lucide-flag-off' : 'i-lucide-flag'"
           :color="selected.conversation.needs_review ? 'warning' : 'neutral'"
@@ -137,38 +145,6 @@
           size="xs"
           @click="toggleNeedsReview"
         >{{ selected.conversation.needs_review ? $t('inbox.actions.unflagReview') : $t('inbox.actions.flagReview') }}</UButton>
-        <UButton
-          v-if="selected.conversation.status !== 'closed'"
-          icon="i-lucide-check"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          @click="askClose"
-        >{{ $t('inbox.actions.close') }}</UButton>
-        <UButton
-          v-else
-          icon="i-lucide-rotate-ccw"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          @click="changeStatus('open')"
-        >{{ $t('inbox.actions.reopen') }}</UButton>
-        <UButton
-          v-if="canSend && selected.conversation.status !== 'spam'"
-          icon="i-lucide-shield-alert"
-          color="error"
-          variant="ghost"
-          size="xs"
-          @click="askSpam"
-        >{{ $t('inbox.actions.markSpam') }}</UButton>
-        <UButton
-          v-else-if="canSend"
-          icon="i-lucide-shield-off"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          @click="unmarkSpam"
-        >{{ $t('inbox.actions.unmarkSpam') }}</UButton>
       </template>
     </template>
 
@@ -635,6 +611,28 @@ function askClose() { showCloseModal.value = true }
 function confirmClose() { showCloseModal.value = false; changeStatus('closed') }
 
 function askSpam() { showSpamModal.value = true }
+
+const statusChoices = computed(() => (
+  ['open', 'pending', 'closed', 'spam'] as const
+).map(v => ({ label: t('inbox.status.' + v), value: v as string })))
+
+async function onStatusChange(next: string) {
+  if (!selected.value) return
+  const current = selected.value.conversation.status
+  if (next === current) return
+  // Destructive transitions keep their existing confirmation step.
+  if (next === 'spam') { askSpam(); return }
+  if (next === 'closed') { askClose(); return }
+  // Leaving spam goes through the spam endpoint so the sender is removed from
+  // the blocklist (it always lands on 'open'); then bump to the requested
+  // status if the admin picked pending instead.
+  if (current === 'spam') {
+    await unmarkSpam()
+    if (next !== 'open') await changeStatus(next)
+    return
+  }
+  await changeStatus(next)
+}
 async function confirmSpam() {
   showSpamModal.value = false
   if (!selected.value) return

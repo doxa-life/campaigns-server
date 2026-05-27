@@ -292,8 +292,10 @@ export default defineEventHandler(async (event) => {
         authenticated: auth.authenticated,
         auth_result: auth.authResult,
       })
-      // Reopen a closed conversation on new inbound
-      if (conversation.status === 'closed') {
+      // Contact replied → the ball is back with the team. Flip pending
+      // ("waiting on the contact") or closed ("done") back to open so it
+      // surfaces as needing attention. Leave spam alone.
+      if (conversation.status === 'pending' || conversation.status === 'closed') {
         await conversationService.updateStatus(conversation.id, 'open')
       }
       await conversationService.touchLastMessage(conversation.id, storedMessage.created_at, 'inbound')
