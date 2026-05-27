@@ -45,12 +45,6 @@
             <span v-if="showExpanded" class="nav-label">Contacts</span>
           </NuxtLink>
         </li>
-        <li v-if="canAccess('inbox.view')">
-          <NuxtLink to="/admin/inbox" class="nav-link" :title="!showExpanded ? 'Inbox' : undefined">
-            <UIcon name="i-lucide-inbox" />
-            <span v-if="showExpanded" class="nav-label">Inbox</span>
-          </NuxtLink>
-        </li>
         <li v-if="canAccess('groups.view')">
           <NuxtLink to="/admin/groups" class="nav-link" :title="!showExpanded ? 'Groups' : undefined">
             <UIcon name="i-lucide-users" />
@@ -61,6 +55,12 @@
           <NuxtLink to="/admin/libraries" class="nav-link" :title="!showExpanded ? 'Libraries' : undefined">
             <UIcon name="i-lucide-book-open" />
             <span v-if="showExpanded" class="nav-label">Libraries</span>
+          </NuxtLink>
+        </li>
+        <li v-if="canAccess('inbox.view')">
+          <NuxtLink to="/admin/inbox" class="nav-link" :title="!showExpanded ? 'Inbox' : undefined">
+            <UIcon name="i-lucide-inbox" />
+            <span v-if="showExpanded" class="nav-label">Inbox</span>
           </NuxtLink>
         </li>
         <li v-if="canAccess('users.manage')">
