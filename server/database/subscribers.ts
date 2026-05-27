@@ -2,8 +2,12 @@ import type { Fragment } from 'postgres'
 import { getSql } from './db'
 import { buildWhere, buildSet } from './sql-helpers'
 import { randomUUID } from 'crypto'
-import { contactMethodService } from './contact-methods'
+import { contactMethodService, type ContactMethod } from './contact-methods'
 import { peopleGroupSubscriptionService, type PeopleGroupSubscriptionWithDetails } from './people-group-subscriptions'
+import type { FilterState } from '#shared/crm/filter-types'
+import { buildFilterConditions } from '../utils/crm/filter-sql'
+import { subscriberServerManifest } from '../utils/crm/manifests/subscriber'
+import { decodeCursor, encodeCursor, type PageCursor } from '../utils/crm/cursor'
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -276,75 +280,192 @@ class SubscriberService {
     return result!.count
   }
 
-  async getAllSubscribersWithSubscriptions(options?: {
+  async getSubscribersPage(options: {
+    filter?: FilterState | null
     search?: string
-    peopleGroupId?: number
+    cursor?: string | null
+    limit?: number
     accessiblePeopleGroupIds?: number[]
-    source?: string
-  }): Promise<SubscriberWithSubscriptions[]> {
+  }): Promise<{ items: SubscriberWithSubscriptions[]; nextCursor: string | null }> {
+    const limit = Math.max(1, Math.min(options.limit ?? 50, 200))
+    const cursor = decodeCursor(options.cursor)
+
     const conditions: Fragment[] = []
-    let needsJoin = false
 
-    if (options?.accessiblePeopleGroupIds && options.accessiblePeopleGroupIds.length > 0) {
-      needsJoin = true
-      conditions.push(this.sql`cs.people_group_id IN ${this.sql(options.accessiblePeopleGroupIds)}`)
-    }
-
-    if (options?.peopleGroupId) {
-      needsJoin = true
-      conditions.push(this.sql`cs.people_group_id = ${options.peopleGroupId}`)
-    }
-
-    if (options?.source) {
-      conditions.push(this.sql`${options.source} = ANY(s.sources)`)
-    }
-
-    if (options?.search) {
-      const searchTerm = `%${options.search}%`
-      conditions.push(this.sql`(
-        s.name ILIKE ${searchTerm} OR
-        EXISTS (SELECT 1 FROM contact_methods cm WHERE cm.subscriber_id = s.id AND cm.value ILIKE ${searchTerm})
+    // Permission scoping: restrict to subscribers with at least one subscription
+    // in an accessible people group. Uses EXISTS so no DISTINCT is needed.
+    if (options.accessiblePeopleGroupIds) {
+      if (options.accessiblePeopleGroupIds.length === 0) {
+        return { items: [], nextCursor: null }
+      }
+      conditions.push(this.sql`EXISTS (
+        SELECT 1 FROM campaign_subscriptions cs
+        WHERE cs.subscriber_id = s.id
+        AND cs.people_group_id IN ${this.sql(options.accessiblePeopleGroupIds)}
       )`)
     }
 
-    const joinClause = needsJoin
-      ? this.sql`JOIN campaign_subscriptions cs ON cs.subscriber_id = s.id`
-      : this.sql``
+    // User-defined filter rows from the filter builder.
+    const filterConditions = buildFilterConditions(subscriberServerManifest, options.filter ?? null, this.sql)
+    conditions.push(...filterConditions)
+
+    // Global search: name, tracking_id, contact value, exact id match.
+    if (options.search) {
+      const term = options.search.trim()
+      if (term) {
+        const like = `%${term}%`
+        const exactId = /^\d+$/.test(term) ? Number(term) : null
+        if (exactId !== null) {
+          conditions.push(this.sql`(
+            s.name ILIKE ${like}
+            OR s.tracking_id ILIKE ${like}
+            OR s.id = ${exactId}
+            OR EXISTS (SELECT 1 FROM contact_methods cm WHERE cm.subscriber_id = s.id AND cm.value ILIKE ${like})
+          )`)
+        } else {
+          conditions.push(this.sql`(
+            s.name ILIKE ${like}
+            OR s.tracking_id ILIKE ${like}
+            OR EXISTS (SELECT 1 FROM contact_methods cm WHERE cm.subscriber_id = s.id AND cm.value ILIKE ${like})
+          )`)
+        }
+      }
+    }
+
+    // Cursor: (created_at, id) DESC, lexicographic.
+    // `::text::timestamp` (not `::timestamp`) forces postgres.js to send the
+    // parameter as text instead of inferring type 1114 — that path round-trips
+    // through JS Date and loses microsecond precision, silently excluding rows.
+    if (cursor) {
+      conditions.push(this.sql`(
+        s.created_at < ${cursor.c}::text::timestamp
+        OR (s.created_at = ${cursor.c}::text::timestamp AND s.id < ${cursor.i})
+      )`)
+    }
 
     const whereClause = conditions.length > 0
       ? buildWhere(this.sql, conditions)
       : this.sql``
 
-    const subscribers: Subscriber[] = await this.sql`
-      SELECT DISTINCT s.* FROM subscribers s
-      ${joinClause}
+    // Fetch one extra row to detect whether there's a next page.
+    // created_at_cursor is a text-cast of created_at so the cursor preserves
+    // microsecond precision (JS Date would truncate to milliseconds).
+    const fetchLimit = limit + 1
+    const rows = await this.sql<(Subscriber & { created_at_cursor: string })[]>`
+      SELECT s.*, s.created_at::text AS created_at_cursor FROM subscribers s
       ${whereClause}
-      ORDER BY s.created_at DESC
+      ORDER BY s.created_at DESC, s.id DESC
+      LIMIT ${fetchLimit}
     `
 
-    // Fetch prayer time totals for all subscribers in one query
-    const prayerTimes = await this.sql`
-      SELECT tracking_id, COALESCE(ROUND(SUM(duration) / 60.0), 0) as total_minutes, COUNT(*) as session_count
-      FROM prayer_activity WHERE tracking_id IS NOT NULL GROUP BY tracking_id
-    ` as { tracking_id: string; total_minutes: number; session_count: number }[]
-    const prayerTimeMap = new Map(prayerTimes.map(pt => [pt.tracking_id, { minutes: Number(pt.total_minutes), sessions: Number(pt.session_count) }]))
+    const hasMore = rows.length > limit
+    const pageRows = hasMore ? rows.slice(0, limit) : rows
 
-    // Fetch comment counts for all subscribers in one query
-    const commentCounts = await this.sql`
+    const items = await this.enrichSubscribers(pageRows, options.accessiblePeopleGroupIds)
+
+    let nextCursor: string | null = null
+    if (hasMore && pageRows.length > 0) {
+      const last = pageRows[pageRows.length - 1]!
+      nextCursor = encodeCursor({ c: last.created_at_cursor, i: last.id })
+    }
+
+    return { items, nextCursor }
+  }
+
+  async getSubscriberWithSubscriptions(id: number, accessiblePeopleGroupIds?: number[]): Promise<SubscriberWithSubscriptions | null> {
+    const row = await this.getSubscriberById(id)
+    if (!row) return null
+    const [enriched] = await this.enrichSubscribers([row], accessiblePeopleGroupIds)
+    return enriched ?? null
+  }
+
+  /**
+   * Batched enrichment: one round-trip each for contacts, subscriptions,
+   * consent people-group names, prayer totals, and comment counts — regardless
+   * of how many subscribers are passed in. Replaces the per-row N+1 path.
+   */
+  private async enrichSubscribers(
+    rows: Subscriber[],
+    accessiblePeopleGroupIds?: number[]
+  ): Promise<SubscriberWithSubscriptions[]> {
+    if (rows.length === 0) return []
+
+    const ids = rows.map(r => r.id)
+    const trackingIds = rows.map(r => r.tracking_id).filter((t): t is string => !!t)
+
+    const contactsRows = await this.sql<ContactMethod[]>`
+      SELECT * FROM contact_methods
+      WHERE subscriber_id IN ${this.sql(ids)}
+      ORDER BY subscriber_id, type, created_at
+    `
+    const contactsBySubscriber = new Map<number, ContactMethod[]>()
+    for (const c of contactsRows) {
+      const list = contactsBySubscriber.get(c.subscriber_id) ?? []
+      list.push(c)
+      contactsBySubscriber.set(c.subscriber_id, list)
+    }
+
+    const subscriptionRows = await this.sql`
+      SELECT cs.*, pg.name as people_group_name, pg.slug as people_group_slug,
+        s.name as subscriber_name, s.tracking_id as subscriber_tracking_id,
+        s.profile_id as subscriber_profile_id
+      FROM campaign_subscriptions cs
+      JOIN people_groups pg ON pg.id = cs.people_group_id
+      JOIN subscribers s ON s.id = cs.subscriber_id
+      WHERE cs.subscriber_id IN ${this.sql(ids)}
+      ORDER BY cs.subscriber_id, cs.created_at DESC
+    ` as any[]
+    const subscriptionsBySubscriber = new Map<number, PeopleGroupSubscriptionWithDetails[]>()
+    for (const row of subscriptionRows) {
+      row.days_of_week = row.days_of_week
+        ? (typeof row.days_of_week === 'string' ? JSON.parse(row.days_of_week) : row.days_of_week)
+        : []
+      const list = subscriptionsBySubscriber.get(row.subscriber_id) ?? []
+      list.push(row as PeopleGroupSubscriptionWithDetails)
+      subscriptionsBySubscriber.set(row.subscriber_id, list)
+    }
+
+    // Collect all people-group IDs referenced by consents, look them up once.
+    const consentedPgIds = new Set<number>()
+    for (const c of contactsRows) {
+      for (const pgId of c.consented_people_group_ids || []) consentedPgIds.add(pgId)
+    }
+    const pgNameById = new Map<number, string>()
+    if (consentedPgIds.size > 0) {
+      const pgRows = await this.sql`
+        SELECT id, name FROM people_groups WHERE id IN ${this.sql([...consentedPgIds])}
+      ` as { id: number; name: string }[]
+      for (const pg of pgRows) pgNameById.set(pg.id, pg.name)
+    }
+
+    const prayerTimeMap = new Map<string, { minutes: number; sessions: number }>()
+    if (trackingIds.length > 0) {
+      const prayerRows = await this.sql`
+        SELECT tracking_id, COALESCE(ROUND(SUM(duration) / 60.0), 0) as total_minutes, COUNT(*) as session_count
+        FROM prayer_activity
+        WHERE tracking_id IN ${this.sql(trackingIds)}
+        GROUP BY tracking_id
+      ` as { tracking_id: string; total_minutes: number; session_count: number }[]
+      for (const pt of prayerRows) {
+        prayerTimeMap.set(pt.tracking_id, { minutes: Number(pt.total_minutes), sessions: Number(pt.session_count) })
+      }
+    }
+
+    const commentRows = await this.sql`
       SELECT record_id, COUNT(*) as count
-      FROM comments WHERE record_type = 'subscriber' GROUP BY record_id
+      FROM comments
+      WHERE record_type = 'subscriber' AND record_id IN ${this.sql(ids)}
+      GROUP BY record_id
     ` as { record_id: number; count: number }[]
-    const commentCountMap = new Map(commentCounts.map(c => [c.record_id, Number(c.count)]))
+    const commentCountMap = new Map(commentRows.map(c => [c.record_id, Number(c.count)]))
 
-    const enrichedSubscribers: SubscriberWithSubscriptions[] = []
+    return rows.map(subscriber => {
+      const contacts = contactsBySubscriber.get(subscriber.id) ?? []
+      let subscriptions = subscriptionsBySubscriber.get(subscriber.id) ?? []
 
-    for (const subscriber of subscribers) {
-      const contacts = await contactMethodService.getSubscriberContactMethods(subscriber.id)
-      let subscriptions = await peopleGroupSubscriptionService.getSubscriberSubscriptions(subscriber.id)
-
-      if (options?.accessiblePeopleGroupIds) {
+      if (accessiblePeopleGroupIds) {
         subscriptions = subscriptions.filter(sub =>
-          options.accessiblePeopleGroupIds!.includes(sub.people_group_id)
+          accessiblePeopleGroupIds.includes(sub.people_group_id)
         )
       }
 
@@ -352,19 +473,11 @@ class SubscriberService {
       const phoneContact = contacts.find(c => c.type === 'phone' && c.verified) || contacts.find(c => c.type === 'phone')
 
       const consentedPeopleGroupIds = emailContact?.consented_people_group_ids || []
+      const peopleGroupNames = consentedPeopleGroupIds.map(id =>
+        pgNameById.get(id) || `People Group ${id}`
+      )
 
-      let peopleGroupNames: string[] = []
-      if (consentedPeopleGroupIds.length > 0) {
-        const peopleGroups = await this.sql`
-          SELECT id, name FROM people_groups WHERE id IN ${this.sql(consentedPeopleGroupIds)}
-        ` as { id: number; name: string }[]
-        peopleGroupNames = consentedPeopleGroupIds.map(id => {
-          const pg = peopleGroups.find(p => p.id === id)
-          return pg?.name || `People Group ${id}`
-        })
-      }
-
-      enrichedSubscribers.push({
+      return {
         ...subscriber,
         contacts: contacts.map(c => ({
           id: c.id,
@@ -384,10 +497,8 @@ class SubscriberService {
         total_prayer_minutes: prayerTimeMap.get(subscriber.tracking_id)?.minutes || 0,
         prayer_session_count: prayerTimeMap.get(subscriber.tracking_id)?.sessions || 0,
         comment_count: commentCountMap.get(subscriber.id) || 0
-      })
-    }
-
-    return enrichedSubscribers
+      }
+    })
   }
 }
 

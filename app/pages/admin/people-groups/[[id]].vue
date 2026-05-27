@@ -347,6 +347,7 @@
 <script setup lang="ts">
 import { allFields, fieldsByCategory, categories, tableColumnFields, type FieldDefinition } from '~/utils/people-group-fields'
 import type { Adoption } from '~/types/adoption'
+import { encodeFilter } from '#shared/crm/filter-codec'
 
 definePageMeta({
   layout: 'admin',
@@ -736,7 +737,11 @@ async function removeAdoption(adoption: Adoption) {
 }
 
 function navigateToSubscribers(peopleGroupId: number) {
-  navigateTo(`/admin/subscribers?peopleGroup=${peopleGroupId}`)
+  const encoded = encodeFilter({
+    v: 1,
+    rows: [{ field: 'subscribed_to_people_group', op: 'is', value: peopleGroupId }],
+  })
+  navigateTo(`/admin/subscribers?filter=${encoded}`)
 }
 
 function formatNumber(num: number | string): string {

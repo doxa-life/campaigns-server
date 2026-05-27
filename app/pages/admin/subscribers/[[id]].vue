@@ -15,35 +15,21 @@
       <CrmListPanel
         v-model="searchQuery"
         search-placeholder="Search by name, email, phone, contact ID, or tracking ID..."
-        :total-count="filteredSubscribers.length"
+        :total-count="items.length"
+        :has-more="!!nextCursor"
       >
         <template #filters>
-          <USelectMenu
-            v-model="filterPeopleGroupId"
-            :items="peopleGroupOptions"
-            value-key="value"
-            placeholder="All People Groups"
-            virtualize
-            class="filter-select"
-          />
-          <USelectMenu
-            v-model="filterSource"
-            :items="sourceOptions"
-            value-key="value"
-            placeholder="All Sources"
-            class="filter-select"
-          />
+          <CrmFilterBuilder v-model="filterState" :manifest="filterManifest" />
         </template>
       </CrmListPanel>
     </template>
 
     <template #list>
-      <template v-if="filteredSubscribers.length === 0">
+      <template v-if="items.length === 0 && !loading">
         <div class="empty-list">No contacts found</div>
       </template>
       <CrmListItem
-        v-else
-        v-for="subscriber in filteredSubscribers"
+        v-for="subscriber in items"
         :key="subscriber.id"
         :active="selectedSubscriber?.id === subscriber.id"
         @click="selectSubscriber(subscriber)"
@@ -53,6 +39,14 @@
           {{ subscriber.primary_email || subscriber.primary_phone || 'No contact' }}
         </div>
         <div class="subscriber-meta">
+          <UBadge
+            v-for="source in subscriber.sources"
+            :key="source"
+            :label="getFieldOptionLabel('sources', source)"
+            variant="subtle"
+            color="info"
+            size="xs"
+          />
           <template v-if="isEmailVerified(subscriber)">
             <UBadge
               v-for="(count, groupName) in getSubscriptionsByGroup(subscriber.subscriptions)"
@@ -60,14 +54,6 @@
               :label="count > 1 ? `${groupName} x${count}` : `${groupName}`"
               variant="outline"
               color="neutral"
-              size="xs"
-            />
-            <UBadge
-              v-for="source in subscriber.sources"
-              :key="source"
-              :label="getFieldOptionLabel('sources', source)"
-              variant="subtle"
-              color="info"
               size="xs"
             />
             <UBadge
@@ -93,6 +79,10 @@
           <span class="date">{{ formatDate(subscriber.created_at) }}</span>
         </div>
       </CrmListItem>
+      <div ref="loadMoreSentinel" class="load-more-sentinel">
+        <span v-if="loadingMore" class="load-more-text">Loading more...</span>
+        <span v-else-if="!nextCursor && items.length > 0" class="load-more-text">End of list</span>
+      </div>
     </template>
 
     <template v-if="selectedSubscriber" #detail-header>
@@ -101,7 +91,7 @@
 
     <template v-if="selectedSubscriber" #detail-actions>
       <CrmRecordNav
-        :items="filteredSubscribers"
+        :items="items"
         :current-id="selectedSubscriber.id"
         @navigate="selectSubscriber($event)"
       />
@@ -667,6 +657,11 @@
 </template>
 
 <script setup lang="ts">
+import type { FilterState } from '#shared/crm/filter-types'
+import { EMPTY_FILTER } from '#shared/crm/filter-types'
+import { decodeFilter, encodeFilter } from '#shared/crm/filter-codec'
+import { useSubscriberFilterManifest } from '~/utils/crm/subscriber-manifest'
+
 definePageMeta({
   layout: 'admin',
   middleware: 'auth'
@@ -744,18 +739,23 @@ const { canAccess, user } = useAuthUser()
 
 // Data
 const subscriberGroups = ref<{ group_id: number; name: string }[]>([])
-const subscribers = ref<GeneralSubscriber[]>([])
+const items = ref<GeneralSubscriber[]>([])
 const peopleGroups = ref<PeopleGroup[]>([])
 const selectedSubscriber = ref<GeneralSubscriber | null>(null)
+
+// Pagination
+const nextCursor = ref<string | null>(null)
+const loadingMore = ref(false)
+const loadMoreSentinel = ref<HTMLElement | null>(null)
 
 // Loading states
 const loading = ref(true)
 const error = ref('')
 
 // Filters
+const filterManifest = useSubscriberFilterManifest()
 const searchQuery = ref('')
-const filterPeopleGroupId = ref<number | null>(null)
-const filterSource = ref<string | null>(null)
+const filterState = ref<FilterState>({ ...EMPTY_FILTER })
 
 // Subscriber auto-save
 interface SubscriberFormData {
@@ -1079,19 +1079,7 @@ function getLanguageFlag(code: string): string {
 
 const { countryOptions, getCountryName } = useLocalizedOptions()
 
-const peopleGroupOptions = computed(() => {
-  return [
-    { label: 'All People Groups', value: null },
-    ...peopleGroups.value.map(c => ({ label: c.name, value: c.id }))
-  ]
-})
-
 const sourceEditOptions = getFieldOptions('sources').map(o => ({ label: o.label, value: o.key }))
-
-const sourceOptions = [
-  { label: 'All Sources', value: null },
-  ...sourceEditOptions
-]
 
 const availableGroupOptions = computed(() => {
   const linkedIds = new Set(subscriberGroups.value.map(g => g.group_id))
@@ -1100,32 +1088,76 @@ const availableGroupOptions = computed(() => {
     .map(g => ({ label: g.name, value: g.id }))
 })
 
-const filteredSubscribers = computed(() => {
-  let filtered = subscribers.value
+// Build the API URL query string from current filter + search.
+function buildListQuery(cursor: string | null = null): string {
+  const params = new URLSearchParams()
+  const encoded = encodeFilter(filterState.value)
+  if (encoded) params.set('filter', encoded)
+  if (searchQuery.value) params.set('q', searchQuery.value)
+  if (cursor) params.set('cursor', cursor)
+  return params.toString()
+}
 
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(s =>
-      s.name.toLowerCase().includes(query) ||
-      s.primary_email?.toLowerCase().includes(query) ||
-      s.primary_phone?.includes(query) ||
-      String(s.id) === query ||
-      s.tracking_id.toLowerCase().includes(query)
+// Write filter + search to the URL (without server roundtrip).
+function syncUrl() {
+  if (!import.meta.client) return
+  const params = new URLSearchParams()
+  const encoded = encodeFilter(filterState.value)
+  if (encoded) params.set('filter', encoded)
+  if (searchQuery.value) params.set('q', searchQuery.value)
+  const qs = params.toString()
+  const base = selectedSubscriber.value
+    ? `/admin/subscribers/${selectedSubscriber.value.id}`
+    : '/admin/subscribers'
+  window.history.replaceState({}, '', qs ? `${base}?${qs}` : base)
+}
+
+async function loadFirstPage() {
+  loading.value = true
+  try {
+    const qs = buildListQuery()
+    const res = await $fetch<{ subscribers: GeneralSubscriber[]; nextCursor: string | null }>(
+      `/api/admin/subscribers${qs ? '?' + qs : ''}`
     )
+    items.value = res.subscribers
+    nextCursor.value = res.nextCursor
+  } catch (err: any) {
+    error.value = 'Failed to load contacts'
+    console.error(err)
+  } finally {
+    loading.value = false
   }
+}
 
-  if (filterPeopleGroupId.value) {
-    filtered = filtered.filter(s =>
-      s.subscriptions.some(sub => sub.people_group_id === filterPeopleGroupId.value)
+async function loadMore() {
+  if (loadingMore.value || !nextCursor.value) return
+  loadingMore.value = true
+  try {
+    const qs = buildListQuery(nextCursor.value)
+    const res = await $fetch<{ subscribers: GeneralSubscriber[]; nextCursor: string | null }>(
+      `/api/admin/subscribers?${qs}`
     )
+    items.value = [...items.value, ...res.subscribers]
+    nextCursor.value = res.nextCursor
+  } catch (err: any) {
+    console.error('Failed to load more:', err)
+  } finally {
+    loadingMore.value = false
   }
+}
 
-  if (filterSource.value) {
-    filtered = filtered.filter(s => s.sources.includes(filterSource.value!))
-  }
+// Debounced reload when filters or search change.
+let reloadTimer: ReturnType<typeof setTimeout> | null = null
+function scheduleReload(delay = 300) {
+  if (reloadTimer) clearTimeout(reloadTimer)
+  reloadTimer = setTimeout(() => {
+    syncUrl()
+    loadFirstPage()
+  }, delay)
+}
 
-  return filtered
-})
+watch(searchQuery, () => scheduleReload(300))
+watch(filterState, () => scheduleReload(100), { deep: true })
 
 function openCreateModal() {
   createPersonForm.value = { name: '', email: '', phone: '' }
@@ -1141,9 +1173,16 @@ async function createPerson() {
       body: createPersonForm.value
     })
     showCreatePersonModal.value = false
-    await loadData()
-    const created = subscribers.value.find(s => s.id === res.subscriber.id)
-    if (created) selectSubscriber(created)
+
+    // Fetch the full subscriber record so the slideover has everything it needs.
+    const detail = await $fetch<{ subscriber: GeneralSubscriber }>(
+      `/api/admin/subscribers/${res.subscriber.id}`
+    )
+    if (res.isNew && detail.subscriber) {
+      items.value = [detail.subscriber, ...items.value]
+    }
+    if (detail.subscriber) selectSubscriber(detail.subscriber)
+
     toast.add({
       title: res.isNew ? 'Contact created' : 'Existing contact found',
       color: 'success'
@@ -1257,24 +1296,16 @@ async function removePeopleGroupConsent(pgId: number) {
   }
 }
 
-async function loadData() {
+async function loadStaticData() {
   try {
-    loading.value = true
-    error.value = ''
-
-    const [peopleGroupsResponse, subscribersResponse, groupsResponse] = await Promise.all([
+    const [peopleGroupsResponse, groupsResponse] = await Promise.all([
       $fetch<{ peopleGroups: PeopleGroup[] }>('/api/admin/people-groups'),
-      $fetch<{ subscribers: GeneralSubscriber[] }>('/api/admin/subscribers'),
       $fetch<{ groups: { id: number; name: string }[] }>('/api/admin/groups')
     ])
     peopleGroups.value = peopleGroupsResponse.peopleGroups
-    subscribers.value = subscribersResponse.subscribers
     allGroups.value = groupsResponse.groups
   } catch (err: any) {
-    error.value = 'Failed to load contacts'
-    console.error(err)
-  } finally {
-    loading.value = false
+    console.error('Failed to load static data:', err)
   }
 }
 
@@ -1296,14 +1327,7 @@ async function selectSubscriber(subscriber: GeneralSubscriber, updateUrl = true)
     country: subscriber.country || undefined,
     sources: subscriber.sources || []
   })
-  if (updateUrl && import.meta.client) {
-    const params = new URLSearchParams()
-    if (filterPeopleGroupId.value) params.set('peopleGroup', String(filterPeopleGroupId.value))
-    if (route.query.from) params.set('from', route.query.from as string)
-    if (route.query.peopleGroupId) params.set('peopleGroupId', route.query.peopleGroupId as string)
-    const queryString = params.toString()
-    window.history.replaceState({}, '', `/admin/subscribers/${subscriber.id}${queryString ? '?' + queryString : ''}`)
-  }
+  if (updateUrl) syncUrl()
 
   subscriptionSavers.value = new Map()
   subscriptionForms.value = new Map()
@@ -1334,14 +1358,7 @@ async function selectSubscriber(subscriber: GeneralSubscriber, updateUrl = true)
 
 function deselectSubscriber() {
   selectedSubscriber.value = null
-  if (import.meta.client) {
-    const params = new URLSearchParams()
-    if (filterPeopleGroupId.value) params.set('peopleGroup', String(filterPeopleGroupId.value))
-    if (route.query.from) params.set('from', route.query.from as string)
-    if (route.query.peopleGroupId) params.set('peopleGroupId', route.query.peopleGroupId as string)
-    const queryString = params.toString()
-    window.history.replaceState({}, '', `/admin/subscribers${queryString ? '?' + queryString : ''}`)
-  }
+  syncUrl()
 }
 
 function getSubscriptionForm(subscriptionId: number): SubscriptionForm {
@@ -1483,7 +1500,7 @@ async function confirmDelete() {
       color: 'success'
     })
 
-    subscribers.value = subscribers.value.filter(s => s.id !== subscriberToDelete.value!.id)
+    items.value = items.value.filter(s => s.id !== subscriberToDelete.value!.id)
     slideoverOpen.value = false
     showDeleteModal.value = false
     subscriberToDelete.value = null
@@ -1504,8 +1521,14 @@ function cancelDelete() {
 }
 
 function filterByPeopleGroup(subscription: Subscription) {
-  filterPeopleGroupId.value = subscription.people_group_id
-  router.push({ query: { peopleGroup: subscription.people_group_id } })
+  const existing = filterState.value.rows.findIndex(
+    r => r.field === 'subscribed_to_people_group'
+  )
+  const row = { field: 'subscribed_to_people_group', op: 'is' as const, value: subscription.people_group_id }
+  const rows = [...filterState.value.rows]
+  if (existing >= 0) rows[existing] = row
+  else rows.push(row)
+  filterState.value = { v: 1, rows }
 }
 
 
@@ -1659,26 +1682,71 @@ function formatLanguage(code: string): string {
   return languages[code] || code
 }
 
-// Handle URL-based selection
-function handleUrlSelection() {
+// Handle URL-based selection. If the record is in the loaded list, navigate
+// within it; otherwise fetch the record on its own so the slideover still opens.
+async function handleUrlSelection() {
   const idParam = route.params.id as string | undefined
   if (!idParam) return
-
   const id = parseInt(idParam)
-  const subscriber = subscribers.value.find(s => s.id === id)
-  if (subscriber) {
-    selectSubscriber(subscriber, false)
+  if (!Number.isFinite(id)) return
+
+  const inList = items.value.find(s => s.id === id)
+  if (inList) {
+    selectSubscriber(inList, false)
+    return
+  }
+
+  try {
+    const res = await $fetch<{ subscriber: GeneralSubscriber }>(`/api/admin/subscribers/${id}`)
+    if (res.subscriber) selectSubscriber(res.subscriber, false)
+  } catch (err: any) {
+    if (err?.statusCode !== 404) console.error('Failed to load subscriber:', err)
   }
 }
 
+let scrollObserver: IntersectionObserver | null = null
+function setupInfiniteScroll() {
+  if (!import.meta.client || !loadMoreSentinel.value) return
+  scrollObserver?.disconnect()
+  scrollObserver = new IntersectionObserver((entries) => {
+    if (entries[0]?.isIntersecting && nextCursor.value && !loadingMore.value) {
+      loadMore()
+    }
+  }, { rootMargin: '200px' })
+  scrollObserver.observe(loadMoreSentinel.value)
+}
+
+watch(loadMoreSentinel, () => setupInfiniteScroll())
+
+onBeforeUnmount(() => {
+  scrollObserver?.disconnect()
+})
+
 onMounted(async () => {
-  const peopleGroupParam = route.query.peopleGroup
-  if (peopleGroupParam) {
-    filterPeopleGroupId.value = parseInt(peopleGroupParam as string)
+  // Restore filter + search from URL.
+  const filterParam = route.query.filter
+  if (typeof filterParam === 'string' && filterParam) {
+    filterState.value = decodeFilter(filterParam)
   }
+  const qParam = route.query.q
+  if (typeof qParam === 'string') searchQuery.value = qParam
+
+  // Back-compat: convert any ?peopleGroup= deep link into a filter row.
+  const peopleGroupParam = route.query.peopleGroup
+  if (peopleGroupParam && filterState.value.rows.length === 0) {
+    const id = parseInt(peopleGroupParam as string)
+    if (Number.isFinite(id)) {
+      filterState.value = {
+        v: 1,
+        rows: [{ field: 'subscribed_to_people_group', op: 'is', value: id }],
+      }
+    }
+  }
+
   loadMyInboxIdentity()
-  await loadData()
-  handleUrlSelection()
+  await Promise.all([loadStaticData(), loadFirstPage()])
+  await handleUrlSelection()
+  setupInfiniteScroll()
 })
 </script>
 
@@ -1716,6 +1784,16 @@ onMounted(async () => {
 
 .filter-select {
   width: 100%;
+}
+
+.load-more-sentinel {
+  padding: 1rem;
+  text-align: center;
+}
+
+.load-more-text {
+  font-size: 0.75rem;
+  color: var(--ui-text-muted);
 }
 
 .empty-list {
