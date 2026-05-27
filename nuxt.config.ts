@@ -41,6 +41,12 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   ssr: false,
 
+  vue: {
+    compilerOptions: {
+      isCustomElement: (tag: string) => tag === 'feedback-web-component'
+    }
+  },
+
   // Keep the file watcher out of large non-source trees (e.g. agent git
   // worktrees under .claude/worktrees/, each carrying their own node_modules).
   // Without this the core builder watcher walks them and hits EMFILE.
@@ -198,7 +204,11 @@ export default defineNuxtConfig({
       statinatorUrl: process.env.NUXT_PUBLIC_STATINATOR_URL || 'https://statinator.doxa.life',
       statinatorProjectId: process.env.NUXT_PUBLIC_STATINATOR_PROJECT_ID || 'doxa',
       statinatorEnabled: process.env.NUXT_PUBLIC_STATINATOR_ENABLED === 'true',
-      statinatorCookieDomain: process.env.NUXT_PUBLIC_STATINATOR_COOKIE_DOMAIN || '.doxa.life'
+      statinatorCookieDomain: process.env.NUXT_PUBLIC_STATINATOR_COOKIE_DOMAIN || '.doxa.life',
+
+      // Feedback widget (external chat bubble → support.gospelambition.org)
+      feedbackApiBase: process.env.NUXT_PUBLIC_FEEDBACK_API_BASE || 'https://support.gospelambition.org',
+      feedbackProjectId: process.env.NUXT_PUBLIC_FEEDBACK_PROJECT_ID || ''
     }
   }
 })

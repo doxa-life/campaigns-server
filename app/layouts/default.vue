@@ -106,6 +106,12 @@ const currentYear = new Date().getFullYear()
 const { peopleGroupTitle, peopleGroupImageUrl, showPeopleGroupHeader } = usePeopleGroup()
 const { isLoggedIn, checkAuth } = useAuth()
 
+if (config.public.feedbackProjectId && config.public.feedbackApiBase) {
+  useHead({
+    link: [{ rel: 'preconnect', href: String(config.public.feedbackApiBase) }]
+  })
+}
+
 const slug = computed(() => route.params.slug as string | undefined)
 
 const logoLink = computed(() => {
