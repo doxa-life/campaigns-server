@@ -87,6 +87,11 @@ jobs:
           TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           JWT_SECRET: test-jwt-secret-for-ci
+          # anon-signup.test.ts + news-signup.test.ts throw at module load if
+          # these aren't set, which silently drops every test in those files
+          # (the vitest run still exits 1, but with no failed-assertion output).
+          ANON_SIGNUP_SECRET: test-anon-signup-secret-for-ci
+          FORM_API_KEY: test-form-api-key-for-ci
 
       - name: Print failing tests
         if: failure()
