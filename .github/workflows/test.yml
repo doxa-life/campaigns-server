@@ -78,11 +78,38 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
 
       - name: Run e2e tests
-        run: bun run test:e2e
+        # vitest's default reporter uses carriage returns that GH Actions' log
+        # collector strips, so test names + assertion failures never appear in
+        # the log. The JSON reporter writes a structured file we dump on
+        # failure; the verbose reporter gives line-by-line progress in the log.
+        run: bunx vitest run --config vitest.config.ts --reporter=verbose --reporter=json --outputFile=/tmp/vitest-e2e.json
         env:
           TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           JWT_SECRET: test-jwt-secret-for-ci
+
+      - name: Print failing tests
+        if: failure()
+        run: |
+          if [ ! -f /tmp/vitest-e2e.json ]; then
+            echo "No vitest JSON output found"
+            exit 0
+          fi
+          echo "::group::Failing tests"
+          python3 -c "
+          import json
+          with open('/tmp/vitest-e2e.json') as f:
+              d = json.load(f)
+          print(f\"totals: {d.get('numTotalTests')} | passed: {d.get('numPassedTests')} | failed: {d.get('numFailedTests')}\")
+          for f in d.get('testResults', []):
+              for t in f.get('assertionResults', []):
+                  if t.get('status') == 'failed':
+                      print()
+                      print('FAIL:', t['fullName'])
+                      for m in t.get('failureMessages', [])[:1]:
+                          print(m[:2000])
+          "
+          echo "::endgroup::"
 
   all-tests:
     runs-on: ubuntu-latest
