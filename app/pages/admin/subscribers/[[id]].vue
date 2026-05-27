@@ -16,6 +16,7 @@
         v-model="searchQuery"
         search-placeholder="Search by name, email, phone, contact ID, or tracking ID..."
         :total-count="items.length"
+        :has-more="!!nextCursor"
       >
         <template #filters>
           <CrmFilterBuilder v-model="filterState" :manifest="filterManifest" />
@@ -38,6 +39,14 @@
           {{ subscriber.primary_email || subscriber.primary_phone || 'No contact' }}
         </div>
         <div class="subscriber-meta">
+          <UBadge
+            v-for="source in subscriber.sources"
+            :key="source"
+            :label="getFieldOptionLabel('sources', source)"
+            variant="subtle"
+            color="info"
+            size="xs"
+          />
           <template v-if="isEmailVerified(subscriber)">
             <UBadge
               v-for="(count, groupName) in getSubscriptionsByGroup(subscriber.subscriptions)"
@@ -45,14 +54,6 @@
               :label="count > 1 ? `${groupName} x${count}` : `${groupName}`"
               variant="outline"
               color="neutral"
-              size="xs"
-            />
-            <UBadge
-              v-for="source in subscriber.sources"
-              :key="source"
-              :label="getFieldOptionLabel('sources', source)"
-              variant="subtle"
-              color="info"
               size="xs"
             />
             <UBadge

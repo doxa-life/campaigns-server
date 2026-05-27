@@ -9,7 +9,7 @@
     />
     <slot name="filters" />
     <div v-if="totalCount !== undefined" class="list-count">
-      {{ totalCount }} {{ totalCount === 1 ? 'item' : 'items' }}
+      {{ totalCount }}{{ hasMore ? '+' : '' }} {{ totalCount === 1 && !hasMore ? 'item' : 'items' }}
     </div>
   </div>
 </template>
@@ -19,6 +19,7 @@ defineProps<{
   modelValue?: string
   searchPlaceholder?: string
   totalCount?: number
+  hasMore?: boolean
 }>()
 
 defineEmits<{

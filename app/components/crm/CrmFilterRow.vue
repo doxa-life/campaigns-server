@@ -4,7 +4,7 @@
       :model-value="row.field"
       :items="fieldOptions"
       value-key="value"
-      class="field-select"
+      class="flex-1 min-w-56"
       @update:model-value="onFieldChange($event as string)"
     />
 
@@ -13,7 +13,7 @@
       :model-value="row.op"
       :items="operatorOptions"
       value-key="value"
-      class="op-select"
+      class="w-36 shrink-0"
       @update:model-value="onOpChange($event as Operator)"
     />
     <span v-else class="op-static">{{ operatorOptions[0]?.label }}</span>
@@ -24,7 +24,7 @@
         <UInput
           :model-value="row.value as string"
           type="text"
-          class="value-input"
+          class="flex-1 min-w-48"
           placeholder="Value"
           @update:model-value="setValue($event)"
         />
@@ -35,7 +35,7 @@
           <UInput
             :model-value="(row.value as number[])?.[0]"
             type="number"
-            class="value-input-narrow"
+            class="w-32 shrink-0"
             placeholder="from"
             @update:model-value="setRange(0, Number($event))"
           />
@@ -43,7 +43,7 @@
           <UInput
             :model-value="(row.value as number[])?.[1]"
             type="number"
-            class="value-input-narrow"
+            class="w-32 shrink-0"
             placeholder="to"
             @update:model-value="setRange(1, Number($event))"
           />
@@ -52,7 +52,7 @@
           v-else
           :model-value="row.value as number"
           type="number"
-          class="value-input"
+          class="flex-1 min-w-48"
           placeholder="Value"
           @update:model-value="setValue(Number($event))"
         />
@@ -64,20 +64,20 @@
             :model-value="datePreset"
             :items="DATE_PRESETS"
             value-key="value"
-            class="op-select"
+            class="w-36 shrink-0"
             @update:model-value="applyDatePreset($event as string)"
           />
           <UInput
             :model-value="(row.value as string[])?.[0]"
             type="date"
-            class="value-input-narrow"
+            class="w-36 shrink-0"
             @update:model-value="setRange(0, String($event))"
           />
           <span class="value-sep">–</span>
           <UInput
             :model-value="(row.value as string[])?.[1]"
             type="date"
-            class="value-input-narrow"
+            class="w-36 shrink-0"
             @update:model-value="setRange(1, String($event))"
           />
         </template>
@@ -85,7 +85,7 @@
           v-else
           :model-value="row.value as string"
           type="date"
-          class="value-input"
+          class="flex-1 min-w-48"
           @update:model-value="setValue(String($event))"
         />
       </template>
@@ -95,7 +95,7 @@
           :model-value="row.value"
           :items="(field.values || []) as any"
           value-key="value"
-          class="value-input"
+          class="flex-1 min-w-48"
           placeholder="Select..."
           @update:model-value="setValue($event)"
         />
@@ -107,7 +107,7 @@
           :items="(field.values || []) as any"
           value-key="value"
           multiple
-          class="value-input"
+          class="flex-1 min-w-48"
           placeholder="Select..."
           @update:model-value="setValue($event)"
         />
@@ -119,7 +119,7 @@
           :items="loadedFkValues as any"
           value-key="value"
           virtualize
-          class="value-input"
+          class="flex-1 min-w-48"
           placeholder="Select..."
           @update:model-value="setValue($event)"
         />
@@ -244,14 +244,10 @@ function applyDatePreset(preset: string) {
   gap: 0.375rem;
   flex-wrap: wrap;
 }
-.field-select { min-width: 10rem; }
-.op-select { min-width: 7rem; }
 .op-static {
   font-size: 0.875rem;
   color: var(--ui-text-muted);
   padding: 0 0.25rem;
 }
-.value-input { flex: 1; min-width: 8rem; }
-.value-input-narrow { width: 8rem; }
 .value-sep { color: var(--ui-text-muted); }
 </style>
