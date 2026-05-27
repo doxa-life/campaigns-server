@@ -5,7 +5,7 @@ class BaseMigration {
 }
 
 export default class AppSubscriptionUniqueMigration extends BaseMigration {
-  id = 63
+  id = 67
   name = 'Enforce one app subscription per (subscriber, people_group)'
 
   async up(sql) {
