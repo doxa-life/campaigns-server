@@ -1,7 +1,7 @@
 import { contactMethodService } from '#server/database/contact-methods'
 
 export default defineEventHandler(async (event) => {
-  await requireSuperAdmin(event)
+  await requireAdmin(event)
 
   const contacts = await contactMethodService.getContactsWithDoxaConsentAndActiveSubscription()
 
