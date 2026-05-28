@@ -1,4 +1,5 @@
 import { conversationService, type ConversationStatus } from '#server/database/conversations'
+import { roleService } from '#server/database/roles'
 import { getIntParam, handleApiError } from '#server/utils/api-helpers'
 
 const VALID_STATUSES: ConversationStatus[] = ['open', 'pending', 'closed', 'spam']
@@ -33,6 +34,13 @@ export default defineEventHandler(async (event) => {
     }
 
     if (body.assigned_user_id !== undefined) {
+      // Only users who can read the inbox may be set as the assignee.
+      if (body.assigned_user_id !== null) {
+        const assigneeCanRead = await roleService.userHasPermission(body.assigned_user_id, 'inbox.view')
+        if (!assigneeCanRead) {
+          throw createError({ statusCode: 400, statusMessage: 'Assignee lacks inbox access' })
+        }
+      }
       await conversationService.assign(id, body.assigned_user_id)
       logUpdate('conversations', String(id), event, {
         message: body.assigned_user_id ? 'Assigned' : 'Unassigned',

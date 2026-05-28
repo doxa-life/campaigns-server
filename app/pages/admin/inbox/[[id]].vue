@@ -788,7 +788,7 @@ async function loadAux() {
   try {
     const [cannedRes, usersRes, meRes] = await Promise.all([
       $fetch<{ cannedResponses: any[] }>('/api/admin/inbox/canned-responses').catch(() => ({ cannedResponses: [] })),
-      $fetch<any>('/api/admin/users').catch(() => ({ users: [] })),
+      $fetch<any>('/api/admin/inbox/assignees').catch(() => ({ users: [] })),
       $fetch<{ email_alias: string | null }>('/api/admin/inbox/me').catch(() => ({ email_alias: null })),
     ])
     cannedResponses.value = cannedRes.cannedResponses || []
