@@ -35,6 +35,9 @@ export default defineVitestConfig({
     include: ['tests/**/*.test.ts'],
     exclude: ['tests/unit/**'],
     testTimeout: 60000,
+    // Setup hooks clean DB state and bcrypt-hash users; the 10s default is too
+    // tight under CI load and caused flaky "Hook timed out" failures.
+    hookTimeout: 60000,
     globalSetup: ['tests/e2e/global-setup.ts'],
     fileParallelism: false,
     sequence: {
