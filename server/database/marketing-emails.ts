@@ -8,7 +8,7 @@ export interface MarketingEmail {
   id: number
   subject: string
   content_json: Record<string, any>
-  audience_type: 'doxa' | 'people_group'
+  audience_type: 'doxa' | 'people_group' | 'admins'
   people_group_id: number | null
   status: 'draft' | 'queued' | 'sending' | 'sent' | 'failed'
   created_by: string
@@ -36,7 +36,7 @@ export interface MarketingEmailWithPeopleGroup extends MarketingEmail {
 export interface CreateMarketingEmailData {
   subject: string
   content_json: Record<string, any>
-  audience_type: 'doxa' | 'people_group'
+  audience_type: 'doxa' | 'people_group' | 'admins'
   people_group_id?: number | null
   created_by: string
 }
@@ -44,14 +44,14 @@ export interface CreateMarketingEmailData {
 export interface UpdateMarketingEmailData {
   subject?: string
   content_json?: Record<string, any>
-  audience_type?: 'doxa' | 'people_group'
+  audience_type?: 'doxa' | 'people_group' | 'admins'
   people_group_id?: number | null
   updated_by: string
 }
 
 export interface MarketingEmailFilters {
   status?: 'draft' | 'queued' | 'sending' | 'sent' | 'failed'
-  audience_type?: 'doxa' | 'people_group'
+  audience_type?: 'doxa' | 'people_group' | 'admins'
   people_group_id?: number
 }
 
@@ -236,7 +236,11 @@ class MarketingEmailService {
     return email.created_by === userId
   }
 
-  async canUserSendToAudience(userId: string, audienceType: 'doxa' | 'people_group', peopleGroupId?: number): Promise<boolean> {
+  async canUserSendToAudience(userId: string, audienceType: 'doxa' | 'people_group' | 'admins', peopleGroupId?: number): Promise<boolean> {
+    // The admins audience only emails internal admin users — it's a test tool,
+    // so any user with marketing access may use it.
+    if (audienceType === 'admins') return true
+
     const scoped = await roleService.isPermissionScoped(userId, 'people_groups.view')
 
     if (audienceType === 'doxa') return !scoped
@@ -247,6 +251,17 @@ class MarketingEmailService {
     }
 
     return false
+  }
+
+  // Admin users have no contact_method, so id is 0 — the send processor's
+  // subscriber lookup tolerates that (falls back to a generic unsubscribe link).
+  async getAdminRecipients(): Promise<Array<{ id: number; value: string }>> {
+    const rows = await this.sql`
+      SELECT email FROM users
+      WHERE 'admin' = ANY(roles) AND email IS NOT NULL AND email <> ''
+      ORDER BY email
+    `
+    return rows.map(r => ({ id: 0, value: r.email as string }))
   }
 }
 

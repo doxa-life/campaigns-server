@@ -58,12 +58,10 @@
                   :class="{ selected: form.audience_type === 'doxa' }"
                   @click="selectAudience('doxa')"
                 >
-                  <div class="option-header">
-                    <input type="radio" v-model="form.audience_type" value="doxa" />
-                    <span class="option-title">DOXA General</span>
-                  </div>
-                  <p class="option-description">Send to all subscribers who opted in to DOXA updates</p>
-                  <p class="option-count" v-if="doxaCount !== null">{{ doxaCount }} recipients</p>
+                  <input type="radio" v-model="form.audience_type" value="doxa" />
+                  <span class="option-title">DOXA General</span>
+                  <span class="option-description">All subscribers who opted in to DOXA updates</span>
+                  <span class="option-count" v-if="doxaCount !== null">{{ doxaCount }} recipients</span>
                 </div>
 
                 <div
@@ -71,14 +69,10 @@
                   :class="{ selected: form.audience_type === 'people_group' }"
                   @click="selectAudience('people_group')"
                 >
-                  <div class="option-header">
-                    <input type="radio" v-model="form.audience_type" value="people_group" />
-                    <span class="option-title">People Group</span>
-                  </div>
-                  <p class="option-description">Send to subscribers who opted in to a specific people group</p>
-
+                  <input type="radio" v-model="form.audience_type" value="people_group" />
+                  <span class="option-title">People Group</span>
                   <USelectMenu
-                    v-show="form.audience_type === 'people_group'"
+                    v-if="form.audience_type === 'people_group'"
                     v-model="form.people_group_id"
                     :items="peopleGroupOptions"
                     placeholder="Select a people group"
@@ -87,9 +81,21 @@
                     value-key="value"
                     @update:model-value="loadPeopleGroupCount"
                   />
-                  <p class="option-count" v-if="form.audience_type === 'people_group' && peopleGroupCount !== null">
+                  <span v-else class="option-description">Subscribers who opted in to a specific people group</span>
+                  <span class="option-count" v-if="form.audience_type === 'people_group' && peopleGroupCount !== null">
                     {{ peopleGroupCount }} recipients
-                  </p>
+                  </span>
+                </div>
+
+                <div
+                  class="audience-option"
+                  :class="{ selected: form.audience_type === 'admins' }"
+                  @click="selectAudience('admins')"
+                >
+                  <input type="radio" v-model="form.audience_type" value="admins" />
+                  <span class="option-title">Admins</span>
+                  <span class="option-description">Send only to admin users — for testing</span>
+                  <span class="option-count" v-if="adminCount !== null">{{ adminCount }} recipients</span>
                 </div>
               </div>
             </UFormField>
@@ -120,7 +126,7 @@
             <label>Audience</label>
             <p class="view-value">
               <UBadge
-                :label="email.audience_type === 'doxa' ? 'Doxa General' : email.people_group_name || 'People Group'"
+                :label="email.audience_type === 'doxa' ? 'Doxa General' : email.audience_type === 'admins' ? 'Admins (test)' : email.people_group_name || 'People Group'"
                 variant="subtle"
                 color="neutral"
               />
@@ -199,7 +205,7 @@ interface MarketingEmail {
   id: number
   subject: string
   content_json: string
-  audience_type: 'doxa' | 'people_group'
+  audience_type: 'doxa' | 'people_group' | 'admins'
   people_group_id: number | null
   people_group_name?: string
   status: 'draft' | 'queued' | 'sending' | 'sent' | 'failed'
@@ -223,7 +229,7 @@ const error = ref('')
 
 const form = ref({
   subject: '',
-  audience_type: '' as 'doxa' | 'people_group' | '',
+  audience_type: '' as 'doxa' | 'people_group' | 'admins' | '',
   people_group_id: undefined as number | undefined,
   content: { type: 'doc', content: [{ type: 'paragraph' }] } as any
 })
@@ -233,6 +239,7 @@ const originalForm = ref<string>('')
 const peopleGroups = ref<{ id: number; title: string }[]>([])
 const doxaCount = ref<number | null>(null)
 const peopleGroupCount = ref<number | null>(null)
+const adminCount = ref<number | null>(null)
 const saving = ref(false)
 const sending = ref(false)
 const showPreview = ref(false)
@@ -256,15 +263,17 @@ const canPreview = computed(() => {
 })
 
 const canSave = computed(() => {
-  return form.value.subject && form.value.audience_type && form.value.content
-    && (form.value.audience_type === 'doxa' || form.value.people_group_id)
+  if (!form.value.subject || !form.value.audience_type || !form.value.content) return false
+  if (form.value.audience_type === 'people_group') return !!form.value.people_group_id
+  return true
 })
 
 const canSend = computed(() => {
-  return canSave.value && (
-    (form.value.audience_type === 'doxa' && doxaCount.value && doxaCount.value > 0) ||
-    (form.value.audience_type === 'people_group' && peopleGroupCount.value && peopleGroupCount.value > 0)
-  )
+  if (!canSave.value) return false
+  if (form.value.audience_type === 'doxa') return !!(doxaCount.value && doxaCount.value > 0)
+  if (form.value.audience_type === 'people_group') return !!(peopleGroupCount.value && peopleGroupCount.value > 0)
+  if (form.value.audience_type === 'admins') return !!(adminCount.value && adminCount.value > 0)
+  return false
 })
 
 const hasUnsavedChanges = computed(() => {
@@ -284,9 +293,9 @@ function getStatusColor(status: string): BadgeColor {
   return colors[status] || 'neutral'
 }
 
-function selectAudience(type: 'doxa' | 'people_group') {
+function selectAudience(type: 'doxa' | 'people_group' | 'admins') {
   form.value.audience_type = type
-  if (type === 'doxa') {
+  if (type !== 'people_group') {
     form.value.people_group_id = undefined
     peopleGroupCount.value = null
   }
@@ -341,6 +350,15 @@ async function loadDoxaCount() {
     doxaCount.value = response.count
   } catch (error) {
     console.error('Failed to load Doxa count:', error)
+  }
+}
+
+async function loadAdminCount() {
+  try {
+    const response = await $fetch<{ count: number }>('/api/admin/marketing/audience/admins')
+    adminCount.value = response.count
+  } catch (error) {
+    console.error('Failed to load admin count:', error)
   }
 }
 
@@ -493,6 +511,7 @@ onBeforeRouteLeave((_to, _from, next) => {
 onMounted(() => {
   loadEmail()
   loadPeopleGroups()
+  loadAdminCount()
   if (isAdmin.value) {
     loadDoxaCount()
   }
@@ -569,13 +588,16 @@ onMounted(() => {
 .audience-options {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .audience-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   border: 1px solid var(--ui-border);
   border-radius: 8px;
-  padding: 1rem;
+  padding: 0.625rem 0.875rem;
   cursor: pointer;
   transition: border-color 0.2s, background-color 0.2s;
 }
@@ -589,31 +611,34 @@ onMounted(() => {
   background-color: var(--ui-bg-elevated);
 }
 
-.option-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
-}
-
 .option-title {
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .option-description {
+  flex: 1;
+  min-width: 0;
   margin: 0;
   font-size: 0.875rem;
   color: var(--ui-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .option-count {
-  margin: 0.5rem 0 0;
+  margin: 0;
+  margin-left: auto;
   font-size: 0.875rem;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .people-group-select {
-  margin-top: 0.75rem;
+  flex: 1;
+  min-width: 200px;
+  margin: 0;
 }
 
 .view-section {
