@@ -18,9 +18,6 @@ docker-compose.override.yml
 # Node dependencies
 node_modules
 
-# Extended layers (downloaded by c12/giget)
-.layers
-
 # Logs
 logs
 *.log
@@ -40,7 +37,6 @@ __pycache__/
 /data/tmp/
 /data/bibles/
 wip
-/scripts/
 /.nuxtrc
 context
 .claude/plans/

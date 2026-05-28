@@ -1,5 +1,5 @@
 /**
- * App-specific auth composable that extends the base layer's useAuth
+ * App-specific auth composable that extends the shared useAuth
  * Adds role-specific computed properties for this application
  */
 import { computed } from 'vue'

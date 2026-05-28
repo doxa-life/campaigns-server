@@ -87,7 +87,7 @@ export default defineEventHandler(async (event) => {
 
     // Generate secure JWT token
     const token = generateToken({
-      userId: verifiedUser.id as unknown as number,
+      userId: verifiedUser.id,
       email: verifiedUser.email,
       display_name: verifiedUser.display_name
     })

@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken'
 import { roleService } from '#server/database/roles'
 
 export interface JWTPayload {
-  userId: number
+  userId: string
   email: string
   display_name?: string
 }
@@ -18,8 +18,32 @@ export interface UserWithRoles {
   isSuperAdmin: boolean
 }
 
+export function verifyToken(token: string) {
+  try {
+    return jwt.verify(token, useRuntimeConfig().jwtSecret) as { userId: string; email: string; display_name: string }
+  } catch {
+    return null
+  }
+}
+
+export function requireAuth(event: H3Event) {
+  const token = getCookie(event, 'auth-token')
+  const user = token ? verifyToken(token) : null
+
+  if (!user) {
+    throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+  }
+
+  return user
+}
+
+export function getAuthUser(event: H3Event) {
+  const token = getCookie(event, 'auth-token')
+  return token ? verifyToken(token) : null
+}
+
 // Authenticate via API key (set by api-key-auth middleware) or JWT cookie.
-// Uses a unique name to avoid conflicting with the base layer's auto-imported requireAuth.
+// Keeps the project-specific API-key path while sharing JWT cookie auth.
 export function checkAuth(event: H3Event) {
   if (event.context.apiKeyAuth) {
     return event.context.apiKeyAuth as { userId: string; email: string; display_name: string }
