@@ -1,15 +1,24 @@
 import { libraryService } from '#server/database/libraries'
 import { prayerContentService } from '#server/database/prayer-content'
+import { roleService } from '#server/database/roles'
+import { peopleGroupService } from '#server/database/people-groups'
 import { handleApiError, getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'content.edit')
+  const user = await requirePermission(event, 'content.edit')
 
   const id = getIntParam(event, 'libraryId')
 
   const oldLibrary = await libraryService.getLibraryById(id)
   if (!oldLibrary) {
     throw createError({ statusCode: 404, statusMessage: 'Library not found' })
+  }
+
+  const scoped = await roleService.isPermissionScoped(user.userId, 'content.view')
+  if (scoped) {
+    if (!oldLibrary.people_group_id || !(await peopleGroupService.userCanAccessPeopleGroup(user.userId, oldLibrary.people_group_id))) {
+      throw createError({ statusCode: 403, statusMessage: 'You do not have access to this library' })
+    }
   }
 
   const body = await readBody(event)

@@ -1,11 +1,22 @@
 import { libraryContentService } from '#server/database/library-content'
+import { libraryService } from '#server/database/libraries'
+import { roleService } from '#server/database/roles'
+import { peopleGroupService } from '#server/database/people-groups'
 import { handleApiError, getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
   // Require content.create permission
-  await requirePermission(event, 'content.create')
+  const user = await requirePermission(event, 'content.create')
 
   const libraryId = getIntParam(event, 'libraryId')
+
+  const scoped = await roleService.isPermissionScoped(user.userId, 'content.view')
+  if (scoped) {
+    const library = await libraryService.getLibraryById(libraryId)
+    if (!library || !library.people_group_id || !(await peopleGroupService.userCanAccessPeopleGroup(user.userId, library.people_group_id))) {
+      throw createError({ statusCode: 403, statusMessage: 'You do not have access to this library' })
+    }
+  }
 
   const body = await readBody(event)
 

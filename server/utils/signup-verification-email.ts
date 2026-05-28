@@ -1,4 +1,4 @@
-import { t, localePath } from './translations'
+import { t, localePath, escapeHtml } from './translations'
 
 export async function sendSignupVerificationEmail(
   to: string,
@@ -16,6 +16,7 @@ export async function sendSignupVerificationEmail(
   const subject = t('email.verification.subject', locale, { campaign: peopleGroupName })
   const header = t('email.verification.header', locale)
   const hello = t('email.common.hello', locale, { name: subscriberName })
+  const helloHtml = t('email.common.hello', locale, { name: escapeHtml(subscriberName) })
   const thankYou = t('email.verification.thankYou', locale, { campaign: peopleGroupName })
   const pleaseVerify = t('email.verification.pleaseVerify', locale)
   const verifyButton = t('email.verification.verifyButton', locale)
@@ -41,7 +42,7 @@ export async function sendSignupVerificationEmail(
       </div>
 
       <div style="background: #ffffff; border: 2px solid #3B463D; border-top: none; padding: 40px 30px; border-radius: 0 0 10px 10px;">
-        <h2 style="color: #3B463D; margin-top: 0; font-weight: 500;">${hello}</h2>
+        <h2 style="color: #3B463D; margin-top: 0; font-weight: 500;">${helloHtml}</h2>
         <p style="font-size: 16px; margin: 20px 0; color: #3B463D;">
           ${thankYou}
         </p>

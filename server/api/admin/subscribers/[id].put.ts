@@ -3,12 +3,16 @@ import { contactMethodService } from '#server/database/contact-methods'
 import { getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'subscribers.edit')
+  const user = await requirePermission(event, 'subscribers.edit')
 
   const id = getIntParam(event, 'id')
 
   const subscriber = await subscriberService.getSubscriberById(id)
   if (!subscriber) {
+    throw createError({ statusCode: 404, statusMessage: 'Person not found' })
+  }
+
+  if (!(await subscriberService.userCanAccessSubscriber(user.userId, id))) {
     throw createError({ statusCode: 404, statusMessage: 'Person not found' })
   }
 

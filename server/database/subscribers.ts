@@ -8,6 +8,8 @@ import type { FilterState } from '#shared/crm/filter-types'
 import { buildFilterConditions } from '../utils/crm/filter-sql'
 import { subscriberServerManifest } from '../utils/crm/manifests/subscriber'
 import { decodeCursor, encodeCursor, type PageCursor } from '../utils/crm/cursor'
+import { roleService } from './roles'
+import { peopleGroupAccessService } from './people-group-access'
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -392,6 +394,20 @@ class SubscriberService {
     if (!row) return null
     const [enriched] = await this.enrichSubscribers([row], accessiblePeopleGroupIds)
     return enriched ?? null
+  }
+
+  /**
+   * Whether a user may access (view/edit/delete) a given subscriber.
+   * Full (unscoped) roles always can. Scoped roles only when the subscriber
+   * has at least one subscription in a people group the user is assigned to.
+   */
+  async userCanAccessSubscriber(userId: string, subscriberId: number): Promise<boolean> {
+    const scoped = await roleService.isPermissionScoped(userId, 'subscribers.view')
+    if (!scoped) return true
+    const accessiblePeopleGroupIds = await peopleGroupAccessService.getUserPeopleGroups(userId)
+    if (accessiblePeopleGroupIds.length === 0) return false
+    const enriched = await this.getSubscriberWithSubscriptions(subscriberId, accessiblePeopleGroupIds)
+    return !!enriched && enriched.subscriptions.length > 0
   }
 
   /**

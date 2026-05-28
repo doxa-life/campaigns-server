@@ -63,6 +63,19 @@ export function t(key: string, locale: string = 'en', params?: Record<string, st
 }
 
 /**
+ * Escape a string for safe interpolation into HTML email bodies.
+ * Use for any user-controlled value placed inside HTML markup.
+ */
+export function escapeHtml(value: string | number | null | undefined): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+/**
  * Check if a locale is supported
  */
 export function isLocaleSupported(locale: string): boolean {

@@ -7,13 +7,17 @@ const tableColumnKeys = tableColumnFields.map(f => f.key)
 const tableColumnKeySet = new Set(tableColumnKeys)
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'people_groups.edit')
+  const user = await requirePermission(event, 'people_groups.edit')
 
   const id = getIntParam(event, 'id')
 
   const oldRecord = await peopleGroupService.getPeopleGroupById(id)
   if (!oldRecord) {
     throw createError({ statusCode: 404, statusMessage: 'People group not found' })
+  }
+
+  if (!(await peopleGroupService.userCanAccessPeopleGroup(user.userId, id))) {
+    throw createError({ statusCode: 403, statusMessage: 'You do not have access to this people group' })
   }
 
   const body = await readBody(event) as Record<string, any>

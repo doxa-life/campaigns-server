@@ -4,12 +4,16 @@ import { getIntParam } from '#server/utils/api-helpers'
 import { getSql } from '#server/database/db'
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'subscribers.edit')
+  const user = await requirePermission(event, 'subscribers.edit')
 
   const id = getIntParam(event, 'id')
 
   const subscriber = await subscriberService.getSubscriberById(id)
   if (!subscriber) {
+    throw createError({ statusCode: 404, statusMessage: 'Subscriber not found' })
+  }
+
+  if (!(await subscriberService.userCanAccessSubscriber(user.userId, id))) {
     throw createError({ statusCode: 404, statusMessage: 'Subscriber not found' })
   }
 

@@ -5,12 +5,16 @@ import { connectionService } from '../../../database/connections'
 import { getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'subscribers.delete')
+  const user = await requirePermission(event, 'subscribers.delete')
 
   const id = getIntParam(event, 'id')
 
   const subscriber = await subscriberService.getSubscriberById(id)
   if (!subscriber) {
+    throw createError({ statusCode: 404, statusMessage: 'Person not found' })
+  }
+
+  if (!(await subscriberService.userCanAccessSubscriber(user.userId, id))) {
     throw createError({ statusCode: 404, statusMessage: 'Person not found' })
   }
 
