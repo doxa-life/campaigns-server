@@ -44,11 +44,16 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="email in filteredEmails" :key="email.id">
+          <tr
+            v-for="email in filteredEmails"
+            :key="email.id"
+            class="email-row"
+            @click="navigateTo(`/admin/marketing/emails/${email.id}`)"
+          >
             <td class="subject-cell">{{ email.subject }}</td>
             <td class="audience-cell">
               <UBadge
-                :label="email.audience_type === 'doxa' ? 'DOXA' : email.people_group_name || 'People Group'"
+                :label="email.audience_type === 'doxa' ? 'DOXA' : email.audience_type === 'admins' ? 'Admins (test)' : email.people_group_name || 'People Group'"
                 variant="subtle"
                 color="neutral"
               />
@@ -86,7 +91,7 @@
             <td class="date-cell">{{ formatDate(email.updated_at) }}</td>
             <td class="actions-cell">
               <UButton
-                @click="navigateTo(`/admin/marketing/emails/${email.id}`)"
+                @click.stop="navigateTo(`/admin/marketing/emails/${email.id}`)"
                 variant="link"
                 size="sm"
               >
@@ -94,7 +99,7 @@
               </UButton>
               <UButton
                 v-if="email.status === 'draft'"
-                @click="deleteEmail(email)"
+                @click.stop="deleteEmail(email)"
                 variant="link"
                 size="sm"
                 color="neutral"
@@ -132,7 +137,7 @@ interface MarketingEmail {
   id: number
   subject: string
   content_json: string
-  audience_type: 'doxa' | 'people_group'
+  audience_type: 'doxa' | 'people_group' | 'admins'
   people_group_id: number | null
   people_group_name?: string
   status: 'draft' | 'queued' | 'sending' | 'sent' | 'failed'
@@ -363,6 +368,7 @@ onBeforeUnmount(() => {
 .emails-table tbody tr {
   border-bottom: 1px solid var(--ui-border);
   transition: background-color 0.2s;
+  cursor: pointer;
 }
 
 .emails-table tbody tr:hover {
