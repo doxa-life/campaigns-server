@@ -30,8 +30,9 @@ export default defineEventHandler(async (event) => {
     // Content-Type is not trusted since the object is publicly served).
     const { url } = await uploadPublicImage(file.data)
 
-    // Return URL in Editor.js format (consumed by the Tiptap image upload
-    // extension and the inbox composer's image button).
+    // Return URL in Editor.js format (consumed by the Tiptap ImageUploadExtension
+    // in RichTextEditor — library content and marketing emails). The inbox composer
+    // uses its own private-bucket endpoint and does not hit this route.
     return {
       success: 1,
       file: {
