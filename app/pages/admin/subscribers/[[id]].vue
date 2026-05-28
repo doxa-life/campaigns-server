@@ -156,6 +156,17 @@
                   type="email"
                   class="w-full"
                 />
+                <UButton
+                  v-if="subscriberForm.email && !emailVerified"
+                  size="xs"
+                  variant="outline"
+                  icon="i-lucide-mail-check"
+                  class="mt-2"
+                  :loading="sendingVerificationEmail"
+                  @click="sendVerificationEmail"
+                >
+                  Send verify email
+                </UButton>
               </UFormField>
 
               <UFormField :label="getSubscriberFieldLabel('phone')">
@@ -1038,6 +1049,7 @@ async function sendQuickReply(conversationId: number) {
 // Send reminder state
 const sendingReminder = ref<Record<number, boolean>>({})
 const sendingFollowup = ref<Record<number, boolean>>({})
+const sendingVerificationEmail = ref(false)
 
 // Helpers
 function isEmailVerified(subscriber: GeneralSubscriber): boolean {
@@ -1414,6 +1426,33 @@ async function loadActivityLog(subscriber: GeneralSubscriber) {
     activityLog.value = []
   } finally {
     loadingActivityLog.value = false
+  }
+}
+
+async function sendVerificationEmail() {
+  if (sendingVerificationEmail.value || !selectedSubscriber.value) return
+
+  try {
+    sendingVerificationEmail.value = true
+    const res = await $fetch<{ message: string }>(`/api/admin/subscribers/${selectedSubscriber.value.id}/send-verification-email`, {
+      method: 'POST'
+    })
+
+    toast.add({
+      title: 'Verification Email Sent',
+      description: res.message,
+      color: 'success'
+    })
+
+    await loadActivityLog(selectedSubscriber.value)
+  } catch (err: any) {
+    toast.add({
+      title: 'Error',
+      description: err.data?.statusMessage || 'Failed to send verification email',
+      color: 'error'
+    })
+  } finally {
+    sendingVerificationEmail.value = false
   }
 }
 

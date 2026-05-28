@@ -513,6 +513,17 @@
       "expiration": "Dieser Bestätigungslink läuft in 7 Tagen ab.",
       "ignoreMessage": "Wenn Sie kein Kontaktformular eingereicht haben, können Sie diese E-Mail ignorieren."
     },
+    "adminVerification": {
+      "subject": "Bitte bestätigen Sie Ihre E-Mail-Adresse",
+      "header": "Bestätigen Sie Ihre E-Mail",
+      "thankYou": "Vielen Dank, dass Sie Teil von DOXA sind.",
+      "pleaseVerify": "Bitte bestätigen Sie Ihre E-Mail-Adresse, indem Sie auf die Schaltfläche unten klicken:",
+      "verifyButton": "E-Mail Bestätigen",
+      "linkInstructions": "Wenn die Schaltfläche nicht funktioniert, können Sie auch diesen Link kopieren und in Ihren Browser einfügen:",
+      "note": "Hinweis:",
+      "expiration": "Dieser Bestätigungslink läuft in 7 Tagen ab.",
+      "ignoreMessage": "Wenn Sie diese E-Mail nicht erwartet haben, können Sie sie ignorieren."
+    },
     "adoptionVerification": {
       "subject": "Bestätigen Sie Ihre E-Mail, um die {peopleGroupName} zu adoptieren",
       "header": "Bestätigen Sie Ihre E-Mail",

@@ -509,6 +509,17 @@
       "expiration": "Acest link de verificare va expira în 7 zile.",
       "ignoreMessage": "Dacă nu ai trimis un formular de contact, poți ignora acest email în siguranță."
     },
+    "adminVerification": {
+      "subject": "Te rugăm să-ți verifici adresa de email",
+      "header": "Verifică-ți emailul",
+      "thankYou": "Îți mulțumim că faci parte din DOXA.",
+      "pleaseVerify": "Te rugăm să-ți verifici adresa de email făcând click pe butonul de mai jos:",
+      "verifyButton": "Verifică emailul",
+      "linkInstructions": "Dacă butonul nu funcționează, poți copia și lipi acest link în browser:",
+      "note": "Notă:",
+      "expiration": "Acest link de verificare va expira în 7 zile.",
+      "ignoreMessage": "Dacă nu te așteptai la acest email, îl poți ignora în siguranță."
+    },
     "adoptionVerification": {
       "subject": "Verifică emailul pentru a adopta {peopleGroupName}",
       "header": "Verifică-ți emailul",

@@ -4,23 +4,25 @@ export async function sendContactVerificationEmail(
   to: string,
   verificationToken: string,
   subscriberName: string,
-  locale: string = 'en'
+  locale: string = 'en',
+  context: 'contact' | 'admin' = 'contact'
 ): Promise<boolean> {
   const config = useRuntimeConfig()
   const baseUrl = config.public.siteUrl || 'http://localhost:3000'
   const appName = config.appName || 'DOXA Prayer'
   const verificationUrl = `${baseUrl}${localePath('/contact/verify', locale)}?token=${verificationToken}`
 
-  const subject = t('email.contactVerification.subject', locale)
-  const header = t('email.contactVerification.header', locale)
+  const ns = context === 'admin' ? 'email.adminVerification' : 'email.contactVerification'
+  const subject = t(`${ns}.subject`, locale)
+  const header = t(`${ns}.header`, locale)
   const hello = t('email.common.hello', locale, { name: subscriberName })
-  const thankYou = t('email.contactVerification.thankYou', locale)
-  const pleaseVerify = t('email.contactVerification.pleaseVerify', locale)
-  const verifyButton = t('email.contactVerification.verifyButton', locale)
-  const linkInstructions = t('email.contactVerification.linkInstructions', locale)
-  const note = t('email.contactVerification.note', locale)
-  const expiration = t('email.contactVerification.expiration', locale)
-  const ignoreMessage = t('email.contactVerification.ignoreMessage', locale)
+  const thankYou = t(`${ns}.thankYou`, locale)
+  const pleaseVerify = t(`${ns}.pleaseVerify`, locale)
+  const verifyButton = t(`${ns}.verifyButton`, locale)
+  const linkInstructions = t(`${ns}.linkInstructions`, locale)
+  const note = t(`${ns}.note`, locale)
+  const expiration = t(`${ns}.expiration`, locale)
+  const ignoreMessage = t(`${ns}.ignoreMessage`, locale)
   const automatedMessage = t('email.common.automatedMessage', locale, { appName })
 
   const html = `

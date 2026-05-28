@@ -513,6 +513,17 @@
       "expiration": "This verification link will expire in 7 days.",
       "ignoreMessage": "If you didn't submit a contact form, you can safely ignore this email."
     },
+    "adminVerification": {
+      "subject": "Please verify your email address",
+      "header": "Verify Your Email",
+      "thankYou": "Thank you for being part of DOXA.",
+      "pleaseVerify": "Please verify your email address by clicking the button below:",
+      "verifyButton": "Verify Email",
+      "linkInstructions": "If the button doesn't work, you can also copy and paste this link into your browser:",
+      "note": "Note:",
+      "expiration": "This verification link will expire in 7 days.",
+      "ignoreMessage": "If you weren't expecting this email, you can safely ignore it."
+    },
     "adoptionVerification": {
       "subject": "Verify your email to adopt the {peopleGroupName}",
       "header": "Verify Your Email",
