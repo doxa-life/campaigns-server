@@ -15,8 +15,7 @@
       <CrmListPanel
         v-model="searchQuery"
         search-placeholder="Search by name, email, phone, contact ID, or tracking ID..."
-        :total-count="items.length"
-        :has-more="!!nextCursor"
+        :total-count="totalCount"
       >
         <template #filters>
           <CrmFilterBuilder v-model="filterState" :manifest="filterManifest" />
@@ -747,6 +746,7 @@ const selectedSubscriber = ref<GeneralSubscriber | null>(null)
 const nextCursor = ref<string | null>(null)
 const loadingMore = ref(false)
 const loadMoreSentinel = ref<HTMLElement | null>(null)
+const totalCount = ref<number | undefined>(undefined)
 
 // Loading states
 const loading = ref(true)
@@ -1116,11 +1116,12 @@ async function loadFirstPage() {
   loading.value = true
   try {
     const qs = buildListQuery()
-    const res = await $fetch<{ subscribers: GeneralSubscriber[]; nextCursor: string | null }>(
+    const res = await $fetch<{ subscribers: GeneralSubscriber[]; nextCursor: string | null; totalCount?: number }>(
       `/api/admin/subscribers${qs ? '?' + qs : ''}`
     )
     items.value = res.subscribers
     nextCursor.value = res.nextCursor
+    totalCount.value = res.totalCount
   } catch (err: any) {
     error.value = 'Failed to load contacts'
     console.error(err)
@@ -1134,7 +1135,7 @@ async function loadMore() {
   loadingMore.value = true
   try {
     const qs = buildListQuery(nextCursor.value)
-    const res = await $fetch<{ subscribers: GeneralSubscriber[]; nextCursor: string | null }>(
+    const res = await $fetch<{ subscribers: GeneralSubscriber[]; nextCursor: string | null; totalCount?: number }>(
       `/api/admin/subscribers?${qs}`
     )
     items.value = [...items.value, ...res.subscribers]
@@ -1180,6 +1181,7 @@ async function createPerson() {
     )
     if (res.isNew && detail.subscriber) {
       items.value = [detail.subscriber, ...items.value]
+      if (totalCount.value !== undefined) totalCount.value++
     }
     if (detail.subscriber) selectSubscriber(detail.subscriber)
 
@@ -1501,6 +1503,7 @@ async function confirmDelete() {
     })
 
     items.value = items.value.filter(s => s.id !== subscriberToDelete.value!.id)
+    if (totalCount.value !== undefined) totalCount.value--
     slideoverOpen.value = false
     showDeleteModal.value = false
     subscriberToDelete.value = null
