@@ -62,10 +62,16 @@ function renderNode(node: any): string {
     case 'hardBreak':
       return '<br />'
 
+    // The rich-text editor stores resizable images as `imageResize` nodes;
+    // plain `image` nodes can also appear from pasted content.
     case 'image':
+    case 'imageResize':
       const src = escapeHtml(node.attrs?.src || '')
       const alt = escapeHtml(node.attrs?.alt || '')
-      return `<img src="${src}" alt="${alt}" style="max-width: 100%; height: auto; margin: 16px 0; border-radius: 4px;" />`
+      const rawWidth = node.attrs?.width
+      const width = typeof rawWidth === 'number' ? rawWidth : parseInt(rawWidth, 10)
+      const widthStyle = Number.isFinite(width) && width > 0 ? `width: ${width}px; ` : ''
+      return `<img src="${src}" alt="${alt}" style="${widthStyle}max-width: 100%; height: auto; margin: 16px 0; border-radius: 4px;" />`
 
     case 'text':
       let text = escapeHtml(node.text || '')
