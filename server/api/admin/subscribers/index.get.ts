@@ -22,11 +22,11 @@ export default defineEventHandler(async (event) => {
     if (scoped) {
       accessiblePeopleGroupIds = await peopleGroupAccessService.getUserPeopleGroups(user.userId)
       if (accessiblePeopleGroupIds.length === 0) {
-        return { subscribers: [], nextCursor: null }
+        return { subscribers: [], nextCursor: null, totalCount: 0 }
       }
     }
 
-    const { items, nextCursor } = await subscriberService.getSubscribersPage({
+    const { items, nextCursor, totalCount } = await subscriberService.getSubscribersPage({
       filter,
       search,
       cursor,
@@ -37,6 +37,7 @@ export default defineEventHandler(async (event) => {
     return {
       subscribers: items,
       nextCursor,
+      totalCount,
     }
   } catch (error) {
     handleApiError(error, 'Failed to fetch subscribers')

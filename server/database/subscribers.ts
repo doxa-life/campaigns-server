@@ -286,19 +286,21 @@ class SubscriberService {
     cursor?: string | null
     limit?: number
     accessiblePeopleGroupIds?: number[]
-  }): Promise<{ items: SubscriberWithSubscriptions[]; nextCursor: string | null }> {
+  }): Promise<{ items: SubscriberWithSubscriptions[]; nextCursor: string | null; totalCount?: number }> {
     const limit = Math.max(1, Math.min(options.limit ?? 50, 200))
     const cursor = decodeCursor(options.cursor)
 
-    const conditions: Fragment[] = []
+    // Base conditions (permission + filter + search) describe the full matching
+    // set. The cursor is applied only to the page query, not the count.
+    const baseConditions: Fragment[] = []
 
     // Permission scoping: restrict to subscribers with at least one subscription
     // in an accessible people group. Uses EXISTS so no DISTINCT is needed.
     if (options.accessiblePeopleGroupIds) {
       if (options.accessiblePeopleGroupIds.length === 0) {
-        return { items: [], nextCursor: null }
+        return { items: [], nextCursor: null, totalCount: 0 }
       }
-      conditions.push(this.sql`EXISTS (
+      baseConditions.push(this.sql`EXISTS (
         SELECT 1 FROM campaign_subscriptions cs
         WHERE cs.subscriber_id = s.id
         AND cs.people_group_id IN ${this.sql(options.accessiblePeopleGroupIds)}
@@ -307,7 +309,7 @@ class SubscriberService {
 
     // User-defined filter rows from the filter builder.
     const filterConditions = buildFilterConditions(subscriberServerManifest, options.filter ?? null, this.sql)
-    conditions.push(...filterConditions)
+    baseConditions.push(...filterConditions)
 
     // Global search: name, tracking_id, contact value, exact id match.
     if (options.search) {
@@ -316,14 +318,14 @@ class SubscriberService {
         const like = `%${term}%`
         const exactId = /^\d+$/.test(term) ? Number(term) : null
         if (exactId !== null) {
-          conditions.push(this.sql`(
+          baseConditions.push(this.sql`(
             s.name ILIKE ${like}
             OR s.tracking_id ILIKE ${like}
             OR s.id = ${exactId}
             OR EXISTS (SELECT 1 FROM contact_methods cm WHERE cm.subscriber_id = s.id AND cm.value ILIKE ${like})
           )`)
         } else {
-          conditions.push(this.sql`(
+          baseConditions.push(this.sql`(
             s.name ILIKE ${like}
             OR s.tracking_id ILIKE ${like}
             OR EXISTS (SELECT 1 FROM contact_methods cm WHERE cm.subscriber_id = s.id AND cm.value ILIKE ${like})
@@ -332,19 +334,21 @@ class SubscriberService {
       }
     }
 
+    const pageConditions = [...baseConditions]
+
     // Cursor: (created_at, id) DESC, lexicographic.
     // `::text::timestamp` (not `::timestamp`) forces postgres.js to send the
     // parameter as text instead of inferring type 1114 — that path round-trips
     // through JS Date and loses microsecond precision, silently excluding rows.
     if (cursor) {
-      conditions.push(this.sql`(
+      pageConditions.push(this.sql`(
         s.created_at < ${cursor.c}::text::timestamp
         OR (s.created_at = ${cursor.c}::text::timestamp AND s.id < ${cursor.i})
       )`)
     }
 
-    const whereClause = conditions.length > 0
-      ? buildWhere(this.sql, conditions)
+    const whereClause = pageConditions.length > 0
+      ? buildWhere(this.sql, pageConditions)
       : this.sql``
 
     // Fetch one extra row to detect whether there's a next page.
@@ -369,7 +373,18 @@ class SubscriberService {
       nextCursor = encodeCursor({ c: last.created_at_cursor, i: last.id })
     }
 
-    return { items, nextCursor }
+    // Total over the full matching set. Only computed for the first page; on
+    // load-more the client already has it.
+    let totalCount: number | undefined
+    if (!cursor) {
+      const countWhere = baseConditions.length > 0 ? buildWhere(this.sql, baseConditions) : this.sql``
+      const [countRow] = await this.sql<{ count: number }[]>`
+        SELECT COUNT(*)::int AS count FROM subscribers s ${countWhere}
+      `
+      totalCount = countRow!.count
+    }
+
+    return { items, nextCursor, totalCount }
   }
 
   async getSubscriberWithSubscriptions(id: number, accessiblePeopleGroupIds?: number[]): Promise<SubscriberWithSubscriptions | null> {
