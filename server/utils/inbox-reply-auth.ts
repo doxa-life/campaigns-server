@@ -7,7 +7,7 @@ import { verifyReplySig } from './inbox-addressing'
  * Returns the matching user only if the signature is valid + unexpired AND the user
  * has `inbox.send`. We never trust the `From` header — we recompute the signature for
  * each send-capable user (a tiny set) and match. The caller must additionally require
- * the inbound message to be authenticated (DKIM) before treating it as a staff send.
+ * the inbound message to be authenticated (DMARC/DKIM) before treating it as a staff send.
  */
 export async function resolveSignedStaffSender(opts: {
   conversationId: number

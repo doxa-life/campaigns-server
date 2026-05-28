@@ -2,9 +2,9 @@
  * Parsing helpers for Mailgun inbound (route store/forward) payloads.
  *
  * The `From` header is never trusted on its own — we parse the forwarded
- * Authentication-Results to decide whether a message is authenticated (DKIM passes
- * and aligns with the From domain), which gates reply-by-email trust and ownership
- * verification (see plan Cross-cutting).
+ * Authentication-Results to decide whether a message is authenticated (DMARC passes,
+ * or DKIM passes and aligns with the From domain), which gates reply-by-email trust
+ * and ownership verification (see plan Cross-cutting).
  */
 
 export interface InboundHeaders {
@@ -73,7 +73,8 @@ function domainsAlign(a: string | null, b: string | null): boolean {
 
 /**
  * Determine inbound authentication from forwarded headers.
- * Authenticated only when DKIM passes AND aligns with the From domain.
+ * Authenticated when DMARC passes, or (as a fallback) DKIM passes AND aligns with
+ * the From domain.
  */
 export function parseAuthentication(headers: InboundHeaders, fromEmail: string | null): { authenticated: boolean; authResult: string | null } {
   const authResults = headers.getAll('authentication-results').join('; ') || null
@@ -85,6 +86,7 @@ export function parseAuthentication(headers: InboundHeaders, fromEmail: string |
 
   const lower = authResults.toLowerCase()
   const dkimPass = /dkim=pass/.test(lower)
+  const dmarcPass = /dmarc=pass/.test(lower)
 
   // Pull the signing domain from `header.d=` or `header.i=@domain`
   let dkimDomain: string | null = null
@@ -95,7 +97,12 @@ export function parseAuthentication(headers: InboundHeaders, fromEmail: string |
     if (iMatch) dkimDomain = iMatch[1]!
   }
 
-  const authenticated = dkimPass && domainsAlign(dkimDomain, fromDomain)
+  // DMARC pass is the authoritative "sender controls the From domain" verdict —
+  // it succeeds via aligned DKIM *or* aligned SPF, so it covers Google Workspace
+  // domains without custom DKIM (signed d=*.gappssmtp.com, which never aligns).
+  // Fall back to DKIM-alignment for senders that publish no DMARC policy but sign
+  // with a key aligned to the From domain.
+  const authenticated = dmarcPass || (dkimPass && domainsAlign(dkimDomain, fromDomain))
   return { authenticated, authResult: authResults }
 }
 

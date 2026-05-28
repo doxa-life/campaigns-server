@@ -189,6 +189,73 @@ describe('Shared inbox', async () => {
     expect(c!.assigned_user_id).toBe(agent.id)
   })
 
+  // A Google Workspace domain without custom DKIM signs d=*.gappssmtp.com, which
+  // never aligns with the From domain — but DMARC still passes (via SPF). Accept it.
+  it('treats a signed reply as staff when DMARC passes even though DKIM is misaligned', async () => {
+    const email = `inbox-dmarc-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(email)
+    const convo = await makeConversation(subId, { status: 'open' })
+
+    const signedAddress = buildSignedReplyAddress({
+      token: convo.reply_token,
+      userId: agent.id,
+      conversationId: convo.id,
+      secret: REPLY_SECRET,
+      contactAddress: CONTACT_ADDRESS,
+    })
+
+    const res = await postInbound({
+      recipient: signedAddress,
+      from: `George <${agent.email}>`,
+      sender: agent.email,
+      subject: 'Re: Existing thread',
+      'body-html': '<p>Replying from a Workspace domain</p>',
+      'message-headers': headerJson([
+        ['Message-Id', `<staff-dmarc-${uuidv4()}@example.com>`],
+        // header.d (gappssmtp) does NOT align with the From domain (example.com),
+        // so the DKIM-alignment fallback fails — only dmarc=pass authenticates this.
+        ['Authentication-Results', `mxa.mailgun.org; dkim=pass header.d=example-com.20251104.gappssmtp.com; spf=pass; dmarc=pass header.from=example.com`],
+      ]),
+    })
+    expect(res.status).toBe('staff')
+
+    const out = await sql`SELECT * FROM conversation_messages WHERE conversation_id = ${convo.id} AND direction = 'outbound'`
+    expect(out.length).toBe(1)
+    expect(out[0]!.sender_user_id).toBe(agent.id)
+  })
+
+  // Same misaligned DKIM but no DMARC vouch → still held (security boundary intact).
+  it('holds a signed staff reply when neither DKIM alignment nor DMARC authenticates it', async () => {
+    const email = `inbox-noauth-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(email)
+    const convo = await makeConversation(subId, { status: 'open' })
+
+    const signedAddress = buildSignedReplyAddress({
+      token: convo.reply_token,
+      userId: agent.id,
+      conversationId: convo.id,
+      secret: REPLY_SECRET,
+      contactAddress: CONTACT_ADDRESS,
+    })
+
+    const res = await postInbound({
+      recipient: signedAddress,
+      from: `George <${agent.email}>`,
+      sender: agent.email,
+      subject: 'Re: Existing thread',
+      'body-html': '<p>Unauthenticated attempt</p>',
+      'message-headers': headerJson([
+        ['Message-Id', `<staff-noauth-${uuidv4()}@example.com>`],
+        ['Authentication-Results', `mxa.mailgun.org; dkim=pass header.d=example-com.20251104.gappssmtp.com; spf=fail; dmarc=fail header.from=example.com`],
+      ]),
+    })
+    expect(res.status).toBe('held')
+
+    const held = await sql`SELECT * FROM conversation_messages WHERE conversation_id = ${convo.id} AND status = 'held'`
+    expect(held.length).toBe(1)
+    expect(held[0]!.hold_reason).toBe('Unauthenticated staff reply')
+  })
+
   it('holds a reply from an unknown sender on the token address', async () => {
     const email = `inbox-owner-${uuidv4().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(email)
