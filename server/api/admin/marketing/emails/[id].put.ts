@@ -60,6 +60,7 @@ export default defineEventHandler(async (event) => {
       content_json: body.content_json,
       audience_type: body.audience_type,
       people_group_id: body.audience_type === 'people_group' ? body.people_group_id : null,
+      sender_id: body.sender_id ?? null,
       updated_by: user.userId
     })
 

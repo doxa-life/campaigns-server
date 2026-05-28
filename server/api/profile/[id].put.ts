@@ -123,12 +123,20 @@ export default defineEventHandler(async (event) => {
       await contactMethodService.updateDoxaConsent(currentEmail.id, body.consent_doxa_general)
     }
 
-    // People group consent update
-    if (body.consent_people_group_id !== undefined && body.consent_people_group_updates !== undefined) {
+    // People group consent update. Accept either an explicit id or a slug
+    // (marketing unsubscribe links carry the slug). Slug is resolved server-side
+    // so it works even when the subscriber has no prayer subscription for it.
+    let consentPeopleGroupId: number | undefined = body.consent_people_group_id
+    if (consentPeopleGroupId === undefined && body.consent_people_group_slug) {
+      const pg = await peopleGroupService.getPeopleGroupBySlug(body.consent_people_group_slug)
+      if (pg) consentPeopleGroupId = pg.id
+    }
+
+    if (consentPeopleGroupId !== undefined && body.consent_people_group_updates !== undefined) {
       if (body.consent_people_group_updates) {
-        await contactMethodService.addPeopleGroupConsent(currentEmail.id, body.consent_people_group_id)
+        await contactMethodService.addPeopleGroupConsent(currentEmail.id, consentPeopleGroupId)
       } else {
-        await contactMethodService.removePeopleGroupConsent(currentEmail.id, body.consent_people_group_id)
+        await contactMethodService.removePeopleGroupConsent(currentEmail.id, consentPeopleGroupId)
       }
     }
   }

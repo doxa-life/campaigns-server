@@ -8,8 +8,9 @@ export interface MarketingEmail {
   id: number
   subject: string
   content_json: Record<string, any>
-  audience_type: 'doxa' | 'people_group'
+  audience_type: 'doxa' | 'people_group' | 'admins'
   people_group_id: number | null
+  sender_id: number | null
   status: 'draft' | 'queued' | 'sending' | 'sent' | 'failed'
   created_by: string
   updated_by: string | null
@@ -25,6 +26,8 @@ export interface MarketingEmail {
 export interface MarketingEmailWithPeopleGroup extends MarketingEmail {
   people_group_name?: string
   people_group_slug?: string
+  sender_name?: string
+  sender_local_part?: string
   created_by_name?: string
   created_by_email?: string
   updated_by_name?: string
@@ -36,22 +39,24 @@ export interface MarketingEmailWithPeopleGroup extends MarketingEmail {
 export interface CreateMarketingEmailData {
   subject: string
   content_json: Record<string, any>
-  audience_type: 'doxa' | 'people_group'
+  audience_type: 'doxa' | 'people_group' | 'admins'
   people_group_id?: number | null
+  sender_id?: number | null
   created_by: string
 }
 
 export interface UpdateMarketingEmailData {
   subject?: string
   content_json?: Record<string, any>
-  audience_type?: 'doxa' | 'people_group'
+  audience_type?: 'doxa' | 'people_group' | 'admins'
   people_group_id?: number | null
+  sender_id?: number | null
   updated_by: string
 }
 
 export interface MarketingEmailFilters {
   status?: 'draft' | 'queued' | 'sending' | 'sent' | 'failed'
-  audience_type?: 'doxa' | 'people_group'
+  audience_type?: 'doxa' | 'people_group' | 'admins'
   people_group_id?: number
 }
 
@@ -59,7 +64,7 @@ class MarketingEmailService {
   private sql = getSql()
 
   async create(data: CreateMarketingEmailData): Promise<MarketingEmail> {
-    const { subject, content_json, audience_type, people_group_id, created_by } = data
+    const { subject, content_json, audience_type, people_group_id, sender_id, created_by } = data
 
     if (audience_type === 'people_group' && !people_group_id) {
       throw new Error('people_group_id is required when audience_type is people_group')
@@ -69,9 +74,9 @@ class MarketingEmailService {
     }
 
     const [row] = await this.sql`
-      INSERT INTO marketing_emails (subject, content_json, audience_type, people_group_id, created_by)
+      INSERT INTO marketing_emails (subject, content_json, audience_type, people_group_id, sender_id, created_by)
       VALUES (${subject}, ${this.sql.json(content_json)}, ${audience_type},
-              ${audience_type === 'people_group' ? people_group_id! : null}, ${created_by})
+              ${audience_type === 'people_group' ? people_group_id! : null}, ${sender_id ?? null}, ${created_by})
       RETURNING *
     `
     return row as MarketingEmail
@@ -84,9 +89,11 @@ class MarketingEmailService {
 
   async getByIdWithPeopleGroup(id: number): Promise<MarketingEmailWithPeopleGroup | null> {
     const [row] = await this.sql`
-      SELECT me.*, pg.name as people_group_name, pg.slug as people_group_slug
+      SELECT me.*, pg.name as people_group_name, pg.slug as people_group_slug,
+        ms.name as sender_name, ms.local_part as sender_local_part
       FROM marketing_emails me
       LEFT JOIN people_groups pg ON me.people_group_id = pg.id
+      LEFT JOIN marketing_senders ms ON me.sender_id = ms.id
       WHERE me.id = ${id}
     `
     return (row as MarketingEmailWithPeopleGroup) || null
@@ -104,6 +111,7 @@ class MarketingEmailService {
     if (data.content_json !== undefined) fields.push(this.sql`content_json = ${this.sql.json(data.content_json)}`)
     if (data.audience_type !== undefined) fields.push(this.sql`audience_type = ${data.audience_type}`)
     if (data.people_group_id !== undefined) fields.push(this.sql`people_group_id = ${data.people_group_id}`)
+    if (data.sender_id !== undefined) fields.push(this.sql`sender_id = ${data.sender_id}`)
     if (data.updated_by) fields.push(this.sql`updated_by = ${data.updated_by}`)
 
     if (fields.length === 0) return email
@@ -236,7 +244,11 @@ class MarketingEmailService {
     return email.created_by === userId
   }
 
-  async canUserSendToAudience(userId: string, audienceType: 'doxa' | 'people_group', peopleGroupId?: number): Promise<boolean> {
+  async canUserSendToAudience(userId: string, audienceType: 'doxa' | 'people_group' | 'admins', peopleGroupId?: number): Promise<boolean> {
+    // The admins audience only emails internal admin users — it's a test tool,
+    // so any user with marketing access may use it.
+    if (audienceType === 'admins') return true
+
     const scoped = await roleService.isPermissionScoped(userId, 'people_groups.view')
 
     if (audienceType === 'doxa') return !scoped
@@ -247,6 +259,17 @@ class MarketingEmailService {
     }
 
     return false
+  }
+
+  // Admin users have no contact_method, so id is 0 — the send processor's
+  // subscriber lookup tolerates that (falls back to a generic unsubscribe link).
+  async getAdminRecipients(): Promise<Array<{ id: number; value: string }>> {
+    const rows = await this.sql`
+      SELECT email FROM users
+      WHERE 'admin' = ANY(roles) AND email IS NOT NULL AND email <> ''
+      ORDER BY email
+    `
+    return rows.map(r => ({ id: 0, value: r.email as string }))
   }
 }
 

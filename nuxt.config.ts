@@ -184,6 +184,12 @@ export default defineNuxtConfig({
     mailgunWebhookSigningKey: process.env.MAILGUN_WEBHOOK_SIGNING_KEY || '',
     inboxContactAddress: process.env.INBOX_CONTACT_ADDRESS || 'contact@doxa.life',
     inboxDomain: process.env.INBOX_DOMAIN || 'doxa.life',
+
+    // Marketing email transport — separate Mailgun domain + key so marketing
+    // sends on its own subdomain reputation, isolated from transactional/inbox.
+    marketingMailgunApiKey: process.env.MARKETING_MAILGUN_API_KEY || '',
+    marketingMailgunDomain: process.env.MARKETING_MAILGUN_DOMAIN || '',
+    marketingMailgunHost: process.env.MARKETING_MAILGUN_HOST || 'api.mailgun.net',
     // Secret for signing reply-by-email addresses (contact+<token>.<sig>@). Falls back to JWT secret.
     inboxReplySecret: process.env.INBOX_REPLY_SECRET || process.env.JWT_SECRET || '',
 
