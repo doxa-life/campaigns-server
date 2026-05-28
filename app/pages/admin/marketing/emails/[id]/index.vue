@@ -49,6 +49,18 @@
             </UFormField>
           </div>
 
+          <div class="form-section" v-if="senderOptions.length">
+            <UFormField label="From" :help="senderHelp">
+              <USelect
+                v-model="form.sender_id"
+                :items="senderOptions"
+                value-key="value"
+                placeholder="Select a sender"
+                class="w-full"
+              />
+            </UFormField>
+          </div>
+
           <div class="form-section">
             <UFormField label="Audience" required>
               <div class="audience-options">
@@ -133,6 +145,11 @@
             </p>
           </div>
 
+          <div class="view-section" v-if="email.sender_name">
+            <label>From</label>
+            <p class="view-value">{{ email.sender_name }} &lt;{{ email.sender_local_part }}@{{ senderDomain || '…' }}&gt;</p>
+          </div>
+
           <div class="view-section" v-if="queueStats">
             <label>Delivery Stats</label>
             <div class="stats-grid">
@@ -208,6 +225,9 @@ interface MarketingEmail {
   audience_type: 'doxa' | 'people_group' | 'admins'
   people_group_id: number | null
   people_group_name?: string
+  sender_id: number | null
+  sender_name?: string
+  sender_local_part?: string
   status: 'draft' | 'queued' | 'sending' | 'sent' | 'failed'
   sent_at: string | null
   created_at: string
@@ -231,6 +251,7 @@ const form = ref({
   subject: '',
   audience_type: '' as 'doxa' | 'people_group' | 'admins' | '',
   people_group_id: undefined as number | undefined,
+  sender_id: undefined as number | undefined,
   content: { type: 'doc', content: [{ type: 'paragraph' }] } as any
 })
 
@@ -240,6 +261,18 @@ const peopleGroups = ref<{ id: number; title: string }[]>([])
 const doxaCount = ref<number | null>(null)
 const peopleGroupCount = ref<number | null>(null)
 const adminCount = ref<number | null>(null)
+
+interface Sender { id: number; name: string; local_part: string; is_default: boolean }
+const senders = ref<Sender[]>([])
+const senderDomain = ref('')
+
+const senderOptions = computed(() =>
+  senders.value.map(s => ({ label: `${s.name} (${s.local_part}@${senderDomain.value || '…'})`, value: s.id }))
+)
+
+const senderHelp = computed(() =>
+  senderDomain.value ? '' : 'Marketing domain not configured — sends fall back to the default From.'
+)
 const saving = ref(false)
 const sending = ref(false)
 const showPreview = ref(false)
@@ -316,6 +349,7 @@ async function loadEmail() {
         subject: response.email.subject,
         audience_type: response.email.audience_type,
         people_group_id: response.email.people_group_id ?? undefined,
+        sender_id: response.email.sender_id ?? undefined,
         content: response.email.content_json
       }
       originalForm.value = JSON.stringify(form.value)
@@ -362,6 +396,16 @@ async function loadAdminCount() {
   }
 }
 
+async function loadSenders() {
+  try {
+    const response = await $fetch<{ senders: Sender[]; domain: string }>('/api/admin/marketing/senders')
+    senders.value = response.senders || []
+    senderDomain.value = response.domain || ''
+  } catch (error) {
+    console.error('Failed to load senders:', error)
+  }
+}
+
 async function loadPeopleGroupCount() {
   if (!form.value.people_group_id) {
     peopleGroupCount.value = null
@@ -387,7 +431,8 @@ async function saveEmail() {
         subject: form.value.subject,
         content_json: form.value.content,
         audience_type: form.value.audience_type,
-        people_group_id: form.value.people_group_id
+        people_group_id: form.value.people_group_id,
+        sender_id: form.value.sender_id
       }
     })
 
@@ -424,7 +469,8 @@ async function sendEmail() {
         subject: form.value.subject,
         content_json: form.value.content,
         audience_type: form.value.audience_type,
-        people_group_id: form.value.people_group_id
+        people_group_id: form.value.people_group_id,
+        sender_id: form.value.sender_id
       }
     })
 
@@ -466,7 +512,8 @@ async function previewEmail() {
         subject: form.value.subject,
         content_json: form.value.content,
         audience_type: form.value.audience_type || 'doxa',
-        people_group_id: form.value.people_group_id
+        people_group_id: form.value.people_group_id,
+        sender_id: form.value.sender_id
       }
     })
 
@@ -512,6 +559,7 @@ onMounted(() => {
   loadEmail()
   loadPeopleGroups()
   loadAdminCount()
+  loadSenders()
   if (isAdmin.value) {
     loadDoxaCount()
   }
