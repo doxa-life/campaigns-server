@@ -156,17 +156,27 @@
                   type="email"
                   class="w-full"
                 />
-                <UButton
-                  v-if="subscriberForm.email && !emailVerified"
-                  size="xs"
-                  variant="outline"
-                  icon="i-lucide-mail-check"
-                  class="mt-2"
-                  :loading="sendingVerificationEmail"
-                  @click="sendVerificationEmail"
-                >
-                  Send verify email
-                </UButton>
+                <div v-if="subscriberForm.email && !emailVerified" class="flex gap-2 mt-2">
+                  <UButton
+                    size="xs"
+                    variant="outline"
+                    icon="i-lucide-mail-check"
+                    :loading="sendingVerificationEmail"
+                    @click="sendVerificationEmail"
+                  >
+                    Send verify email
+                  </UButton>
+                  <UButton
+                    size="xs"
+                    variant="outline"
+                    color="success"
+                    icon="i-lucide-badge-check"
+                    :loading="markingEmailVerified"
+                    @click="markEmailVerified"
+                  >
+                    Mark verified
+                  </UButton>
+                </div>
               </UFormField>
 
               <UFormField :label="getSubscriberFieldLabel('phone')">
@@ -1050,6 +1060,7 @@ async function sendQuickReply(conversationId: number) {
 const sendingReminder = ref<Record<number, boolean>>({})
 const sendingFollowup = ref<Record<number, boolean>>({})
 const sendingVerificationEmail = ref(false)
+const markingEmailVerified = ref(false)
 
 // Helpers
 function isEmailVerified(subscriber: GeneralSubscriber): boolean {
@@ -1453,6 +1464,36 @@ async function sendVerificationEmail() {
     })
   } finally {
     sendingVerificationEmail.value = false
+  }
+}
+
+async function markEmailVerified() {
+  if (markingEmailVerified.value || !selectedSubscriber.value) return
+
+  try {
+    markingEmailVerified.value = true
+    const res = await $fetch<{ message: string }>(`/api/admin/subscribers/${selectedSubscriber.value.id}/mark-email-verified`, {
+      method: 'POST'
+    })
+
+    const emailContact = selectedSubscriber.value.contacts?.find(c => c.type === 'email' && c.value === subscriberForm.value.email)
+    if (emailContact) emailContact.verified = true
+
+    toast.add({
+      title: 'Email Verified',
+      description: res.message,
+      color: 'success'
+    })
+
+    await loadActivityLog(selectedSubscriber.value)
+  } catch (err: any) {
+    toast.add({
+      title: 'Error',
+      description: err.data?.statusMessage || 'Failed to mark email verified',
+      color: 'error'
+    })
+  } finally {
+    markingEmailVerified.value = false
   }
 }
 
