@@ -63,6 +63,12 @@
             <span v-if="showExpanded" class="nav-label">Inbox</span>
           </NuxtLink>
         </li>
+        <li v-if="canAccess('people_groups.view')">
+          <NuxtLink to="/admin/marketing" class="nav-link" :title="!showExpanded ? 'Marketing' : undefined">
+            <UIcon name="i-lucide-megaphone" />
+            <span v-if="showExpanded" class="nav-label">Marketing</span>
+          </NuxtLink>
+        </li>
         <li v-if="canAccess('users.manage')">
           <NuxtLink to="/admin/users" class="nav-link" :title="!showExpanded ? 'Users' : undefined">
             <UIcon name="i-lucide-user-cog" />
