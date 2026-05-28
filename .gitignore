@@ -7,6 +7,9 @@
 .vscode
 dist
 
+# Extracted base layer (regenerated; no longer used after merge)
+.layers
+
 # Database files
 server/database/*.sqlite
 server/database/*.sqlite-shm
