@@ -667,5 +667,75 @@
       "body": "Obrigado por entrar em contato com {appName}. Recebemos sua mensagem e um membro da nossa equipe responderá em breve.",
       "signoff": "Em Cristo,\nA equipe {appName}"
     }
+  },
+  "survey": {
+    "may2026": {
+      "page": {
+        "title": "Sua experiência de oração",
+        "intro": "Obrigado por orar com a DOXA. Estas cinco perguntas levam cerca de três minutos, e suas respostas nos ajudam a aprimorar os motivos de oração diários. Não há respostas certas ou erradas; queremos apenas conhecer sua experiência sincera.",
+        "submit": "Enviar minhas respostas",
+        "thanksTitle": "Obrigado!",
+        "thanks": "Obrigado — suas respostas foram recebidas. Somos gratos pelo tempo que você dedicou e por suas orações.",
+        "editNotice": "Você já respondeu, obrigado! Você pode atualizar suas respostas abaixo e salvar novamente, se quiser.",
+        "invalidTitle": "Link inválido",
+        "invalid": "Este link da pesquisa não parece válido. Use o link do seu e-mail ou entre em contato conosco se precisar de ajuda.",
+        "closedTitle": "Pesquisa encerrada",
+        "closed": "Esta pesquisa não está mais aceitando respostas. Obrigado pelo seu interesse.",
+        "goHome": "Ir para a página inicial",
+        "errorTitle": "Algo deu errado",
+        "error": "Não conseguimos salvar suas respostas. Tente novamente."
+      },
+      "questions": {
+        "focus": {
+          "label": "O quanto os motivos de oração diários ajudaram você a se sentir focado e envolvido ao orar pelos grupos étnicos não alcançados?",
+          "scale": {
+            "1": "Nada focado",
+            "5": "Extremamente focado"
+          }
+        },
+        "experience": {
+          "label": "Conte-nos mais sobre sua experiência: o que tornou os motivos de oração úteis (ou não) para você pessoalmente?"
+        },
+        "clarity": {
+          "label": "Com que clareza os motivos de oração comunicavam pelo que orar e por que isso importa?",
+          "scale": {
+            "1": "Muito pouco claros",
+            "5": "Muito claros"
+          }
+        },
+        "content_amount": {
+          "label": "A quantidade de conteúdo de oração corresponde ao tempo que você tem para orar?",
+          "scale": {
+            "1": "Demais para o meu tempo de oração",
+            "3": "Na medida certa",
+            "5": "Pouco para o meu tempo de oração"
+          }
+        },
+        "heart": {
+          "label": "Como a sua participação nesta campanha de oração afetou o seu coração ou a sua perspectiva em relação aos grupos étnicos não alcançados?"
+        }
+      },
+      "email": {
+        "subject": "Você nos conta como tem sido a oração?",
+        "header": "Adoraríamos ouvir sua opinião",
+        "greeting": "Olá, {name},",
+        "greetingFallback": "Olá,",
+        "p1": "Obrigado por interceder em oração pelos grupos étnicos não alcançados do mundo. Sua fidelidade é o coração daquilo que a DOXA existe para apoiar.",
+        "p2": "Estamos sempre buscando tornar os motivos de oração diários mais úteis e, antes de nos reunirmos como equipe para planejar os próximos passos, gostaríamos muito de ouvir você. Você poderia dedicar alguns minutos para responder a cinco perguntas curtas sobre sua experiência?",
+        "p3": "Sua opinião sincera — o que está funcionando e o que não está — molda diretamente o conteúdo de oração que criamos.",
+        "cta": "Responder à pesquisa",
+        "signoff": "Com gratidão,",
+        "team": "A equipe DOXA"
+      }
+    },
+    "admin": {
+      "title": "Pesquisa com intercessores – maio de 2026",
+      "heading": "Pesquisas",
+      "totalResponses": "{count} respostas",
+      "exportCsv": "Exportar CSV",
+      "average": "Média",
+      "noResponses": "Ainda não há respostas",
+      "selectPrompt": "Selecione uma pesquisa para ver suas respostas."
+    }
   }
 }

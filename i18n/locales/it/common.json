@@ -667,5 +667,75 @@
       "body": "Grazie per aver contattato {appName}. Abbiamo ricevuto il tuo messaggio e un membro del nostro team ti risponderà presto.",
       "signoff": "In Cristo,\nIl team di {appName}"
     }
+  },
+  "survey": {
+    "may2026": {
+      "page": {
+        "title": "La tua esperienza di preghiera",
+        "intro": "Grazie per pregare con DOXA. Queste cinque domande richiedono circa tre minuti e le tue risposte ci aiutano a migliorare gli spunti di preghiera quotidiani. Non ci sono risposte giuste o sbagliate: vogliamo solo conoscere la tua esperienza sincera.",
+        "submit": "Invia le mie risposte",
+        "thanksTitle": "Grazie!",
+        "thanks": "Grazie: abbiamo ricevuto le tue risposte. Ti siamo grati per il tempo che hai dedicato e per le tue preghiere.",
+        "editNotice": "Hai già risposto, grazie! Puoi aggiornare le tue risposte qui sotto e salvarle di nuovo, se vuoi.",
+        "invalidTitle": "Link non valido",
+        "invalid": "Questo link al sondaggio non sembra valido. Usa il link della tua email oppure contattaci se hai bisogno di aiuto.",
+        "closedTitle": "Sondaggio chiuso",
+        "closed": "Questo sondaggio non accetta più risposte. Grazie per il tuo interesse.",
+        "goHome": "Vai alla home page",
+        "errorTitle": "Qualcosa è andato storto",
+        "error": "Non siamo riusciti a salvare le tue risposte. Riprova."
+      },
+      "questions": {
+        "focus": {
+          "label": "Quanto gli spunti di preghiera quotidiani ti hanno aiutato a sentirti concentrato e coinvolto nel pregare per i gruppi etnici non raggiunti?",
+          "scale": {
+            "1": "Per niente concentrato",
+            "5": "Estremamente concentrato"
+          }
+        },
+        "experience": {
+          "label": "Raccontaci di più sulla tua esperienza: cosa ha reso gli spunti di preghiera utili (o no) per te personalmente?"
+        },
+        "clarity": {
+          "label": "Con quanta chiarezza gli spunti di preghiera comunicavano per cosa pregare e perché è importante?",
+          "scale": {
+            "1": "Molto poco chiari",
+            "5": "Molto chiari"
+          }
+        },
+        "content_amount": {
+          "label": "La quantità di contenuti di preghiera corrisponde al tempo che hai per pregare?",
+          "scale": {
+            "1": "Troppi per il mio tempo di preghiera",
+            "3": "Quantità giusta",
+            "5": "Troppo pochi per il mio tempo di preghiera"
+          }
+        },
+        "heart": {
+          "label": "Come ha influito la tua partecipazione a questa campagna di preghiera sul tuo cuore o sulla tua prospettiva verso i gruppi etnici non raggiunti?"
+        }
+      },
+      "email": {
+        "subject": "Ci racconti come sta andando la preghiera?",
+        "header": "Ci piacerebbe conoscere la tua opinione",
+        "greeting": "Ciao {name},",
+        "greetingFallback": "Ciao,",
+        "p1": "Grazie per intercedere in preghiera per i gruppi etnici non raggiunti del mondo. La tua fedeltà è il cuore di ciò che DOXA esiste per sostenere.",
+        "p2": "Cerchiamo sempre di rendere gli spunti di preghiera quotidiani più utili e, prima di incontrarci come squadra per pianificare i prossimi passi, ci piacerebbe molto ascoltarti. Potresti dedicare qualche minuto a rispondere a cinque brevi domande sulla tua esperienza?",
+        "p3": "La tua opinione sincera — ciò che funziona e ciò che non funziona — plasma direttamente i contenuti di preghiera che creiamo.",
+        "cta": "Rispondi al sondaggio",
+        "signoff": "Con gratitudine,",
+        "team": "Il team DOXA"
+      }
+    },
+    "admin": {
+      "title": "Sondaggio per intercessori – maggio 2026",
+      "heading": "Sondaggi",
+      "totalResponses": "{count} risposte",
+      "exportCsv": "Esporta CSV",
+      "average": "Media",
+      "noResponses": "Ancora nessuna risposta",
+      "selectPrompt": "Seleziona un sondaggio per vedere le risposte."
+    }
   }
 }

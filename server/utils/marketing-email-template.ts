@@ -163,15 +163,39 @@ export function renderMarketingEmailHtml(
   unsubscribeUrl?: string,
   locale: string = 'en'
 ): string {
+  return wrapMarketingEmailHtml(tiptapToHtml(contentJson), peopleGroupName, unsubscribeUrl, locale)
+}
+
+/**
+ * Render a complete marketing email HTML from pre-rendered body HTML
+ * (used by named templates whose body is built per-recipient/locale).
+ */
+export function renderMarketingEmailFromHtml(
+  contentHtml: string,
+  peopleGroupName?: string,
+  unsubscribeUrl?: string,
+  locale: string = 'en',
+  headerTitle?: string
+): string {
+  return wrapMarketingEmailHtml(contentHtml, peopleGroupName, unsubscribeUrl, locale, headerTitle)
+}
+
+function wrapMarketingEmailHtml(
+  contentHtml: string,
+  peopleGroupName?: string,
+  unsubscribeUrl?: string,
+  locale: string = 'en',
+  headerOverride?: string
+): string {
   const config = useRuntimeConfig()
   const appName = config.appName || 'Prayer Tools'
   const baseUrl = config.public.siteUrl || 'http://localhost:3000'
 
-  const contentHtml = tiptapToHtml(contentJson)
-
-  const headerTitle = peopleGroupName
-    ? t('email.marketing.headerCampaign', locale, { campaign: peopleGroupName })
-    : t('email.marketing.headerDefault', locale, { appName })
+  const headerTitle = headerOverride
+    ? headerOverride
+    : peopleGroupName
+      ? t('email.marketing.headerCampaign', locale, { campaign: peopleGroupName })
+      : t('email.marketing.headerDefault', locale, { appName })
   const footer = t('email.marketing.footer', locale, { appName })
   const unsubscribeText = t('email.common.unsubscribe', locale)
 

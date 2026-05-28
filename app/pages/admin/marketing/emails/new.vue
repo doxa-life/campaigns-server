@@ -26,7 +26,18 @@
           New Email
         </div>
 
-        <div class="form-section">
+        <div class="form-section" v-if="templateOptions.length > 1">
+          <UFormField label="Template">
+            <USelect
+              v-model="form.template"
+              :items="templateOptions"
+              value-key="value"
+              class="w-full"
+            />
+          </UFormField>
+        </div>
+
+        <div class="form-section" v-if="form.template === 'default'">
           <UFormField label="Subject" required>
             <UInput
               v-model="form.subject"
@@ -64,6 +75,18 @@
               </div>
 
               <div
+                v-if="isAdmin"
+                class="audience-option"
+                :class="{ selected: form.audience_type === 'doxa_active_pg' }"
+                @click="selectAudience('doxa_active_pg')"
+              >
+                <input type="radio" v-model="form.audience_type" value="doxa_active_pg" />
+                <span class="option-title">Doxa Active People Group Subscribers</span>
+                <span class="option-description">Opted in to DOXA updates and have an active people group subscription</span>
+                <span class="option-count" v-if="doxaActivePgCount !== null">{{ doxaActivePgCount }} recipients</span>
+              </div>
+
+              <div
                 class="audience-option"
                 :class="{ selected: form.audience_type === 'people_group' }"
                 @click="selectAudience('people_group')"
@@ -87,6 +110,30 @@
               </div>
 
               <div
+                v-if="isAdmin"
+                class="audience-option"
+                :class="{ selected: form.audience_type === 'pick' }"
+                @click="selectAudience('pick')"
+              >
+                <input type="radio" v-model="form.audience_type" value="pick" />
+                <span class="option-title">Pick contacts</span>
+                <USelectMenu
+                  v-if="form.audience_type === 'pick'"
+                  v-model="pickedContacts"
+                  :items="contactItems"
+                  multiple
+                  :ignore-filter="true"
+                  :loading="contactSearchLoading"
+                  placeholder="Search subscribers by name or email"
+                  class="contact-select"
+                  :ui="{ base: 'min-w-0', value: 'min-w-0' }"
+                  @update:search-term="onContactSearch"
+                />
+                <span v-else class="option-description">Choose specific subscribers to send to</span>
+                <span class="option-count" v-if="form.audience_type === 'pick'">{{ pickedContacts.length }} selected</span>
+              </div>
+
+              <div
                 class="audience-option"
                 :class="{ selected: form.audience_type === 'admins' }"
                 @click="selectAudience('admins')"
@@ -100,10 +147,20 @@
           </UFormField>
         </div>
 
-        <div class="form-section">
+        <div class="form-section" v-if="form.template === 'default'">
           <UFormField label="Content" required>
             <RichTextEditor v-model="form.content" />
           </UFormField>
+        </div>
+
+        <div class="form-section" v-else>
+          <UAlert
+            icon="i-lucide-info"
+            color="info"
+            variant="soft"
+            title="Predefined template"
+            description="This email uses a predefined template. Its subject and content are set automatically and sent in each subscriber's language. Use Preview to see it."
+          />
         </div>
       </div>
     </div>
@@ -146,13 +203,30 @@ const router = useRouter()
 const { isAdmin } = useAuthUser()
 const toast = useToast()
 
+type AudienceType = 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'pick'
+
 const form = ref({
   subject: '',
-  audience_type: '' as 'doxa' | 'people_group' | 'admins' | '',
+  template: 'default',
+  audience_type: '' as AudienceType | '',
   people_group_id: undefined as number | undefined,
   sender_id: undefined as number | undefined,
   content: { type: 'doc', content: [{ type: 'paragraph' }] }
 })
+
+interface ContactOption { label: string; value: number; email: string }
+const doxaActivePgCount = ref<number | null>(null)
+const pickedContacts = ref<ContactOption[]>([])
+const contactItems = ref<ContactOption[]>([])
+const contactSearchLoading = ref(false)
+let contactSearchTimer: ReturnType<typeof setTimeout> | null = null
+const pickedContactIds = computed(() => [...new Set(pickedContacts.value.map(c => c.value))])
+
+interface EmailTemplate { key: string; label: string; subject?: string }
+const templates = ref<EmailTemplate[]>([{ key: 'default', label: 'Default (write your own)' }])
+const templateOptions = computed(() =>
+  templates.value.map(t => ({ label: t.label, value: t.key }))
+)
 
 const peopleGroups = ref<{ id: number; title: string }[]>([])
 const doxaCount = ref<number | null>(null)
@@ -198,8 +272,10 @@ const canSave = computed(() => {
 const canSend = computed(() => {
   if (!canSave.value) return false
   if (form.value.audience_type === 'doxa') return !!(doxaCount.value && doxaCount.value > 0)
+  if (form.value.audience_type === 'doxa_active_pg') return !!(doxaActivePgCount.value && doxaActivePgCount.value > 0)
   if (form.value.audience_type === 'people_group') return !!(peopleGroupCount.value && peopleGroupCount.value > 0)
   if (form.value.audience_type === 'admins') return !!(adminCount.value && adminCount.value > 0)
+  if (form.value.audience_type === 'pick') return pickedContacts.value.length > 0
   return false
 })
 
@@ -207,11 +283,14 @@ const hasActualContent = computed(() => {
   return form.value.subject.trim().length > 0
 })
 
-function selectAudience(type: 'doxa' | 'people_group' | 'admins') {
+function selectAudience(type: AudienceType) {
   form.value.audience_type = type
   if (type !== 'people_group') {
     form.value.people_group_id = undefined
     peopleGroupCount.value = null
+  }
+  if (type === 'pick' && contactItems.value.length === 0) {
+    onContactSearch('')
   }
 }
 
@@ -256,6 +335,38 @@ async function loadAdminCount() {
   }
 }
 
+async function loadDoxaActivePgCount() {
+  if (!isAdmin.value) return
+  try {
+    const response = await $fetch<{ count: number }>('/api/admin/marketing/audience/doxa-active-pg')
+    doxaActivePgCount.value = response.count
+  } catch (error) {
+    console.error('Failed to load active PG subscriber count:', error)
+  }
+}
+
+function onContactSearch(term: string) {
+  if (contactSearchTimer) clearTimeout(contactSearchTimer)
+  contactSearchTimer = setTimeout(async () => {
+    contactSearchLoading.value = true
+    try {
+      const response = await $fetch<{ contacts: { id: number; value: string; name: string }[] }>(
+        '/api/admin/marketing/contacts/search',
+        { query: { q: term } }
+      )
+      contactItems.value = response.contacts.map(c => ({
+        label: c.name ? `${c.name} (${c.value})` : c.value,
+        value: c.id,
+        email: c.value
+      }))
+    } catch (error) {
+      console.error('Failed to search contacts:', error)
+    } finally {
+      contactSearchLoading.value = false
+    }
+  }, 250)
+}
+
 async function loadSenders() {
   try {
     const response = await $fetch<{ senders: Sender[]; domain: string }>('/api/admin/marketing/senders')
@@ -281,8 +392,10 @@ async function saveEmail() {
       body: {
         subject: form.value.subject,
         content_json: form.value.content,
+        template: form.value.template,
         audience_type: form.value.audience_type,
         people_group_id: form.value.people_group_id,
+        recipient_contact_method_ids: pickedContactIds.value,
         sender_id: form.value.sender_id
       }
     })
@@ -318,8 +431,10 @@ async function sendEmail() {
       body: {
         subject: form.value.subject,
         content_json: form.value.content,
+        template: form.value.template,
         audience_type: form.value.audience_type,
         people_group_id: form.value.people_group_id,
+        recipient_contact_method_ids: pickedContactIds.value,
         sender_id: form.value.sender_id
       }
     })
@@ -361,8 +476,10 @@ async function previewEmail() {
       body: {
         subject: form.value.subject,
         content_json: form.value.content,
+        template: form.value.template,
         audience_type: form.value.audience_type || 'doxa',
         people_group_id: form.value.people_group_id,
+        recipient_contact_method_ids: pickedContactIds.value,
         sender_id: form.value.sender_id
       }
     })
@@ -405,12 +522,32 @@ onBeforeRouteLeave((_to, _from, next) => {
   }
 })
 
+async function loadTemplates() {
+  try {
+    const response = await $fetch<{ templates: EmailTemplate[] }>('/api/admin/marketing/templates')
+    if (response.templates?.length) templates.value = response.templates
+  } catch (error) {
+    console.error('Failed to load templates:', error)
+  }
+}
+
+// A predefined template supplies its own localized subject/content at send time,
+// so fill the stored fields from the template and lock editing.
+watch(() => form.value.template, (templateKey) => {
+  if (templateKey === 'default') return
+  const selected = templates.value.find(t => t.key === templateKey)
+  form.value.subject = selected?.subject || selected?.label || 'Survey'
+  form.value.content = { type: 'doc', content: [{ type: 'paragraph' }] }
+})
+
 onMounted(() => {
   loadPeopleGroups()
   loadAdminCount()
   loadSenders()
+  loadTemplates()
   if (isAdmin.value) {
     loadDoxaCount()
+    loadDoxaActivePgCount()
   } else {
     form.value.audience_type = 'people_group'
   }
@@ -528,6 +665,14 @@ onMounted(() => {
 .people-group-select {
   flex: 1;
   min-width: 200px;
+  margin: 0;
+}
+
+/* Multi-select can hold many tags; allow it to shrink and stay within the row. */
+.contact-select {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
   margin: 0;
 }
 
