@@ -26,7 +26,18 @@
           New Email
         </div>
 
-        <div class="form-section">
+        <div class="form-section" v-if="templateOptions.length > 1">
+          <UFormField label="Template">
+            <USelect
+              v-model="form.template"
+              :items="templateOptions"
+              value-key="value"
+              class="w-full"
+            />
+          </UFormField>
+        </div>
+
+        <div class="form-section" v-if="form.template === 'default'">
           <UFormField label="Subject" required>
             <UInput
               v-model="form.subject"
@@ -100,10 +111,20 @@
           </UFormField>
         </div>
 
-        <div class="form-section">
+        <div class="form-section" v-if="form.template === 'default'">
           <UFormField label="Content" required>
             <RichTextEditor v-model="form.content" />
           </UFormField>
+        </div>
+
+        <div class="form-section" v-else>
+          <UAlert
+            icon="i-lucide-info"
+            color="info"
+            variant="soft"
+            title="Predefined template"
+            description="This email uses a predefined template. Its subject and content are set automatically and sent in each subscriber's language. Use Preview to see it."
+          />
         </div>
       </div>
     </div>
@@ -148,11 +169,18 @@ const toast = useToast()
 
 const form = ref({
   subject: '',
+  template: 'default',
   audience_type: '' as 'doxa' | 'people_group' | 'admins' | '',
   people_group_id: undefined as number | undefined,
   sender_id: undefined as number | undefined,
   content: { type: 'doc', content: [{ type: 'paragraph' }] }
 })
+
+interface EmailTemplate { key: string; label: string; subject?: string }
+const templates = ref<EmailTemplate[]>([{ key: 'default', label: 'Default (write your own)' }])
+const templateOptions = computed(() =>
+  templates.value.map(t => ({ label: t.label, value: t.key }))
+)
 
 const peopleGroups = ref<{ id: number; title: string }[]>([])
 const doxaCount = ref<number | null>(null)
@@ -281,6 +309,7 @@ async function saveEmail() {
       body: {
         subject: form.value.subject,
         content_json: form.value.content,
+        template: form.value.template,
         audience_type: form.value.audience_type,
         people_group_id: form.value.people_group_id,
         sender_id: form.value.sender_id
@@ -318,6 +347,7 @@ async function sendEmail() {
       body: {
         subject: form.value.subject,
         content_json: form.value.content,
+        template: form.value.template,
         audience_type: form.value.audience_type,
         people_group_id: form.value.people_group_id,
         sender_id: form.value.sender_id
@@ -361,6 +391,7 @@ async function previewEmail() {
       body: {
         subject: form.value.subject,
         content_json: form.value.content,
+        template: form.value.template,
         audience_type: form.value.audience_type || 'doxa',
         people_group_id: form.value.people_group_id,
         sender_id: form.value.sender_id
@@ -405,10 +436,29 @@ onBeforeRouteLeave((_to, _from, next) => {
   }
 })
 
+async function loadTemplates() {
+  try {
+    const response = await $fetch<{ templates: EmailTemplate[] }>('/api/admin/marketing/templates')
+    if (response.templates?.length) templates.value = response.templates
+  } catch (error) {
+    console.error('Failed to load templates:', error)
+  }
+}
+
+// A predefined template supplies its own localized subject/content at send time,
+// so fill the stored fields from the template and lock editing.
+watch(() => form.value.template, (templateKey) => {
+  if (templateKey === 'default') return
+  const selected = templates.value.find(t => t.key === templateKey)
+  form.value.subject = selected?.subject || selected?.label || 'Survey'
+  form.value.content = { type: 'doc', content: [{ type: 'paragraph' }] }
+})
+
 onMounted(() => {
   loadPeopleGroups()
   loadAdminCount()
   loadSenders()
+  loadTemplates()
   if (isAdmin.value) {
     loadDoxaCount()
   } else {

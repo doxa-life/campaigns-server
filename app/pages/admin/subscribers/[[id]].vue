@@ -1599,6 +1599,7 @@ function getEventColor(eventType: string): 'success' | 'warning' | 'error' | 'ne
     'PRAYER': 'primary',
     'EMAIL': 'neutral',
     'FOLLOWUP_RESPONSE': 'primary',
+    'Survey Response': 'primary',
     'Linked': 'success',
     'Unlinked': 'error'
   }
@@ -1611,6 +1612,7 @@ function getEventIcon(eventType: string): string | undefined {
     'PRAYER': 'i-lucide-hand-helping',
     'EMAIL': 'i-lucide-mail',
     'FOLLOWUP_RESPONSE': 'i-lucide-message-circle',
+    'Survey Response': 'i-lucide-clipboard-list',
     'Linked': 'i-lucide-link',
     'Unlinked': 'i-lucide-link-2-off'
   }

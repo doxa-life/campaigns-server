@@ -1,4 +1,5 @@
 import { marketingEmailService } from '#server/database/marketing-emails'
+import { isValidTemplateKey } from '#server/utils/marketing-templates'
 import { handleApiError } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
@@ -34,6 +35,13 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  if (body.template && !isValidTemplateKey(body.template)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Invalid template'
+    })
+  }
+
   const canSend = await marketingEmailService.canUserSendToAudience(
     user.userId,
     body.audience_type,
@@ -53,6 +61,7 @@ export default defineEventHandler(async (event) => {
     const email = await marketingEmailService.create({
       subject: body.subject,
       content_json: body.content_json,
+      template: body.template ?? 'default',
       audience_type: body.audience_type,
       people_group_id: body.audience_type === 'people_group' ? body.people_group_id : null,
       sender_id: body.sender_id ?? null,

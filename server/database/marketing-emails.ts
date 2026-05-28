@@ -8,6 +8,7 @@ export interface MarketingEmail {
   id: number
   subject: string
   content_json: Record<string, any>
+  template: string
   audience_type: 'doxa' | 'people_group' | 'admins'
   people_group_id: number | null
   sender_id: number | null
@@ -39,6 +40,7 @@ export interface MarketingEmailWithPeopleGroup extends MarketingEmail {
 export interface CreateMarketingEmailData {
   subject: string
   content_json: Record<string, any>
+  template?: string
   audience_type: 'doxa' | 'people_group' | 'admins'
   people_group_id?: number | null
   sender_id?: number | null
@@ -64,7 +66,7 @@ class MarketingEmailService {
   private sql = getSql()
 
   async create(data: CreateMarketingEmailData): Promise<MarketingEmail> {
-    const { subject, content_json, audience_type, people_group_id, sender_id, created_by } = data
+    const { subject, content_json, template, audience_type, people_group_id, sender_id, created_by } = data
 
     if (audience_type === 'people_group' && !people_group_id) {
       throw new Error('people_group_id is required when audience_type is people_group')
@@ -74,8 +76,8 @@ class MarketingEmailService {
     }
 
     const [row] = await this.sql`
-      INSERT INTO marketing_emails (subject, content_json, audience_type, people_group_id, sender_id, created_by)
-      VALUES (${subject}, ${this.sql.json(content_json)}, ${audience_type},
+      INSERT INTO marketing_emails (subject, content_json, template, audience_type, people_group_id, sender_id, created_by)
+      VALUES (${subject}, ${this.sql.json(content_json)}, ${template ?? 'default'}, ${audience_type},
               ${audience_type === 'people_group' ? people_group_id! : null}, ${sender_id ?? null}, ${created_by})
       RETURNING *
     `

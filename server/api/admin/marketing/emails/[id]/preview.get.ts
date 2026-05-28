@@ -1,5 +1,6 @@
 import { marketingEmailService } from '#server/database/marketing-emails'
-import { renderMarketingEmailHtml, tiptapToText } from '#server/utils/marketing-email-template'
+import { renderMarketingEmailHtml, renderMarketingEmailFromHtml, tiptapToText } from '#server/utils/marketing-email-template'
+import { getMarketingTemplate } from '#server/utils/marketing-templates'
 
 export default defineEventHandler(async (event) => {
   const user = await requirePermission(event, 'people_groups.view')
@@ -31,6 +32,25 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const baseUrl = config.public.siteUrl || 'https://example.com'
   const unsubscribeUrl = `${baseUrl}/unsubscribe?id=preview`
+
+  const template = getMarketingTemplate(email.template)
+
+  if (template) {
+    const surveyUrl = `${baseUrl}/survey?id=preview`
+    const vars = { surveyUrl, name: 'Friend' }
+    const html = renderMarketingEmailFromHtml(
+      template.renderContentHtml('en', vars),
+      undefined,
+      unsubscribeUrl,
+      'en',
+      template.getHeader('en')
+    )
+    return {
+      subject: template.getSubject('en'),
+      html,
+      text: template.renderText('en', vars)
+    }
+  }
 
   const html = renderMarketingEmailHtml(
     email.content_json,
