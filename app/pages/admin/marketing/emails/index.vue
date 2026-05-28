@@ -53,7 +53,7 @@
             <td class="subject-cell">{{ email.subject }}</td>
             <td class="audience-cell">
               <UBadge
-                :label="email.audience_type === 'doxa' ? 'DOXA' : email.audience_type === 'admins' ? 'Admins (test)' : email.people_group_name || 'People Group'"
+                :label="audienceLabel(email)"
                 variant="subtle"
                 color="neutral"
               />
@@ -137,9 +137,10 @@ interface MarketingEmail {
   id: number
   subject: string
   content_json: string
-  audience_type: 'doxa' | 'people_group' | 'admins'
+  audience_type: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'pick'
   people_group_id: number | null
   people_group_name?: string
+  recipient_contact_method_ids?: number[] | null
   status: 'draft' | 'queued' | 'sending' | 'sent' | 'failed'
   recipient_count: number
   sent_count: number
@@ -157,6 +158,16 @@ interface MarketingEmail {
 const emails = ref<MarketingEmail[]>([])
 const loading = ref(true)
 const error = ref('')
+
+function audienceLabel(email: MarketingEmail): string {
+  switch (email.audience_type) {
+    case 'doxa': return 'DOXA'
+    case 'doxa_active_pg': return 'Active PG Subscribers'
+    case 'pick': return `Picked Contacts (${email.recipient_contact_method_ids?.length ?? 0})`
+    case 'admins': return 'Admins (test)'
+    default: return email.people_group_name || 'People Group'
+  }
+}
 const statusFilter = ref('all')
 const toast = useToast()
 

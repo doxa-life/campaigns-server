@@ -21,10 +21,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (!body.audience_type || !['doxa', 'people_group', 'admins'].includes(body.audience_type)) {
+  if (!body.audience_type || !['doxa', 'people_group', 'admins', 'doxa_active_pg', 'pick'].includes(body.audience_type)) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Valid audience_type is required (doxa, people_group, or admins)'
+      statusMessage: 'Valid audience_type is required'
     })
   }
 
@@ -64,6 +64,9 @@ export default defineEventHandler(async (event) => {
       template: body.template ?? 'default',
       audience_type: body.audience_type,
       people_group_id: body.audience_type === 'people_group' ? body.people_group_id : null,
+      recipient_contact_method_ids: body.audience_type === 'pick' && Array.isArray(body.recipient_contact_method_ids)
+        ? body.recipient_contact_method_ids.filter((n: unknown) => Number.isInteger(n))
+        : null,
       sender_id: body.sender_id ?? null,
       created_by: user.userId
     })

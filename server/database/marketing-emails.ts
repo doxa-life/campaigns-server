@@ -9,8 +9,9 @@ export interface MarketingEmail {
   subject: string
   content_json: Record<string, any>
   template: string
-  audience_type: 'doxa' | 'people_group' | 'admins'
+  audience_type: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'pick'
   people_group_id: number | null
+  recipient_contact_method_ids: number[] | null
   sender_id: number | null
   status: 'draft' | 'queued' | 'sending' | 'sent' | 'failed'
   created_by: string
@@ -41,8 +42,9 @@ export interface CreateMarketingEmailData {
   subject: string
   content_json: Record<string, any>
   template?: string
-  audience_type: 'doxa' | 'people_group' | 'admins'
+  audience_type: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'pick'
   people_group_id?: number | null
+  recipient_contact_method_ids?: number[] | null
   sender_id?: number | null
   created_by: string
 }
@@ -50,7 +52,7 @@ export interface CreateMarketingEmailData {
 export interface UpdateMarketingEmailData {
   subject?: string
   content_json?: Record<string, any>
-  audience_type?: 'doxa' | 'people_group' | 'admins'
+  audience_type?: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'pick'
   people_group_id?: number | null
   sender_id?: number | null
   updated_by: string
@@ -58,7 +60,7 @@ export interface UpdateMarketingEmailData {
 
 export interface MarketingEmailFilters {
   status?: 'draft' | 'queued' | 'sending' | 'sent' | 'failed'
-  audience_type?: 'doxa' | 'people_group' | 'admins'
+  audience_type?: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'pick'
   people_group_id?: number
 }
 
@@ -66,7 +68,7 @@ class MarketingEmailService {
   private sql = getSql()
 
   async create(data: CreateMarketingEmailData): Promise<MarketingEmail> {
-    const { subject, content_json, template, audience_type, people_group_id, sender_id, created_by } = data
+    const { subject, content_json, template, audience_type, people_group_id, recipient_contact_method_ids, sender_id, created_by } = data
 
     if (audience_type === 'people_group' && !people_group_id) {
       throw new Error('people_group_id is required when audience_type is people_group')
@@ -75,10 +77,12 @@ class MarketingEmailService {
       throw new Error('people_group_id should not be provided when audience_type is doxa')
     }
 
+    const pickedIds = audience_type === 'pick' ? (recipient_contact_method_ids ?? []) : null
+
     const [row] = await this.sql`
-      INSERT INTO marketing_emails (subject, content_json, template, audience_type, people_group_id, sender_id, created_by)
+      INSERT INTO marketing_emails (subject, content_json, template, audience_type, people_group_id, recipient_contact_method_ids, sender_id, created_by)
       VALUES (${subject}, ${this.sql.json(content_json)}, ${template ?? 'default'}, ${audience_type},
-              ${audience_type === 'people_group' ? people_group_id! : null}, ${sender_id ?? null}, ${created_by})
+              ${audience_type === 'people_group' ? people_group_id! : null}, ${pickedIds}, ${sender_id ?? null}, ${created_by})
       RETURNING *
     `
     return row as MarketingEmail
@@ -246,14 +250,15 @@ class MarketingEmailService {
     return email.created_by === userId
   }
 
-  async canUserSendToAudience(userId: string, audienceType: 'doxa' | 'people_group' | 'admins', peopleGroupId?: number): Promise<boolean> {
+  async canUserSendToAudience(userId: string, audienceType: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'pick', peopleGroupId?: number): Promise<boolean> {
     // The admins audience only emails internal admin users — it's a test tool,
     // so any user with marketing access may use it.
     if (audienceType === 'admins') return true
 
     const scoped = await roleService.isPermissionScoped(userId, 'people_groups.view')
 
-    if (audienceType === 'doxa') return !scoped
+    // Doxa-wide and hand-picked audiences can reach any subscriber, so require unscoped access.
+    if (audienceType === 'doxa' || audienceType === 'doxa_active_pg' || audienceType === 'pick') return !scoped
 
     if (audienceType === 'people_group' && peopleGroupId) {
       if (!scoped) return true

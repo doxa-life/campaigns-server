@@ -196,6 +196,41 @@ class ContactMethodService {
     `
   }
 
+  // Doxa-consented, verified contacts whose subscriber has an active people group subscription.
+  async getContactsWithDoxaConsentAndActiveSubscription(): Promise<ContactMethod[]> {
+    return await this.sql`
+      SELECT cm.* FROM contact_methods cm
+      WHERE cm.consent_doxa_general = true AND cm.verified = true
+      AND EXISTS (
+        SELECT 1 FROM campaign_subscriptions cs
+        WHERE cs.subscriber_id = cm.subscriber_id AND cs.status = 'active'
+      )
+      ORDER BY cm.created_at DESC
+    `
+  }
+
+  async getEmailContactsByIds(ids: number[]): Promise<ContactMethod[]> {
+    if (ids.length === 0) return []
+    return await this.sql`
+      SELECT * FROM contact_methods
+      WHERE id IN ${this.sql(ids)} AND type = 'email'
+    `
+  }
+
+  // Search verified email contacts by subscriber name or email, for hand-picking recipients.
+  async searchEmailContacts(query: string, limit = 20): Promise<Array<{ id: number; value: string; name: string }>> {
+    const like = `%${query}%`
+    return await this.sql`
+      SELECT cm.id, cm.value, s.name
+      FROM contact_methods cm
+      JOIN subscribers s ON s.id = cm.subscriber_id
+      WHERE cm.type = 'email' AND cm.verified = true
+        AND (${query} = '' OR cm.value ILIKE ${like} OR s.name ILIKE ${like})
+      ORDER BY s.name ASC
+      LIMIT ${limit}
+    `
+  }
+
   async addPeopleGroupConsent(contactMethodId: number, peopleGroupId: number): Promise<ContactMethod | null> {
     const contactMethod = await this.getById(contactMethodId)
     if (!contactMethod) return null
