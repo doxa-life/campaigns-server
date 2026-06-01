@@ -17,6 +17,13 @@ const content = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
+// Nuxt UI's `mention` prop type omits `suggestion`/`suggestions` (it expects its
+// own EditorMentionMenu), but UEditor still forwards them to Mention.configure at
+// runtime. Binding via a computed sidesteps the object-literal excess-property check.
+const mentionConfig = computed(() =>
+  props.mentions ? { HTMLAttributes: { class: 'mention' }, suggestion: mentionSuggestion } : false
+)
+
 function parseContent(value: any) {
   const emptyDoc = {
     type: 'doc',
@@ -62,7 +69,7 @@ const bubbleToolbarItems = computed(() => [
       content-type="json"
       placeholder="Write a comment..."
       :image="false"
-      :mention="props.mentions ? { HTMLAttributes: { class: 'mention' }, suggestion: mentionSuggestion } : false"
+      :mention="mentionConfig"
       class="comment-editor-content"
       :ui="{ content: 'p-0 sm:p-0 [&_.tiptap]:sm:px-0' }"
     >

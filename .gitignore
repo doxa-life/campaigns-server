@@ -7,6 +7,9 @@
 .vscode
 dist
 
+# Extracted base layer (regenerated; no longer used after merge)
+.layers
+
 # Database files
 server/database/*.sqlite
 server/database/*.sqlite-shm
@@ -17,9 +20,6 @@ docker-compose.override.yml
 
 # Node dependencies
 node_modules
-
-# Extended layers (downloaded by c12/giget)
-.layers
 
 # Logs
 logs

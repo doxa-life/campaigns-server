@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "migrate": "node .layers/nuxt-base/scripts/migrate.mjs",
+    "migrate": "node scripts/migrate.mjs",
     "build": "nuxt build",
     "dev": "bun run migrate && nuxt dev",
     "dev:mail": "nuxt dev",

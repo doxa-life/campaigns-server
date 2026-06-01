@@ -7,7 +7,7 @@ We are Jan 2026
 
 DOXA Prayer is a Nuxt 4.1 application for managing and distributing daily prayer content to subscribers. It features people group management, subscriber CRM, content libraries, multi-language support (10 languages), and email notifications.
 
-This project consumes the base layer: https://github.com/corsacca/nuxt-base
+This project includes the former base-layer auth, theme, email, storage, database, and activity utilities directly in this repository.
 
 ## Rules
 
@@ -74,13 +74,11 @@ DATABASE_URL=$TEST_DATABASE_URL bun run migrate
 
 ## Architecture
 
-### Base Layer Pattern
+### Shared App Utilities
 
-This project extends a shared Nuxt base layer (`github:corsacca/nuxt-base`). See `documentation/BASE_LAYER.md` for full reference.
+The former shared Nuxt base layer has been merged into this project. Its files now live under `app/`, `server/`, `migrations/base/`, and `scripts/`.
 
-The layer is extracted to `.layers/nuxt-base/` (re-extracted on every `nuxt prepare`/`nuxt dev`/`nuxt build`, gitignored). Read or grep its source there — not under `node_modules/.c12/`.
-
-**Base layer provides:**
+**Shared utilities provide:**
 - Database connection (`sql` from `#imports`)
 - Authentication system (`useAuth()` composable, `auth` middleware)
 - Theme system (`useTheme()` composable, `<ThemeToggle />` component)
@@ -88,9 +86,9 @@ The layer is extracted to `.layers/nuxt-base/` (re-extracted on every `nuxt prep
 - S3 storage (`uploadToS3`, `generateSignedUrl`, `deleteFromS3`)
 - Activity logging (`logCreate`, `logUpdate`, `logDelete`)
 
-Local utilities in `server/utils/app/` are excluded from auto-imports to avoid conflicts with the base layer. Access them through `server/utils` re-exports.
+Local utilities in `server/utils/app/` are excluded from auto-imports to avoid conflicts with shared utility names. Access them through `server/utils` re-exports.
 
-**Key base layer composables:**
+**Key shared composables:**
 ```typescript
 // Authentication
 const { user, isLoggedIn, authReady, login, logout, register, checkAuth } = useAuth()
@@ -154,10 +152,10 @@ API routes follow Nitro conventions:
 
 ### Authentication
 
-- JWT-based authentication (base layer)
+- JWT-based authentication
 - Roles: superadmin, admin
-- Middleware: `auth` (base layer), `superadmin.ts`, `guest.ts` (project)
-- `useAuth()` composable for client-side auth state (base layer)
+- Middleware: `auth`, `superadmin.ts`, `guest.ts`
+- `useAuth()` composable for client-side auth state
 - `useAuthUser()` composable extends auth for project-specific needs
 
 ### Email System
@@ -180,7 +178,7 @@ Email templates in `server/utils/`: `prayer-reminder-email.ts`, `welcome-email.t
 
 ## Styling
 
-- Light/dark mode support via base layer theme system
+- Light/dark mode support via the shared theme system
 - Use **Tailwind CSS** for styling
 - Theme toggle available via `<ThemeToggle />` component
 

@@ -700,7 +700,7 @@ async function loadData() {
     const [usersResponse, invitationsResponse, rolesResponse] = await Promise.all([
       $fetch<{ users: User[] }>('/api/admin/users'),
       $fetch<{ invitations: Invitation[] }>('/api/admin/users/invitations'),
-      $fetch<{ roles: Role[] }>('/api/admin/roles')
+      $fetch<{ roles: RoleWithPermissions[] }>('/api/admin/roles')
     ])
 
     users.value = usersResponse.users

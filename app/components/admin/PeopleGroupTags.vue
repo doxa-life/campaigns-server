@@ -25,7 +25,7 @@
       <UInputMenu
         v-model:search-term="searchTerm"
         v-model:open="menuOpen"
-        :model-value="null"
+        :model-value="undefined"
         :items="suggestionItems"
         placeholder="Add a tag..."
         :create-item="true"
