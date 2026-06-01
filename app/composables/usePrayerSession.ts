@@ -12,7 +12,6 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
     return (route.query.uid as string) || getVisitorId()
   })
 
-  const pageOpenTime = ref(Date.now())
   const sessionId = ref(`${Date.now()}-${Math.random().toString(36).substring(2, 9)}`)
   const autoSaveTimeouts = ref<ReturnType<typeof setTimeout>[]>([])
   const autoSaveComplete = ref(false)
@@ -20,8 +19,37 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
   const submitting = ref(false)
   const autoCheckpointTracked = ref(false)
 
+  const accumulatedDuration = ref(0)
+  const lastVisibleTime = ref(Date.now())
+  const isActive = ref(true)
+
+  function getVisibleDuration() {
+    if (!isActive.value) return accumulatedDuration.value
+    return accumulatedDuration.value + (Date.now() - lastVisibleTime.value)
+  }
+
+  function pause() {
+    if (!isActive.value) return
+    accumulatedDuration.value += Date.now() - lastVisibleTime.value
+    isActive.value = false
+  }
+
+  function resume() {
+    if (isActive.value) return
+    lastVisibleTime.value = Date.now()
+    isActive.value = true
+  }
+
+  function onVisibilityChange() {
+    if (document.hidden) pause()
+    else resume()
+  }
+
+  function onWindowBlur() { pause() }
+  function onWindowFocus() { resume() }
+
   function getDurationSeconds() {
-    const rawDuration = Math.floor((Date.now() - pageOpenTime.value) / 1000)
+    const rawDuration = Math.floor(getVisibleDuration() / 1000)
     return Math.min(rawDuration, MAX_PRAYER_DURATION_SECONDS)
   }
 
@@ -109,7 +137,9 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
   }
 
   function setupAutoSave() {
-    pageOpenTime.value = Date.now()
+    accumulatedDuration.value = 0
+    lastVisibleTime.value = Date.now()
+    isActive.value = !document.hidden
 
     // Report immediately with duration 0
     autoSavePrayerSession()
@@ -130,10 +160,16 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
 
   onMounted(() => {
     setupAutoSave()
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    window.addEventListener('blur', onWindowBlur)
+    window.addEventListener('focus', onWindowFocus)
   })
 
   onUnmounted(() => {
     cancelAutoSaveTimeouts()
+    document.removeEventListener('visibilitychange', onVisibilityChange)
+    window.removeEventListener('blur', onWindowBlur)
+    window.removeEventListener('focus', onWindowFocus)
   })
 
   return {
