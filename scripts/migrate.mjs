@@ -105,6 +105,7 @@ async function runMigrations() {
     max: 1,
     idle_timeout: 20,
     connect_timeout: 30,
+    prepare: false, // Required for PgBouncer transaction-mode pooling (no named prepared statements)
     onnotice: () => {},
   })
 

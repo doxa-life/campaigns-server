@@ -25,6 +25,7 @@ function initConnection() {
     max: 10, // Maximum number of connections
     idle_timeout: 20,
     connect_timeout: 30, // Increased timeout for initial connection
+    prepare: false, // Required for PgBouncer transaction-mode pooling (no named prepared statements)
     onnotice: () => {}, // Suppress NOTICE messages (e.g., "table already exists, skipping")
   })
 
