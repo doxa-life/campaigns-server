@@ -66,6 +66,7 @@ interface PeopleGroupData {
   country: string | null
   lat: number | null
   lng: number | null
+  picture_credit: Array<{ text: string; link: string | null }> | null
 }
 
 interface PrayerContentItem {
@@ -84,6 +85,7 @@ interface PrayerContentResponse {
     slug: string
     title: string
     default_language: string
+    image_url: string | null
   }
   date: string
   language: string
@@ -102,9 +104,17 @@ const localePath = useLocalePath()
 const route = useRoute()
 const slug = route.params.slug as string
 const { setPeopleGroupTitle } = usePeopleGroup()
+const { trackEvent } = useTracking()
+const viewedTrackingKey = ref<string | null>(null)
 
 // Get current date in user's timezone
-const currentDate = computed(() => new Date().toISOString().split('T')[0] as string)
+const currentDate = computed(() => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+})
 
 // Get language preference from global language selector or query param
 const selectedLanguage = ref((route.query.language as string) || locale.value || '')
@@ -160,7 +170,17 @@ watch(data, (newData) => {
       selectedLanguage.value = newData.language
     }
     if (newData.people_group?.title) {
-      setPeopleGroupTitle(newData.people_group.title)
+      setPeopleGroupTitle(newData.people_group.title, newData.people_group.image_url)
+    }
+    const trackingKey = `${slug}:${newData.date}:${newData.language}`
+    if (viewedTrackingKey.value !== trackingKey) {
+      viewedTrackingKey.value = trackingKey
+      trackEvent('prayer_content_viewed', {
+        metadata: {
+          people_group_slug: slug,
+          content_date: newData.date
+        }
+      })
     }
   }
 }, { immediate: true })
@@ -189,7 +209,7 @@ const pastContent = computed(() => {
 // Set people group title on mount (handles cached data from navigation)
 onMounted(() => {
   if (data.value?.people_group?.title) {
-    setPeopleGroupTitle(data.value.people_group.title)
+    setPeopleGroupTitle(data.value.people_group.title, data.value.people_group.image_url)
   }
 })
 

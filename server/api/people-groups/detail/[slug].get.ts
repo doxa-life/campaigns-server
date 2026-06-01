@@ -3,16 +3,15 @@
  * Get detailed information for a single people group
  * Supports translated labels via ?locale= query param
  */
-import { getDatabase } from '../../../database/db'
-import { formatPeopleGroupForDetail } from '../../../utils/app/people-group-formatter'
-import { setCorsHeaders, setCacheHeaders } from '../../../utils/app/cors'
+import { getSql } from '../../../database/db'
+import { formatPeopleGroup } from '../../../utils/app/people-group-formatter'
+import { setCacheHeaders } from '../../../utils/app/cors'
 import { LANGUAGE_CODES } from '../../../../config/languages'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
 import { appConfigService } from '#server/database/app-config'
+import { peopleGroupAdoptionService } from '../../../database/people-group-adoptions'
 
 export default defineEventHandler(async (event) => {
-  // Set CORS and cache headers
-  setCorsHeaders(event)
   setCacheHeaders(event)
 
   const slug = getRouterParam(event, 'slug')
@@ -30,17 +29,15 @@ export default defineEventHandler(async (event) => {
   const rawLocale = (query.locale as string) || (query.lang as string) || acceptLanguage?.split(',')[0]?.split('-')[0] || 'en'
   const lang = LANGUAGE_CODES.includes(rawLocale) ? rawLocale : 'en'
 
-  const db = getDatabase()
+  const sql = getSql()
 
-  const stmt = db.prepare(`
+  const [peopleGroup] = await sql`
     SELECT
       pg.*,
       pg.people_praying as total_people_praying
     FROM people_groups pg
-    WHERE pg.slug = ?
-  `)
-
-  const peopleGroup = await stmt.get(slug) as any
+    WHERE pg.slug = ${slug}
+  ` as any[]
 
   if (!peopleGroup) {
     throw createError({
@@ -49,16 +46,23 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Get commitment stats and global start date
-  const [commitmentStats, globalStartDate] = await Promise.all([
+  // Get commitment stats, global start date, and adoption info
+  const [commitmentStats, globalStartDate, adoptions] = await Promise.all([
     peopleGroupSubscriptionService.getCommitmentStats(peopleGroup.id),
-    appConfigService.getConfig<string>('global_campaign_start_date')
+    appConfigService.getConfig<string>('global_campaign_start_date'),
+    peopleGroupAdoptionService.getForPeopleGroup(peopleGroup.id)
   ])
 
+  const activeAdoptions = adoptions.filter(a => a.status === 'active')
+  const publicAdoptions = activeAdoptions.filter(a => a.show_publicly)
+
   return {
-    ...formatPeopleGroupForDetail(peopleGroup, lang),
+    ...formatPeopleGroup(peopleGroup, { fields: 'all', lang }),
     people_committed: commitmentStats.people_committed,
     committed_duration: commitmentStats.committed_duration,
-    global_start_date: globalStartDate
+    global_start_date: globalStartDate,
+    adopted_by_churches: activeAdoptions.length,
+    adopted_by_count: activeAdoptions.length,
+    adopted_by_names: publicAdoptions.map(a => a.group_name)
   }
 })

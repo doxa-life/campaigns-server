@@ -4,7 +4,9 @@
  */
 import { peopleGroupService } from '#server/database/people-groups'
 import { subscriberService } from '#server/database/subscribers'
+import { contactMethodService } from '#server/database/contact-methods'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
+import { trackEventInBackground } from '#server/utils/tracking'
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
@@ -71,8 +73,21 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // Check if already active
-  if (subscription.status === 'active') {
+  // Check if already active or pending
+  if (subscription.status === 'active' || subscription.status === 'pending') {
+    trackEventInBackground(event, {
+      eventType: 'subscriber_resubscribed',
+      anonymousHash: subscriber.tracking_id,
+      language: subscriber.preferred_language || null,
+      metadata: {
+        people_group_slug: slug,
+        people_group_id: peopleGroup.id,
+        subscription_id: subscription.id,
+        already_active: true,
+        status: subscription.status
+      }
+    })
+
     return {
       message: 'Subscription is already active',
       already_active: true,
@@ -81,8 +96,18 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  // Determine status based on email verification
+  let resubscribeStatus: 'active' | 'pending' = 'active'
+  if (subscription.delivery_method === 'email') {
+    const contacts = await contactMethodService.getSubscriberContactMethods(subscriber.id)
+    const emailContact = contacts.find(c => c.type === 'email')
+    if (!emailContact?.verified) {
+      resubscribeStatus = 'pending'
+    }
+  }
+
   // Reactivate the subscription
-  const result = await peopleGroupSubscriptionService.resubscribe(subscription.id)
+  const result = await peopleGroupSubscriptionService.resubscribe(subscription.id, resubscribeStatus)
 
   if (!result) {
     throw createError({
@@ -90,6 +115,32 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Failed to resubscribe'
     })
   }
+
+  logCreate('subscribers', String(subscriber.id), event, {
+    source: 'self_service',
+    message: 'Resubscribed to',
+    link_text: peopleGroup.name,
+    link_url: `/admin/people-groups/${peopleGroup.id}`,
+    form_values: {
+      frequency: subscription.frequency,
+      days_of_week: subscription.days_of_week,
+      time_preference: subscription.time_preference,
+      timezone: subscription.timezone
+    }
+  })
+
+  trackEventInBackground(event, {
+    eventType: 'subscriber_resubscribed',
+    anonymousHash: subscriber.tracking_id,
+    language: subscriber.preferred_language || null,
+    metadata: {
+      people_group_slug: slug,
+      people_group_id: peopleGroup.id,
+      subscription_id: subscription.id,
+      already_active: false,
+      status: resubscribeStatus
+    }
+  })
 
   return {
     message: 'Successfully resubscribed to prayer reminders',

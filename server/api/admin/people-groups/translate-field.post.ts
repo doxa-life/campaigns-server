@@ -23,7 +23,7 @@ interface PeopleGroupWithEnglish {
  * Returns SSE stream with progress events and final stats
  */
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'people_groups.edit')
 
   if (!isDeepLConfigured()) {
     throw createError({
@@ -34,14 +34,14 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event)
 
-  if (!body.fieldKey || typeof body.fieldKey !== 'string') {
+  if (!body.field_key || typeof body.field_key !== 'string') {
     throw createError({
       statusCode: 400,
       statusMessage: 'Field key is required'
     })
   }
 
-  const { fieldKey, overwrite = false } = body
+  const { field_key: fieldKey, overwrite = false } = body
 
   // Validate field exists and is translatable
   const field = allFields.find((f: FieldDefinition) => f.key === fieldKey)
@@ -69,8 +69,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // Get all people groups (limited to 200 for testing)
-    const allPeopleGroups = await peopleGroupService.getAllPeopleGroups({ limit: 200 })
+    const allPeopleGroups = await peopleGroupService.getAllPeopleGroups()
 
     sendEvent('progress', { phase: 'loading', message: `Loaded ${allPeopleGroups.length} people groups` })
 
@@ -84,12 +83,7 @@ export default defineEventHandler(async (event) => {
         fieldValue = (pg as any)[fieldKey] as Record<string, string> | null
       } else {
         if (pg.metadata) {
-          try {
-            const metadata = typeof pg.metadata === 'string' ? JSON.parse(pg.metadata) : pg.metadata
-            fieldValue = metadata[fieldKey] as Record<string, string> | null
-          } catch {
-            continue
-          }
+          fieldValue = pg.metadata[fieldKey] as Record<string, string> | null
         }
       }
 
@@ -125,7 +119,7 @@ export default defineEventHandler(async (event) => {
 
     // Process each target language with batch translation
     for (let langIndex = 0; langIndex < targetLanguages.length; langIndex++) {
-      const targetLang = targetLanguages[langIndex]
+      const targetLang = targetLanguages[langIndex]!
       const langName = LANGUAGES.find(l => l.code === targetLang)?.name || targetLang
 
       sendEvent('progress', {
@@ -158,8 +152,8 @@ export default defineEventHandler(async (event) => {
 
         // Update each people group with its translation
         for (let i = 0; i < needsTranslation.length; i++) {
-          const item = needsTranslation[i]
-          const translatedText = translatedTexts[i]
+          const item = needsTranslation[i]!
+          const translatedText = translatedTexts[i]!
 
           item.fieldValue[targetLang] = translatedText
 
@@ -195,7 +189,7 @@ export default defineEventHandler(async (event) => {
     })
 
     for (let i = 0; i < peopleGroupsWithEnglish.length; i++) {
-      const item = peopleGroupsWithEnglish[i]
+      const item = peopleGroupsWithEnglish[i]!
 
       try {
         if (field.tableColumn) {
@@ -203,12 +197,10 @@ export default defineEventHandler(async (event) => {
             [fieldKey]: item.fieldValue
           } as any)
         } else {
-          const metadata = item.pg.metadata
-            ? (typeof item.pg.metadata === 'string' ? JSON.parse(item.pg.metadata) : item.pg.metadata)
-            : {}
+          const metadata = item.pg.metadata || {}
           metadata[fieldKey] = item.fieldValue
           await peopleGroupService.updatePeopleGroup(item.pg.id, {
-            metadata: JSON.stringify(metadata)
+            metadata
           })
         }
         stats.translated++

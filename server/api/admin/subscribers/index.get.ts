@@ -2,44 +2,42 @@ import { subscriberService } from '#server/database/subscribers'
 import { roleService } from '#server/database/roles'
 import { peopleGroupAccessService } from '#server/database/people-group-access'
 import { handleApiError } from '#server/utils/api-helpers'
+import { decodeFilter } from '#shared/crm/filter-codec'
 
 export default defineEventHandler(async (event) => {
-  const user = await requirePermission(event, 'people_groups.view')
+  const user = await requirePermission(event, 'subscribers.view')
 
   const query = getQuery(event)
-  const search = query.search as string | undefined
-  const peopleGroupId = query.people_group_id ? parseInt(query.people_group_id as string) : undefined
+  const filterParam = typeof query.filter === 'string' ? query.filter : undefined
+  const search = typeof query.q === 'string' ? query.q : undefined
+  const cursor = typeof query.cursor === 'string' ? query.cursor : undefined
+  const limitParam = typeof query.limit === 'string' ? parseInt(query.limit, 10) : undefined
+
+  const filter = decodeFilter(filterParam)
 
   try {
-    // Determine accessible people groups for non-admin users
-    const isAdmin = await roleService.isAdmin(user.userId)
+    const scoped = await roleService.isPermissionScoped(user.userId, 'subscribers.view')
     let accessiblePeopleGroupIds: number[] | undefined
 
-    if (!isAdmin) {
+    if (scoped) {
       accessiblePeopleGroupIds = await peopleGroupAccessService.getUserPeopleGroups(user.userId)
-
-      // If user has no people group access, return empty list
       if (accessiblePeopleGroupIds.length === 0) {
-        return { subscribers: [] }
-      }
-
-      // If filtering by people group, verify user has access
-      if (peopleGroupId && !accessiblePeopleGroupIds.includes(peopleGroupId)) {
-        throw createError({
-          statusCode: 403,
-          statusMessage: 'You do not have access to this people group'
-        })
+        return { subscribers: [], nextCursor: null, totalCount: 0 }
       }
     }
 
-    const subscribers = await subscriberService.getAllSubscribersWithSubscriptions({
+    const { items, nextCursor, totalCount } = await subscriberService.getSubscribersPage({
+      filter,
       search,
-      peopleGroupId: peopleGroupId,
-      accessiblePeopleGroupIds: accessiblePeopleGroupIds
+      cursor,
+      limit: limitParam,
+      accessiblePeopleGroupIds,
     })
 
     return {
-      subscribers
+      subscribers: items,
+      nextCursor,
+      totalCount,
     }
   } catch (error) {
     handleApiError(error, 'Failed to fetch subscribers')

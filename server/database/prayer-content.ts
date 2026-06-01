@@ -1,4 +1,3 @@
-import { getDatabase } from './db'
 import { appConfigService } from './app-config'
 import { libraryContentService } from './library-content'
 import { libraryService, PEOPLE_GROUP_LIBRARY_ID, DAILY_PEOPLE_GROUP_LIBRARY_ID, DAY_IN_LIFE_LIBRARY_ID } from './libraries'
@@ -25,7 +24,7 @@ export interface PrayerContent {
   content_date: string
   language_code: string
   title: string
-  content_json: string | null
+  content_json: Record<string, any> | null
   content_type: 'static' | 'people_group'
   people_group_data?: PeopleGroupData | null
   created_at: string
@@ -48,7 +47,6 @@ export interface UpdatePrayerContentData {
 }
 
 export class PrayerContentService {
-  private db = getDatabase()
 
   /**
    * Convert a date string to a day number based on global start date
@@ -270,34 +268,32 @@ export class PrayerContentService {
     let lng: number | null = null
     let pictureCredit: Array<{ text: string; link: string | null }> | null = null
 
-    if (peopleGroup.metadata) {
-      try {
-        const metadata = JSON.parse(peopleGroup.metadata)
-        // Use generated description with locale support
-        description = generatePeopleGroupDescription({
-          name: peopleGroup.name,
-          descriptions: peopleGroup.descriptions,
-          metadata
-        }, languageCode)
-        population = metadata.imb_population ? parseInt(metadata.imb_population, 10) : null
+    if (peopleGroup) {
+      const metadata = peopleGroup.metadata || {}
+      description = generatePeopleGroupDescription({
+        name: peopleGroup.name,
+        descriptions: peopleGroup.descriptions,
+        country_code: peopleGroup.country_code,
+        population: peopleGroup.population,
+        engagement_status: peopleGroup.engagement_status,
+        primary_religion: peopleGroup.primary_religion,
+        primary_language: peopleGroup.primary_language,
+        metadata
+      }, languageCode)
+      population = peopleGroup.population
 
-        // Look up labels from field options
-        const langCode = metadata.imb_reg_of_language
-        const religionCode = metadata.imb_reg_of_religion_3
-        const countryCode = metadata.imb_isoalpha3
+      const langCode = peopleGroup.primary_language
+      const religionCode = metadata.imb_reg_of_religion_3
+      const countryCode = peopleGroup.country_code
 
-        language = langCode ? (getFieldOptionLabel('imb_reg_of_language', langCode, languageCode) || langCode) : null
-        religion = religionCode ? (getReligionLabel(religionCode, languageCode) || religionCode) : null
-        country = countryCode ? (getCountryLabel(countryCode, languageCode) || countryCode) : null
+      language = langCode ? (getFieldOptionLabel('primary_language', langCode, languageCode) || langCode) : null
+      religion = religionCode ? (getReligionLabel(religionCode, languageCode) || religionCode) : null
+      country = countryCode ? (getCountryLabel(countryCode, languageCode) || countryCode) : null
 
-        // Extract coordinates
-        lat = metadata.imb_lat ? parseFloat(metadata.imb_lat) : null
-        lng = metadata.imb_lng ? parseFloat(metadata.imb_lng) : null
+      lat = peopleGroup.latitude ? Number(peopleGroup.latitude) : null
+      lng = peopleGroup.longitude ? Number(peopleGroup.longitude) : null
 
-        pictureCredit = metadata.picture_credit || null
-      } catch (e) {
-        // Ignore parse errors
-      }
+      pictureCredit = metadata.picture_credit || null
     }
 
     const now = new Date().toISOString()
@@ -364,34 +360,32 @@ export class PrayerContentService {
     let lng: number | null = null
     let pictureCredit: Array<{ text: string; link: string | null }> | null = null
 
-    if (peopleGroup.metadata) {
-      try {
-        const metadata = JSON.parse(peopleGroup.metadata)
-        // Use generated description with locale support
-        description = generatePeopleGroupDescription({
-          name: peopleGroup.name,
-          descriptions: peopleGroup.descriptions,
-          metadata
-        }, languageCode)
-        population = metadata.imb_population ? parseInt(metadata.imb_population, 10) : null
+    if (peopleGroup) {
+      const metadata = peopleGroup.metadata || {}
+      description = generatePeopleGroupDescription({
+        name: peopleGroup.name,
+        descriptions: peopleGroup.descriptions,
+        country_code: peopleGroup.country_code,
+        population: peopleGroup.population,
+        engagement_status: peopleGroup.engagement_status,
+        primary_religion: peopleGroup.primary_religion,
+        primary_language: peopleGroup.primary_language,
+        metadata
+      }, languageCode)
+      population = peopleGroup.population
 
-        // Look up labels from field options
-        const langCode = metadata.imb_reg_of_language
-        const religionCode = metadata.imb_reg_of_religion_3
-        const countryCode = metadata.imb_isoalpha3
+      const langCode = peopleGroup.primary_language
+      const religionCode = metadata.imb_reg_of_religion_3
+      const countryCode = peopleGroup.country_code
 
-        language = langCode ? (getFieldOptionLabel('imb_reg_of_language', langCode, languageCode) || langCode) : null
-        religion = religionCode ? (getReligionLabel(religionCode, languageCode) || religionCode) : null
-        country = countryCode ? (getCountryLabel(countryCode, languageCode) || countryCode) : null
+      language = langCode ? (getFieldOptionLabel('primary_language', langCode, languageCode) || langCode) : null
+      religion = religionCode ? (getReligionLabel(religionCode, languageCode) || religionCode) : null
+      country = countryCode ? (getCountryLabel(countryCode, languageCode) || countryCode) : null
 
-        // Extract coordinates
-        lat = metadata.imb_lat ? parseFloat(metadata.imb_lat) : null
-        lng = metadata.imb_lng ? parseFloat(metadata.imb_lng) : null
+      lat = peopleGroup.latitude ? Number(peopleGroup.latitude) : null
+      lng = peopleGroup.longitude ? Number(peopleGroup.longitude) : null
 
-        pictureCredit = metadata.picture_credit || null
-      } catch (e) {
-        // Ignore parse errors
-      }
+      pictureCredit = metadata.picture_credit || null
     }
 
     const now = new Date().toISOString()
@@ -461,9 +455,7 @@ export class PrayerContentService {
         content_date: date,
         language_code: languageCode,
         title: '', // Title handled via translation in frontend
-        content_json: typeof content.content_json === 'string'
-          ? content.content_json
-          : JSON.stringify(content.content_json),
+        content_json: content.content_json,
         content_type: 'static',
         created_at: now,
         updated_at: now

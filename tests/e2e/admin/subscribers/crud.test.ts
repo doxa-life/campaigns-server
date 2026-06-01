@@ -16,7 +16,7 @@ import {
   createNoRoleUser
 } from '../../../helpers/auth'
 
-describe('Subscriber CRUD API', async () => {
+describe('Subscription CRUD API', async () => {
   const sql = getTestDatabase()
 
   let adminAuth: { headers: { cookie: string } }
@@ -71,39 +71,39 @@ describe('Subscriber CRUD API', async () => {
     await closeTestDatabase()
   })
 
-  describe('GET /api/admin/subscribers/[id]', () => {
+  describe('GET /api/admin/subscriptions/[id]', () => {
     describe('Authorization', () => {
       it('returns 401 for unauthenticated requests', async () => {
-        const error = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}`).catch((e) => e)
+        const error = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}`).catch((e) => e)
         expect(error.statusCode).toBe(401)
       })
 
       it('returns 403 for users with no role', async () => {
-        const error = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}`, noRoleAuth).catch((e) => e)
+        const error = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}`, noRoleAuth).catch((e) => e)
         expect(error.statusCode).toBe(403)
       })
     })
 
     describe('Access control', () => {
       it('admin can view any subscriber', async () => {
-        const response = await $fetch(`/api/admin/subscribers/${unassignedSubscription.id}`, adminAuth)
+        const response = await $fetch(`/api/admin/subscriptions/${unassignedSubscription.id}`, adminAuth)
         expect(response.subscriber).toBeDefined()
       })
 
       it('people_group_editor can view subscriber from assigned people group', async () => {
-        const response = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}`, editorAuth)
+        const response = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}`, editorAuth)
         expect(response.subscriber).toBeDefined()
       })
 
       it('people_group_editor cannot view subscriber from unassigned people group', async () => {
-        const error = await $fetch(`/api/admin/subscribers/${unassignedSubscription.id}`, editorAuth).catch((e) => e)
+        const error = await $fetch(`/api/admin/subscriptions/${unassignedSubscription.id}`, editorAuth).catch((e) => e)
         expect(error.statusCode).toBe(403)
       })
     })
 
     describe('Response structure', () => {
       it('returns subscriber with expected fields', async () => {
-        const response = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}`, adminAuth)
+        const response = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}`, adminAuth)
 
         expect(response.subscriber).toHaveProperty('id')
         expect(response.subscriber).toHaveProperty('name')
@@ -112,21 +112,21 @@ describe('Subscriber CRUD API', async () => {
       })
 
       it('returns 404 for non-existent subscription', async () => {
-        const error = await $fetch('/api/admin/subscribers/999999', adminAuth).catch((e) => e)
+        const error = await $fetch('/api/admin/subscriptions/999999', adminAuth).catch((e) => e)
         expect(error.statusCode).toBe(404)
       })
 
       it('returns 400 for invalid ID', async () => {
-        const error = await $fetch('/api/admin/subscribers/invalid', adminAuth).catch((e) => e)
+        const error = await $fetch('/api/admin/subscriptions/invalid', adminAuth).catch((e) => e)
         expect(error.statusCode).toBe(400)
       })
     })
   })
 
-  describe('PUT /api/admin/subscribers/[id]', () => {
+  describe('PUT /api/admin/subscriptions/[id]', () => {
     describe('Authorization', () => {
       it('returns 401 for unauthenticated requests', async () => {
-        const error = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}`, {
+        const error = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}`, {
           method: 'PUT',
           body: { status: 'inactive' }
         }).catch((e) => e)
@@ -135,7 +135,7 @@ describe('Subscriber CRUD API', async () => {
       })
 
       it('returns 403 for users with no role', async () => {
-        const error = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}`, {
+        const error = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}`, {
           method: 'PUT',
           body: { status: 'inactive' },
           ...noRoleAuth
@@ -146,30 +146,30 @@ describe('Subscriber CRUD API', async () => {
     })
 
     describe('Access control', () => {
-      it('admin can update any subscriber', async () => {
-        const response = await $fetch(`/api/admin/subscribers/${unassignedSubscription.id}`, {
+      it('admin can update any subscription', async () => {
+        const response = await $fetch(`/api/admin/subscriptions/${unassignedSubscription.id}`, {
           method: 'PUT',
-          body: { name: 'Test Unassigned Subscriber', status: 'inactive' },
+          body: { status: 'inactive' },
           ...adminAuth
         })
 
-        expect(response.subscriber).toBeDefined()
+        expect(response.subscription).toBeDefined()
       })
 
-      it('people_group_editor can update subscriber from assigned people group', async () => {
-        const response = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}`, {
+      it('people_group_editor can update subscription from assigned people group', async () => {
+        const response = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}`, {
           method: 'PUT',
-          body: { name: 'Test Assigned Subscriber', status: 'inactive' },
+          body: { status: 'inactive' },
           ...editorAuth
         })
 
-        expect(response.subscriber).toBeDefined()
+        expect(response.subscription).toBeDefined()
       })
 
       it('people_group_editor cannot update subscriber from unassigned people group', async () => {
-        const error = await $fetch(`/api/admin/subscribers/${unassignedSubscription.id}`, {
+        const error = await $fetch(`/api/admin/subscriptions/${unassignedSubscription.id}`, {
           method: 'PUT',
-          body: { name: 'Test Unassigned Subscriber', status: 'inactive' },
+          body: { status: 'inactive' },
           ...editorAuth
         }).catch((e) => e)
 
@@ -179,25 +179,25 @@ describe('Subscriber CRUD API', async () => {
 
     describe('Update operations', () => {
       it('updates status', async () => {
-        const response = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}`, {
+        const response = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}`, {
           method: 'PUT',
-          body: { name: 'Test Assigned Subscriber', status: 'inactive' },
+          body: { status: 'inactive' },
           ...adminAuth
         })
 
-        expect(response.subscriber).toBeDefined()
+        expect(response.subscription).toBeDefined()
 
         // Verify update
-        const check = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}`, adminAuth)
+        const check = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}`, adminAuth)
         expect(check.subscriber.status).toBe('inactive')
       })
     })
   })
 
-  describe('DELETE /api/admin/subscribers/[id]', () => {
+  describe('DELETE /api/admin/subscriptions/[id]', () => {
     describe('Authorization', () => {
       it('returns 401 for unauthenticated requests', async () => {
-        const error = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}`, {
+        const error = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}`, {
           method: 'DELETE'
         }).catch((e) => e)
 
@@ -205,7 +205,7 @@ describe('Subscriber CRUD API', async () => {
       })
 
       it('returns 403 for users with no role', async () => {
-        const error = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}`, {
+        const error = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}`, {
           method: 'DELETE',
           ...noRoleAuth
         }).catch((e) => e)
@@ -216,7 +216,7 @@ describe('Subscriber CRUD API', async () => {
 
     describe('Access control', () => {
       it('admin can delete any subscriber', async () => {
-        const response = await $fetch(`/api/admin/subscribers/${unassignedSubscription.id}`, {
+        const response = await $fetch(`/api/admin/subscriptions/${unassignedSubscription.id}`, {
           method: 'DELETE',
           ...adminAuth
         })
@@ -225,7 +225,7 @@ describe('Subscriber CRUD API', async () => {
       })
 
       it('people_group_editor can delete subscriber from assigned people group', async () => {
-        const response = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}`, {
+        const response = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}`, {
           method: 'DELETE',
           ...editorAuth
         })
@@ -234,7 +234,7 @@ describe('Subscriber CRUD API', async () => {
       })
 
       it('people_group_editor cannot delete subscriber from unassigned people group', async () => {
-        const error = await $fetch(`/api/admin/subscribers/${unassignedSubscription.id}`, {
+        const error = await $fetch(`/api/admin/subscriptions/${unassignedSubscription.id}`, {
           method: 'DELETE',
           ...editorAuth
         }).catch((e) => e)
@@ -245,7 +245,7 @@ describe('Subscriber CRUD API', async () => {
 
     describe('Deletion', () => {
       it('returns 404 for non-existent subscription', async () => {
-        const error = await $fetch('/api/admin/subscribers/999999', {
+        const error = await $fetch('/api/admin/subscriptions/999999', {
           method: 'DELETE',
           ...adminAuth
         }).catch((e) => e)

@@ -47,6 +47,18 @@
       "championedBy": "一个由{link}支持的族群。",
       "doxaFoundation": "Doxa.Life"
     },
+    "share": {
+      "button": "分享",
+      "qrCode": "二维码",
+      "shareLink": "分享链接",
+      "copyLink": "复制链接",
+      "copied": "链接已复制！",
+      "copiedDescription": "页面链接已复制到剪贴板。",
+      "copyFailed": "复制链接失败",
+      "qrTitle": "扫码访问",
+      "qrDescription": "扫描此二维码以在其他设备上打开此页面。",
+      "close": "关闭"
+    },
     "pageTitle": "活动",
     "signupButton": "注册祷告",
     "loading": "正在加载活动...",
@@ -191,6 +203,10 @@
         "title": "邮箱已验证！",
         "message": "您的邮箱已成功验证。您现在将收到{campaign}的祷告提醒。"
       },
+      "alreadyVerified": {
+        "title": "已验证",
+        "message": "您的邮箱已经验证过了。您已准备好接收{campaign}的祷告提醒。"
+      },
       "error": {
         "title": "验证失败",
         "generic": "无法验证您的邮箱。此链接可能已被使用或已过期。"
@@ -312,7 +328,7 @@
       "hint": "点击完成您的祷告时间"
     },
     "thankYou": "感谢您的祷告！",
-    "meetThePeople": "认识这些人",
+    "meetThePeople": "我的族群",
     "peopleGroupOfTheDay": "今日族群",
     "dayInTheLife": "一天的生活",
     "pauseAndPray": "暂停祷告",
@@ -346,6 +362,44 @@
     "minutes": "分钟",
     "yes": "是",
     "no": "否"
+  },
+  "contact": {
+    "verify": {
+      "pageTitle": "验证邮箱",
+      "verifying": "正在验证您的邮箱...",
+      "success": {
+        "title": "邮箱已验证！",
+        "message": "您的邮箱已验证。感谢您对DOXA伙伴关系的关注。"
+      },
+      "alreadyVerified": {
+        "title": "已验证",
+        "message": "您的邮箱已经验证过了。"
+      },
+      "error": {
+        "title": "验证失败",
+        "generic": "无法验证您的邮箱。此链接可能已被使用或已过期。"
+      }
+    }
+  },
+  "adoption": {
+    "verify": {
+      "pageTitle": "验证认领",
+      "verifying": "正在验证您的认领...",
+      "success": {
+        "title": "认领已确认！",
+        "message": "您对{peopleGroupName}的认领已确认。欢迎加入！"
+      },
+      "alreadyVerified": {
+        "title": "已验证",
+        "message": "您的邮箱已经验证过了。"
+      },
+      "error": {
+        "title": "验证失败",
+        "generic": "无法验证您的邮箱。此链接可能已被使用或已过期。"
+      },
+      "viewPeopleGroup": "查看祷告报名页面",
+      "viewResources": "查看领养资源"
+    }
   },
   "followupPage": {
     "recording": "正在记录您的回复...",
@@ -399,13 +453,16 @@
     "welcome": {
       "subject": "欢迎来到Doxa！ - {campaign}",
       "header": "欢迎来到Doxa！",
-      "doxaMeaning": "在希腊语中，doxa意为"荣耀"，这正是我们在为数百万几乎没有福音见证的人们联合祷告时所献上的。我们一起通过忠诚而充满期待的祷告，将荣耀归给神。",
+      "doxaMeaning": "在希腊语中，doxa意为「荣耀」，这正是我们在为数百万几乎没有福音见证的人们联合祷告时所献上的。我们一起通过忠诚而充满期待的祷告，将荣耀归给神。",
       "reminderExplanation": "作为这次祷告运动的一部分，您将很快开始收到带有每日祷告内容链接的提醒邮件。每个链接都将包含祷告指引和其他材料，帮助您有策略地、忠诚地为您所选择的未接触族群祷告。",
       "sharedGoal": "通过这一运动，我们共同的目标是：为超过2,000个未接触族群中的每一个实现每日24小时的祷告覆盖，差遣工人在2033年之前向这些族群传讲福音，并持续奉献以支持这项事工。",
       "closing": "我们深深感恩能与全体教会一同努力，将完整的福音带到全世界。",
       "reminderTimeNote": "您的每日提醒已设置为{time}。",
       "startPraying": "开始祷告",
-      "profileInstructions": "您可以在这里更新您的个人资料和通知设置："
+      "profileInstructions": "您可以在这里更新您的个人资料和通知设置：",
+      "addToCalendar": "将此提醒添加到您的日历：",
+      "googleCalendar": "Google 日历",
+      "otherCalendars": "其他日历（.ics）"
     },
     "reminder": {
       "subject": "祷告提醒 - {campaign}",
@@ -444,6 +501,241 @@
       "thursday": "周四",
       "friday": "周五",
       "saturday": "周六"
+    },
+    "contactVerification": {
+      "subject": "验证您的邮箱以接收DOXA更新",
+      "header": "验证您的邮箱",
+      "thankYou": "感谢您联系DOXA。您已选择接收来自DOXA伙伴关系的电子邮件更新。",
+      "pleaseVerify": "要开始接收更新，请点击下方按钮验证您的邮箱地址：",
+      "verifyButton": "验证邮箱",
+      "linkInstructions": "如果按钮无法使用，您也可以复制并粘贴此链接到浏览器：",
+      "note": "注意：",
+      "expiration": "此验证链接将在7天后过期。",
+      "ignoreMessage": "如果您没有提交联系表单，可以安全地忽略此邮件。"
+    },
+    "adoptionVerification": {
+      "subject": "验证您的邮箱以认领{peopleGroupName}",
+      "header": "验证您的邮箱",
+      "thankYou": "感谢您承诺认领{peopleGroupName}。",
+      "pleaseVerify": "请点击下方按钮验证您的邮箱地址以确认您的认领：",
+      "verifyButton": "验证邮箱",
+      "linkInstructions": "如果按钮无法使用，您也可以复制并粘贴此链接到浏览器：",
+      "note": "注意：",
+      "expiration": "此验证链接将在7天后过期。",
+      "ignoreMessage": "如果您没有提交认领表单，可以安全地忽略此邮件。"
+    },
+    "adoptionWelcome": {
+      "subject": "DOXA认领更新：您对{peopleGroupName}的承诺",
+      "headerTitle": "DOXA认领更新",
+      "greeting": "亲爱的{firstName}：",
+      "intro": "今天，作为DOXA伙伴关系的一部分，您将{peopleGroupName}的状态从[waiting]更改为[adopted]——这是迈向接触的关键第一步。",
+      "introContinued": "您现在是一个族群的首要倡导者、代祷者和动员者，而这个族群在此刻之前，没有任何持续的见证或专门的祷告事工。",
+      "waiting": "等待中",
+      "adopted": "已认领",
+      "resourcesIntro": "以下资源将帮助您善用这个机会。",
+      "section1Title": "1. 您认领的族群",
+      "resourcesButton": "查看认领资源",
+      "section1Item1": "您的族群的链接和二维码、建议、常见问题解答等",
+      "section1Item2": "帮助您向教会或小组介绍此事工的图片",
+      "section1Item3": "一个专用链接，方便为DOXA基金会提供经济支持",
+      "section2Title": "2. 您的认领资源",
+      "section2Intro": "我们为您的族群整理了一系列专属资源，帮助您快速、便捷地动员和分享这一倡议。您将找到：",
+      "fullProfileText": "通过访问以下链接查看您的族群详细信息",
+      "fullProfileButton": "族群完整资料",
+      "prayerPageText": "通过此页面动员人们祷告",
+      "prayerPageButton": "祷告页面",
+      "section3Title": "3. 您的前30天",
+      "section3Intro": "以下是我们推荐的下一步行动：",
+      "step1Label": "内化：",
+      "step1Text": "每天为{peopleGroupName}祷告10分钟。求神赐给您一颗为这个地方和这些人的心。求祂赐给您下一步的智慧，并使所有因您分享异象而听到的人蒙恩惠。求祂预备人心。期待祂的回应——祂已经在工作了！从访问他们的{prayerPageLink}开始。",
+      "step1PrayerPage": "祷告页面",
+      "step2Label": "计划与分享：",
+      "step2Text": "与您的教会领袖制定计划，了解如何将此事工介绍给您的教会和社区。将您的数字媒体和{adoptionResourcesLink}中的其他资源分享给您的教会家庭和社交平台。让人们知道这个族群是您的关注重点。",
+      "step2AdoptionResources": "认领资源",
+      "step3Label": "动员核心：",
+      "step3Text": "找到5个愿意注册与您一起祷告的人。考虑祷告领袖、小组成员以及在优先事项和异象上可能一致的属灵忠信的朋友。一个持续、充满期待的核心团契可以成为一场运动的开端。",
+      "section4Title": "4. DOXA更新带给您鼓励",
+      "section4Text": "每个月，您将收到一份战略性月度更新——向您通报与您的族群相关的区域突破、新资源或动员里程碑。如果您有疑问、需要鼓励或需要帮助思考下一步，我们愿意帮助。请联系 {contactEmail}。",
+      "closingCount": "曾有{beforeCount}个族群等待被认领。因为您今天的「是」，这个数字现在是{afterCount}。我们感恩能与您在这项有价值的事工中同行。",
+      "signoff": "愿荣耀归于神，",
+      "teamName": "DOXA团队"
+    }
+  },
+  "calendar": {
+    "addToCalendar": "添加到您的日历",
+    "googleCalendar": "Google 日历",
+    "downloadIcs": "其他日历",
+    "eventTitle": "为{campaign}祷告",
+    "eventDescription": "为{campaign}进行{duration}分钟的祷告"
+  },
+  "inbox":   {
+    "title": "收件箱",
+    "searchPlaceholder": "搜索会话",
+    "empty": "没有会话",
+    "selectPrompt": "选择一个会话以查看",
+    "conversation": "会话",
+    "conversations": "会话",
+    "internalNotes": "内部备注",
+    "activity": "活动记录",
+    "needsReview": "需要审核",
+    "unassigned": "未分配",
+    "assignedTo": "已分配给 {name}",
+    "assignToMe": "分配给我",
+    "assign": "分配",
+    "unassign": "取消分配",
+    "spamScore": "垃圾邮件评分",
+    "filters": {
+      "all": "全部",
+      "unassigned": "未分配",
+      "mine": "我的",
+      "open": "待处理",
+      "pending": "等待回复",
+      "closed": "已关闭",
+      "spam": "垃圾邮件",
+      "held": "已保留"
+    },
+    "status": {
+      "open": "待处理",
+      "pending": "等待回复",
+      "closed": "已关闭",
+      "spam": "垃圾邮件"
+    },
+    "direction": {
+      "inbound": "收到",
+      "outbound": "发送"
+    },
+    "compose": {
+      "from": "发件人",
+      "reply": "回复",
+      "send": "发送",
+      "saveDraft": "保存草稿",
+      "draft": "草稿",
+      "sending": "发送中…",
+      "cannedResponse": "常用回复",
+      "attach": "添加附件",
+      "placeholder": "写下你的回复…",
+      "language": "语言",
+      "newEmail": "新邮件",
+      "to": "收件人",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "主题",
+      "bodyLabel": "正文",
+      "bodyPlaceholder": "写下你的消息…"
+    },
+    "actions": {
+      "close": "关闭",
+      "reopen": "重新打开",
+      "markSpam": "标记为垃圾邮件",
+      "unmarkSpam": "不是垃圾邮件",
+      "showQuoted": "显示引用内容",
+      "hideQuoted": "隐藏引用内容"
+    },
+    "confirm": {
+      "closeTitle": "关闭会话",
+      "closeMessage": "关闭此会话？如果联系人回复，它将自动重新打开。",
+      "spamTitle": "标记为垃圾邮件",
+      "spamMessage": "屏蔽此发件人并关闭会话？以后来自他们的邮件将被自动关闭。"
+    },
+    "toasts": {
+      "sent": "回复已发送",
+      "emailSent": "邮件已发送",
+      "draftSaved": "草稿已保存",
+      "assigned": "会话已分配",
+      "statusChanged": "状态已更新",
+      "markedSpam": "已标记为垃圾邮件",
+      "unmarkedSpam": "已从垃圾邮件中移除",
+      "error": "出错了"
+    },
+    "identity": {
+      "alias": "邮箱别名",
+      "aliasHint": "仅限本地部分——george 将成为 george{'@'}doxa.life",
+      "signature": "邮件签名",
+      "save": "保存"
+    },
+    "canned": {
+      "title": "常用回复",
+      "new": "新建常用回复",
+      "name": "标题",
+      "body": "内容",
+      "save": "保存",
+      "delete": "删除"
+    },
+    "autoAck": {
+      "subject": "我们已收到您的消息",
+      "greeting": "您好，",
+      "greetingNamed": "您好 {name}，",
+      "body": "感谢您联系 {appName}。我们已收到您的消息，我们团队的成员将很快回复您。",
+      "signoff": "靠主同行，\n{appName} 团队"
+    }
+  },
+  "survey": {
+    "may2026": {
+      "page": {
+        "title": "您的祷告体验",
+        "intro": "感谢您与 DOXA 一同祷告。这五个问题大约需要三分钟，您的回答将帮助我们改进每日祷告事项。答案没有对错——我们只想了解您真实的体验。",
+        "submit": "提交我的回答",
+        "thanksTitle": "谢谢您！",
+        "thanks": "谢谢您——我们已收到您的回答。感谢您付出的时间和您的祷告。",
+        "editNotice": "您已经回答过了，谢谢您！如有需要，您可以在下方更新答案并重新保存。",
+        "invalidTitle": "链接无效",
+        "invalid": "此问卷链接似乎无效。请使用您邮件中的链接，如需帮助请与我们联系。",
+        "closedTitle": "问卷已关闭",
+        "closed": "此问卷已不再接受回答。感谢您的关注。",
+        "goHome": "前往主页",
+        "errorTitle": "出了点问题",
+        "error": "我们无法保存您的回答，请重试。"
+      },
+      "questions": {
+        "focus": {
+          "label": "每日祷告事项在多大程度上帮助您专注并投入地为未得之民祷告？",
+          "scale": {
+            "1": "完全不专注",
+            "5": "非常专注"
+          }
+        },
+        "experience": {
+          "label": "请进一步分享您的体验：是什么让这些祷告事项对您个人有帮助（或没有帮助）？"
+        },
+        "clarity": {
+          "label": "祷告事项在传达该为何祷告以及为何重要方面有多清晰？",
+          "scale": {
+            "1": "非常不清晰",
+            "5": "非常清晰"
+          }
+        },
+        "content_amount": {
+          "label": "祷告内容的数量是否与您的祷告时间相称？",
+          "scale": {
+            "1": "对我的祷告时间来说太多",
+            "3": "刚刚好",
+            "5": "对我的祷告时间来说太少"
+          }
+        },
+        "heart": {
+          "label": "参与这次祷告行动如何影响了您的心或您对未得之民的看法？"
+        }
+      },
+      "email": {
+        "subject": "愿意与我们分享祷告的近况吗？",
+        "header": "我们很想听听您的反馈",
+        "greeting": "{name}，您好：",
+        "greetingFallback": "您好：",
+        "p1": "感谢您为世界各地的未得之民持续祷告。您的忠心正是 DOXA 致力于支持的核心。",
+        "p2": "我们一直努力让每日祷告事项更有帮助。在团队聚集商讨下一步之前，我们很想听听您的意见。您是否愿意花几分钟回答五个关于您体验的简短问题？",
+        "p3": "您真诚的反馈——哪些有用、哪些无用——将直接塑造我们所编写的祷告内容。",
+        "cta": "填写问卷",
+        "signoff": "怀着感恩，",
+        "team": "DOXA 团队"
+      }
+    },
+    "admin": {
+      "title": "2026年5月代祷者问卷",
+      "heading": "问卷",
+      "totalResponses": "{count} 份回复",
+      "exportCsv": "导出 CSV",
+      "average": "平均",
+      "noResponses": "暂无回复",
+      "selectPrompt": "选择一份问卷以查看其回复。"
     }
   }
 }

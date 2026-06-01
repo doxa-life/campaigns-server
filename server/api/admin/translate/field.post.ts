@@ -16,7 +16,7 @@ import { getErrorMessage } from '#server/utils/api-helpers'
  * - translations: Record<string, string> - Map of language code to translated text
  */
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'content.edit')
 
   if (!isDeepLConfigured()) {
     throw createError({
@@ -34,14 +34,14 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (!body.targetLanguages || !Array.isArray(body.targetLanguages) || body.targetLanguages.length === 0) {
+  if (!body.target_languages || !Array.isArray(body.target_languages) || body.target_languages.length === 0) {
     throw createError({
       statusCode: 400,
       statusMessage: 'At least one target language is required'
     })
   }
 
-  const { text, targetLanguages, sourceLanguage = 'en' } = body
+  const { text, target_languages: targetLanguages, source_language: sourceLanguage = 'en' } = body
 
   // Validate target languages are in our supported LANGUAGES
   const validLanguageCodes = LANGUAGES.map(l => l.code)

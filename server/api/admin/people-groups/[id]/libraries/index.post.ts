@@ -36,6 +36,8 @@ export default defineEventHandler(async (event) => {
       library_key: body.library_key || null
     })
 
+    logCreate('libraries', String(library.id), event)
+
     return {
       success: true,
       library

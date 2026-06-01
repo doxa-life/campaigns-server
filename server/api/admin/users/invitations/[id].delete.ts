@@ -2,8 +2,7 @@ import { userInvitationService } from '#server/database/user-invitations'
 import { handleApiError, getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  // Require admin authentication
-  await requireAdmin(event)
+  await requirePermission(event, 'users.manage')
 
   const id = getIntParam(event, 'id')
 

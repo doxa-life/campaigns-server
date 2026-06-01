@@ -2,31 +2,46 @@
  * GET /api/people-groups/statistics
  * Get aggregate prayer/adoption statistics
  */
-import { getDatabase } from '../../database/db'
+import { getSql } from '../../database/db'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
-import { setCorsHeaders, setCacheHeaders } from '../../utils/app/cors'
+import { setCacheHeaders } from '../../utils/app/cors'
 
 export default defineEventHandler(async (event) => {
-  // Set CORS and cache headers
-  setCorsHeaders(event)
   setCacheHeaders(event)
 
-  const db = getDatabase()
+  const sql = getSql()
 
-  const stmt = db.prepare(`
-    SELECT
-      COUNT(*) FILTER (WHERE people_praying > 0) as total_with_prayer,
-      COUNT(*) FILTER (WHERE people_praying >= 144) as total_with_full_prayer
-    FROM people_groups
-  `)
-
-  const result = await stmt.get() as { total_with_prayer: string | number; total_with_full_prayer: string | number }
-  const commitmentStats = await peopleGroupSubscriptionService.getGlobalCommitmentStats()
+  const [result, adoptedResult, commitmentStats] = await Promise.all([
+    sql`
+      SELECT
+        COUNT(*) as total_active,
+        COUNT(*) FILTER (WHERE pg.people_praying > 0) as total_with_prayer,
+        COUNT(*) FILTER (WHERE pg.engagement_status = 'engaged') as total_engaged,
+        COUNT(*) FILTER (WHERE pg.engagement_status IS DISTINCT FROM 'engaged') as total_unengaged,
+        COALESCE(SUM(pg.population), 0) as total_population,
+        COALESCE(SUM(pg.population) FILTER (WHERE pg.engagement_status IS DISTINCT FROM 'engaged'), 0) as unengaged_population
+      FROM people_groups pg
+      WHERE pg.status != 'archived'
+    `.then(rows => rows[0] as { total_active: string | number; total_with_prayer: string | number; total_engaged: string | number; total_unengaged: string | number; total_population: string | number; unengaged_population: string | number }),
+    sql`
+      SELECT COUNT(DISTINCT a.people_group_id) as count
+      FROM people_group_adoptions a
+      JOIN people_groups pg ON pg.id = a.people_group_id
+      WHERE a.status = 'active' AND pg.status != 'archived'
+    `.then(rows => rows[0] as { count: string | number }),
+    peopleGroupSubscriptionService.getGlobalCommitmentStats()
+  ])
 
   return {
+    total: Number(result.total_active),
     total_with_prayer: Number(result.total_with_prayer),
-    total_with_full_prayer: Number(result.total_with_full_prayer),
-    total_adopted: 0,
+    total_engaged: Number(result.total_engaged),
+    total_unengaged: Number(result.total_unengaged),
+    total_population: Number(result.total_population),
+    unengaged_population: Number(result.unengaged_population),
+    total_with_full_prayer: commitmentStats.people_groups_with_full_commitment,
+    total_with_prayer_committed: commitmentStats.people_groups_with_commitment,
+    total_adopted: Number(adoptedResult.count),
     people_committed: commitmentStats.people_committed,
     committed_duration: commitmentStats.committed_duration
   }

@@ -26,7 +26,7 @@ interface RowConfig {
  * }
  */
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'content.edit')
 
   try {
     const body = await readBody(event)

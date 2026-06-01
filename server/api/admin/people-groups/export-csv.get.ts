@@ -1,5 +1,5 @@
-import { getDatabase } from '../../../database/db'
-import { formatPeopleGroupForDetail } from '../../../utils/app/people-group-formatter'
+import { getSql } from '../../../database/db'
+import { formatPeopleGroup, INTERNAL_TO_ALIAS } from '../../../utils/app/people-group-formatter'
 import { allFields } from '../../../utils/app/field-options'
 
 function escapeCsvField(value: string): string {
@@ -16,20 +16,19 @@ function flattenValue(val: unknown): string {
 }
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'people_groups.view')
 
-  const db = getDatabase()
-  const stmt = db.prepare(`
+  const sql = getSql()
+  const peopleGroups = await sql`
     SELECT pg.*
     FROM people_groups pg
     ORDER BY pg.name
-  `)
-  const peopleGroups = await stmt.all() as any[]
+  ` as any[]
 
-  const fields = ['id', 'name', 'slug', ...allFields.map(f => f.key)]
+  const fields = ['id', 'name', 'slug', ...allFields.map(f => INTERNAL_TO_ALIAS[f.key] || f.key)]
 
   const rows = peopleGroups.map(pg => {
-    const formatted = formatPeopleGroupForDetail(pg, 'en')
+    const formatted = formatPeopleGroup(pg, { fields: 'all', lang: 'en' })
     return fields.map(key => escapeCsvField(flattenValue(formatted[key]))).join(',')
   })
 

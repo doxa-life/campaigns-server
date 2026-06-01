@@ -2,6 +2,7 @@ import { peopleGroupSubscriptionService } from '#server/database/people-group-su
 import { followupTrackingService } from '#server/database/followup-tracking'
 import { subscriberService } from '#server/database/subscribers'
 import { peopleGroupService } from '#server/database/people-groups'
+import { trackEventInBackground } from '#server/utils/tracking'
 
 export default defineEventHandler(async (event) => {
   const subscriptionId = getRouterParam(event, 'id')
@@ -91,6 +92,18 @@ export default defineEventHandler(async (event) => {
     // Mark subscription as inactive
     await peopleGroupSubscriptionService.updateStatus(subscription.id, 'inactive')
   }
+
+  trackEventInBackground(event, {
+    eventType: 'followup_response',
+    anonymousHash: subscriber.tracking_id,
+    language: subscriber.preferred_language || null,
+    metadata: {
+      people_group_slug: peopleGroup.slug,
+      people_group_id: peopleGroup.id,
+      subscription_id: subscription.id,
+      response
+    }
+  })
 
   // Return success with profile_id and people_group_slug for the landing page
   return {

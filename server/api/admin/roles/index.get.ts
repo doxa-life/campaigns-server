@@ -3,7 +3,7 @@ import { handleApiError } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
   // Require admin authentication
-  await requireAdmin(event)
+  await requirePermission(event, 'users.manage')
 
   try {
     const roles = await roleService.getAllRoles()

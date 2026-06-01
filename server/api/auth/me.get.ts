@@ -3,7 +3,7 @@ import { handleApiError } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
   try {
-    // Get the authenticated user from base layer's getAuthUser (auto-imported)
+    // Get the authenticated user from the shared auth utility.
     const authUser = await getAuthUser(event)
 
     if (!authUser) {

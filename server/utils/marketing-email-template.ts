@@ -3,17 +3,9 @@ import { t } from './translations'
 /**
  * Convert Tiptap JSON content to plain HTML for email.
  */
-export function tiptapToHtml(contentJson: string | null): string {
-  if (!contentJson) return ''
-
-  try {
-    const doc = JSON.parse(contentJson)
-    if (!doc || !doc.content) return ''
-
-    return renderNodes(doc.content)
-  } catch {
-    return ''
-  }
+export function tiptapToHtml(contentJson: Record<string, any> | null): string {
+  if (!contentJson || !contentJson.content) return ''
+  return renderNodes(contentJson.content)
 }
 
 function renderNodes(nodes: any[]): string {
@@ -70,10 +62,16 @@ function renderNode(node: any): string {
     case 'hardBreak':
       return '<br />'
 
+    // The rich-text editor stores resizable images as `imageResize` nodes;
+    // plain `image` nodes can also appear from pasted content.
     case 'image':
+    case 'imageResize':
       const src = escapeHtml(node.attrs?.src || '')
       const alt = escapeHtml(node.attrs?.alt || '')
-      return `<img src="${src}" alt="${alt}" style="max-width: 100%; height: auto; margin: 16px 0; border-radius: 4px;" />`
+      const rawWidth = node.attrs?.width
+      const width = typeof rawWidth === 'number' ? rawWidth : parseInt(rawWidth, 10)
+      const widthStyle = Number.isFinite(width) && width > 0 ? `width: ${width}px; ` : ''
+      return `<img src="${src}" alt="${alt}" style="${widthStyle}max-width: 100%; height: auto; margin: 16px 0; border-radius: 4px;" />`
 
     case 'text':
       let text = escapeHtml(node.text || '')
@@ -91,6 +89,9 @@ function renderNode(node: any): string {
               break
             case 'strike':
               text = `<s>${text}</s>`
+              break
+            case 'superscript':
+              text = `<sup>${text}</sup>`
               break
             case 'link':
               const href = escapeHtml(mark.attrs?.href || '#')
@@ -129,17 +130,9 @@ function escapeHtml(text: string): string {
 /**
  * Convert Tiptap JSON content to plain text for email.
  */
-export function tiptapToText(contentJson: string | null): string {
-  if (!contentJson) return ''
-
-  try {
-    const doc = JSON.parse(contentJson)
-    if (!doc || !doc.content) return ''
-
-    return extractText(doc.content).trim()
-  } catch {
-    return ''
-  }
+export function tiptapToText(contentJson: Record<string, any> | null): string {
+  if (!contentJson || !contentJson.content) return ''
+  return extractText(contentJson.content).trim()
 }
 
 function extractText(nodes: any[]): string {
@@ -165,20 +158,44 @@ function extractText(nodes: any[]): string {
  * Render a complete marketing email HTML with header and footer.
  */
 export function renderMarketingEmailHtml(
-  contentJson: string,
+  contentJson: Record<string, any>,
   peopleGroupName?: string,
   unsubscribeUrl?: string,
   locale: string = 'en'
+): string {
+  return wrapMarketingEmailHtml(tiptapToHtml(contentJson), peopleGroupName, unsubscribeUrl, locale)
+}
+
+/**
+ * Render a complete marketing email HTML from pre-rendered body HTML
+ * (used by named templates whose body is built per-recipient/locale).
+ */
+export function renderMarketingEmailFromHtml(
+  contentHtml: string,
+  peopleGroupName?: string,
+  unsubscribeUrl?: string,
+  locale: string = 'en',
+  headerTitle?: string
+): string {
+  return wrapMarketingEmailHtml(contentHtml, peopleGroupName, unsubscribeUrl, locale, headerTitle)
+}
+
+function wrapMarketingEmailHtml(
+  contentHtml: string,
+  peopleGroupName?: string,
+  unsubscribeUrl?: string,
+  locale: string = 'en',
+  headerOverride?: string
 ): string {
   const config = useRuntimeConfig()
   const appName = config.appName || 'Prayer Tools'
   const baseUrl = config.public.siteUrl || 'http://localhost:3000'
 
-  const contentHtml = tiptapToHtml(contentJson)
-
-  const headerTitle = peopleGroupName
-    ? t('email.marketing.headerCampaign', locale, { campaign: peopleGroupName })
-    : t('email.marketing.headerDefault', locale, { appName })
+  const headerTitle = headerOverride
+    ? headerOverride
+    : peopleGroupName
+      ? t('email.marketing.headerCampaign', locale, { campaign: peopleGroupName })
+      : t('email.marketing.headerDefault', locale, { appName })
   const footer = t('email.marketing.footer', locale, { appName })
   const unsubscribeText = t('email.common.unsubscribe', locale)
 

@@ -6,8 +6,8 @@
  */
 
 import { LANGUAGE_CODES, getDeeplTargetCode, getDeeplSourceCode, getBibleId, getBibleLabel, getGlossaryId } from '~/utils/languages'
-import { parseReference, localizeReference } from '../../config/bible-books'
-import { fetchVerseText, isBollsBibleConfigured } from './app/bolls-bible'
+import { parseReference, localizeReference, type ParsedReference } from '../../config/bible-books'
+import { fetchVerseData, isBollsBibleConfigured, BibleUnavailableError } from './app/bolls-bible'
 
 // Re-export for convenience
 export const SUPPORTED_LANGUAGES = LANGUAGE_CODES
@@ -313,13 +313,16 @@ export async function batchTranslateTiptapContents(
  * in the target language. If fetching fails or no bibleId is configured,
  * the verse content is left untouched.
  */
-export async function translateVerseNodes(node: TiptapNode, targetLanguage: string, warnings: VerseWarning[]): Promise<void> {
+export async function translateVerseNodes(node: TiptapNode, targetLanguage: string, warnings: VerseWarning[], options?: { onlyApiFetched?: boolean }): Promise<void> {
   if (!node.content) return
 
   for (const child of node.content) {
     if (child.type === 'verse') {
       const reference = child.attrs?.reference
       if (!reference) continue
+
+      // Skip manually entered verses (no translation attr) when onlyApiFetched is set
+      if (options?.onlyApiFetched && !child.attrs?.translation) continue
 
       const bibleId = getBibleId(targetLanguage)
       if (!isBollsBibleConfigured(bibleId)) {
@@ -329,36 +332,58 @@ export async function translateVerseNodes(node: TiptapNode, targetLanguage: stri
         continue
       }
 
-      const parsed = parseReference(reference)
-      if (!parsed) {
+      // Handle multi-line references (multiple refs in one verse node)
+      const refLines = reference.split('\n').map((r: string) => r.trim()).filter(Boolean)
+      const allParsed: Array<{ raw: string; parsed: ParsedReference | null }> = refLines.map((r: string) => ({ raw: r, parsed: parseReference(r) }))
+      const failedRefs = allParsed.filter(r => !r.parsed)
+
+      if (failedRefs.length === allParsed.length) {
         const reason = `Could not parse reference "${reference}"`
         console.warn(`[Bolls Bible] ${reason}`)
         warnings.push({ reference, language: targetLanguage, reason })
         continue
       }
 
-      try {
-        const text = await fetchVerseText({
-          bibleId: bibleId!,
-          bookId: parsed.bookId,
-          chapter: parsed.chapter,
-          verseStart: parsed.verseStart,
-          verseEnd: parsed.verseEnd
-        })
+      for (const f of failedRefs) {
+        const reason = `Could not parse reference "${f.raw}"`
+        console.warn(`[Bolls Bible] ${reason}`)
+        warnings.push({ reference: f.raw, language: targetLanguage, reason })
+      }
 
+      try {
+        const allVerses: Array<{ verse: number; text: string }> = []
+        for (const { parsed } of allParsed) {
+          if (!parsed) continue
+          const verses = await fetchVerseData({
+            bibleId: bibleId!,
+            bookId: parsed.bookId,
+            chapter: parsed.chapter,
+            verseStart: parsed.verseStart,
+            verseEnd: parsed.verseEnd
+          })
+          allVerses.push(...verses)
+        }
+
+        const content: any[] = []
+        allVerses.forEach((v, i) => {
+          content.push({ type: 'text', text: `${v.verse} `, marks: [{ type: 'superscript' }] })
+          content.push({ type: 'text', text: i < allVerses.length - 1 ? v.text + ' ' : v.text })
+        })
         child.content = [{
           type: 'paragraph',
-          content: [{ type: 'text', text }]
+          content
         }]
-        child.attrs!.reference = localizeReference(parsed, 'en')
+        const successParsed = allParsed.filter(r => r.parsed).map(r => r.parsed!)
+        child.attrs!.reference = successParsed.map(p => localizeReference(p, 'en')).join('\n')
         child.attrs!.translation = getBibleLabel(targetLanguage)
       } catch (e: any) {
+        if (e instanceof BibleUnavailableError) throw e
         const reason = e?.message || 'Unknown error'
         console.warn(`[Bolls Bible] Failed to fetch verse "${reference}" for "${targetLanguage}": ${reason}`)
         warnings.push({ reference, language: targetLanguage, reason })
       }
     } else {
-      await translateVerseNodes(child, targetLanguage, warnings)
+      await translateVerseNodes(child, targetLanguage, warnings, options)
     }
   }
 }

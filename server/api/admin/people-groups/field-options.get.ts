@@ -1,7 +1,7 @@
 import { allFields, getField, categories } from '../../../../app/utils/people-group-fields'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'people_groups.view')
 
   const query = getQuery(event)
   const fieldKey = query.field as string | undefined
@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
     if (!fieldsByCategory[field.category]) {
       fieldsByCategory[field.category] = []
     }
-    fieldsByCategory[field.category].push(field)
+    fieldsByCategory[field.category]!.push(field)
   }
 
   return {

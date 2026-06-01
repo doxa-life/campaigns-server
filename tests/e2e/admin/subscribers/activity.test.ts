@@ -16,7 +16,7 @@ import {
   createNoRoleUser
 } from '../../../helpers/auth'
 
-describe('GET /api/admin/subscribers/[id]/activity', async () => {
+describe('GET /api/admin/subscriptions/[id]/activity', async () => {
   const sql = getTestDatabase()
 
   let adminAuth: { headers: { cookie: string } }
@@ -73,48 +73,48 @@ describe('GET /api/admin/subscribers/[id]/activity', async () => {
 
   describe('Authorization', () => {
     it('returns 401 for unauthenticated requests', async () => {
-      const error = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}/activity`).catch((e) => e)
+      const error = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}/activity`).catch((e) => e)
       expect(error.statusCode).toBe(401)
     })
 
     it('returns 403 for users with no role', async () => {
-      const error = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}/activity`, noRoleAuth).catch((e) => e)
+      const error = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}/activity`, noRoleAuth).catch((e) => e)
       expect(error.statusCode).toBe(403)
     })
   })
 
   describe('Access control', () => {
     it('admin can view activity for any subscriber', async () => {
-      const response = await $fetch(`/api/admin/subscribers/${unassignedSubscription.id}/activity`, adminAuth)
+      const response = await $fetch(`/api/admin/subscriptions/${unassignedSubscription.id}/activity`, adminAuth)
       expect(response.activities).toBeDefined()
     })
 
     it('people_group_editor can view activity for subscriber from assigned people group', async () => {
-      const response = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}/activity`, editorAuth)
+      const response = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}/activity`, editorAuth)
       expect(response.activities).toBeDefined()
     })
 
     it('people_group_editor cannot view activity for subscriber from unassigned people group', async () => {
-      const error = await $fetch(`/api/admin/subscribers/${unassignedSubscription.id}/activity`, editorAuth).catch((e) => e)
+      const error = await $fetch(`/api/admin/subscriptions/${unassignedSubscription.id}/activity`, editorAuth).catch((e) => e)
       expect(error.statusCode).toBe(403)
     })
   })
 
   describe('Response structure', () => {
     it('returns activities array', async () => {
-      const response = await $fetch(`/api/admin/subscribers/${assignedSubscription.id}/activity`, adminAuth)
+      const response = await $fetch(`/api/admin/subscriptions/${assignedSubscription.id}/activity`, adminAuth)
 
       expect(response.activities).toBeDefined()
       expect(Array.isArray(response.activities)).toBe(true)
     })
 
     it('returns 404 for non-existent subscription', async () => {
-      const error = await $fetch('/api/admin/subscribers/999999/activity', adminAuth).catch((e) => e)
+      const error = await $fetch('/api/admin/subscriptions/999999/activity', adminAuth).catch((e) => e)
       expect(error.statusCode).toBe(404)
     })
 
     it('returns 400 for invalid ID', async () => {
-      const error = await $fetch('/api/admin/subscribers/invalid/activity', adminAuth).catch((e) => e)
+      const error = await $fetch('/api/admin/subscriptions/invalid/activity', adminAuth).catch((e) => e)
       expect(error.statusCode).toBe(400)
     })
   })

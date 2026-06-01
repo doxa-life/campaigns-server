@@ -3,8 +3,7 @@ import { userService } from '#server/database/users'
 import { handleApiError, getUuidParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  // Require admin authentication
-  await requireAdmin(event)
+  await requirePermission(event, 'users.manage')
 
   // Get and validate user ID from route params (UUID string)
   const userId = getUuidParam(event, 'id')

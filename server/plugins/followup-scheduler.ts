@@ -60,8 +60,26 @@ export default defineNitroPlugin((nitroApp) => {
   })
 })
 
+async function claimFollowupLock(hourKey: string): Promise<boolean> {
+  const lockKey = `followup-scheduler:${hourKey}`
+  const [row] = await sql`
+    INSERT INTO activity_logs (id, timestamp, event_type, metadata)
+    VALUES (
+      md5(${lockKey})::uuid,
+      ${Date.now()},
+      'FOLLOWUP_SCHEDULER_LOCK',
+      ${{ hourKey }}
+    )
+    ON CONFLICT (id) DO NOTHING
+    RETURNING id
+  `
+  return !!row
+}
+
 async function processFollowups() {
   const now = new Date()
+  const hourKey = now.toISOString().slice(0, 13) // YYYY-MM-DDTHH
+  if (!await claimFollowupLock(hourKey)) return
 
   // Get all active subscriptions with their activity data
   const subscriptions = await followupTrackingService.getActiveSubscriptionsForFollowup()
@@ -95,12 +113,31 @@ async function processFollowups() {
 
 type ProcessResult = 'skipped' | 'email_sent' | 'marked_inactive' | 'cycle_completed'
 
+async function logSubscriberActivity(
+  subscriberId: number,
+  metadata: Record<string, unknown>
+): Promise<void> {
+  await sql`
+    INSERT INTO activity_logs (timestamp, event_type, table_name, record_id, user_id, metadata)
+    VALUES (
+      ${Date.now()},
+      'CREATE',
+      'subscribers',
+      ${String(subscriberId)},
+      NULL,
+      ${metadata}
+    )
+  `
+}
+
 async function processSubscription(
   subscription: Awaited<ReturnType<typeof followupTrackingService.getActiveSubscriptionsForFollowup>>[0],
   now: Date
 ): Promise<ProcessResult> {
   const {
     id: subscriptionId,
+    subscriber_id,
+    people_group_id,
     followup_count,
     followup_reminder_count,
     last_followup_at,
@@ -111,10 +148,14 @@ async function processSubscription(
     people_group_name,
     people_group_slug,
     frequency,
-    days_of_week,
+    days_of_week: days_of_week_raw,
     subscriber_profile_id,
     subscriber_language
   } = subscription
+
+  const days_of_week: number[] | null = days_of_week_raw
+    ? (typeof days_of_week_raw === 'string' ? JSON.parse(days_of_week_raw) : days_of_week_raw)
+    : null
 
   // Calculate when the next followup is due
   const baseTimestamp = last_activity_at || created_at
@@ -150,13 +191,19 @@ async function processSubscription(
       subscriptionId,
       profileId: subscriber_profile_id,
       frequency,
-      daysOfWeek: days_of_week ? JSON.parse(days_of_week) : undefined,
+      daysOfWeek: days_of_week && days_of_week.length > 0 ? days_of_week : undefined,
       isReminder: false,
       locale: subscriber_language || 'en'
     })
 
     if (emailSent) {
       await peopleGroupSubscriptionService.markFollowupSent(subscriptionId)
+      await logSubscriberActivity(subscriber_id, {
+        source: 'system',
+        message: 'Re-engagement email sent for',
+        link_text: people_group_name,
+        link_url: `/admin/people-groups/${people_group_id}`
+      })
       console.log(`  ✅ Sent follow-up to ${email_value} for ${people_group_name}`)
       return 'email_sent'
     } else {
@@ -181,13 +228,19 @@ async function processSubscription(
       subscriptionId,
       profileId: subscriber_profile_id,
       frequency,
-      daysOfWeek: days_of_week ? JSON.parse(days_of_week) : undefined,
+      daysOfWeek: days_of_week && days_of_week.length > 0 ? days_of_week : undefined,
       isReminder: true,
       locale: subscriber_language || 'en'
     })
 
     if (emailSent) {
       await peopleGroupSubscriptionService.markFollowupSent(subscriptionId)
+      await logSubscriberActivity(subscriber_id, {
+        source: 'system',
+        message: 'Re-engagement reminder sent for',
+        link_text: people_group_name,
+        link_url: `/admin/people-groups/${people_group_id}`
+      })
       console.log(`  ✅ Sent follow-up reminder to ${email_value} for ${people_group_name}`)
       return 'email_sent'
     } else {
@@ -205,6 +258,12 @@ async function processSubscription(
 
     // No response after 2 emails - mark as inactive
     await peopleGroupSubscriptionService.updateStatus(subscriptionId, 'inactive')
+    await logSubscriberActivity(subscriber_id, {
+      source: 'system',
+      message: 'Marked inactive — no response after 2 follow-up emails for',
+      link_text: people_group_name,
+      link_url: `/admin/people-groups/${people_group_id}`
+    })
     console.log(`  ⏸️  Marked ${email_value} as inactive (no follow-up response)`)
     return 'marked_inactive'
   }

@@ -1,10 +1,18 @@
 import en from '../../i18n/locales/en/common.json'
 import es from '../../i18n/locales/es/common.json'
 import fr from '../../i18n/locales/fr/common.json'
+import pt from '../../i18n/locales/pt/common.json'
+import de from '../../i18n/locales/de/common.json'
+import it from '../../i18n/locales/it/common.json'
+import zh from '../../i18n/locales/zh/common.json'
+import ar from '../../i18n/locales/ar/common.json'
+import ru from '../../i18n/locales/ru/common.json'
+import hi from '../../i18n/locales/hi/common.json'
+import ro from '../../i18n/locales/ro/common.json'
 
-const translations: Record<string, any> = { en, es, fr }
+const translations: Record<string, any> = { en, es, fr, pt, de, it, zh, ar, ru, hi, ro }
 
-const SUPPORTED_LOCALES = ['en', 'es', 'fr']
+const SUPPORTED_LOCALES = ['en', 'es', 'fr', 'pt', 'de', 'it', 'zh', 'ar', 'ru', 'hi', 'ro']
 
 /**
  * Get a translation by key path for a given locale.
@@ -55,6 +63,19 @@ export function t(key: string, locale: string = 'en', params?: Record<string, st
 }
 
 /**
+ * Escape a string for safe interpolation into HTML email bodies.
+ * Use for any user-controlled value placed inside HTML markup.
+ */
+export function escapeHtml(value: string | number | null | undefined): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+/**
  * Check if a locale is supported
  */
 export function isLocaleSupported(locale: string): boolean {
@@ -66,7 +87,7 @@ export function isLocaleSupported(locale: string): boolean {
  */
 export function normalizeLocale(locale: string | null | undefined): string {
   if (!locale) return 'en'
-  const lower = locale.toLowerCase().split('-')[0] // Handle 'es-ES' -> 'es'
+  const lower = locale.toLowerCase().split('-')[0]! // Handle 'es-ES' -> 'es'
   return SUPPORTED_LOCALES.includes(lower) ? lower : 'en'
 }
 

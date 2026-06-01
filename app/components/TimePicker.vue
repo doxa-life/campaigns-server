@@ -8,7 +8,7 @@
     v-bind="$attrs"
   />
 
-  <!-- Desktop: clock-timepicker with AM/PM toggle -->
+  <!-- Desktop: custom clock face with AM/PM toggle -->
   <div v-else class="time-picker-desktop">
     <UInput
       type="text"

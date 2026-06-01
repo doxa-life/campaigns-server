@@ -1,8 +1,8 @@
 import type { FieldDefinition } from '../types'
 
 export const field: FieldDefinition = {
-  key: 'imb_region',
-  labelKey: 'peopleGroups.fields.imb_region',
+  key: 'region',
+  labelKey: 'peopleGroups.fields.region',
   type: 'select',
   category: 'geography',
   tableColumn: true,

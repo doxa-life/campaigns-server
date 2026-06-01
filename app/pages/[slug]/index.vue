@@ -77,10 +77,10 @@
           <div class="grid md:grid-cols-3 gap-6">
 
             <!-- Map -->
-            <div v-if="pg.imb_lat && pg.imb_lng" class="bg-beige-100 dark:bg-elevated rounded-2xl overflow-hidden md:order-3">
+            <div v-if="pg.latitude && pg.longitude" class="bg-beige-100 dark:bg-elevated rounded-2xl overflow-hidden md:order-3">
               <div class="relative h-full min-h-48">
                 <iframe
-                  :src="`https://www.openstreetmap.org/export/embed.html?bbox=${Number(pg.imb_lng) - 10},${Number(pg.imb_lat) - 10},${Number(pg.imb_lng) + 10},${Number(pg.imb_lat) + 10}&layer=mapnik&marker=${pg.imb_lat},${pg.imb_lng}`"
+                  :src="`https://www.openstreetmap.org/export/embed.html?bbox=${Number(pg.longitude) - 10},${Number(pg.latitude) - 10},${Number(pg.longitude) + 10},${Number(pg.latitude) + 10}&layer=mapnik&marker=${pg.latitude},${pg.longitude}`"
                   class="absolute inset-0 w-full h-full border-0"
                   loading="lazy"
                 ></iframe>
@@ -93,30 +93,30 @@
             <div class="bg-beige-100 dark:bg-elevated rounded-2xl p-6 md:order-2">
               <h3 class="font-bold text-default uppercase tracking-wide text-center mb-4">{{ $t('campaign.peopleGroup.overview.title') }}</h3>
               <div class="space-y-3 text-sm">
-                <div v-if="pg.imb_isoalpha3" class="flex items-center gap-2">
+                <div v-if="pg.country_code" class="flex items-center gap-2">
                   <UIcon name="i-lucide-map-pin" class="w-4 h-4 text-muted" />
                   <span class="font-medium text-default">{{ $t('campaign.peopleGroup.overview.country') }}</span>
-                  <span class="text-muted">{{ (pg.imb_isoalpha3 as any).label || (pg.imb_isoalpha3 as any).value }}</span>
+                  <span class="text-muted">{{ (pg.country_code as any).label || (pg.country_code as any).value }}</span>
                 </div>
                 <div v-if="pg.population" class="flex items-center gap-2">
                   <UIcon name="i-lucide-users" class="w-4 h-4 text-muted" />
                   <span class="font-medium text-default">{{ $t('campaign.peopleGroup.overview.population') }}</span>
                   <span class="text-muted">{{ Number(pg.population).toLocaleString() }}</span>
                 </div>
-                <div v-if="pg.imb_reg_of_language" class="flex items-center gap-2">
+                <div v-if="pg.primary_language" class="flex items-center gap-2">
                   <UIcon name="i-lucide-languages" class="w-4 h-4 text-muted" />
                   <span class="font-medium text-default">{{ $t('campaign.peopleGroup.overview.language') }}</span>
-                  <span class="text-muted">{{ (pg.imb_reg_of_language as any).label || (pg.imb_reg_of_language as any).value }}</span>
+                  <span class="text-muted">{{ (pg.primary_language as any).label || (pg.primary_language as any).value }}</span>
                 </div>
-                <div v-if="pg.imb_reg_of_religion || pg.imb_reg_of_religion_3" class="flex items-center gap-2">
+                <div v-if="pg.religion" class="flex items-center gap-2">
                   <UIcon name="i-lucide-flame" class="w-4 h-4 text-muted" />
                   <span class="font-medium text-default">{{ $t('campaign.peopleGroup.overview.religion') }}</span>
-                  <span class="text-muted">{{ (pg.imb_reg_of_religion as any)?.label || (pg.imb_reg_of_religion_3 as any)?.label || (pg.imb_reg_of_religion as any)?.value }}</span>
+                  <span class="text-muted">{{ (pg.religion as any).label || (pg.religion as any).value }}</span>
                 </div>
-                <div v-if="pg.imb_engagement_status" class="flex items-center gap-2">
+                <div v-if="pg.engagement_status" class="flex items-center gap-2">
                   <UIcon name="i-lucide-target" class="w-4 h-4 text-muted" />
                   <span class="font-medium text-default">{{ $t('campaign.peopleGroup.overview.status') }}</span>
-                  <span class="text-muted">{{ (pg.imb_engagement_status as any).label || (pg.imb_engagement_status as any).value }}</span>
+                  <span class="text-muted">{{ (pg.engagement_status as any).label || (pg.engagement_status as any).value }}</span>
                 </div>
                 <div v-if="pg.imb_congregation_existing" class="flex items-center gap-2">
                   <UIcon name="i-lucide-church" class="w-4 h-4 text-muted" />
@@ -131,7 +131,7 @@
               <h3 class="font-bold uppercase tracking-wide text-center mb-4">{{ $t('campaign.peopleGroup.prayerStatus.title') }}</h3>
               <div class="text-center">
                 <div class="text-5xl font-bold mb-2">
-                  {{ pg.people_praying || 0 }} / {{ PRAYER_GOAL }}
+                  {{ peopleCommitted }} / {{ PRAYER_GOAL }}
                 </div>
                 <p class="text-sage-200 text-sm mb-6">
                   {{ $t('campaign.peopleGroup.prayerStatus.description') }}
@@ -140,12 +140,13 @@
                 <div class="w-full bg-forest-600 rounded-full h-3">
                   <div
                     class="bg-sage-300 h-3 rounded-full transition-all duration-500"
-                    :style="{ width: `${Math.min(((pg.people_praying || 0) / PRAYER_GOAL) * 100, 100)}%` }"
+                    :style="{ width: `${Math.min((peopleCommitted / PRAYER_GOAL) * 100, 100)}%` }"
                   ></div>
                 </div>
               </div>
             </div>
           </div>
+
         </div>
       </section>
 
@@ -529,14 +530,12 @@ interface PeopleGroupDetailResponse {
   committed_duration: number
   global_start_date: string | null
   imb_people_description: string | null
-  imb_isoalpha3: { value: string; label: string } | null
-  imb_lat: string | null
-  imb_lng: string | null
-  imb_population: string | null
-  imb_reg_of_language: { value: string; label: string } | null
-  imb_reg_of_religion: { value: string; label: string; description?: string } | null
-  imb_reg_of_religion_3: { value: string; label: string; description?: string } | null
-  imb_engagement_status: { value: string; label: string } | null
+  country_code: { value: string; label: string } | null
+  latitude: string | null
+  longitude: string | null
+  primary_language: { value: string; label: string } | null
+  religion: { value: string; label: string; description?: string } | null
+  engagement_status: { value: string; label: string } | null
   imb_congregation_existing: { value: string; label: string } | null
   [key: string]: unknown
 }
@@ -549,11 +548,18 @@ const route = useRoute()
 const slug = route.params.slug as string
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
+const { trackEvent } = useTracking()
 
 // Fetch people group data with locale for translated labels
 const { data: pg, pending, error } = await useFetch<PeopleGroupDetailResponse>(`/api/people-groups/detail/${slug}`, {
   query: { locale },
   watch: [locale]
+})
+
+// Fetch live stats (uncached) for real-time people_committed count
+const { data: liveStats, refresh: refreshStats } = await useFetch<{ people_committed: number }>(`/api/people-groups/${slug}/stats`, {
+  lazy: true,
+  server: false
 })
 
 // Check if the start date is in the future
@@ -585,20 +591,22 @@ const { setPeopleGroupTitle } = usePeopleGroup()
 // Set people group title on mount (handles cached data from navigation)
 onMounted(() => {
   if (pg.value?.name) {
-    setPeopleGroupTitle(pg.value.name)
+    setPeopleGroupTitle(pg.value.name, pg.value.image_url)
   }
 })
 
+// Live people_committed count (prefers uncached stats endpoint, falls back to detail response)
+const peopleCommitted = computed(() => liveStats.value?.people_committed ?? pg.value?.people_committed ?? 0)
+
 // Dynamic prayer goal - starts at 144, then increases to 1000 once reached
 const PRAYER_GOAL = computed(() => {
-  const peoplePraying = pg.value?.people_praying || 0
-  return peoplePraying >= 144 ? 1000 : 144
+  return peopleCommitted.value >= 144 ? 1000 : 144
 })
 
 // Set people group title when loaded
 watch(pg, (newPg) => {
   if (newPg?.name) {
-    setPeopleGroupTitle(newPg.name)
+    setPeopleGroupTitle(newPg.name, newPg.image_url)
   }
 }, { immediate: true })
 
@@ -682,6 +690,11 @@ function closeVerificationModal() {
 
 // Scroll to signup section
 function scrollToSignup() {
+  trackEvent('signup_cta_clicked', {
+    metadata: {
+      people_group_slug: slug
+    }
+  })
   const section = document.getElementById('signup-section')
   if (section) {
     section.scrollIntoView({ behavior: 'smooth' })
@@ -713,12 +726,16 @@ async function handleSignup() {
         prayer_duration: signupForm.value.prayer_duration,
         timezone: userTimezone.value,
         language: locale.value,
+        tracking_id: getVisitorId(),
         consent_people_group_updates: signupForm.value.consent_people_group_updates,
         consent_doxa_general: signupForm.value.consent_doxa_general
       }
     })
 
     console.log('Signup successful:', response)
+
+    // Refresh live stats to update prayer status count
+    refreshStats()
 
     // For email signups, always show verification modal
     if (signupForm.value.delivery_method === 'email') {
@@ -745,4 +762,3 @@ useHead(() => ({
   title: pg.value ? `${pg.value.name} - ${t('app.title')}` : `${t('campaign.pageTitle')} - ${t('app.title')}`
 }))
 </script>
-

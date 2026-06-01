@@ -37,25 +37,10 @@ export default defineEventHandler(async (event) => {
         endDate: group.date
       })
 
-      // Parse content_json and format date for each item
-      const parsedContent = dateContent.map(item => {
-        const parsed = { ...item }
-
-        if (typeof parsed.content_json === 'string') {
-          try {
-            parsed.content_json = JSON.parse(parsed.content_json)
-          } catch (e) {
-            // Keep as is if parse fails
-          }
-        }
-
-        return parsed
-      })
-
       return {
         date: group.date,
         languages: group.languages,
-        content: parsedContent
+        content: dateContent
       }
     }))
 
@@ -68,21 +53,8 @@ export default defineEventHandler(async (event) => {
   const content = await prayerContentService.getPeopleGroupPrayerContent(id, options)
   const count = await prayerContentService.getContentCount(id)
 
-  // Parse content_json and format date for each item
-  const parsedContent = content.map(item => {
-    if (typeof item.content_json === 'string') {
-      try {
-        item.content_json = JSON.parse(item.content_json)
-      } catch (e) {
-        console.error('Failed to parse content_json:', e)
-      }
-    }
-
-    return item
-  })
-
   return {
-    content: parsedContent,
+    content,
     count,
     total: count
   }

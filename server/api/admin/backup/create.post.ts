@@ -7,8 +7,7 @@ import { handleApiError } from '#server/utils/api-helpers'
  */
 export default defineEventHandler(async (event) => {
   try {
-    // Verify admin authentication
-    await requireAdmin(event)
+    await requireSuperAdmin(event)
 
     console.log('Manual backup triggered by admin')
 

@@ -68,9 +68,9 @@ export default defineEventHandler(async (event) => {
     // Mark user as verified (since they came through an invitation)
     await userService.verifyUser(user.id)
 
-    // Assign role if specified in invitation
-    if (invitation.role) {
-      await roleService.setUserRole(user.id, invitation.role)
+    // Assign roles if specified in invitation
+    if (invitation.roles && invitation.roles.length > 0) {
+      await roleService.setUserRoles(user.id, invitation.roles)
     }
 
     // Mark invitation as accepted
@@ -87,7 +87,7 @@ export default defineEventHandler(async (event) => {
 
     // Generate secure JWT token
     const token = generateToken({
-      userId: verifiedUser.id as unknown as number,
+      userId: verifiedUser.id,
       email: verifiedUser.email,
       display_name: verifiedUser.display_name
     })

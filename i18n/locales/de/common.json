@@ -47,6 +47,18 @@
       "championedBy": "Eine Volksgruppe, unterstützt von {link}.",
       "doxaFoundation": "Doxa.Life"
     },
+    "share": {
+      "button": "Teilen",
+      "qrCode": "QR-Code",
+      "shareLink": "Link teilen",
+      "copyLink": "Link kopieren",
+      "copied": "Link kopiert!",
+      "copiedDescription": "Der Seitenlink wurde in die Zwischenablage kopiert.",
+      "copyFailed": "Link konnte nicht kopiert werden",
+      "qrTitle": "Scannen zum Besuchen",
+      "qrDescription": "Scannen Sie diesen QR-Code, um diese Seite auf einem anderen Gerät zu öffnen.",
+      "close": "Schließen"
+    },
     "pageTitle": "Kampagne",
     "signupButton": "Anmelden zum Beten",
     "loading": "Kampagne wird geladen...",
@@ -191,6 +203,10 @@
         "title": "E-Mail bestätigt!",
         "message": "Ihre E-Mail wurde erfolgreich bestätigt. Sie werden nun Gebetserinnerungen für {campaign} erhalten."
       },
+      "alreadyVerified": {
+        "title": "Bereits Bestätigt",
+        "message": "Ihre E-Mail wurde bereits bestätigt. Sie sind bereit, Gebetserinnerungen für {campaign} zu erhalten."
+      },
       "error": {
         "title": "Bestätigung fehlgeschlagen",
         "generic": "E-Mail konnte nicht bestätigt werden. Dieser Link wurde möglicherweise bereits verwendet oder ist abgelaufen."
@@ -312,7 +328,7 @@
       "hint": "Klicken Sie, um Ihre Gebetszeit zu beenden"
     },
     "thankYou": "Danke fürs Beten!",
-    "meetThePeople": "Lernen Sie das Volk kennen",
+    "meetThePeople": "Meine Volksgruppe",
     "peopleGroupOfTheDay": "Volksgruppe des Tages",
     "dayInTheLife": "Ein Tag im Leben",
     "pauseAndPray": "Innehalten & Beten",
@@ -346,6 +362,44 @@
     "minutes": "Min",
     "yes": "Ja",
     "no": "Nein"
+  },
+  "contact": {
+    "verify": {
+      "pageTitle": "E-Mail Bestätigen",
+      "verifying": "Ihre E-Mail wird bestätigt...",
+      "success": {
+        "title": "E-Mail Bestätigt!",
+        "message": "Ihre E-Mail wurde bestätigt. Vielen Dank für Ihr Interesse an der DOXA-Partnerschaft."
+      },
+      "alreadyVerified": {
+        "title": "Bereits Bestätigt",
+        "message": "Ihre E-Mail wurde bereits bestätigt."
+      },
+      "error": {
+        "title": "Bestätigung Fehlgeschlagen",
+        "generic": "Ihre E-Mail konnte nicht bestätigt werden. Dieser Link wurde möglicherweise bereits verwendet oder ist abgelaufen."
+      }
+    }
+  },
+  "adoption": {
+    "verify": {
+      "pageTitle": "Adoption Bestätigen",
+      "verifying": "Ihre Adoption wird bestätigt...",
+      "success": {
+        "title": "Adoption Bestätigt!",
+        "message": "Ihre Adoption der {peopleGroupName} wurde bestätigt. Willkommen an Bord!"
+      },
+      "alreadyVerified": {
+        "title": "Bereits Bestätigt",
+        "message": "Ihre E-Mail wurde bereits bestätigt."
+      },
+      "error": {
+        "title": "Bestätigung Fehlgeschlagen",
+        "generic": "Ihre E-Mail konnte nicht bestätigt werden. Dieser Link wurde möglicherweise bereits verwendet oder ist abgelaufen."
+      },
+      "viewPeopleGroup": "Gebetsanmeldeseite ansehen",
+      "viewResources": "Adoptionsressourcen ansehen"
+    }
   },
   "followupPage": {
     "recording": "Ihre Antwort wird aufgezeichnet...",
@@ -399,13 +453,16 @@
     "welcome": {
       "subject": "Willkommen bei Doxa! - {campaign}",
       "header": "Willkommen bei Doxa!",
-      "doxaMeaning": "Im Griechischen bedeutet Doxa „Herrlichkeit", und genau das bieten wir an, wenn wir uns im Gebet für die Millionen von Menschen vereinen, die mit wenig oder gar keinem Zeugnis des Evangeliums leben. Gemeinsam bringen wir Gott durch treues, erwartungsvolles Gebet die Ehre.",
+      "doxaMeaning": "Im Griechischen bedeutet Doxa ‚Herrlichkeit’, und genau das bieten wir an, wenn wir uns im Gebet für die Millionen von Menschen vereinen, die mit wenig oder gar keinem Zeugnis des Evangeliums leben. Gemeinsam bringen wir Gott durch treues, erwartungsvolles Gebet die Ehre.",
       "reminderExplanation": "Im Rahmen dieser Gebetskampagne werden Sie bald Erinnerungs-E-Mails mit Links zu täglichen Gebetsinhalten erhalten. Jeder Link enthält angeleitete Gebetsimpulse und weitere Materialien, die Ihnen helfen, strategisch und treu für die von Ihnen gewählte nicht-engagierte Volksgruppe zu beten.",
       "sharedGoal": "Durch diese Bewegung ist unser gemeinsames Ziel, eine tägliche 24-Stunden-Gebetsabdeckung für jede der über 2.000 nicht-engagierten Volksgruppen zu erreichen, Männer und Frauen auszusenden, die diese Volksgruppen bis zum Jahr 2033 mit dem Evangelium erreichen, und nachhaltige Spenden zur Unterstützung dieses Vorhabens.",
       "closing": "Wir sind zutiefst dankbar, uns mit der gesamten Kirche zusammenzuschließen, um das ganze Evangelium in die ganze Welt zu tragen.",
       "reminderTimeNote": "Ihre tägliche Erinnerung ist auf {time} eingestellt.",
       "startPraying": "Mit dem Beten beginnen",
-      "profileInstructions": "Sie können Ihre Profildaten und Benachrichtigungen hier aktualisieren:"
+      "profileInstructions": "Sie können Ihre Profildaten und Benachrichtigungen hier aktualisieren:",
+      "addToCalendar": "Fügen Sie diese Erinnerung Ihrem Kalender hinzu:",
+      "googleCalendar": "Google Calendar",
+      "otherCalendars": "Andere Kalender (.ics)"
     },
     "reminder": {
       "subject": "Gebetserinnerung - {campaign}",
@@ -444,6 +501,241 @@
       "thursday": "Donnerstag",
       "friday": "Freitag",
       "saturday": "Samstag"
+    },
+    "contactVerification": {
+      "subject": "Bestätigen Sie Ihre E-Mail, um DOXA-Updates zu erhalten",
+      "header": "Bestätigen Sie Ihre E-Mail",
+      "thankYou": "Vielen Dank, dass Sie DOXA kontaktiert haben. Sie haben sich dafür entschieden, E-Mail-Updates von der DOXA-Partnerschaft zu erhalten.",
+      "pleaseVerify": "Um Updates zu erhalten, bestätigen Sie bitte Ihre E-Mail-Adresse, indem Sie auf die Schaltfläche unten klicken:",
+      "verifyButton": "E-Mail Bestätigen",
+      "linkInstructions": "Wenn die Schaltfläche nicht funktioniert, können Sie auch diesen Link kopieren und in Ihren Browser einfügen:",
+      "note": "Hinweis:",
+      "expiration": "Dieser Bestätigungslink läuft in 7 Tagen ab.",
+      "ignoreMessage": "Wenn Sie kein Kontaktformular eingereicht haben, können Sie diese E-Mail ignorieren."
+    },
+    "adoptionVerification": {
+      "subject": "Bestätigen Sie Ihre E-Mail, um die {peopleGroupName} zu adoptieren",
+      "header": "Bestätigen Sie Ihre E-Mail",
+      "thankYou": "Vielen Dank für Ihr Engagement, die {peopleGroupName} zu adoptieren.",
+      "pleaseVerify": "Bitte bestätigen Sie Ihre E-Mail-Adresse, indem Sie auf die Schaltfläche unten klicken, um Ihre Adoption zu bestätigen:",
+      "verifyButton": "E-Mail bestätigen",
+      "linkInstructions": "Wenn die Schaltfläche nicht funktioniert, können Sie auch diesen Link kopieren und in Ihren Browser einfügen:",
+      "note": "Hinweis:",
+      "expiration": "Dieser Bestätigungslink läuft in 7 Tagen ab.",
+      "ignoreMessage": "Wenn Sie kein Adoptionsformular eingereicht haben, können Sie diese E-Mail ignorieren."
+    },
+    "adoptionWelcome": {
+      "subject": "DOXA-Adoptionsupdate: Ihr Engagement für die {peopleGroupName}",
+      "headerTitle": "DOXA-Adoptionsaktualisierung",
+      "greeting": "Liebe/r {firstName},",
+      "intro": "Heute haben Sie im Rahmen der DOXA-Partnerschaft den Status der {peopleGroupName} von [waiting] auf [adopted] geändert — der entscheidende erste Schritt zum Engagement.",
+      "introContinued": "Sie sind jetzt ein Hauptfürsprecher, Fürbitter und Mobilisierer für eine Volksgruppe, die bis zu diesem Moment kein beständiges Zeugnis und keinen gezielten Gebetseinsatz hatte.",
+      "waiting": "wartend",
+      "adopted": "adoptiert",
+      "resourcesIntro": "Die folgenden Ressourcen werden Ihnen helfen, diese Möglichkeit zu nutzen.",
+      "section1Title": "1. Ihre adoptierte Volksgruppe",
+      "resourcesButton": "Adoptionsressourcen ansehen",
+      "section1Item1": "URL und QR-Code für Ihre Volksgruppe, Tipps, Antworten auf häufig gestellte Fragen und mehr",
+      "section1Item2": "Bilder, die Ihnen helfen, dies Ihrer Gemeinde oder Kleingruppe vorzustellen",
+      "section1Item3": "Ein spezieller Link, der es einfach macht, finanziell zur DOXA-Stiftung beizutragen",
+      "section2Title": "2. Ihre Adoptionsressourcen",
+      "section2Intro": "Wir haben eine Reihe von Ressourcen zusammengestellt, die speziell auf Ihre Volksgruppe zugeschnitten sind, um Ihnen zu helfen, schnell und einfach über diese Initiative zu mobilisieren und zu teilen. Sie finden:",
+      "fullProfileText": "Überprüfen Sie die Details Ihrer Volksgruppe, indem Sie ihr",
+      "fullProfileButton": "Vollständiges Volksgruppenprofil",
+      "prayerPageText": "Mobilisieren Sie Menschen zum Beten über diese",
+      "prayerPageButton": "Gebetsseite",
+      "section3Title": "3. Ihre ersten 30 Tage",
+      "section3Intro": "Hier sind unsere empfohlenen nächsten Handlungsschritte:",
+      "step1Label": "Verinnerlichen:",
+      "step1Text": "Beten Sie täglich 10 Minuten für die {peopleGroupName}. Bitten Sie Gott, Ihnen ein Herz für diesen Ort und diese Menschen zu geben. Bitten Sie Ihn um Weisheit für die nächsten Schritte und um Gunst bei allen, die durch Ihre Bemühungen, die Vision zu teilen, hören werden. Bitten Sie Ihn, die Herzen vorzubereiten. Erwarten Sie Seine Antwort — Er ist bereits am Werk! Beginnen Sie mit einem Besuch auf ihrer {prayerPageLink}.",
+      "step1PrayerPage": "Gebetsseite",
+      "step2Label": "Planen und Verbreiten:",
+      "step2Text": "Erstellen Sie gemeinsam mit Ihrer Gemeindeleitung einen Plan, wie Sie dies in Ihrer Gemeinde und Gemeinschaft vorstellen können. Teilen Sie Ihre digitalen Medien und andere Ressourcen aus Ihren {adoptionResourcesLink} mit Ihrer Gemeindefamilie und auf Ihren sozialen Plattformen. Lassen Sie die Menschen wissen, dass diese Volksgruppe Ihr Schwerpunkt ist.",
+      "step2AdoptionResources": "Adoptionsressourcen",
+      "step3Label": "Kern mobilisieren:",
+      "step3Text": "Identifizieren Sie 5 Personen, die sich anmelden, um mit Ihnen zu beten. Denken Sie an Gebetsleiter, Kleingruppenmitglieder und geistlich treue Freunde, die wahrscheinlich in Prioritäten und Vision übereinstimmen. Ein kleiner Kern in beständiger, erwartungsvoller Übereinstimmung kann der Beginn einer Bewegung sein.",
+      "section4Title": "4. Lassen Sie sich von DOXA-Updates ermutigen",
+      "section4Text": "Jeden Monat erhalten Sie ein strategisches monatliches Update — mit Informationen über regionale Durchbrüche, neue Ressourcen oder Mobilisierungsmeilensteine in Bezug auf Ihre Volksgruppe. Wenn Sie Fragen haben, Ermutigung oder Hilfe beim Nachdenken über die nächsten Schritte brauchen, möchten wir Ihnen helfen. Bitte wenden Sie sich an {contactEmail}.",
+      "closingCount": "Es warteten {beforeCount} Volksgruppen darauf, adoptiert zu werden. Dank Ihres \"Ja\" heute ist diese Zahl jetzt {afterCount}. Wir sind dankbar, mit Ihnen in diesem wertvollen Vorhaben zusammenzuarbeiten.",
+      "signoff": "Zur Ehre Gottes,",
+      "teamName": "Das DOXA-Team"
+    }
+  },
+  "calendar": {
+    "addToCalendar": "Zum Kalender hinzufügen",
+    "googleCalendar": "Google Calendar",
+    "downloadIcs": "Andere Kalender",
+    "eventTitle": "Gebet für die {campaign}",
+    "eventDescription": "{duration}-minütige Gebetszeit für die {campaign}"
+  },
+  "inbox":   {
+    "title": "Posteingang",
+    "searchPlaceholder": "Unterhaltungen suchen",
+    "empty": "Keine Unterhaltungen",
+    "selectPrompt": "Wählen Sie eine Unterhaltung aus, um sie anzuzeigen",
+    "conversation": "Unterhaltung",
+    "conversations": "Unterhaltungen",
+    "internalNotes": "Interne Notizen",
+    "activity": "Aktivität",
+    "needsReview": "Zu prüfen",
+    "unassigned": "Nicht zugewiesen",
+    "assignedTo": "Zugewiesen an {name}",
+    "assignToMe": "Mir zuweisen",
+    "assign": "Zuweisen",
+    "unassign": "Zuweisung aufheben",
+    "spamScore": "Spam-Bewertung",
+    "filters": {
+      "all": "Alle",
+      "unassigned": "Nicht zugewiesen",
+      "mine": "Meine",
+      "open": "Offen",
+      "pending": "Ausstehend",
+      "closed": "Geschlossen",
+      "spam": "Spam",
+      "held": "Zurückgehalten"
+    },
+    "status": {
+      "open": "Offen",
+      "pending": "Ausstehend",
+      "closed": "Geschlossen",
+      "spam": "Spam"
+    },
+    "direction": {
+      "inbound": "Empfangen",
+      "outbound": "Gesendet"
+    },
+    "compose": {
+      "from": "Von",
+      "reply": "Antworten",
+      "send": "Senden",
+      "saveDraft": "Entwurf speichern",
+      "draft": "Entwurf",
+      "sending": "Senden…",
+      "cannedResponse": "Vorlage",
+      "attach": "Datei anhängen",
+      "placeholder": "Schreiben Sie Ihre Antwort…",
+      "language": "Sprache",
+      "newEmail": "Neue E-Mail",
+      "to": "An",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "Betreff",
+      "bodyLabel": "Nachricht",
+      "bodyPlaceholder": "Schreiben Sie Ihre Nachricht…"
+    },
+    "actions": {
+      "close": "Schließen",
+      "reopen": "Wieder öffnen",
+      "markSpam": "Als Spam markieren",
+      "unmarkSpam": "Kein Spam",
+      "showQuoted": "Zitierten Text anzeigen",
+      "hideQuoted": "Zitierten Text ausblenden"
+    },
+    "confirm": {
+      "closeTitle": "Unterhaltung schließen",
+      "closeMessage": "Diese Unterhaltung schließen? Sie wird automatisch wieder geöffnet, wenn der Kontakt antwortet.",
+      "spamTitle": "Als Spam markieren",
+      "spamMessage": "Diesen Absender blockieren und die Unterhaltung schließen? Zukünftige Nachrichten von ihm werden automatisch geschlossen."
+    },
+    "toasts": {
+      "sent": "Antwort gesendet",
+      "emailSent": "E-Mail gesendet",
+      "draftSaved": "Entwurf gespeichert",
+      "assigned": "Unterhaltung zugewiesen",
+      "statusChanged": "Status aktualisiert",
+      "markedSpam": "Als Spam markiert",
+      "unmarkedSpam": "Aus Spam entfernt",
+      "error": "Etwas ist schiefgelaufen"
+    },
+    "identity": {
+      "alias": "E-Mail-Alias",
+      "aliasHint": "Nur der lokale Teil — george wird zu george{'@'}doxa.life",
+      "signature": "E-Mail-Signatur",
+      "save": "Speichern"
+    },
+    "canned": {
+      "title": "Vorlagen",
+      "new": "Neue Vorlage",
+      "name": "Titel",
+      "body": "Inhalt",
+      "save": "Speichern",
+      "delete": "Löschen"
+    },
+    "autoAck": {
+      "subject": "Wir haben Ihre Nachricht erhalten",
+      "greeting": "Hallo,",
+      "greetingNamed": "Hallo {name},",
+      "body": "Vielen Dank, dass Sie sich an {appName} gewandt haben. Wir haben Ihre Nachricht erhalten und ein Mitglied unseres Teams wird sich bald bei Ihnen melden.",
+      "signoff": "In Christus,\nIhr {appName}-Team"
+    }
+  },
+  "survey": {
+    "may2026": {
+      "page": {
+        "title": "Ihre Gebetserfahrung",
+        "intro": "Danke, dass Sie mit DOXA beten. Diese fünf Fragen dauern etwa drei Minuten, und Ihre Antworten helfen uns, die täglichen Gebetsanliegen zu verbessern. Es gibt keine richtigen oder falschen Antworten – wir möchten einfach Ihre ehrliche Erfahrung erfahren.",
+        "submit": "Meine Antworten senden",
+        "thanksTitle": "Vielen Dank!",
+        "thanks": "Danke – Ihre Antworten sind eingegangen. Wir sind dankbar für Ihre Zeit und Ihre Gebete.",
+        "editNotice": "Sie haben bereits geantwortet – vielen Dank! Sie können Ihre Antworten unten aktualisieren und erneut speichern, wenn Sie möchten.",
+        "invalidTitle": "Ungültiger Link",
+        "invalid": "Dieser Umfrage-Link scheint ungültig zu sein. Bitte verwenden Sie den Link aus Ihrer E-Mail oder kontaktieren Sie uns, wenn Sie Hilfe benötigen.",
+        "closedTitle": "Umfrage geschlossen",
+        "closed": "Diese Umfrage nimmt keine Antworten mehr an. Vielen Dank für Ihr Interesse.",
+        "goHome": "Zur Startseite",
+        "errorTitle": "Etwas ist schiefgelaufen",
+        "error": "Wir konnten Ihre Antworten nicht speichern. Bitte versuchen Sie es erneut."
+      },
+      "questions": {
+        "focus": {
+          "label": "Wie gut haben Ihnen die täglichen Gebetsanliegen geholfen, sich beim Gebet für unerreichte Volksgruppen konzentriert und eingebunden zu fühlen?",
+          "scale": {
+            "1": "Überhaupt nicht konzentriert",
+            "5": "Äußerst konzentriert"
+          }
+        },
+        "experience": {
+          "label": "Erzählen Sie uns mehr über Ihre Erfahrung: Was hat die Gebetsanliegen für Sie persönlich hilfreich (oder nicht hilfreich) gemacht?"
+        },
+        "clarity": {
+          "label": "Wie klar haben die Gebetsanliegen vermittelt, wofür zu beten ist und warum es wichtig ist?",
+          "scale": {
+            "1": "Sehr unklar",
+            "5": "Sehr klar"
+          }
+        },
+        "content_amount": {
+          "label": "Passt die Menge an Gebetsinhalten zu der Zeit, die Sie zum Beten haben?",
+          "scale": {
+            "1": "Zu viel für meine Gebetszeit",
+            "3": "Genau richtig",
+            "5": "Zu wenig für meine Gebetszeit"
+          }
+        },
+        "heart": {
+          "label": "Wie hat die Teilnahme an dieser Gebetskampagne Ihr Herz oder Ihre Sichtweise gegenüber unerreichten Volksgruppen verändert?"
+        }
+      },
+      "email": {
+        "subject": "Erzählen Sie uns, wie das Gebet läuft?",
+        "header": "Wir freuen uns über Ihr Feedback",
+        "greeting": "Hallo {name},",
+        "greetingFallback": "Hallo,",
+        "p1": "Danke, dass Sie im Gebet für die unerreichten Volksgruppen der Welt einstehen. Ihre Treue ist das Herzstück dessen, was DOXA unterstützen möchte.",
+        "p2": "Wir möchten die täglichen Gebetsanliegen immer hilfreicher gestalten, und bevor wir uns als Team treffen, um die nächsten Schritte zu planen, würden wir gerne von Ihnen hören. Würden Sie sich ein paar Minuten Zeit nehmen, um fünf kurze Fragen zu Ihrer Erfahrung zu beantworten?",
+        "p3": "Ihr ehrliches Feedback – was funktioniert und was nicht – prägt direkt die Gebetsinhalte, die wir erstellen.",
+        "cta": "An der Umfrage teilnehmen",
+        "signoff": "Mit Dankbarkeit,",
+        "team": "Das DOXA-Team"
+      }
+    },
+    "admin": {
+      "title": "Fürbitter-Umfrage – Mai 2026",
+      "heading": "Umfragen",
+      "totalResponses": "{count} Antworten",
+      "exportCsv": "CSV exportieren",
+      "average": "Durchschnitt",
+      "noResponses": "Noch keine Antworten",
+      "selectPrompt": "Wählen Sie eine Umfrage, um die Antworten zu sehen."
     }
   }
 }

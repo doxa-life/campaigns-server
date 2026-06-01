@@ -20,8 +20,8 @@
       </UCard>
     </div>
 
-    <!-- Doxa General Unsubscribe View -->
-    <div v-else-if="isDoxaType && profileData" class="max-w-2xl mx-auto">
+    <!-- Doxa General / People-group marketing preferences view -->
+    <div v-else-if="(isDoxaType || isPeopleGroupMarketing) && profileData" class="max-w-2xl mx-auto">
       <UCard class="mb-6 text-center">
         <UIcon name="i-lucide-check-circle" class="w-12 h-12 mx-auto mb-4 text-green-500" />
         <h1 class="text-2xl font-bold mb-2">{{ $t('campaign.unsubscribe.success.title') }}</h1>
@@ -372,6 +372,11 @@ const toast = useToast()
 // Determine if this is a Doxa-type unsubscribe
 const isDoxaType = computed(() => unsubscribeType === 'doxa' || (!slug && !unsubscribeType))
 
+// A people-group MARKETING unsubscribe (from a marketing email). This targets the
+// people-group communication consent — NOT the daily prayer reminder subscriptions,
+// which is what a `slug`-only link (from reminder emails) does.
+const isPeopleGroupMarketing = computed(() => unsubscribeType === 'people_group' && !!slug)
+
 // Loading and error state
 const loading = ref(true)
 const loadError = ref<string | null>(null)
@@ -428,6 +433,28 @@ async function loadData() {
         })
         doxaConsentForm.value.doxa_general = false
       }
+    } else if (isPeopleGroupMarketing.value) {
+      // People-group MARKETING unsubscribe: remove the communication consent for
+      // this people group. Must NOT cancel the daily prayer reminder subscriptions.
+      const response = await $fetch<ProfileData>(`/api/profile/${profileId}`)
+      profileData.value = response
+
+      doxaConsentForm.value = {
+        doxa_general: response.consents?.doxa_general || false,
+        people_group_ids: (response.consents?.peopleGroups || []).map(c => c.people_group_id)
+      }
+      doxaLocalPeopleGroups.value = response.peopleGroups.map(c => ({
+        ...c,
+        reminders: c.reminders.map(r => ({ ...r, status: r.status || 'active' as const }))
+      }))
+
+      // Slug is resolved to the people group server-side, so this works even if the
+      // subscriber has no prayer subscription for it.
+      const upd = await $fetch<{ consents?: { doxa_general: boolean; people_group_ids: number[] } }>(`/api/profile/${profileId}`, {
+        method: 'PUT',
+        body: { consent_people_group_slug: slug, consent_people_group_updates: false }
+      })
+      doxaConsentForm.value.people_group_ids = upd.consents?.people_group_ids || []
     } else if (slug) {
       // People group unsubscribe - use existing flow
       const [unsubData, profData] = await Promise.all([

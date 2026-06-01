@@ -4,5 +4,6 @@ export const field: FieldDefinition = {
   key: 'imb_people_search_text',
   labelKey: 'peopleGroups.fields.imb_people_search_text',
   type: 'text',
-  category: 'media'
+  category: 'media',
+  hidden: true
 }

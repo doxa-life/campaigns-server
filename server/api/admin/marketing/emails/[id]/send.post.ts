@@ -57,6 +57,14 @@ export default defineEventHandler(async (event) => {
   if (email.audience_type === 'doxa') {
     const contacts = await contactMethodService.getContactsWithDoxaConsent()
     recipients = contacts.map(c => ({ id: c.id, value: c.value }))
+  } else if (email.audience_type === 'doxa_active_pg') {
+    const contacts = await contactMethodService.getContactsWithDoxaConsentAndActiveSubscription()
+    recipients = contacts.map(c => ({ id: c.id, value: c.value }))
+  } else if (email.audience_type === 'pick') {
+    const contacts = await contactMethodService.getEmailContactsByIds(email.recipient_contact_method_ids ?? [])
+    recipients = contacts.map(c => ({ id: c.id, value: c.value }))
+  } else if (email.audience_type === 'admins') {
+    recipients = await marketingEmailService.getAdminRecipients()
   } else if (email.people_group_id) {
     const contacts = await contactMethodService.getContactsConsentedToPeopleGroup(email.people_group_id)
     recipients = contacts.map(c => ({ id: c.id, value: c.value }))

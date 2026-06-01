@@ -27,7 +27,7 @@ describe('PUT /api/admin/users/[id]/role', async () => {
     const editor = await createEditorUser(sql)
     editorAuth = editor.auth
 
-    // Create a target user whose role we'll modify
+    // Create a target user whose roles we'll modify
     const target = await createNoRoleUser(sql)
     targetUserId = target.user.id
   })
@@ -41,7 +41,7 @@ describe('PUT /api/admin/users/[id]/role', async () => {
     it('returns 401 for unauthenticated requests', async () => {
       const error = await $fetch(`/api/admin/users/${targetUserId}/role`, {
         method: 'PUT',
-        body: { role: 'admin' }
+        body: { roles: ['admin'] }
       }).catch((e) => e)
 
       expect(error.statusCode).toBe(401)
@@ -50,7 +50,7 @@ describe('PUT /api/admin/users/[id]/role', async () => {
     it('returns 403 for non-admin users', async () => {
       const error = await $fetch(`/api/admin/users/${targetUserId}/role`, {
         method: 'PUT',
-        body: { role: 'admin' },
+        body: { roles: ['admin'] },
         ...editorAuth
       }).catch((e) => e)
 
@@ -60,7 +60,7 @@ describe('PUT /api/admin/users/[id]/role', async () => {
     it('succeeds for admin users', async () => {
       const response = await $fetch(`/api/admin/users/${targetUserId}/role`, {
         method: 'PUT',
-        body: { role: 'people_group_editor' },
+        body: { roles: ['people_group_editor'] },
         ...adminAuth
       })
 
@@ -69,43 +69,57 @@ describe('PUT /api/admin/users/[id]/role', async () => {
   })
 
   describe('Role updates', () => {
-    it('can set role to admin', async () => {
+    it('can set roles to admin', async () => {
       const response = await $fetch(`/api/admin/users/${targetUserId}/role`, {
         method: 'PUT',
-        body: { role: 'admin' },
+        body: { roles: ['admin'] },
         ...adminAuth
       })
 
       expect(response.success).toBe(true)
 
       const user = await getTestUser(sql, targetUserId)
-      expect(user?.role).toBe('admin')
+      expect(user?.roles).toContain('admin')
     })
 
-    it('can set role to people_group_editor', async () => {
+    it('can set roles to people_group_editor', async () => {
       const response = await $fetch(`/api/admin/users/${targetUserId}/role`, {
         method: 'PUT',
-        body: { role: 'people_group_editor' },
+        body: { roles: ['people_group_editor'] },
         ...adminAuth
       })
 
       expect(response.success).toBe(true)
 
       const user = await getTestUser(sql, targetUserId)
-      expect(user?.role).toBe('people_group_editor')
+      expect(user?.roles).toContain('people_group_editor')
     })
 
-    it('can remove role (set to null)', async () => {
+    it('can assign multiple roles', async () => {
       const response = await $fetch(`/api/admin/users/${targetUserId}/role`, {
         method: 'PUT',
-        body: { role: null },
+        body: { roles: ['progress_admin', 'content_editor'] },
         ...adminAuth
       })
 
       expect(response.success).toBe(true)
 
       const user = await getTestUser(sql, targetUserId)
-      expect(user?.role).toBeNull()
+      expect(user?.roles).toContain('progress_admin')
+      expect(user?.roles).toContain('content_editor')
+    })
+
+    it('can remove all roles (set to empty array)', async () => {
+      const response = await $fetch(`/api/admin/users/${targetUserId}/role`, {
+        method: 'PUT',
+        body: { roles: [] },
+        ...adminAuth
+      })
+
+      expect(response.success).toBe(true)
+
+      const user = await getTestUser(sql, targetUserId)
+      expect(user?.roles).toEqual([])
     })
   })
 
@@ -113,7 +127,7 @@ describe('PUT /api/admin/users/[id]/role', async () => {
     it('returns 400 for invalid user ID', async () => {
       const error = await $fetch('/api/admin/users/invalid-id/role', {
         method: 'PUT',
-        body: { role: 'admin' },
+        body: { roles: ['admin'] },
         ...adminAuth
       }).catch((e) => e)
 
@@ -124,7 +138,7 @@ describe('PUT /api/admin/users/[id]/role', async () => {
       const fakeUuid = '00000000-0000-0000-0000-000000000000'
       const error = await $fetch(`/api/admin/users/${fakeUuid}/role`, {
         method: 'PUT',
-        body: { role: 'admin' },
+        body: { roles: ['admin'] },
         ...adminAuth
       }).catch((e) => e)
 

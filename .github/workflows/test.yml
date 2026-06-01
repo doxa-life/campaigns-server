@@ -69,17 +69,71 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Install Playwright Chromium
+        run: bunx playwright-core install --with-deps chromium
+
       - name: Run migrations
         run: bun run migrate
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
 
       - name: Run e2e tests
-        run: bun run test:e2e
+        # vitest's default reporter uses carriage returns that GH Actions' log
+        # collector strips, so test names + assertion failures never appear in
+        # the log. The JSON reporter writes a structured file we dump on
+        # failure; the verbose reporter gives line-by-line progress in the log.
+        run: bunx vitest run --config vitest.config.ts --reporter=verbose --reporter=json --outputFile=/tmp/vitest-e2e.json
         env:
           TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           JWT_SECRET: test-jwt-secret-for-ci
+          # anon-signup.test.ts + news-signup.test.ts throw at module load if
+          # these aren't set, which silently drops every test in those files
+          # (the vitest run still exits 1, but with no failed-assertion output).
+          ANON_SIGNUP_SECRET: test-anon-signup-secret-for-ci
+          FORM_API_KEY: test-form-api-key-for-ci
+
+      - name: Print failing tests
+        if: failure()
+        run: |
+          if [ ! -f /tmp/vitest-e2e.json ]; then
+            echo "No vitest JSON output found"
+            exit 0
+          fi
+          echo "::group::Test summary"
+          python3 -c "
+          import json
+          with open('/tmp/vitest-e2e.json') as f:
+              d = json.load(f)
+          print(f\"totals: {d.get('numTotalTests')} | passed: {d.get('numPassedTests')} | failed: {d.get('numFailedTests')} | files: {d.get('numTotalTestSuites')}\")
+          print()
+          print('--- File-level status (only non-passed) ---')
+          for fr in d.get('testResults', []):
+              status = fr.get('status') or fr.get('result', {}).get('status')
+              if status not in ('passed', 'success'):
+                  print(f\"FILE: {fr.get('name')}  status={status}\")
+                  msg = fr.get('message') or ''
+                  if msg:
+                      print(msg[:2000])
+                  print()
+          print('--- Failed assertions ---')
+          for fr in d.get('testResults', []):
+              for t in fr.get('assertionResults', []):
+                  if t.get('status') == 'failed':
+                      print()
+                      print('FAIL:', t.get('fullName'))
+                      for m in t.get('failureMessages', [])[:1]:
+                          print(m[:2000])
+          "
+          echo "::endgroup::"
+
+      - name: Upload vitest results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-e2e-results
+          path: /tmp/vitest-e2e.json
+          if-no-files-found: ignore
 
   all-tests:
     runs-on: ubuntu-latest

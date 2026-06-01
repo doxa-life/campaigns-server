@@ -12,7 +12,16 @@ import { existsSync } from 'node:fs'
 import { mkdir, readFile, writeFile, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
 
-interface FetchVerseParams {
+export class BibleUnavailableError extends Error {
+  constructor(bibleId: string, reason: string) {
+    super(`Bible translation "${bibleId}" is unavailable: ${reason}`)
+    this.name = 'BibleUnavailableError'
+  }
+}
+
+export interface VerseData { verse: number; text: string }
+
+export interface FetchVerseParams {
   bibleId: string
   bookId: string
   chapter: number
@@ -183,6 +192,7 @@ const BIBLES_DIR = join(process.cwd(), 'data', 'bibles')
 
 const memoryIndex = new Map<string, ChapterIndex>()
 const pendingLoads = new Map<string, Promise<ChapterIndex>>()
+const failedTranslations = new Map<string, string>()
 
 function buildIndex(verses: BollsRawVerse[]): ChapterIndex {
   const index: ChapterIndex = new Map()
@@ -254,6 +264,9 @@ function ensureTranslationLoaded(bibleId: string): Promise<ChapterIndex> {
   const existing = memoryIndex.get(bibleId)
   if (existing) return Promise.resolve(existing)
 
+  const failureMsg = failedTranslations.get(bibleId)
+  if (failureMsg) return Promise.reject(new BibleUnavailableError(bibleId, failureMsg))
+
   // Promise coalescing: if another request is already loading this translation, reuse it
   const pending = pendingLoads.get(bibleId)
   if (pending) return pending
@@ -262,6 +275,10 @@ function ensureTranslationLoaded(bibleId: string): Promise<ChapterIndex> {
     .then(index => {
       memoryIndex.set(bibleId, index)
       return index
+    })
+    .catch(err => {
+      failedTranslations.set(bibleId, err.message)
+      throw new BibleUnavailableError(bibleId, err.message)
     })
     .finally(() => {
       pendingLoads.delete(bibleId)
@@ -295,7 +312,7 @@ export function isBollsBibleConfigured(bibleId: string | undefined): boolean {
   return !!bibleId
 }
 
-export async function fetchVerseText(params: FetchVerseParams): Promise<string> {
+async function fetchFilteredVerses(params: FetchVerseParams): Promise<BollsVerse[]> {
   const { bibleId, bookId, chapter, verseStart, verseEnd } = params
 
   const bookNumber = USFM_TO_BOOK_NUMBER[bookId]
@@ -303,7 +320,6 @@ export async function fetchVerseText(params: FetchVerseParams): Promise<string> 
     throw new Error(`Unknown USFM book code: "${bookId}"`)
   }
 
-  // Remap chapter/verse numbers for translations with different numbering
   const remapped = remapReference(bibleId, bookId, chapter, verseStart, verseEnd)
 
   const verses = await fetchChapter(bibleId, bookNumber, remapped.chapter)
@@ -311,7 +327,6 @@ export async function fetchVerseText(params: FetchVerseParams): Promise<string> 
   let vs = remapped.verseStart
   let ve = remapped.verseEnd
 
-  // Auto-detect psalm verse offset by comparing with NKJV
   if (remapped.needsPsalmVerseOffset && vs !== undefined) {
     const nkjvVerses = await fetchChapter('NKJV', bookNumber, chapter)
     const nkjvMax = Math.max(...nkjvVerses.map(v => v.verse))
@@ -325,7 +340,6 @@ export async function fetchVerseText(params: FetchVerseParams): Promise<string> 
     }
   }
 
-  // Filter by verse range if specified
   let filtered = verses
   if (vs !== undefined) {
     const end = ve ?? vs
@@ -336,5 +350,15 @@ export async function fetchVerseText(params: FetchVerseParams): Promise<string> 
     throw new Error('No verse data returned from Bolls Bible')
   }
 
+  return filtered
+}
+
+export async function fetchVerseData(params: FetchVerseParams): Promise<VerseData[]> {
+  const filtered = await fetchFilteredVerses(params)
+  return filtered.map(v => ({ verse: v.verse, text: cleanVerseText(v.text) }))
+}
+
+export async function fetchVerseText(params: FetchVerseParams): Promise<string> {
+  const filtered = await fetchFilteredVerses(params)
   return filtered.map(v => cleanVerseText(v.text)).join(' ').trim()
 }

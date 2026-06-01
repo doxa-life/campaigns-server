@@ -47,10 +47,9 @@ describe('GET /api/admin/libraries', async () => {
       expect(error.statusCode).toBe(401)
     })
 
-    it('succeeds for any authenticated user', async () => {
-      // Even users with no role can access libraries
-      const response = await $fetch('/api/admin/libraries', noRoleAuth)
-      expect(response.libraries).toBeDefined()
+    it('returns 403 for users with no role', async () => {
+      const error = await $fetch('/api/admin/libraries', noRoleAuth).catch((e) => e)
+      expect(error.statusCode).toBe(403)
     })
 
     it('succeeds for admin users', async () => {

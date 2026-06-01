@@ -94,7 +94,7 @@ describe('GET /api/people-groups/[slug]/verify', async () => {
     // Verify contact method is now verified
     const updatedContact = await getTestContactMethod(sql, subscriber.id, 'email')
     expect(updatedContact!.verified).toBe(true)
-    expect(updatedContact!.verification_token).toBeNull()
+    expect(updatedContact!.verification_token).toBe(token)
   })
 
   it('sets initial next_reminder_utc on verification', async () => {

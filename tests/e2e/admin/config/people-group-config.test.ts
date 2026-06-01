@@ -52,9 +52,9 @@ describe('People Group Config API', async () => {
       expect(response).toBeDefined()
     })
 
-    it('returns 403 for people_group_editor users (admin only)', async () => {
-      const error = await $fetch('/api/admin/people-group-config/libraries', editorAuth).catch((e) => e)
-      expect(error.statusCode).toBe(403)
+    it('succeeds for people_group_editor users (content.edit permission)', async () => {
+      const response = await $fetch('/api/admin/people-group-config/libraries', editorAuth)
+      expect(response).toBeDefined()
     })
   })
 

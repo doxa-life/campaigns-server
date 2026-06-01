@@ -1,8 +1,9 @@
 import { peopleGroupService } from '../../../database/people-groups'
+import { peopleGroupAdoptionService } from '../../../database/people-group-adoptions'
 import { getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'people_groups.view')
 
   const id = getIntParam(event, 'id')
 
@@ -15,10 +16,13 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const adoptions = await peopleGroupAdoptionService.getForPeopleGroup(id)
+
   return {
     peopleGroup: {
       ...peopleGroup,
-      metadata: peopleGroup.metadata ? JSON.parse(peopleGroup.metadata) : {}
-    }
+      metadata: peopleGroup.metadata || {}
+    },
+    adoptions
   }
 })

@@ -47,6 +47,18 @@
       "championedBy": "A people group championed by {link}.",
       "doxaFoundation": "Doxa.Life"
     },
+    "share": {
+      "button": "Share",
+      "qrCode": "QR Code",
+      "shareLink": "Share Link",
+      "copyLink": "Copy Link",
+      "copied": "Link Copied!",
+      "copiedDescription": "The page link has been copied to your clipboard.",
+      "copyFailed": "Failed to copy link",
+      "qrTitle": "Scan to Visit",
+      "qrDescription": "Scan this QR code to open this page on another device.",
+      "close": "Close"
+    },
     "pageTitle": "Campaign",
     "signupButton": "Sign up to pray",
     "loading": "Loading campaign...",
@@ -191,6 +203,10 @@
         "title": "Email Verified!",
         "message": "Your email has been verified successfully. You will now receive prayer reminders for {campaign}."
       },
+      "alreadyVerified": {
+        "title": "Already Verified",
+        "message": "Your email has already been verified. You're all set to receive prayer reminders for {campaign}."
+      },
       "error": {
         "title": "Verification Failed",
         "generic": "Unable to verify your email. This link may have already been used or has expired."
@@ -312,7 +328,7 @@
       "hint": "Click to finish your prayer time"
     },
     "thankYou": "Thank you for praying!",
-    "meetThePeople": "Meet the People",
+    "meetThePeople": "My People Group",
     "peopleGroupOfTheDay": "People Group of the Day",
     "dayInTheLife": "A Day in the Life",
     "pauseAndPray": "Pause & Pray",
@@ -346,6 +362,44 @@
     "minutes": "min",
     "yes": "Yes",
     "no": "No"
+  },
+  "contact": {
+    "verify": {
+      "pageTitle": "Verify Email",
+      "verifying": "Verifying your email...",
+      "success": {
+        "title": "Email Verified!",
+        "message": "Your email has been verified. Thank you for your interest in the DOXA partnership."
+      },
+      "alreadyVerified": {
+        "title": "Already Verified",
+        "message": "Your email was already verified."
+      },
+      "error": {
+        "title": "Verification Failed",
+        "generic": "Unable to verify your email. This link may have already been used or has expired."
+      }
+    }
+  },
+  "adoption": {
+    "verify": {
+      "pageTitle": "Verify Adoption",
+      "verifying": "Verifying your adoption...",
+      "success": {
+        "title": "Adoption Confirmed!",
+        "message": "Your adoption of the {peopleGroupName} has been confirmed. Welcome aboard!"
+      },
+      "alreadyVerified": {
+        "title": "Already Verified",
+        "message": "Your email was already verified."
+      },
+      "error": {
+        "title": "Verification Failed",
+        "generic": "Unable to verify your email. This link may have already been used or has expired."
+      },
+      "viewPeopleGroup": "View Prayer Sign Up Page",
+      "viewResources": "View Adoption Resources"
+    }
   },
   "followupPage": {
     "recording": "Recording your response...",
@@ -405,7 +459,10 @@
       "closing": "We are deeply grateful to join with the whole Church as we seek to take the whole gospel to the whole world.",
       "reminderTimeNote": "Your daily reminder is set for {time}.",
       "startPraying": "Start Praying",
-      "profileInstructions": "You can update your profile details and your notifications here:"
+      "profileInstructions": "You can update your profile details and your notifications here:",
+      "addToCalendar": "Add this reminder to your calendar:",
+      "googleCalendar": "Google Calendar",
+      "otherCalendars": "Other Calendars (.ics)"
     },
     "reminder": {
       "subject": "Prayer Reminder - {campaign}",
@@ -444,6 +501,243 @@
       "thursday": "Thursday",
       "friday": "Friday",
       "saturday": "Saturday"
+    },
+    "contactVerification": {
+      "subject": "Verify your email to receive DOXA updates",
+      "header": "Verify Your Email",
+      "thankYou": "Thank you for contacting DOXA. You opted in to receive email updates from the DOXA partnership.",
+      "pleaseVerify": "To start receiving updates, please verify your email address by clicking the button below:",
+      "verifyButton": "Verify Email",
+      "linkInstructions": "If the button doesn't work, you can also copy and paste this link into your browser:",
+      "note": "Note:",
+      "expiration": "This verification link will expire in 7 days.",
+      "ignoreMessage": "If you didn't submit a contact form, you can safely ignore this email."
+    },
+    "adoptionVerification": {
+      "subject": "Verify your email to adopt the {peopleGroupName}",
+      "header": "Verify Your Email",
+      "thankYou": "Thank you for your commitment to adopt the {peopleGroupName}.",
+      "pleaseVerify": "Please verify your email address by clicking the button below to confirm your adoption:",
+      "verifyButton": "Verify Email",
+      "linkInstructions": "If the button doesn't work, you can also copy and paste this link into your browser:",
+      "note": "Note:",
+      "expiration": "This verification link will expire in 7 days.",
+      "ignoreMessage": "If you didn't submit an adoption form, you can safely ignore this email."
+    },
+    "adoptionWelcome": {
+      "subject": "DOXA Adoption Update: Your Commitment to the {peopleGroupName}",
+      "headerTitle": "DOXA Adoption Update",
+      "greeting": "Dear {firstName},",
+      "intro": "Today, as part of the DOXA partnership, you changed the status of the {peopleGroupName} from [waiting] to [adopted], the vital first step to engagement.",
+      "introContinued": "You are now a primary advocate, intercessor, and mobilizer for a people group who, until this moment, had no consistent witness or dedicated prayer effort.",
+      "waiting": "waiting",
+      "adopted": "adopted",
+      "resourcesIntro": "The following resources will help you steward this opportunity.",
+      "section1Title": "1. Your Adopted People Group",
+      "section2Title": "2. Your Adoption Resources",
+      "section2Intro": "We have put together a number of resources specific to your people group to help you mobilize and share quickly and easily about this initiative. You will find:",
+      "section1Item1": "URL and QR code to your people group, tips, answers to frequently asked questions, and more",
+      "section1Item2": "Images to help you introduce this to your church or small group",
+      "section1Item3": "A dedicated link to make it easy to contribute financially to the DOXA Foundation",
+      "resourcesButton": "View Adoption Resources",
+      "fullProfileText": "Review details about your people group by visiting their",
+      "fullProfileButton": "Full People Group Profile",
+      "prayerPageText": "Mobilize people to pray through this",
+      "prayerPageButton": "prayer page",
+      "section3Title": "3. Your First 30 Days",
+      "section3Intro": "Here are our recommended next action steps:",
+      "step1Label": "Internalize:",
+      "step1Text": "Pray 10 minutes daily for the {peopleGroupName}. Ask God to give you a heart for this place and these people. Ask Him to give you wisdom for the next steps and favor with all who will hear because of your efforts to share the vision. Ask Him to prepare hearts. Expect Him to answer — He is already at work! Start by visiting their {prayerPageLink}.",
+      "step1PrayerPage": "prayer page",
+      "step2Label": "Strategize and Socialize:",
+      "step2Text": "Make a plan with your church leadership on how to introduce this to your church and community. Share your digital media and other resources found in your {adoptionResourcesLink} with your church family and on your social platforms. Let people know that this group is your focus.",
+      "step2AdoptionResources": "adoption resources",
+      "step3Label": "Mobilize Core:",
+      "step3Text": "Identify 5 people who will sign up to pray with you. Consider prayer leaders, small group members, and spiritually faithful friends who are likely to be aligned in priorities and vision. A small core in sustained, expectant agreement can be the beginning of a movement.",
+      "section4Title": "4. Be Encouraged by DOXA Updates",
+      "section4Text": "Every month, you will receive a strategic monthly update — briefing you on any regional breakthroughs, new resources, or mobilization milestones related to your group. If you have questions, need encouragement, or help thinking through next steps, we want to help. Please reach out to {contactEmail}.",
+      "closingCount": "There were {beforeCount} groups left to adopt. Because of your \"yes\" today, that number is now {afterCount}. We are grateful to partner with you in this worthy endeavor.",
+      "signoff": "To the Glory of God,",
+      "teamName": "The DOXA Team"
+    }
+  },
+  "calendar": {
+    "addToCalendar": "Add to your calendar",
+    "googleCalendar": "Google Calendar",
+    "downloadIcs": "Other calendars",
+    "eventTitle": "Prayer for the {campaign}",
+    "eventDescription": "{duration}-minute prayer session for the {campaign}"
+  },
+  "inbox": {
+    "title": "Inbox",
+    "searchPlaceholder": "Search conversations",
+    "empty": "No conversations",
+    "selectPrompt": "Select a conversation to view it",
+    "conversation": "Conversation",
+    "conversations": "Conversations",
+    "internalNotes": "Internal Notes",
+    "activity": "Activity",
+    "needsReview": "Needs review",
+    "unassigned": "Unassigned",
+    "assignedTo": "Assigned to {name}",
+    "assignToMe": "Assign to me",
+    "assign": "Assign",
+    "unassign": "Unassign",
+    "spamScore": "Spam score",
+    "filters": {
+      "all": "All",
+      "unassigned": "Unassigned",
+      "mine": "Mine",
+      "open": "Open",
+      "pending": "Pending",
+      "closed": "Closed",
+      "spam": "Spam",
+      "held": "Held"
+    },
+    "status": {
+      "open": "Open",
+      "pending": "Pending",
+      "closed": "Closed",
+      "spam": "Spam"
+    },
+    "direction": {
+      "inbound": "Received",
+      "outbound": "Sent"
+    },
+    "compose": {
+      "from": "From",
+      "reply": "Reply",
+      "send": "Send",
+      "saveDraft": "Save Draft",
+      "draft": "Draft",
+      "sending": "Sending…",
+      "cannedResponse": "Canned response",
+      "attach": "Attach file",
+      "placeholder": "Write your reply…",
+      "language": "Language",
+      "newEmail": "New email",
+      "to": "To",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "Subject",
+      "bodyLabel": "Message",
+      "bodyPlaceholder": "Write your message…"
+    },
+    "actions": {
+      "close": "Close",
+      "reopen": "Reopen",
+      "markSpam": "Spam",
+      "unmarkSpam": "Not spam",
+      "showQuoted": "Show quoted text",
+      "hideQuoted": "Hide quoted text",
+      "flagReview": "For review",
+      "unflagReview": "Clear review"
+    },
+    "confirm": {
+      "closeTitle": "Close conversation",
+      "closeMessage": "Close this conversation? It will reopen automatically if the contact replies.",
+      "spamTitle": "Mark as spam",
+      "spamMessage": "Block this sender and close the conversation? Future messages from them will be auto-closed."
+    },
+    "toasts": {
+      "sent": "Reply sent",
+      "emailSent": "Email sent",
+      "draftSaved": "Draft saved",
+      "assigned": "Conversation assigned",
+      "statusChanged": "Status updated",
+      "markedSpam": "Marked as spam",
+      "unmarkedSpam": "Removed from spam",
+      "error": "Something went wrong"
+    },
+    "identity": {
+      "alias": "Email alias",
+      "aliasHint": "Local part only — george becomes george{'@'}doxa.life",
+      "signature": "Email signature",
+      "save": "Save"
+    },
+    "canned": {
+      "title": "Canned responses",
+      "new": "New canned response",
+      "name": "Title",
+      "body": "Body",
+      "save": "Save",
+      "delete": "Delete"
+    },
+    "autoAck": {
+      "subject": "We received your message",
+      "greeting": "Hello,",
+      "greetingNamed": "Hello {name},",
+      "body": "Thanks for reaching out to {appName}. We have received your message and a member of our team will get back to you soon.",
+      "signoff": "In Christ,\nThe {appName} Team"
+    }
+  },
+  "survey": {
+    "may2026": {
+      "page": {
+        "title": "Your prayer experience",
+        "intro": "Thank you for praying with DOXA. These five questions take about three minutes, and your answers help us shape the daily prayer prompts. There are no right or wrong answers — we just want your honest experience.",
+        "submit": "Send my responses",
+        "thanksTitle": "Thank you!",
+        "thanks": "Thank you — your responses are in. We're grateful for the time you took, and for your prayers.",
+        "editNotice": "You've already responded — thank you! You can update your answers below and resave if you'd like.",
+        "invalidTitle": "Invalid link",
+        "invalid": "This survey link doesn't look valid. Please use the link from your email, or contact us if you need help.",
+        "closedTitle": "Survey closed",
+        "closed": "This survey is no longer accepting responses. Thank you for your interest.",
+        "goHome": "Go to homepage",
+        "errorTitle": "Something went wrong",
+        "error": "We couldn't save your responses. Please try again."
+      },
+      "questions": {
+        "focus": {
+          "label": "How well did the daily prayer prompts help you feel focused and engaged in praying for unreached peoples?",
+          "scale": {
+            "1": "Not at all focused",
+            "5": "Extremely focused"
+          }
+        },
+        "experience": {
+          "label": "Tell us more about your experience — what made the prompts feel helpful (or not) for you personally?"
+        },
+        "clarity": {
+          "label": "How clearly did the prayer prompts communicate what to pray for and why it matters?",
+          "scale": {
+            "1": "Very unclear",
+            "5": "Very clear"
+          }
+        },
+        "content_amount": {
+          "label": "Does the amount of prayer content match the time you have to pray?",
+          "scale": {
+            "1": "Too much for my prayer time",
+            "3": "Just right",
+            "5": "Too little for my prayer time"
+          }
+        },
+        "heart": {
+          "label": "How has participating in this prayer campaign affected your heart or perspective toward unreached peoples?"
+        }
+      },
+      "email": {
+        "subject": "Would you share how prayer has been going?",
+        "header": "We'd love your feedback",
+        "greeting": "Hi {name},",
+        "greetingFallback": "Hi there,",
+        "p1": "Thank you for standing in prayer for the unreached peoples of the world. Your faithfulness is the heart of what DOXA exists to support.",
+        "p2": "We're always trying to make the daily prayer prompts more helpful, and before we meet as a team to plan what's next, we'd love to hear from you. Would you take a few minutes to answer five short questions about your experience?",
+        "p3": "Your honest feedback — what's working, what isn't — directly shapes the prayer content we create.",
+        "cta": "Take the survey",
+        "signoff": "With gratitude,",
+        "team": "The DOXA team"
+      }
+    },
+    "admin": {
+      "title": "May 2026 Intercessor Survey",
+      "heading": "Surveys",
+      "totalResponses": "{count} responses",
+      "exportCsv": "Export CSV",
+      "average": "Average",
+      "noResponses": "No responses yet",
+      "selectPrompt": "Select a survey to view its responses."
     }
   }
 }

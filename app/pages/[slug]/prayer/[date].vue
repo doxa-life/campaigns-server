@@ -72,6 +72,8 @@ const route = useRoute()
 const slug = route.params.slug as string
 const dateParam = route.params.date as string
 const { setPeopleGroupTitle } = usePeopleGroup()
+const { trackEvent } = useTracking()
+const viewedTrackingKey = ref<string | null>(null)
 
 // Content date from route param
 const contentDate = computed(() => dateParam)
@@ -104,7 +106,17 @@ watch(data, (newData) => {
       selectedLanguage.value = newData.language
     }
     if (newData.people_group?.title) {
-      setPeopleGroupTitle(newData.people_group.title)
+      setPeopleGroupTitle(newData.people_group.title, newData.people_group.image_url)
+    }
+    const trackingKey = `${slug}:${newData.date}:${newData.language}`
+    if (viewedTrackingKey.value !== trackingKey) {
+      viewedTrackingKey.value = trackingKey
+      trackEvent('prayer_content_viewed', {
+        metadata: {
+          people_group_slug: slug,
+          content_date: newData.date
+        }
+      })
     }
   }
 }, { immediate: true })
@@ -154,7 +166,7 @@ const isNextDateFuture = computed(() => {
 // Set people group title on mount (handles cached data from navigation)
 onMounted(() => {
   if (data.value?.people_group?.title) {
-    setPeopleGroupTitle(data.value.people_group.title)
+    setPeopleGroupTitle(data.value.people_group.title, data.value.people_group.image_url)
   }
 })
 

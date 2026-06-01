@@ -126,7 +126,7 @@ export function getTranslatedLabel(labelKey: string, locale: string): string {
 // To add descriptions for a new field, add its translation key here and the
 // corresponding object in people-groups.json under options.
 const FIELD_DESCRIPTION_KEYS: Record<string, string> = {
-  imb_reg_of_religion: 'religionDescriptions',
+  primary_religion: 'religionDescriptions',
 }
 
 /**
@@ -141,6 +141,17 @@ export function getFieldOptionDescription(fieldKey: string, optionKey: string, l
   if (typeof descriptions?.[optionKey] === 'string') return descriptions[optionKey]
   if (locale !== 'en') return getFieldOptionDescription(fieldKey, optionKey, 'en')
   return null
+}
+
+/**
+ * Returns translated alternate search terms for a field option (e.g., "Muslim" for "Islam - Sunni").
+ */
+export function getFieldOptionAlternates(fieldKey: string, optionKey: string, locale: string = 'en'): string[] | null {
+  const field = getField(fieldKey)
+  if (!field?.options) return null
+  const option = field.options.find(o => o.value === optionKey)
+  if (!option?.alternateKeys?.length) return null
+  return option.alternateKeys.map(key => getTranslatedLabel(key, locale))
 }
 
 export function getReligionLabel(code: string, locale: string = 'en'): string | null {

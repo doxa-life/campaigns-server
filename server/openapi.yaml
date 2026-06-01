@@ -13,12 +13,139 @@ servers:
     description: Local development
 
 tags:
+  - name: Admin
+    description: Admin-only operations (require API key or JWT authentication)
   - name: Signups
     description: Prayer reminder signup operations
   - name: People Groups
     description: Unreached people group data for WordPress themes and map widgets
 
 paths:
+  /api/admin/people-groups/bulk-update:
+    post:
+      tags:
+        - Admin
+      summary: Bulk update people groups
+      description: |
+        Updates multiple people groups in a single request. Each item identifies a group by `id` or `slug`
+        and provides fields to update. Partial success is supported — failures are reported per-item.
+        Maximum 500 items per request. The `errors` array is capped at 50 entries.
+      operationId: bulkUpdatePeopleGroups
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - updates
+              properties:
+                updates:
+                  type: array
+                  maxItems: 500
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: People group ID (provide id or slug, not both required)
+                      slug:
+                        type: string
+                        description: People group slug (provide id or slug, not both required)
+                      name:
+                        type: string
+                      image_url:
+                        type: string
+                        nullable: true
+                      joshua_project_id:
+                        type: string
+                        nullable: true
+                      metadata:
+                        type: object
+                        additionalProperties: true
+                      country_code:
+                        type: string
+                        nullable: true
+                      region:
+                        type: string
+                        nullable: true
+                      latitude:
+                        type: number
+                        nullable: true
+                      longitude:
+                        type: number
+                        nullable: true
+                      population:
+                        type: integer
+                        nullable: true
+                      evangelical_pct:
+                        type: number
+                        nullable: true
+                      engagement_status:
+                        type: string
+                        nullable: true
+                      primary_religion:
+                        type: string
+                        nullable: true
+                      primary_language:
+                        type: string
+                        nullable: true
+                      descriptions:
+                        type: object
+                        nullable: true
+                        additionalProperties:
+                          type: string
+            example:
+              updates:
+                - slug: yao
+                  joshua_project_id: "15988"
+                - id: 42
+                  population: 5000
+                  region: africa
+      responses:
+        '200':
+          description: Bulk update completed (may include partial failures)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                    example: "Bulk update: 3 updated, 0 not found, 0 skipped, 0 errors"
+                  stats:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      updated:
+                        type: integer
+                      notFound:
+                        type: integer
+                      skipped:
+                        type: integer
+                      errors:
+                        type: integer
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        index:
+                          type: integer
+                        identifier:
+                          type: string
+                        message:
+                          type: string
+        '400':
+          description: Invalid request (empty array, exceeds 500 items, missing id/slug)
+        '401':
+          description: Unauthorized — missing or invalid API key / JWT
+
   /api/people-groups/{slug}/signup:
     post:
       tags:
@@ -102,6 +229,180 @@ paths:
           description: People group not found
         '500':
           description: Failed to create signup
+
+  /api/people-groups/{slug}/anon-signup:
+    post:
+      tags:
+        - Signups
+      summary: Anonymous mobile-app prayer signup
+      description: >
+        Records a prayer signup for a people group from the mobile app without
+        requiring contact information. Notifications are handled on-device; the
+        server only records the schedule. Both `frequency` and `time` are
+        optional — when omitted the signup is recorded as a daily 5-minute prayer
+        commitment with no fixed reminder time. Upserts a single app subscription
+        per (subscriber, people group) and returns a stable anonymous identity. An
+        email may optionally be supplied to dedup against an existing subscriber
+        and attach news consents.
+      operationId: anonSignupForPeopleGroup
+      security:
+        - appSecret: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: People group slug identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tracking_id:
+                  type: string
+                  format: uuid
+                  description: Persistent device identity; omit on first call, send the returned value afterwards
+                frequency:
+                  type: string
+                  enum: [daily, weekly]
+                  description: Optional; defaults to `daily` when omitted
+                  example: daily
+                time:
+                  type: string
+                  description: >
+                    Optional reminder time, HH:MM (24h, local). When omitted the
+                    signup has no fixed time (reminders are handled on-device) and
+                    counts as a daily 5-minute prayer commitment.
+                  example: "08:00"
+                days_of_week:
+                  type: array
+                  items:
+                    type: integer
+                  description: Required when frequency is weekly. 0=Sunday .. 6=Saturday
+                  example: [1, 3, 5]
+                timezone:
+                  type: string
+                  description: IANA timezone (defaults to UTC if invalid/missing)
+                  example: Europe/London
+                language:
+                  type: string
+                  enum: [en, es, fr]
+                  example: en
+                email:
+                  type: string
+                  format: email
+                  description: Optional; enables dedup against an existing subscriber and news consents
+                name:
+                  type: string
+                  description: Optional; used only when an email is supplied
+                consent_doxa_general:
+                  type: boolean
+                  description: Optional; only applied when an email is supplied
+                consent_people_group_updates:
+                  type: boolean
+                  description: Optional; only applied when an email is supplied
+      responses:
+        '200':
+          description: Signup recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tracking_id:
+                    type: string
+                    format: uuid
+                  profile_id:
+                    type: string
+                    format: uuid
+                  subscription_id:
+                    type: integer
+        '400':
+          description: Invalid fields (weekly without days_of_week, malformed time, invalid email)
+        '403':
+          description: Missing or invalid app secret
+        '404':
+          description: People group not found
+        '500':
+          description: Failed to create anonymous signup
+
+  /api/news-signup:
+    post:
+      tags:
+        - Signups
+      summary: News / newsletter signup
+      description: >
+        Subscribes an email to news/marketing updates (and optionally
+        people-group updates) with double opt-in verification. No prayer schedule
+        required. Accepts either the mobile app secret (X-App-Secret) or the form
+        API key (X-API-Key / Bearer). Email is the canonical identity, so this
+        dedups against existing subscribers.
+      operationId: newsSignup
+      security:
+        - appSecret: []
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: jane@example.com
+                name:
+                  type: string
+                  example: Jane Doe
+                consent_doxa_general:
+                  type: boolean
+                  description: Opt in to general Doxa updates
+                consent_people_group_updates:
+                  type: boolean
+                  description: Opt in to updates for the people group named by people_group_slug
+                people_group_slug:
+                  type: string
+                  description: Required to record people-group update consent
+                country:
+                  type: string
+                  description: ISO alpha-2 or alpha-3 country code
+                  example: GB
+                language:
+                  type: string
+                  enum: [en, es, fr]
+                tracking_id:
+                  type: string
+                  format: uuid
+                  description: Optional; links the email to an existing anonymous subscriber
+      responses:
+        '200':
+          description: News signup recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  tracking_id:
+                    type: string
+                    format: uuid
+                  profile_id:
+                    type: string
+                    format: uuid
+        '400':
+          description: Invalid email
+        '403':
+          description: Missing or invalid auth (app secret or form API key)
+        '500':
+          description: Failed to process news signup
 
   /api/people-groups/{slug}/prayer-content/{date}:
     get:
@@ -223,14 +524,14 @@ paths:
             schema:
               type: object
               required:
-                - sessionId
+                - session_id
                 - duration
                 - timestamp
               properties:
-                sessionId:
+                session_id:
                   type: string
                   description: Unique session identifier
-                trackingId:
+                tracking_id:
                   type: string
                   nullable: true
                   description: User tracking ID (anonymous or authenticated)
@@ -241,6 +542,19 @@ paths:
                   type: string
                   format: date-time
                   description: Timestamp of the prayer session
+                people_group_id:
+                  type: integer
+                  description: People group ID (optional; faster than slug lookup)
+                track_event:
+                  type: string
+                  nullable: true
+                  enum:
+                    - prayer_auto_tracked
+                    - prayer_logged
+                  description: When set, also forwards the event to analytics
+                language:
+                  type: string
+                  description: Locale code for the forwarded analytics event
       responses:
         '200':
           description: Successfully recorded prayer session
@@ -249,8 +563,6 @@ paths:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
                   message:
                     type: string
         '400':
@@ -268,7 +580,7 @@ paths:
       description: |
         Returns all people groups with summary data and translated labels. Supports field selection and i18n.
 
-        **Default fields:** id, name, slug, display_name, wagf_region, wagf_block, wagf_member, country, rop1, religion, location_description, population, has_photo, picture_url, picture_credit_html, people_praying, adopted_by_churches
+        **Default fields:** id, name, slug, display_name, wagf_region, wagf_block, wagf_member, country, rop1, religion, location_description, population, has_photo, picture_url, people_praying, people_committed, adopted_by_churches
       operationId: listPeopleGroups
       parameters:
         - name: lang
@@ -283,7 +595,10 @@ paths:
         - name: fields
           in: query
           required: false
-          description: Comma-separated list of fields to return (see /all endpoint for full field list)
+          description: |
+            Comma-separated list of fields to return. Pass `all` to return every available field.
+
+            **Available fields:** `name`, `slug`, `image_url`, `picture_credit`, `population`, `people_praying`, `people_committed`, `adopted_by_churches`, `joshua_project_id`, `status`, `reason_unlisted`, `imb_alternate_name`, `imb_people_description`, `location_description`, `doxa_wagf_uid`, `imb_uid`, `imb_pgid`, `imb_peid`, `country_code`, `region`, `imb_subregion`, `latitude`, `longitude`, `imb_is_indigenous`, `imb_population_class`, `evangelical_pct`, `imb_evangelical_level`, `engagement_status`, `reason_engaged`, `imb_congregation_existing`, `imb_church_planting`, `believers_count`, `imb_gsec`, `imb_strategic_priority_index`, `imb_lostness_priority_index`, `imb_affinity_code`, `primary_language`, `imb_language_family`, `imb_language_class`, `imb_language_speakers`, `religion`, `imb_reg_of_religion_3`, `imb_reg_of_religion_4`, `imb_reg_of_people_3`, `imb_reg_of_people_2`, `rop1`, `imb_reg_of_people_25`, `imb_bible_available`, `imb_jesus_film_available`, `imb_radio_broadcast_available`, `imb_gospel_recordings_available`, `imb_audio_scripture_available`, `imb_bible_stories_available`, `imb_total_resources_available`, `imb_bible_translation_level`, `imb_bible_year_published`, `workers_long_term`, `work_in_local_language`, `disciple_and_church_multiplication`, `wagf_region`, `wagf_block`, `wagf_member`, `has_photo`.
           schema:
             type: string
           example: id,name,country,population
@@ -393,64 +708,19 @@ paths:
                   total:
                     type: integer
 
-  /api/people-groups:
-    get:
-      tags:
-        - People Groups
-      summary: Get all people groups (raw data)
-      description: |
-        Returns all people groups with raw field values (no label formatting). Useful for map widgets and data exports.
-
-        **Default fields:** name, slug, imb_reg_of_people_1, doxa_wagf_region, doxa_wagf_block, imb_population, imb_reg_of_religion, imb_reg_of_religion_3, imb_isoalpha3, imb_has_photo, image_url, imb_lat, imb_lng, imb_people_description
-
-        **Available fields:**
-        - **Basic:** name, imb_display_name, imb_alternate_name, imb_people_name, imb_people_description, imb_location_description
-        - **Identifiers:** joshua_project_id, doxa_masteruid, doxa_wagf_uid, imb_uid, imb_pgid, imb_peid
-        - **Geography:** imb_isoalpha3, imb_region, imb_subregion, imb_lat, imb_lng, imb_is_indigenous
-        - **Population:** imb_population, imb_population_class, imb_evangelical_percentage, imb_evangelical_level, imb_engagement_status, imb_congregation_existing, imb_church_planting
-        - **Strategic:** imb_gsec, imb_strategic_priority_index, imb_lostness_priority_index, imb_affinity_code
-        - **Language:** imb_reg_of_language, imb_language_family, imb_language_class, imb_language_speakers
-        - **Religion:** imb_reg_of_religion, imb_reg_of_religion_3, imb_reg_of_religion_4
-        - **People Classification:** imb_reg_of_people_3, imb_reg_of_people_2, imb_reg_of_people_1, imb_reg_of_people_25
-        - **Resources:** imb_bible_available, imb_jesus_film_available, imb_radio_broadcast_available, imb_gospel_recordings_available, imb_audio_scripture_available, imb_bible_stories_available, imb_total_resources_available, imb_bible_translation_level, imb_bible_year_published
-        - **WAGF:** doxa_wagf_region, doxa_wagf_block, doxa_wagf_member
-        - **Media:** image_url, imb_picture_credit_html, imb_has_photo, imb_people_search_text
-        - **Special:** slug (always included)
-      operationId: getAllPeopleGroupsRaw
-      parameters:
-        - name: fields
-          in: query
-          required: false
-          description: Comma-separated field names, or "all" for everything
-          schema:
-            type: string
-          example: name,slug,image_url,imb_lat,imb_lng,imb_engagement_status
-        - name: lang
-          in: query
-          required: false
-          description: Language code for locale-aware fields (e.g. imb_people_description)
-          schema:
-            type: string
-            enum: [en, es, fr, pt, de, it, zh, ar, ru, hi]
-            default: en
-      responses:
-        '200':
-          description: Successfully retrieved people groups
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  posts:
-                    type: array
-                    items:
-                      type: object
-                      additionalProperties: true
-                      description: Raw field values based on requested fields
-                  total:
-                    type: integer
-
 components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: API key for admin endpoints
+    appSecret:
+      type: apiKey
+      in: header
+      name: x-app-secret
+      description: Shared secret bundled into the mobile app (anonymous + news signup)
+
   schemas:
     ValueLabel:
       type: object
@@ -508,13 +778,25 @@ components:
           type: string
           nullable: true
           format: uri
-        picture_credit_html:
-          type: string
+        picture_credit:
+          type: array
           nullable: true
+          items:
+            type: object
+            properties:
+              text:
+                type: string
+              link:
+                type: string
+                nullable: true
         people_praying:
           type: integer
           description: Number of people currently praying for this group
           example: 42
+        people_committed:
+          type: integer
+          description: Total number of active prayer commitments (subscriptions)
+          example: 58
         adopted_by_churches:
           type: integer
           description: Number of churches that have adopted this group (always 0)
@@ -559,7 +841,10 @@ components:
           description: Total number of active prayer commitments
         committed_duration:
           type: integer
-          description: Total committed prayer minutes across active subscriptions
+          description: >
+            Frequency-weighted daily committed prayer minutes across active
+            subscriptions. Weekly commitments are scaled by days-per-week ÷ 7, so
+            the figure reflects average minutes committed per day.
         global_start_date:
           type: string
           format: date
@@ -581,24 +866,23 @@ components:
         imb_location_description:
           type: string
           nullable: true
-        imb_isoalpha3:
+        country_code:
           $ref: '#/components/schemas/ValueLabel'
-        imb_region:
+        region:
           $ref: '#/components/schemas/ValueLabel'
         imb_subregion:
           $ref: '#/components/schemas/ValueLabel'
-        imb_lat:
+        latitude:
           type: string
           nullable: true
-        imb_lng:
+        longitude:
           type: string
           nullable: true
-        imb_population:
-          type: string
-          nullable: true
-        imb_engagement_status:
+        engagement_status:
           $ref: '#/components/schemas/ValueLabel'
-        imb_reg_of_religion:
+        primary_religion:
+          $ref: '#/components/schemas/ValueLabel'
+        primary_language:
           $ref: '#/components/schemas/ValueLabel'
         imb_reg_of_religion_3:
           $ref: '#/components/schemas/ValueLabel'
@@ -616,12 +900,19 @@ components:
       properties:
         total_with_prayer:
           type: integer
-          description: Number of people groups with at least one person praying
+          description: Number of people groups with at least one person praying (tracked prayer activity in the last 7 days)
           example: 234
         total_with_full_prayer:
           type: integer
-          description: Number of people groups with 144+ people praying (full coverage)
+          description: >
+            Number of people groups whose frequency-weighted daily committed
+            minutes sum to 1440+ (full 24-hour daily coverage). Weekly
+            commitments count as days-per-week ÷ 7 of their duration.
           example: 45
+        total_with_prayer_committed:
+          type: integer
+          description: Number of people groups with at least one active prayer commitment (campaign subscription)
+          example: 312
         total_adopted:
           type: integer
           description: Number of people groups adopted by churches (always 0)
@@ -632,5 +923,7 @@ components:
           example: 1200
         committed_duration:
           type: integer
-          description: Total committed prayer minutes across all active subscriptions
+          description: >
+            Frequency-weighted daily committed prayer minutes across all active
+            subscriptions (weekly commitments scaled by days-per-week ÷ 7).
           example: 36000

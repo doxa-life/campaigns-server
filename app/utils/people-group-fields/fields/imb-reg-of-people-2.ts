@@ -81,6 +81,7 @@ const options: FieldOption[] = [
   { value: 'C0330', label: 'Bhil' },
   { value: 'C0299', label: 'Bhoi' },
   { value: 'C0051', label: 'Bhojpur-Maithili' },
+  { value: 'C0052', label: 'Bhutanese' },
   { value: 'C0053', label: 'Bihari' },
   { value: 'C0059', label: 'Borneo-Kalimantan' },
   { value: 'C0054', label: 'Bouyei' },

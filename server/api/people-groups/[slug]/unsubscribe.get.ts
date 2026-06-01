@@ -5,12 +5,13 @@
 import { peopleGroupService } from '#server/database/people-groups'
 import { subscriberService } from '#server/database/subscribers'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
+import { trackEventInBackground } from '#server/utils/tracking'
 
 interface ReminderInfo {
   id: number
   frequency: string
   days_of_week: number[]
-  time_preference: string
+  time_preference: string | null
   timezone: string
 }
 
@@ -80,7 +81,7 @@ export default defineEventHandler(async (event) => {
   const formatReminder = (s: typeof peopleGroupSubscriptions[0]): ReminderInfo => ({
     id: s.id,
     frequency: s.frequency,
-    days_of_week: s.days_of_week ? JSON.parse(s.days_of_week) : [],
+    days_of_week: s.days_of_week,
     time_preference: s.time_preference,
     timezone: s.timezone
   })
@@ -106,6 +107,21 @@ export default defineEventHandler(async (event) => {
     return Array.from(peopleGroupMap.values())
   }
 
+  const trackUnsubscribe = (alreadyUnsubscribed: boolean, trackedSubscriptionId: number | null) => {
+    trackEventInBackground(event, {
+      eventType: 'subscriber_unsubscribed',
+      anonymousHash: subscriber.tracking_id,
+      language: subscriber.preferred_language || null,
+      metadata: {
+        people_group_slug: slug,
+        people_group_id: peopleGroup.id,
+        subscription_id: trackedSubscriptionId,
+        unsubscribe_all: unsubscribeAll,
+        already_unsubscribed: alreadyUnsubscribed
+      }
+    })
+  }
+
   // If unsubscribe_all flag is set, unsubscribe from entire people group
   if (unsubscribeAll) {
     const unsubscribedCount = await peopleGroupSubscriptionService.unsubscribeAllForPeopleGroup(
@@ -113,10 +129,24 @@ export default defineEventHandler(async (event) => {
       peopleGroup.id
     )
 
+    if (unsubscribedCount > 0) {
+      logCreate('subscribers', String(subscriber.id), event, {
+        source: 'self_service',
+        message: 'Unsubscribed from all reminders for',
+        link_text: peopleGroup.name,
+        link_url: `/admin/people-groups/${peopleGroup.id}`,
+        form_values: {
+          unsubscribed_count: unsubscribedCount
+        }
+      })
+    }
+
     // Get other people groups (excluding current one)
     const otherPeopleGroups = groupByPeopleGroup(
       allSubscriberSubscriptions.filter(s => s.people_group_id !== peopleGroup.id)
     )
+
+    trackUnsubscribe(false, null)
 
     return {
       message: `Unsubscribed from all ${unsubscribedCount} reminder(s) for this people group`,
@@ -148,6 +178,8 @@ export default defineEventHandler(async (event) => {
       .filter(s => s.status === 'active')
       .map(formatReminder)
 
+    trackUnsubscribe(true, subscriptionId)
+
     return {
       message: 'You have already been unsubscribed',
       already_unsubscribed: true,
@@ -168,6 +200,8 @@ export default defineEventHandler(async (event) => {
     const otherRemindersInPeopleGroup = peopleGroupSubscriptions
       .filter(s => s.id !== subscriptionToUnsubscribe!.id && s.status === 'active')
       .map(formatReminder)
+
+    trackUnsubscribe(true, subscriptionToUnsubscribe.id)
 
     return {
       message: 'You have already been unsubscribed from this reminder',
@@ -194,10 +228,25 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  logCreate('subscribers', String(subscriber.id), event, {
+    source: 'self_service',
+    message: 'Unsubscribed from',
+    link_text: peopleGroup.name,
+    link_url: `/admin/people-groups/${peopleGroup.id}`,
+    form_values: {
+      frequency: subscriptionToUnsubscribe.frequency,
+      days_of_week: subscriptionToUnsubscribe.days_of_week,
+      time_preference: subscriptionToUnsubscribe.time_preference,
+      timezone: subscriptionToUnsubscribe.timezone
+    }
+  })
+
   // Get remaining active reminders in this people group
   const otherRemindersInPeopleGroup = peopleGroupSubscriptions
     .filter(s => s.id !== subscriptionToUnsubscribe!.id && s.status === 'active')
     .map(formatReminder)
+
+  trackUnsubscribe(false, subscriptionToUnsubscribe.id)
 
   return {
     success: true,

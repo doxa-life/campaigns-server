@@ -47,6 +47,18 @@
       "championedBy": "Un grup etnic susținut de {link}.",
       "doxaFoundation": "Doxa.Life"
     },
+    "share": {
+      "button": "Distribuie",
+      "qrCode": "Cod QR",
+      "shareLink": "Distribuie linkul",
+      "copyLink": "Copiază linkul",
+      "copied": "Link copiat!",
+      "copiedDescription": "Linkul paginii a fost copiat în clipboard.",
+      "copyFailed": "Nu s-a putut copia linkul",
+      "qrTitle": "Scanează pentru a vizita",
+      "qrDescription": "Scanează acest cod QR pentru a deschide această pagină pe alt dispozitiv.",
+      "close": "Închide"
+    },
     "pageTitle": "Campanie",
     "signupButton": "Înscrie-te pentru rugăciune",
     "loading": "Se încarcă campania...",
@@ -191,6 +203,10 @@
         "title": "Email verificat!",
         "message": "Emailul tău a fost verificat cu succes. Vei primi acum memento-uri de rugăciune pentru {campaign}."
       },
+      "alreadyVerified": {
+        "title": "Deja Verificat",
+        "message": "Emailul tău a fost deja verificat. Ești pregătit să primești memento-uri de rugăciune pentru {campaign}."
+      },
       "error": {
         "title": "Verificarea a eșuat",
         "generic": "Nu s-a putut verifica emailul. Acest link a fost deja folosit sau a expirat."
@@ -312,7 +328,7 @@
       "hint": "Apasă pentru a încheia timpul de rugăciune"
     },
     "thankYou": "Mulțumim că te-ai rugat!",
-    "meetThePeople": "Cunoaște grupul etnic",
+    "meetThePeople": "Grupul meu etnic",
     "peopleGroupOfTheDay": "Grupul etnic al zilei",
     "dayInTheLife": "O zi din viață",
     "pauseAndPray": "Oprește-te și roagă-te",
@@ -346,6 +362,44 @@
     "minutes": "min",
     "yes": "Da",
     "no": "Nu"
+  },
+  "contact": {
+    "verify": {
+      "pageTitle": "Verifică emailul",
+      "verifying": "Se verifică emailul tău...",
+      "success": {
+        "title": "Email verificat!",
+        "message": "Emailul tău a fost verificat. Mulțumim pentru interesul tău față de parteneriatul DOXA."
+      },
+      "alreadyVerified": {
+        "title": "Deja verificat",
+        "message": "Emailul tău a fost deja verificat."
+      },
+      "error": {
+        "title": "Verificarea a eșuat",
+        "generic": "Nu s-a putut verifica emailul. Acest link a fost deja folosit sau a expirat."
+      }
+    }
+  },
+  "adoption": {
+    "verify": {
+      "pageTitle": "Verifică adoptarea",
+      "verifying": "Se verifică adoptarea ta...",
+      "success": {
+        "title": "Adoptare confirmată!",
+        "message": "Adoptarea ta pentru {peopleGroupName} a fost confirmată. Bine ai venit!"
+      },
+      "alreadyVerified": {
+        "title": "Deja verificat",
+        "message": "Emailul tău a fost deja verificat."
+      },
+      "error": {
+        "title": "Verificarea a eșuat",
+        "generic": "Nu s-a putut verifica emailul. Acest link a fost deja folosit sau a expirat."
+      },
+      "viewPeopleGroup": "Vezi pagina de înscriere la rugăciune",
+      "viewResources": "Vedeți resursele de adopție"
+    }
   },
   "followupPage": {
     "recording": "Se înregistrează răspunsul tău...",
@@ -401,7 +455,10 @@
       "header": "Bun venit la {appName}",
       "thankYou": "Mulțumim că te-ai înscris pentru rugăciune. Emailul tău a fost verificat și ești pregătit să primești memento-uri de rugăciune pentru {campaign}.",
       "startPraying": "Începe rugăciunea",
-      "profileInstructions": "Poți actualiza detaliile profilului și notificările aici:"
+      "profileInstructions": "Poți actualiza detaliile profilului și notificările aici:",
+      "addToCalendar": "Adaugă acest memento în calendarul tău:",
+      "googleCalendar": "Google Calendar",
+      "otherCalendars": "Alte calendare (.ics)"
     },
     "reminder": {
       "subject": "Memento de rugăciune - {campaign}",
@@ -440,6 +497,241 @@
       "thursday": "Joi",
       "friday": "Vineri",
       "saturday": "Sâmbătă"
+    },
+    "contactVerification": {
+      "subject": "Verifică emailul pentru a primi actualizări DOXA",
+      "header": "Verifică-ți emailul",
+      "thankYou": "Mulțumim că ai contactat DOXA. Ai optat să primești actualizări prin email de la parteneriatul DOXA.",
+      "pleaseVerify": "Pentru a începe să primești actualizări, te rugăm să verifici adresa de email făcând click pe butonul de mai jos:",
+      "verifyButton": "Verifică emailul",
+      "linkInstructions": "Dacă butonul nu funcționează, poți copia și lipi acest link în browser:",
+      "note": "Notă:",
+      "expiration": "Acest link de verificare va expira în 7 zile.",
+      "ignoreMessage": "Dacă nu ai trimis un formular de contact, poți ignora acest email în siguranță."
+    },
+    "adoptionVerification": {
+      "subject": "Verifică emailul pentru a adopta {peopleGroupName}",
+      "header": "Verifică-ți emailul",
+      "thankYou": "Mulțumim pentru angajamentul tău de a adopta {peopleGroupName}.",
+      "pleaseVerify": "Te rugăm să verifici adresa de email făcând click pe butonul de mai jos pentru a confirma adoptarea ta:",
+      "verifyButton": "Verifică emailul",
+      "linkInstructions": "Dacă butonul nu funcționează, poți copia și lipi acest link în browser:",
+      "note": "Notă:",
+      "expiration": "Acest link de verificare va expira în 7 zile.",
+      "ignoreMessage": "Dacă nu ai trimis un formular de adoptare, poți ignora acest email în siguranță."
+    },
+    "adoptionWelcome": {
+      "subject": "Actualizare adoptare DOXA: Angajamentul tău pentru {peopleGroupName}",
+      "headerTitle": "Actualizare de adoptare DOXA",
+      "greeting": "Dragă {firstName},",
+      "intro": "Astăzi, ca parte a parteneriatului DOXA, ai schimbat statutul {peopleGroupName} din [waiting] în [adopted] — primul pas vital spre angajare.",
+      "introContinued": "Ești acum un principal apărător, mijlocitor și mobilizator pentru un grup etnic care, până în acest moment, nu avea nicio mărturie constantă și niciun efort dedicat de rugăciune.",
+      "waiting": "în așteptare",
+      "adopted": "adoptat",
+      "resourcesIntro": "Următoarele resurse te vor ajuta să gestionezi această oportunitate.",
+      "section1Title": "1. Grupul tău etnic adoptat",
+      "resourcesButton": "Vezi resursele de adoptare",
+      "section1Item1": "URL și cod QR pentru grupul tău etnic, sfaturi, răspunsuri la întrebări frecvente și multe altele",
+      "section1Item2": "Imagini care te ajută să prezinți acest lucru bisericii tale sau grupului mic",
+      "section1Item3": "Un link dedicat pentru a facilita contribuția financiară la Fundația DOXA",
+      "section2Title": "2. Resursele tale de adoptare",
+      "section2Intro": "Am pregătit o serie de resurse specifice grupului tău etnic pentru a te ajuta să mobilizezi și să distribui rapid și ușor informații despre această inițiativă. Vei găsi:",
+      "fullProfileText": "Consultă detaliile grupului tău etnic vizitând",
+      "fullProfileButton": "Profilul complet al grupului etnic",
+      "prayerPageText": "Mobilizează oameni să se roage prin această",
+      "prayerPageButton": "pagină de rugăciune",
+      "section3Title": "3. Primele tale 30 de zile",
+      "section3Intro": "Iată pașii următori de acțiune pe care îi recomandăm:",
+      "step1Label": "Interiorizează:",
+      "step1Text": "Roagă-te 10 minute zilnic pentru {peopleGroupName}. Cere-I lui Dumnezeu să-ți dea o inimă pentru acest loc și acești oameni. Cere-I înțelepciune pentru pașii următori și favoare la toți cei care vor auzi datorită eforturilor tale de a împărtăși viziunea. Cere-I să pregătească inimile. Așteaptă-te ca El să răspundă — El lucrează deja! Începe prin a vizita {prayerPageLink} lor.",
+      "step1PrayerPage": "pagină de rugăciune",
+      "step2Label": "Planifică și socializează:",
+      "step2Text": "Creează un plan cu conducerea bisericii tale despre cum să prezinți acest lucru bisericii și comunității tale. Împărtășește materialele tale digitale și alte resurse din {adoptionResourcesLink} tale cu familia bisericii tale și pe platformele tale sociale. Fă cunoscut că acest grup etnic este prioritatea ta.",
+      "step2AdoptionResources": "resursele de adoptare",
+      "step3Label": "Mobilizează nucleul:",
+      "step3Text": "Identifică 5 persoane care se vor înscrie să se roage cu tine. Ia în considerare lideri de rugăciune, membri ai grupurilor mici și prieteni spiritual credincioși care sunt probabil aliniați în priorități și viziune. Un mic nucleu în acord susținut și plin de așteptare poate fi începutul unei mișcări.",
+      "section4Title": "4. Fii încurajat de actualizările DOXA",
+      "section4Text": "În fiecare lună, vei primi o actualizare strategică lunară — informându-te despre orice progrese regionale, resurse noi sau repere de mobilizare legate de grupul tău etnic. Dacă ai întrebări, ai nevoie de încurajare sau de ajutor pentru a gândi pașii următori, vrem să te ajutăm. Te rugăm să ne contactezi la {contactEmail}.",
+      "closingCount": "Erau {beforeCount} grupuri etnice care așteptau să fie adoptate. Datorită \"da\"-ului tău de astăzi, acel număr este acum {afterCount}. Suntem recunoscători că putem fi parteneri cu tine în acest demers valoros.",
+      "signoff": "Pentru slava lui Dumnezeu,",
+      "teamName": "Echipa DOXA"
+    }
+  },
+  "calendar": {
+    "addToCalendar": "Adaugă în calendarul tău",
+    "googleCalendar": "Google Calendar",
+    "downloadIcs": "Alte calendare",
+    "eventTitle": "Rugăciune pentru {campaign}",
+    "eventDescription": "Sesiune de rugăciune de {duration} minute pentru {campaign}"
+  },
+  "inbox":   {
+    "title": "Mesaje primite",
+    "searchPlaceholder": "Caută conversații",
+    "empty": "Nicio conversație",
+    "selectPrompt": "Selectează o conversație pentru a o vizualiza",
+    "conversation": "Conversație",
+    "conversations": "Conversații",
+    "internalNotes": "Note interne",
+    "activity": "Activitate",
+    "needsReview": "Necesită revizuire",
+    "unassigned": "Neatribuită",
+    "assignedTo": "Atribuită lui {name}",
+    "assignToMe": "Atribuie-mi",
+    "assign": "Atribuie",
+    "unassign": "Anulează atribuirea",
+    "spamScore": "Scor spam",
+    "filters": {
+      "all": "Toate",
+      "unassigned": "Neatribuite",
+      "mine": "Ale mele",
+      "open": "Deschise",
+      "pending": "În așteptare",
+      "closed": "Închise",
+      "spam": "Spam",
+      "held": "Reținute"
+    },
+    "status": {
+      "open": "Deschisă",
+      "pending": "În așteptare",
+      "closed": "Închisă",
+      "spam": "Spam"
+    },
+    "direction": {
+      "inbound": "Primit",
+      "outbound": "Trimis"
+    },
+    "compose": {
+      "from": "De la",
+      "reply": "Răspunde",
+      "send": "Trimite",
+      "saveDraft": "Salvează ciorna",
+      "draft": "Ciornă",
+      "sending": "Se trimite…",
+      "cannedResponse": "Răspuns predefinit",
+      "attach": "Atașează fișier",
+      "placeholder": "Scrie răspunsul tău…",
+      "language": "Limbă",
+      "newEmail": "E-mail nou",
+      "to": "Către",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "Subiect",
+      "bodyLabel": "Mesaj",
+      "bodyPlaceholder": "Scrie mesajul tău…"
+    },
+    "actions": {
+      "close": "Închide",
+      "reopen": "Redeschide",
+      "markSpam": "Marchează ca spam",
+      "unmarkSpam": "Nu este spam",
+      "showQuoted": "Arată textul citat",
+      "hideQuoted": "Ascunde textul citat"
+    },
+    "confirm": {
+      "closeTitle": "Închide conversația",
+      "closeMessage": "Închizi această conversație? Se va redeschide automat dacă persoana de contact răspunde.",
+      "spamTitle": "Marchează ca spam",
+      "spamMessage": "Blochezi acest expeditor și închizi conversația? Mesajele lui viitoare vor fi închise automat."
+    },
+    "toasts": {
+      "sent": "Răspuns trimis",
+      "emailSent": "E-mail trimis",
+      "draftSaved": "Ciornă salvată",
+      "assigned": "Conversație atribuită",
+      "statusChanged": "Stare actualizată",
+      "markedSpam": "Marcată ca spam",
+      "unmarkedSpam": "Eliminată din spam",
+      "error": "Ceva nu a mers bine"
+    },
+    "identity": {
+      "alias": "Alias e-mail",
+      "aliasHint": "Doar partea locală — george devine george{'@'}doxa.life",
+      "signature": "Semnătură e-mail",
+      "save": "Salvează"
+    },
+    "canned": {
+      "title": "Răspunsuri predefinite",
+      "new": "Răspuns predefinit nou",
+      "name": "Titlu",
+      "body": "Conținut",
+      "save": "Salvează",
+      "delete": "Șterge"
+    },
+    "autoAck": {
+      "subject": "Am primit mesajul tău",
+      "greeting": "Bună,",
+      "greetingNamed": "Bună {name},",
+      "body": "Îți mulțumim că ai contactat {appName}. Am primit mesajul tău și un membru al echipei noastre îți va răspunde în curând.",
+      "signoff": "În Hristos,\nEchipa {appName}"
+    }
+  },
+  "survey": {
+    "may2026": {
+      "page": {
+        "title": "Experiența ta de rugăciune",
+        "intro": "Îți mulțumim că te rogi alături de DOXA. Aceste cinci întrebări durează aproximativ trei minute, iar răspunsurile tale ne ajută să îmbunătățim subiectele zilnice de rugăciune. Nu există răspunsuri corecte sau greșite — vrem doar să aflăm experiența ta sinceră.",
+        "submit": "Trimite răspunsurile mele",
+        "thanksTitle": "Mulțumim!",
+        "thanks": "Mulțumim — am primit răspunsurile tale. Îți suntem recunoscători pentru timpul acordat și pentru rugăciunile tale.",
+        "editNotice": "Ai răspuns deja — mulțumim! Poți actualiza răspunsurile mai jos și le poți salva din nou dacă dorești.",
+        "invalidTitle": "Link nevalid",
+        "invalid": "Acest link al sondajului nu pare valid. Te rugăm să folosești linkul din e-mailul tău sau să ne contactezi dacă ai nevoie de ajutor.",
+        "closedTitle": "Sondaj închis",
+        "closed": "Acest sondaj nu mai acceptă răspunsuri. Îți mulțumim pentru interes.",
+        "goHome": "Mergi la pagina principală",
+        "errorTitle": "Ceva nu a mers bine",
+        "error": "Nu am putut salva răspunsurile tale. Te rugăm să încerci din nou."
+      },
+      "questions": {
+        "focus": {
+          "label": "Cât de mult te-au ajutat subiectele zilnice de rugăciune să te simți concentrat și implicat în rugăciunea pentru grupurile etnice neatinse?",
+          "scale": {
+            "1": "Deloc concentrat",
+            "5": "Extrem de concentrat"
+          }
+        },
+        "experience": {
+          "label": "Spune-ne mai multe despre experiența ta: ce a făcut ca subiectele de rugăciune să fie utile (sau nu) pentru tine personal?"
+        },
+        "clarity": {
+          "label": "Cât de clar comunicau subiectele de rugăciune pentru ce să te rogi și de ce contează?",
+          "scale": {
+            "1": "Foarte neclare",
+            "5": "Foarte clare"
+          }
+        },
+        "content_amount": {
+          "label": "Cantitatea de conținut de rugăciune corespunde timpului pe care îl ai pentru rugăciune?",
+          "scale": {
+            "1": "Prea mult pentru timpul meu de rugăciune",
+            "3": "Exact potrivit",
+            "5": "Prea puțin pentru timpul meu de rugăciune"
+          }
+        },
+        "heart": {
+          "label": "Cum ți-a influențat participarea la această campanie de rugăciune inima sau perspectiva față de grupurile etnice neatinse?"
+        }
+      },
+      "email": {
+        "subject": "Ne spui cum a mers rugăciunea?",
+        "header": "Ne-ar plăcea să aflăm părerea ta",
+        "greeting": "Bună, {name},",
+        "greetingFallback": "Bună,",
+        "p1": "Îți mulțumim că stai în rugăciune pentru grupurile etnice neatinse ale lumii. Credincioșia ta este inima a ceea ce DOXA dorește să sprijine.",
+        "p2": "Căutăm mereu să facem subiectele zilnice de rugăciune mai utile și, înainte de a ne întâlni ca echipă pentru a planifica pașii următori, ne-ar plăcea să te ascultăm. Ai putea să acorzi câteva minute pentru a răspunde la cinci întrebări scurte despre experiența ta?",
+        "p3": "Părerea ta sinceră — ce funcționează și ce nu — modelează direct conținutul de rugăciune pe care îl creăm.",
+        "cta": "Completează sondajul",
+        "signoff": "Cu recunoștință,",
+        "team": "Echipa DOXA"
+      }
+    },
+    "admin": {
+      "title": "Sondaj pentru mijlocitori – mai 2026",
+      "heading": "Sondaje",
+      "totalResponses": "{count} răspunsuri",
+      "exportCsv": "Exportă CSV",
+      "average": "Medie",
+      "noResponses": "Încă nu există răspunsuri",
+      "selectPrompt": "Selectează un sondaj pentru a vedea răspunsurile."
     }
   }
 }

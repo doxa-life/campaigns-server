@@ -44,11 +44,16 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="email in filteredEmails" :key="email.id">
+          <tr
+            v-for="email in filteredEmails"
+            :key="email.id"
+            class="email-row"
+            @click="navigateTo(`/admin/marketing/emails/${email.id}`)"
+          >
             <td class="subject-cell">{{ email.subject }}</td>
             <td class="audience-cell">
               <UBadge
-                :label="email.audience_type === 'doxa' ? 'DOXA' : email.people_group_name || 'People Group'"
+                :label="audienceLabel(email)"
                 variant="subtle"
                 color="neutral"
               />
@@ -86,7 +91,7 @@
             <td class="date-cell">{{ formatDate(email.updated_at) }}</td>
             <td class="actions-cell">
               <UButton
-                @click="navigateTo(`/admin/marketing/emails/${email.id}`)"
+                @click.stop="navigateTo(`/admin/marketing/emails/${email.id}`)"
                 variant="link"
                 size="sm"
               >
@@ -94,7 +99,7 @@
               </UButton>
               <UButton
                 v-if="email.status === 'draft'"
-                @click="deleteEmail(email)"
+                @click.stop="deleteEmail(email)"
                 variant="link"
                 size="sm"
                 color="neutral"
@@ -132,9 +137,10 @@ interface MarketingEmail {
   id: number
   subject: string
   content_json: string
-  audience_type: 'doxa' | 'people_group'
+  audience_type: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'pick'
   people_group_id: number | null
   people_group_name?: string
+  recipient_contact_method_ids?: number[] | null
   status: 'draft' | 'queued' | 'sending' | 'sent' | 'failed'
   recipient_count: number
   sent_count: number
@@ -152,6 +158,16 @@ interface MarketingEmail {
 const emails = ref<MarketingEmail[]>([])
 const loading = ref(true)
 const error = ref('')
+
+function audienceLabel(email: MarketingEmail): string {
+  switch (email.audience_type) {
+    case 'doxa': return 'DOXA'
+    case 'doxa_active_pg': return 'Active PG Subscribers'
+    case 'pick': return `Picked Contacts (${email.recipient_contact_method_ids?.length ?? 0})`
+    case 'admins': return 'Admins (test)'
+    default: return email.people_group_name || 'People Group'
+  }
+}
 const statusFilter = ref('all')
 const toast = useToast()
 
@@ -363,6 +379,7 @@ onBeforeUnmount(() => {
 .emails-table tbody tr {
   border-bottom: 1px solid var(--ui-border);
   transition: background-color 0.2s;
+  cursor: pointer;
 }
 
 .emails-table tbody tr:hover {

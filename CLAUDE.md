@@ -7,7 +7,7 @@ We are Jan 2026
 
 DOXA Prayer is a Nuxt 4.1 application for managing and distributing daily prayer content to subscribers. It features people group management, subscriber CRM, content libraries, multi-language support (10 languages), and email notifications.
 
-This project consumes the base layer: https://github.com/corsacca/nuxt-base
+This project includes the former base-layer auth, theme, email, storage, database, and activity utilities directly in this repository.
 
 ## Rules
 
@@ -16,6 +16,8 @@ This project consumes the base layer: https://github.com/corsacca/nuxt-base
 - **Never use `alert()` or `confirm()`** - Use toasts and modals instead
 - **Reference `documentation/nuxt-ui-modals.md`** when building modals
 - **Use Nuxt UI components** - See https://ui.nuxt.com/llms.txt for documentation
+- **Type-check after editing `.ts`/`.vue` files** — Run `npx nuxi typecheck` to catch type errors you introduced. Fix any you caused; do not fix pre-existing ones unless asked.
+- **Update `server/openapi.yaml`** when adding or changing a public API endpoint — keep its request/response shape, auth, validation, and required fields in sync with the handler so the published API docs stay accurate.
 
 ## Nuxt Routing Rules (CRITICAL)
 
@@ -73,11 +75,11 @@ DATABASE_URL=$TEST_DATABASE_URL bun run migrate
 
 ## Architecture
 
-### Base Layer Pattern
+### Shared App Utilities
 
-This project extends a shared Nuxt base layer (`github:corsacca/nuxt-base`). See `documentation/BASE_LAYER.md` for full reference.
+The former shared Nuxt base layer has been merged into this project. Its files now live under `app/`, `server/`, `migrations/base/`, and `scripts/`.
 
-**Base layer provides:**
+**Shared utilities provide:**
 - Database connection (`sql` from `#imports`)
 - Authentication system (`useAuth()` composable, `auth` middleware)
 - Theme system (`useTheme()` composable, `<ThemeToggle />` component)
@@ -85,9 +87,9 @@ This project extends a shared Nuxt base layer (`github:corsacca/nuxt-base`). See
 - S3 storage (`uploadToS3`, `generateSignedUrl`, `deleteFromS3`)
 - Activity logging (`logCreate`, `logUpdate`, `logDelete`)
 
-Local utilities in `server/utils/app/` are excluded from auto-imports to avoid conflicts with the base layer. Access them through `server/utils` re-exports.
+Local utilities in `server/utils/app/` are excluded from auto-imports to avoid conflicts with shared utility names. Access them through `server/utils` re-exports.
 
-**Key base layer composables:**
+**Key shared composables:**
 ```typescript
 // Authentication
 const { user, isLoggedIn, authReady, login, logout, register, checkAuth } = useAuth()
@@ -149,12 +151,28 @@ API routes follow Nitro conventions:
 - `server/api/people-groups/[slug]/` - Public people group endpoints
 - `server/api/libraries/` - Public library endpoints
 
+### Wire Naming Convention (snake_case JSON)
+
+All API JSON keys — request bodies **and** response shapes — use **snake_case**
+(`tracking_id`, `people_group_id`, `days_of_week`, `target_languages`). This
+matches the database columns 1:1, so the wire maps straight to SQL with no
+field translation. Keep the three layers distinct:
+
+- **Wire (JSON over HTTP)**: snake_case — `body.tracking_id`, `return { tracking_id }`
+- **DB columns**: snake_case (same as wire)
+- **Internal JS/TS/Vue** (locals, fn params, component props, composables): camelCase
+
+When a handler reads a snake_case wire key but wants a camelCase local, alias on
+destructure: `const { tracking_id: trackingId } = body` (see
+`server/api/collect/heartbeat.post.ts`). Do **not** read camelCase keys directly
+off `body` or return camelCase keys in responses.
+
 ### Authentication
 
-- JWT-based authentication (base layer)
+- JWT-based authentication
 - Roles: superadmin, admin
-- Middleware: `auth` (base layer), `superadmin.ts`, `guest.ts` (project)
-- `useAuth()` composable for client-side auth state (base layer)
+- Middleware: `auth`, `superadmin.ts`, `guest.ts`
+- `useAuth()` composable for client-side auth state
 - `useAuthUser()` composable extends auth for project-specific needs
 
 ### Email System
@@ -177,7 +195,7 @@ Email templates in `server/utils/`: `prayer-reminder-email.ts`, `welcome-email.t
 
 ## Styling
 
-- Light/dark mode support via base layer theme system
+- Light/dark mode support via the shared theme system
 - Use **Tailwind CSS** for styling
 - Theme toggle available via `<ThemeToggle />` component
 
@@ -214,6 +232,49 @@ Runtime config in `nuxt.config.ts` pulls from environment variables:
 - `SMTP_*` - Email configuration
 - `S3_*` - S3/Spaces configuration
 - `NUXT_PUBLIC_SITE_URL` - Public URL for links in emails
+
+## Scheduled Tasks (Multi-Instance Safety)
+
+The app runs on multiple DigitalOcean App Platform instances. All schedulers must be safe to run concurrently. Two patterns are used:
+
+### High-volume polling tasks (e.g., reminder emails)
+Use `SELECT ... FOR UPDATE OF <table> SKIP LOCKED LIMIT <batch>` inside a short transaction to claim and advance rows atomically. Each instance processes a different batch. See `claimSubscriptionsDueForReminder()` in `server/database/people-group-subscriptions.ts`.
+
+### Singleton cron/periodic tasks (e.g., backups, followups, activity emails)
+Use `claimLock` — INSERT a deterministic UUID (`md5(lockKey)::uuid`) into `activity_logs` with `ON CONFLICT (id) DO NOTHING`. Only the instance whose INSERT returns a row proceeds. Lock key format: `{scheduler-name}:{period-key}` (e.g., `backup-scheduler:2026-03-12`).
+
+## Hooks (WordPress-style Actions)
+
+A lightweight `addAction` / `doAction` system in `server/utils/hooks.ts` for decoupled cross-cutting concerns.
+
+```typescript
+// Register a hook (in a server plugin, runs at startup)
+addAction('record.delete', async (recordType: string, recordId: number) => {
+  await commentService.deleteForRecord(recordType, recordId)
+})
+
+// Fire a hook (in an API handler or service)
+await doAction('record.delete', 'subscriber', id)
+```
+
+**Registering hooks**: Create a server plugin in `server/plugins/` that calls `addAction()`. Plugins run at startup, guaranteeing hooks are registered before any request. Each feature owns its own plugin (e.g., `comment-hooks.ts`).
+
+**Firing hooks**: Call `doAction()` from API handlers. It's auto-imported from `server/utils/hooks.ts`.
+
+**Current hooks**:
+- `record.delete(recordType, recordId)` — fired before a record is deleted. Used by comments cleanup.
+
+## Record Types (CRM Pattern)
+
+Three record types share the CRM list/detail slideover pattern with comments and activity logging:
+
+- **People Groups** — `people_groups` table, pages at `/admin/people-groups/`, components use `record_type: "people_group"`, `table_name: "people_groups"`
+- **Groups** — `groups` table, pages at `/admin/groups/`, components use `record_type: "group"`, `table_name: "groups"`
+- **Subscribers** — `subscribers` table, pages at `/admin/subscribers/`, components use `record_type: "subscriber"`, `table_name: "subscribers"`
+
+All three use: `CrmLayout`, `CrmDetailPanel` with side tabs, `RecordComments`, `RecordActivity`.
+
+**When making UI or API changes to one record type, verify the change applies correctly to all three.** They share components in `app/components/crm/` — a fix to one often needs the same fix on the others.
 
 ## Documentation
 

@@ -13,6 +13,7 @@ import Subscript from '@tiptap/extension-subscript'
 import Superscript from '@tiptap/extension-superscript'
 import HorizontalRule from '@tiptap/extension-horizontal-rule'
 import Youtube from '@tiptap/extension-youtube'
+import Mention from '@tiptap/extension-mention'
 import { Spacer } from '~/extensions/spacer'
 import { Vimeo } from '~/extensions/vimeo'
 import { Verse } from '~/extensions/verse'
@@ -81,6 +82,9 @@ const editor = useEditor({
     }),
     TextStyle,
     Color,
+    Mention.configure({
+      HTMLAttributes: { class: 'mention' }
+    }),
     TaskList,
     TaskItem.configure({
       nested: true,
@@ -471,6 +475,16 @@ onBeforeUnmount(() => {
   border: none;
   max-width: 100%;
   display: block;
+}
+
+:deep(.prose .mention) {
+  background-color: var(--ui-bg-elevated, #DBEAFE);
+  color: var(--ui-primary, #2563eb);
+  border-radius: 4px;
+  padding: 0.1em 0.3em;
+  font-weight: 500;
+  font-size: 0.95em;
+  white-space: nowrap;
 }
 
 </style>

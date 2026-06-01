@@ -1,7 +1,9 @@
-import { getDatabase } from '#server/database/db'
+import { getSql } from '#server/database/db'
+import { committedDailyMinutes } from '#server/database/sql-helpers'
 
 export interface ActivityStats {
   newSubscribers: number
+  totalSubscribers: number
   totalPrayerTime: number
   prayerCommitted: number
   groupsWithPrayer: number
@@ -11,42 +13,60 @@ export interface ActivityStats {
 }
 
 export async function collectActivityStats(periodStart: Date, periodEnd: Date): Promise<ActivityStats> {
-  const db = getDatabase()
+  const sql = getSql()
 
   const startIso = periodStart.toISOString()
   const endIso = periodEnd.toISOString()
 
   const [
     subscribersRow,
+    totalSubscribersRow,
     prayerTimeRow,
     prayerCommittedRow,
     groupsWithPrayerRow,
     groupsWith144Row,
+    groupsAdoptedRow,
     groupsEngagedRow
   ] = await Promise.all([
-    db.prepare(`SELECT COUNT(*) as count FROM subscribers WHERE created_at >= ? AND created_at < ?`).get(startIso, endIso),
-    db.prepare(`SELECT COALESCE(ROUND(SUM(duration) / 60.0), 0) as total FROM prayer_activity WHERE timestamp >= ? AND timestamp < ?`).get(startIso, endIso),
-    db.prepare(`
-      SELECT COALESCE(SUM(
-        prayer_duration * GREATEST(0,
-          EXTRACT(EPOCH FROM (?::timestamp - GREATEST(?::timestamp, created_at))) / 86400
-        )
-      ), 0) as total
-      FROM campaign_subscriptions
-      WHERE status = 'active' AND created_at < ?
-    `).get(endIso, startIso, endIso),
-    db.prepare(`SELECT COUNT(DISTINCT people_group_id) as count FROM campaign_subscriptions WHERE status = 'active'`).get(),
-    db.prepare(`SELECT COUNT(*) as count FROM (SELECT people_group_id FROM campaign_subscriptions WHERE status = 'active' GROUP BY people_group_id HAVING COUNT(*) >= 144) sub`).get(),
-    db.prepare(`SELECT COUNT(*) as count FROM people_groups WHERE engagement_status = 'engaged' OR (metadata::jsonb->>'imb_engagement_status') = 'engaged'`).get()
+    sql`
+      SELECT COUNT(DISTINCT s.id) as count
+      FROM subscribers s
+      JOIN contact_methods cm ON cm.subscriber_id = s.id AND cm.type = 'email' AND cm.verified = true
+      JOIN campaign_subscriptions cs ON cs.subscriber_id = s.id AND cs.status = 'active' AND cs.people_group_id IS NOT NULL
+      WHERE cm.verified_at >= ${startIso} AND cm.verified_at < ${endIso}
+    `.then(rows => rows[0]),
+    sql`
+      SELECT COUNT(DISTINCT s.id) as count
+      FROM subscribers s
+      JOIN contact_methods cm ON cm.subscriber_id = s.id AND cm.type = 'email' AND cm.verified = true
+      JOIN campaign_subscriptions cs ON cs.subscriber_id = s.id AND cs.status = 'active' AND cs.people_group_id IS NOT NULL
+    `.then(rows => rows[0]),
+    sql`SELECT COALESCE(ROUND(SUM(duration) / 60.0), 0) as total FROM prayer_activity WHERE timestamp >= ${startIso} AND timestamp < ${endIso}`.then(rows => rows[0]),
+    sql`
+      SELECT COALESCE(SUM(daily_committed), 0) as total
+      FROM (
+        SELECT d.date, SUM(${committedDailyMinutes(sql)}) as daily_committed
+        FROM generate_series(${startIso}::date, (${endIso}::date - INTERVAL '1 day'), '1 day'::interval) as d(date)
+        JOIN campaign_subscriptions cs
+          ON cs.status = 'active'
+          AND cs.created_at::date <= d.date
+        GROUP BY d.date
+      ) daily_totals
+    `.then(rows => rows[0]),
+    sql`SELECT COUNT(DISTINCT people_group_id) as count FROM campaign_subscriptions WHERE status = 'active'`.then(rows => rows[0]),
+    sql`SELECT COUNT(*) as count FROM (SELECT people_group_id FROM campaign_subscriptions WHERE status = 'active' GROUP BY people_group_id HAVING COUNT(*) >= 144) sub`.then(rows => rows[0]),
+    sql`SELECT COUNT(*) as count FROM people_group_adoptions WHERE status = 'active'`.then(rows => rows[0]),
+    sql`SELECT COUNT(*) as count FROM people_groups WHERE engagement_status = 'engaged'`.then(rows => rows[0])
   ])
 
   return {
     newSubscribers: Number(subscribersRow?.count ?? 0),
+    totalSubscribers: Number(totalSubscribersRow?.count ?? 0),
     totalPrayerTime: Number(prayerTimeRow?.total ?? 0),
     prayerCommitted: Math.round(Number(prayerCommittedRow?.total ?? 0)),
     groupsWithPrayer: Number(groupsWithPrayerRow?.count ?? 0),
     groupsWith144: Number(groupsWith144Row?.count ?? 0),
-    groupsAdopted: 0,
+    groupsAdopted: Number(groupsAdoptedRow?.count ?? 0),
     groupsEngaged: Number(groupsEngagedRow?.count ?? 0)
   }
 }

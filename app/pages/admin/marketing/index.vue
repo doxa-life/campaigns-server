@@ -16,6 +16,16 @@
           <span>{{ stats.sent }} sent</span>
         </div>
       </NuxtLink>
+
+      <NuxtLink to="/admin/marketing/senders" class="card">
+        <h2>Senders</h2>
+        <p>Manage the From addresses marketing emails can be sent from.</p>
+      </NuxtLink>
+
+      <NuxtLink to="/admin/marketing/surveys" class="card">
+        <h2>Surveys</h2>
+        <p>View and export responses to subscriber surveys.</p>
+      </NuxtLink>
     </div>
   </div>
 </template>

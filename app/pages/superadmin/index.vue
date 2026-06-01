@@ -179,6 +179,158 @@
               <p><strong>Failed:</strong> {{ dinlResults.failed }}</p>
             </div>
           </UCard>
+
+          <!-- Rebuild Verses -->
+          <div class="border-t border-[var(--ui-border)] pt-8 mt-8">
+            <h2 class="text-xl font-semibold mb-2">Rebuild Verses</h2>
+            <p class="text-[var(--ui-text-muted)] mb-6">
+              Re-fetch Bible verse text from the API for selected languages.
+              Only verses that were originally fetched from the API will be updated — manually entered verses are left untouched.
+            </p>
+
+            <div class="mb-4">
+              <label class="block text-sm font-medium mb-1">Languages to rebuild</label>
+              <div class="flex gap-2 mb-2 text-sm">
+                <button type="button" class="text-[var(--ui-text-highlighted)] hover:underline" @click="selectAllRebuildLanguages">Select all</button>
+                <span class="text-[var(--ui-text-muted)]">|</span>
+                <button type="button" class="text-[var(--ui-text-highlighted)] hover:underline" @click="clearAllRebuildLanguages">Clear all</button>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5">
+                <UCheckbox
+                  v-for="lang in languagesWithBible"
+                  :key="lang.code"
+                  :model-value="rebuildLanguages.includes(lang.code)"
+                  @update:model-value="toggleRebuildLanguage(lang.code, $event)"
+                  :label="`${lang.flag} ${lang.name}`"
+                />
+              </div>
+            </div>
+
+            <UButton
+              @click="showRebuildConfirmModal = true"
+              :disabled="rebuildLanguages.length === 0 || isRebuilding"
+              variant="outline"
+              icon="i-lucide-refresh-cw"
+            >
+              Rebuild Verses
+            </UButton>
+
+            <UAlert
+              v-if="rebuildMessage"
+              :color="rebuildMessage.type === 'success' ? 'success' : 'error'"
+              :title="rebuildMessage.text"
+              class="mt-4"
+            />
+
+            <!-- Progress card shown while rebuilding -->
+            <UCard v-if="isRebuilding" class="mt-6">
+              <template #header>
+                <h3 class="font-semibold">Rebuild Progress</h3>
+              </template>
+              <div class="space-y-3">
+                <div class="flex items-center gap-3">
+                  <UIcon name="i-lucide-loader-2" class="w-5 h-5 animate-spin text-primary" />
+                  <span class="font-medium">{{ rebuildProgress.message }}</span>
+                </div>
+                <UProgress
+                  v-if="rebuildProgress.percent !== undefined"
+                  :value="rebuildProgress.percent"
+                  size="sm"
+                />
+                <p v-if="rebuildProgress.detail" class="text-sm text-[var(--ui-text-muted)]">
+                  {{ rebuildProgress.detail }}
+                </p>
+              </div>
+            </UCard>
+
+            <!-- Results card shown after completion -->
+            <UCard v-if="rebuildStats" class="mt-6">
+              <template #header>
+                <h3 class="font-semibold">Rebuild Results</h3>
+              </template>
+              <div class="space-y-2">
+                <p><strong>Total Content Rows:</strong> {{ rebuildStats.totalRows }}</p>
+                <p><strong>Rows Updated:</strong> {{ rebuildStats.rowsUpdated }}</p>
+                <p><strong>Verses Rebuilt:</strong> {{ rebuildStats.versesRebuilt }}</p>
+                <p><strong>Errors:</strong> {{ rebuildStats.errors }}</p>
+              </div>
+              <div v-if="rebuildWarnings.length > 0" class="mt-4 border-t border-[var(--ui-border)] pt-4">
+                <p class="text-sm font-medium mb-2">Verse Warnings ({{ rebuildWarnings.length }}):</p>
+                <ul class="text-sm text-[var(--ui-text-muted)] space-y-1">
+                  <li v-for="(w, i) in rebuildWarnings" :key="i">{{ w.reference }} ({{ w.language }}): {{ w.reason }}</li>
+                </ul>
+              </div>
+            </UCard>
+          </div>
+        </div>
+
+        <!-- Notifications Tab -->
+        <div v-if="item.value === 'notifications'" class="py-6">
+          <h2 class="text-xl font-semibold mb-2">Notification Recipients</h2>
+          <p class="text-[var(--ui-text-muted)] mb-6">Configure who receives email notifications for different events.</p>
+
+          <div class="space-y-8">
+            <div v-for="group in notificationGroups" :key="group.key">
+              <UCard>
+                <template #header>
+                  <div>
+                    <h3 class="font-semibold">{{ group.label }}</h3>
+                    <p class="text-sm text-[var(--ui-text-muted)]">{{ group.description }}</p>
+                  </div>
+                </template>
+
+                <div class="space-y-3">
+                  <div
+                    v-for="recipient in (notificationRecipients[group.key] || [])"
+                    :key="recipient.id"
+                    class="flex items-center justify-between"
+                  >
+                    <div>
+                      <span class="font-medium">{{ recipient.name || recipient.email }}</span>
+                      <span v-if="recipient.name" class="text-[var(--ui-text-muted)] ml-2">{{ recipient.email }}</span>
+                    </div>
+                    <UButton
+                      icon="i-lucide-x"
+                      size="xs"
+                      variant="ghost"
+                      color="error"
+                      @click="removeRecipient(group.key, recipient.id)"
+                    />
+                  </div>
+
+                  <p v-if="!(notificationRecipients[group.key] || []).length" class="text-[var(--ui-text-muted)] text-sm italic">
+                    No recipients configured
+                  </p>
+
+                  <div v-if="newRecipient[group.key]" class="flex gap-2 pt-2 border-t border-[var(--ui-border)]">
+                    <UInput
+                      v-model="newRecipient[group.key]!.name"
+                      placeholder="Name (optional)"
+                      class="w-40"
+                      size="sm"
+                    />
+                    <UInput
+                      v-model="newRecipient[group.key]!.email"
+                      placeholder="Email"
+                      type="email"
+                      class="flex-1"
+                      size="sm"
+                      @keyup.enter="addRecipient(group.key)"
+                    />
+                    <UButton
+                      icon="i-lucide-plus"
+                      size="sm"
+                      variant="outline"
+                      :disabled="!newRecipient[group.key]!.email"
+                      @click="addRecipient(group.key)"
+                    >
+                      Add
+                    </UButton>
+                  </div>
+                </div>
+              </UCard>
+            </div>
+          </div>
         </div>
 
         <!-- Prayer Counts Tab -->
@@ -234,6 +386,34 @@
               color="primary"
             >
               Start Translation
+            </UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Rebuild Verses Confirmation Modal -->
+    <UModal v-model:open="showRebuildConfirmModal" title="Confirm Rebuild Verses">
+      <template #body>
+        <div class="p-6 space-y-4">
+          <p>
+            This will re-fetch Bible verse text for <strong>all library content</strong> in {{ rebuildLanguages.length }} selected language(s).
+          </p>
+          <p class="text-amber-600 dark:text-amber-400">
+            Existing verse content will be overwritten with fresh data from the Bolls Bible API.
+          </p>
+          <div class="flex gap-2 justify-end pt-4">
+            <UButton
+              variant="outline"
+              @click="showRebuildConfirmModal = false"
+            >
+              Cancel
+            </UButton>
+            <UButton
+              @click="startRebuild"
+              color="primary"
+            >
+              Start Rebuild
             </UButton>
           </div>
         </div>
@@ -301,6 +481,7 @@
 
 <script setup lang="ts">
 import { allFields } from '~/utils/people-group-fields'
+import { LANGUAGES } from '~/utils/languages'
 
 definePageMeta({
   layout: 'admin',
@@ -312,6 +493,7 @@ const tabs = [
   { label: 'People Groups', value: 'people-groups' },
   { label: 'Libraries', value: 'libraries' },
   { label: 'Prayer Counts', value: 'prayer-counts' },
+  { label: 'Notifications', value: 'notifications' },
 ]
 
 const activeTab = ref('backups')
@@ -322,9 +504,68 @@ const lastBackup = ref<{ filename: string; size: number; location: string } | nu
 const isUpdatingPrayerCounts = ref(false)
 const prayerCountsMessage = ref<{ text: string; type: 'success' | 'error' } | null>(null)
 
+// Notification recipients state
+const notificationGroups = [
+  { key: 'adoption', label: 'Adoption Notifications', description: 'Notified when a new adoption form is submitted' },
+  { key: 'stats', label: 'Stats Email', description: 'Daily/weekly activity summary' },
+  { key: 'contact_us', label: 'Contact Us', description: 'Notified when someone submits the contact form' },
+]
+
+const notificationRecipients = ref<Record<string, Array<{ id: number; email: string; name: string | null }>>>({})
+const newRecipient = ref<Record<string, { email: string; name: string }>>(
+  Object.fromEntries(notificationGroups.map(g => [g.key, { email: '', name: '' }]))
+)
+
+async function fetchNotificationRecipients() {
+  try {
+    const data = await $fetch<Record<string, Array<{ id: number; email: string; name: string | null }>>>('/api/admin/superadmin/notification-recipients')
+    notificationRecipients.value = data
+  } catch (error) {
+    console.error('Failed to fetch notification recipients:', error)
+  }
+}
+
+async function addRecipient(groupKey: string) {
+  const recipient = newRecipient.value[groupKey]
+  if (!recipient) return
+  const { email, name } = recipient
+  if (!email) return
+
+  try {
+    const recipient = await $fetch<{ id: number; email: string; name: string | null }>('/api/admin/superadmin/notification-recipients', {
+      method: 'POST',
+      body: { group_key: groupKey, email, name: name || undefined }
+    })
+
+    if (!notificationRecipients.value[groupKey]) {
+      notificationRecipients.value[groupKey] = []
+    }
+    notificationRecipients.value[groupKey].push(recipient)
+    newRecipient.value[groupKey] = { email: '', name: '' }
+  } catch (error: any) {
+    console.error('Failed to add recipient:', error)
+    useToast().add({
+      title: error.data?.message || 'Failed to add recipient',
+      color: 'error'
+    })
+  }
+}
+
+async function removeRecipient(groupKey: string, id: number) {
+  try {
+    await $fetch(`/api/admin/superadmin/notification-recipients/${id}`, {
+      method: 'DELETE'
+    })
+    notificationRecipients.value[groupKey] = (notificationRecipients.value[groupKey] ?? []).filter(r => r.id !== id)
+  } catch (error) {
+    console.error('Failed to remove recipient:', error)
+  }
+}
+
+fetchNotificationRecipients()
 
 // Translation state
-const selectedTranslateField = ref<string | null>(null)
+const selectedTranslateField = ref<string | undefined>(undefined)
 const translateOverwrite = ref(false)
 const showTranslateConfirmModal = ref(false)
 const isTranslating = ref(false)
@@ -342,6 +583,37 @@ const dinlMessage = ref<{ text: string; type: 'success' | 'error' } | null>(null
 const dinlProgress = ref({ total: 0, pending: 0, processing: 0, completed: 0, failed: 0 })
 const dinlResults = ref<{ total: number; completed: number; failed: number } | null>(null)
 let dinlPollTimer: ReturnType<typeof setInterval> | null = null
+
+// Rebuild Verses state
+const rebuildLanguages = ref<string[]>([])
+const isRebuilding = ref(false)
+const showRebuildConfirmModal = ref(false)
+const rebuildMessage = ref<{ text: string; type: 'success' | 'error' } | null>(null)
+const rebuildProgress = ref<{ message: string; detail?: string; percent?: number }>({ message: 'Starting...' })
+const rebuildStats = ref<{ totalRows: number; rowsUpdated: number; versesRebuilt: number; errors: number } | null>(null)
+const rebuildWarnings = ref<Array<{ reference: string; language: string; reason: string }>>([])
+
+const languagesWithBible = computed(() =>
+  LANGUAGES.filter(l => l.bibleId)
+)
+
+function toggleRebuildLanguage(code: string, checked: boolean | string) {
+  if (checked) {
+    if (!rebuildLanguages.value.includes(code)) {
+      rebuildLanguages.value.push(code)
+    }
+  } else {
+    rebuildLanguages.value = rebuildLanguages.value.filter(c => c !== code)
+  }
+}
+
+function selectAllRebuildLanguages() {
+  rebuildLanguages.value = languagesWithBible.value.map(l => l.code)
+}
+
+function clearAllRebuildLanguages() {
+  rebuildLanguages.value = []
+}
 
 // Filter to only translatable fields
 const translatableFieldOptions = computed(() =>
@@ -555,6 +827,87 @@ onUnmounted(() => {
   stopDinlPolling()
 })
 
+async function startRebuild() {
+  showRebuildConfirmModal.value = false
+  isRebuilding.value = true
+  rebuildMessage.value = null
+  rebuildStats.value = null
+  rebuildWarnings.value = []
+  rebuildProgress.value = { message: 'Starting rebuild...' }
+
+  try {
+    const response = await fetch('/api/admin/superadmin/rebuild-verses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ languages: rebuildLanguages.value })
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`)
+    }
+
+    const reader = response.body?.getReader()
+    if (!reader) {
+      throw new Error('No response body')
+    }
+
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+
+      let eventType = ''
+      for (const line of lines) {
+        if (line.startsWith('event: ')) {
+          eventType = line.slice(7)
+        } else if (line.startsWith('data: ')) {
+          const data = JSON.parse(line.slice(6))
+
+          if (eventType === 'progress') {
+            rebuildProgress.value = {
+              message: data.message,
+              detail: data.processed && data.total
+                ? `${data.processed} of ${data.total} rows — ${data.versesRebuilt} verses rebuilt`
+                : undefined,
+              percent: data.processed && data.total
+                ? Math.round((data.processed / data.total) * 100)
+                : undefined
+            }
+          } else if (eventType === 'complete') {
+            rebuildMessage.value = {
+              text: `Rebuild complete: ${data.stats.rowsUpdated} rows updated, ${data.stats.versesRebuilt} verses rebuilt`,
+              type: data.success ? 'success' : 'error'
+            }
+            rebuildStats.value = data.stats
+            rebuildWarnings.value = data.warnings || []
+          } else if (eventType === 'error') {
+            rebuildMessage.value = {
+              text: data.message,
+              type: 'error'
+            }
+          }
+        }
+      }
+    }
+  } catch (error: any) {
+    console.error('Rebuild error:', error)
+    rebuildMessage.value = {
+      text: error.message || 'Rebuild failed. Please try again.',
+      type: 'error'
+    }
+  } finally {
+    isRebuilding.value = false
+  }
+}
+
 async function translateField() {
   if (!selectedTranslateField.value) return
 
@@ -569,7 +922,7 @@ async function translateField() {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({
-        fieldKey: selectedTranslateField.value,
+        field_key: selectedTranslateField.value,
         overwrite: translateOverwrite.value
       })
     })

@@ -1,6 +1,6 @@
-import { getDatabase } from './db'
+import { getSql } from './db'
 
-export type JobType = 'marketing_email' | 'translation_batch' | 'import'
+export type JobType = 'marketing_email' | 'translation_batch' | 'import' | 'outbound_email' | 'inbox_email'
 
 export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
@@ -53,8 +53,26 @@ export interface TranslationBatchPayload {
   retranslate_verses: boolean
 }
 
+export interface OutboundEmailPayload {
+  message_id: number
+}
+
+/**
+ * Durable inbox side-emails (auto-ack, staff notifications). Routed through the queue
+ * instead of fire-and-forget so a transient send failure is retried, not silently lost.
+ */
+export interface InboxEmailPayload {
+  kind: 'auto_ack' | 'new_conversation' | 'assignee' | 'held_sender'
+  conversation_id?: number
+  message_id?: number
+  to?: string // recipient for auto_ack / held_sender
+  name?: string | null // auto_ack contact name
+  language?: string | null // auto_ack language (captured from the form)
+  held?: boolean // new_conversation: render the "needs review" variant
+}
+
 class JobQueueService {
-  private db = getDatabase()
+  private sql = getSql()
 
   async createJob<T extends Record<string, any>>(
     type: JobType,
@@ -69,162 +87,151 @@ class JobQueueService {
       referenceId
     } = options
 
-    const stmt = this.db.prepare(`
+    const [row] = await this.sql`
       INSERT INTO jobs (type, reference_type, reference_id, payload, priority, scheduled_at, max_attempts)
-      VALUES (?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP AT TIME ZONE 'UTC'), ?)
-    `)
-
-    const result = await stmt.run(
-      type,
-      referenceType || null,
-      referenceId || null,
-      JSON.stringify(payload),
-      priority,
-      scheduledAt?.toISOString() || null,
-      maxAttempts
-    )
-
-    return (await this.getById(result.lastInsertRowid as number))!
+      VALUES (
+        ${type}, ${referenceType || null}, ${referenceId || null},
+        ${this.sql.json(payload)}, ${priority},
+        COALESCE(${scheduledAt?.toISOString() || null}, CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
+        ${maxAttempts}
+      )
+      RETURNING *
+    `
+    return row as Job
   }
 
   async getById(id: number): Promise<Job | null> {
-    const stmt = this.db.prepare('SELECT * FROM jobs WHERE id = ?')
-    const row = await stmt.get(id)
-    return row ? this.parseJob(row) : null
+    const [row] = await this.sql`SELECT * FROM jobs WHERE id = ${id}`
+    return (row as Job) || null
   }
 
   async getPendingJobs(type?: JobType, limit: number = 10): Promise<Job[]> {
-    let query = `
+    if (type) {
+      return await this.sql`
+        SELECT * FROM jobs
+        WHERE status = 'pending'
+          AND scheduled_at <= CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+          AND type = ${type}
+        ORDER BY priority DESC, scheduled_at ASC
+        LIMIT ${limit}
+      `
+    }
+    return await this.sql`
       SELECT * FROM jobs
       WHERE status = 'pending'
         AND scheduled_at <= CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      ORDER BY priority DESC, scheduled_at ASC
+      LIMIT ${limit}
     `
-    const params: any[] = []
-
-    if (type) {
-      query += ' AND type = ?'
-      params.push(type)
-    }
-
-    query += ' ORDER BY priority DESC, scheduled_at ASC LIMIT ?'
-    params.push(limit)
-
-    const stmt = this.db.prepare(query)
-    const rows = await stmt.all(...params)
-    return rows.map((row: any) => this.parseJob(row))
   }
 
   async markProcessing(id: number): Promise<void> {
-    const stmt = this.db.prepare(`
+    await this.sql`
       UPDATE jobs
       SET status = 'processing',
           attempts = attempts + 1,
           last_attempt_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
           updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ?
-    `)
-    await stmt.run(id)
+      WHERE id = ${id}
+    `
   }
 
   async markCompleted(id: number, result?: Record<string, any>): Promise<void> {
-    const stmt = this.db.prepare(`
+    await this.sql`
       UPDATE jobs
       SET status = 'completed',
-          result = ?,
+          result = ${result ? this.sql.json(result) : null},
           completed_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
           updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ?
-    `)
-    await stmt.run(result ? JSON.stringify(result) : null, id)
+      WHERE id = ${id}
+    `
   }
 
   async markFailed(id: number, errorMessage: string): Promise<void> {
-    const stmt = this.db.prepare(`
+    await this.sql`
       UPDATE jobs
       SET status = 'failed',
-          error_message = ?,
+          error_message = ${errorMessage},
           updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ?
-    `)
-    await stmt.run(errorMessage, id)
+      WHERE id = ${id}
+    `
   }
 
   async retryJob(id: number): Promise<boolean> {
-    const stmt = this.db.prepare(`
+    const result = await this.sql`
       UPDATE jobs
       SET status = 'pending',
           error_message = NULL,
           updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ? AND attempts < max_attempts
-    `)
-    const result = await stmt.run(id)
-    return result.changes > 0
+      WHERE id = ${id} AND attempts < max_attempts
+    `
+    return result.count > 0
   }
 
   async getJobStats(referenceType?: string, referenceId?: number): Promise<JobStats> {
-    let query = `
-      SELECT
-        COUNT(*) as total,
-        COUNT(*) FILTER (WHERE status = 'pending') as pending,
-        COUNT(*) FILTER (WHERE status = 'processing') as processing,
-        COUNT(*) FILTER (WHERE status = 'completed') as completed,
-        COUNT(*) FILTER (WHERE status = 'failed') as failed
-      FROM jobs
-    `
-    const params: any[] = []
-
+    let result
     if (referenceType && referenceId) {
-      query += ' WHERE reference_type = ? AND reference_id = ?'
-      params.push(referenceType, referenceId)
+      [result] = await this.sql`
+        SELECT
+          COUNT(*) as total,
+          COUNT(*) FILTER (WHERE status = 'pending') as pending,
+          COUNT(*) FILTER (WHERE status = 'processing') as processing,
+          COUNT(*) FILTER (WHERE status = 'completed') as completed,
+          COUNT(*) FILTER (WHERE status = 'failed') as failed
+        FROM jobs
+        WHERE reference_type = ${referenceType} AND reference_id = ${referenceId}
+      `
+    } else {
+      [result] = await this.sql`
+        SELECT
+          COUNT(*) as total,
+          COUNT(*) FILTER (WHERE status = 'pending') as pending,
+          COUNT(*) FILTER (WHERE status = 'processing') as processing,
+          COUNT(*) FILTER (WHERE status = 'completed') as completed,
+          COUNT(*) FILTER (WHERE status = 'failed') as failed
+        FROM jobs
+      `
     }
-
-    const stmt = this.db.prepare(query)
-    const result = await stmt.get(...params)
     return {
-      total: Number(result.total),
-      pending: Number(result.pending),
-      processing: Number(result.processing),
-      completed: Number(result.completed),
-      failed: Number(result.failed)
+      total: Number(result?.total),
+      pending: Number(result?.pending),
+      processing: Number(result?.processing),
+      completed: Number(result?.completed),
+      failed: Number(result?.failed)
     }
   }
 
   async getJobsByReference(referenceType: string, referenceId: number): Promise<Job[]> {
-    const stmt = this.db.prepare(`
+    return await this.sql`
       SELECT * FROM jobs
-      WHERE reference_type = ? AND reference_id = ?
+      WHERE reference_type = ${referenceType} AND reference_id = ${referenceId}
       ORDER BY created_at ASC
-    `)
-    const rows = await stmt.all(referenceType, referenceId)
-    return rows.map((row: any) => this.parseJob(row))
+    `
   }
 
   async cancelPendingJobs(referenceType: string, referenceId: number): Promise<number> {
-    const stmt = this.db.prepare(`
+    const result = await this.sql`
       DELETE FROM jobs
-      WHERE reference_type = ? AND reference_id = ? AND status = 'pending'
-    `)
-    const result = await stmt.run(referenceType, referenceId)
-    return result.changes
+      WHERE reference_type = ${referenceType} AND reference_id = ${referenceId} AND status = 'pending'
+    `
+    return result.count
   }
 
   async deleteCompletedJobs(referenceType: string, referenceId: number): Promise<number> {
-    const stmt = this.db.prepare(`
+    const result = await this.sql`
       DELETE FROM jobs
-      WHERE reference_type = ? AND reference_id = ? AND status IN ('completed', 'failed')
-    `)
-    const result = await stmt.run(referenceType, referenceId)
-    return result.changes
+      WHERE reference_type = ${referenceType} AND reference_id = ${referenceId} AND status IN ('completed', 'failed')
+    `
+    return result.count
   }
 
   async hasActiveJobs(referenceType: string, referenceId: number): Promise<boolean> {
-    const stmt = this.db.prepare(`
+    const [row] = await this.sql`
       SELECT 1 FROM jobs
-      WHERE reference_type = ? AND reference_id = ? AND status IN ('pending', 'processing')
+      WHERE reference_type = ${referenceType} AND reference_id = ${referenceId} AND status IN ('pending', 'processing')
       LIMIT 1
-    `)
-    const result = await stmt.get(referenceType, referenceId)
-    return !!result
+    `
+    return !!row
   }
 
   async isComplete(referenceType: string, referenceId: number): Promise<boolean> {
@@ -251,14 +258,6 @@ class JobQueueService {
       count++
     }
     return count
-  }
-
-  private parseJob(row: any): Job {
-    return {
-      ...row,
-      payload: typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload,
-      result: row.result ? (typeof row.result === 'string' ? JSON.parse(row.result) : row.result) : null
-    }
   }
 }
 

@@ -10,6 +10,7 @@ import { sendSignupVerificationEmail } from '#server/utils/signup-verification-e
 import { sendWelcomeEmail } from '#server/utils/welcome-email'
 import { isValidTimezone } from '#server/utils/next-reminder-calculator'
 import { handleApiError } from '#server/utils/api-helpers'
+import { trackEventInBackground, userHashFromEmail } from '#server/utils/tracking'
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
@@ -86,8 +87,11 @@ export default defineEventHandler(async (event) => {
       email: body.email,
       phone: body.phone,
       name: body.name,
-      language
+      language,
+      trackingId: body.tracking_id
     })
+
+    await subscriberService.addSource(subscriber.id, 'signup')
 
     // Update name and language if subscriber exists
     if (!isNew) {
@@ -131,7 +135,7 @@ export default defineEventHandler(async (event) => {
 
     const MAX_SUBSCRIPTIONS_PER_PEOPLE_GROUP = 5
 
-    const activeCount = existingSubscriptions.filter(s => s.status === 'active').length
+    const activeCount = existingSubscriptions.filter(s => s.status === 'active' || s.status === 'pending').length
     if (activeCount >= MAX_SUBSCRIPTIONS_PER_PEOPLE_GROUP) {
       // At limit - send welcome email to prevent email enumeration
       if (body.delivery_method === 'email' && body.email) {
@@ -154,7 +158,7 @@ export default defineEventHandler(async (event) => {
 
     // Check for duplicate (same frequency + time_preference)
     const duplicate = existingSubscriptions.find(
-      s => s.status === 'active' &&
+      s => (s.status === 'active' || s.status === 'pending') &&
            s.frequency === body.frequency &&
            s.time_preference === body.reminder_time
     )
@@ -194,22 +198,79 @@ export default defineEventHandler(async (event) => {
         timezone,
         prayer_duration: body.prayer_duration
       })
-      await peopleGroupSubscriptionService.resubscribe(unsubscribedMatch.id)
 
-      // For email delivery, send appropriate email
+      // For email delivery, check verification to determine status
+      let resubscribeStatus: 'active' | 'pending' = 'active'
       if (body.delivery_method === 'email') {
         const emailContact = await contactMethodService.getByValue('email', body.email)
+        resubscribeStatus = emailContact?.verified ? 'active' : 'pending'
+        await peopleGroupSubscriptionService.resubscribe(unsubscribedMatch.id, resubscribeStatus)
+
         if (emailContact && !emailContact.verified) {
           const token = await contactMethodService.generateVerificationToken(emailContact.id)
           await sendSignupVerificationEmail(body.email, token, slug, peopleGroup.name, body.name, language)
         } else if (emailContact?.verified) {
-          await sendWelcomeEmail(body.email, body.name, peopleGroup.name, slug, subscriber.profile_id, language, subscriber.tracking_id, body.reminder_time)
+          await sendWelcomeEmail(body.email, body.name, peopleGroup.name, slug, subscriber.profile_id, language, subscriber.tracking_id, body.reminder_time, {
+            subscriptionId: unsubscribedMatch.id,
+            frequency: body.frequency,
+            daysOfWeek: body.days_of_week,
+            timezone,
+            prayerDuration: body.prayer_duration
+          })
         }
+      } else {
+        await peopleGroupSubscriptionService.resubscribe(unsubscribedMatch.id)
       }
+
+      if (body.delivery_method !== 'email' || resubscribeStatus === 'active') {
+        trackEventInBackground(event, {
+          eventType: 'subscriber_resubscribed',
+          anonymousHash: subscriber.tracking_id,
+          userHash: userHashFromEmail(body.email),
+          language,
+          metadata: {
+            people_group_slug: slug,
+            people_group_id: peopleGroup.id,
+            subscription_id: unsubscribedMatch.id,
+            frequency: body.frequency,
+            delivery_method: body.delivery_method,
+            prayer_duration: body.prayer_duration,
+            source: 'signup_form'
+          }
+        })
+      }
+
+      logCreate('subscribers', String(subscriber.id), event, {
+        source: 'Prayer sign up form',
+        message: 'Resubscribed to',
+        link_text: peopleGroup.name,
+        link_url: `/admin/people-groups/${peopleGroup.id}`,
+        form_values: {
+          name: body.name,
+          delivery_method: body.delivery_method,
+          frequency: body.frequency,
+          days_of_week: body.days_of_week,
+          reminder_time: body.reminder_time,
+          timezone,
+          prayer_duration: body.prayer_duration,
+          people_group_updates: body.consent_people_group_updates ?? false,
+          doxa_general_updates: body.consent_doxa_general ?? false
+        }
+      })
 
       // Return same response for privacy
       return {
         message: 'Please check your email to complete your signup'
+      }
+    }
+
+    // Determine subscription status based on email verification
+    let subscriptionStatus: 'active' | 'pending' = 'active'
+    let emailContact = null
+    if (body.delivery_method === 'email') {
+      emailContact = await contactMethodService.getByValue('email', body.email)
+      if (!emailContact?.verified) {
+        subscriptionStatus = 'pending'
       }
     }
 
@@ -222,17 +283,58 @@ export default defineEventHandler(async (event) => {
       days_of_week: body.days_of_week,
       time_preference: body.reminder_time,
       timezone,
-      prayer_duration: body.prayer_duration
+      prayer_duration: body.prayer_duration,
+      status: subscriptionStatus
     })
+
+    logCreate('subscribers', String(subscriber.id), event, {
+      source: 'Prayer sign up form',
+      message: 'Subscribed to',
+      link_text: peopleGroup.name,
+      link_url: `/admin/people-groups/${peopleGroup.id}`,
+      form_values: {
+        name: body.name,
+        email: body.email || null,
+        language,
+        delivery_method: body.delivery_method,
+        frequency: body.frequency,
+        days_of_week: body.days_of_week,
+        reminder_time: body.reminder_time,
+        timezone,
+        prayer_duration: body.prayer_duration,
+        people_group_updates: body.consent_people_group_updates ?? false,
+        doxa_general_updates: body.consent_doxa_general ?? false
+      }
+    })
+
+    if (subscriptionStatus === 'active') {
+      trackEventInBackground(event, {
+        eventType: 'subscriber_signup',
+        anonymousHash: subscriber.tracking_id,
+        userHash: userHashFromEmail(body.email),
+        language,
+        metadata: {
+          people_group_slug: slug,
+          people_group_id: peopleGroup.id,
+          subscription_id: subscription.id,
+          frequency: body.frequency,
+          delivery_method: body.delivery_method,
+          prayer_duration: body.prayer_duration
+        }
+      })
+    }
 
     // For email delivery, handle verification
     if (body.delivery_method === 'email') {
-      const emailContact = await contactMethodService.getByValue('email', body.email)
-
       if (emailContact?.verified) {
-        // Email already verified - set next reminder and send welcome
-        await peopleGroupSubscriptionService.setInitialNextReminder(subscription.id)
-        await sendWelcomeEmail(body.email, body.name, peopleGroup.name, slug, subscriber.profile_id, language, subscriber.tracking_id, body.reminder_time)
+        // Email already verified - send welcome
+        await sendWelcomeEmail(body.email, body.name, peopleGroup.name, slug, subscriber.profile_id, language, subscriber.tracking_id, body.reminder_time, {
+          subscriptionId: subscription.id,
+          frequency: body.frequency,
+          daysOfWeek: body.days_of_week,
+          timezone,
+          prayerDuration: body.prayer_duration
+        })
       } else if (emailContact) {
         // Email not verified - send verification email
         const token = await contactMethodService.generateVerificationToken(emailContact.id)

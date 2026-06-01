@@ -213,7 +213,7 @@
                     <span class="text-[var(--ui-text-muted)]">{{ $t('campaign.signup.form.daysOfWeek.label') }}:</span>
                     <span>{{ formatDaysOfWeek(reminder.days_of_week) }}</span>
                   </div>
-                  <div class="flex justify-between">
+                  <div v-if="reminder.time_preference" class="flex justify-between">
                     <span class="text-[var(--ui-text-muted)]">{{ $t('campaign.signup.form.time.label') }}:</span>
                     <span>{{ reminder.time_preference }} ({{ reminder.timezone }})</span>
                   </div>
@@ -221,6 +221,14 @@
                     <span class="text-[var(--ui-text-muted)]">{{ $t('campaign.signup.form.duration.label') }}:</span>
                     <span>{{ reminder.prayer_duration }} {{ $t('common.minutes') }}</span>
                   </div>
+
+                  <!-- Add to Calendar -->
+                  <AddToCalendar
+                    v-if="reminder.calendar_urls"
+                    :google-url="reminder.calendar_urls.google"
+                    :ics-url="reminder.calendar_urls.ics"
+                    class="pt-2"
+                  />
 
                   <!-- Resubscribe button for unsubscribed reminders -->
                   <div v-if="reminder.status === 'unsubscribed'" class="pt-2">
@@ -361,6 +369,7 @@ interface ProfileResponse {
       timezone: string
       prayer_duration: number
       status: string
+      calendar_urls: { google: string; ics: string } | null
     }>
   }>
   consents: {

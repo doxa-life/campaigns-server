@@ -1,24 +1,15 @@
-import type { ComputedRef, Ref } from 'vue'
+import { type ComputedRef, type Ref, ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute, useToast, useI18n, getVisitorId } from '#imports'
 
-const ANON_STORAGE_KEY = 'prayertools_anon_id'
-
-function getAnonymousTrackingId(): string {
-  if (import.meta.server) return ''
-  let anonId = localStorage.getItem(ANON_STORAGE_KEY)
-  if (!anonId) {
-    anonId = `anon-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
-    localStorage.setItem(ANON_STORAGE_KEY, anonId)
-  }
-  return anonId
-}
+const MAX_PRAYER_DURATION_SECONDS = 2 * 60 * 60
 
 export function usePrayerSession(slug: string, contentDate: ComputedRef<string> | Ref<string>, peopleGroupId?: ComputedRef<number | undefined> | Ref<number | undefined>) {
   const route = useRoute()
   const toast = useToast()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
 
   const trackingId = computed(() => {
-    return (route.query.uid as string) || getAnonymousTrackingId()
+    return (route.query.uid as string) || getVisitorId()
   })
 
   const sessionId = ref(`${Date.now()}-${Math.random().toString(36).substring(2, 9)}`)
@@ -26,6 +17,7 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
   const autoSaveComplete = ref(false)
   const prayedMarked = ref(false)
   const submitting = ref(false)
+  const autoCheckpointTracked = ref(false)
 
   const accumulatedDuration = ref(0)
   const lastVisibleTime = ref(Date.now())
@@ -49,27 +41,41 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
   }
 
   function onVisibilityChange() {
-    document.hidden ? pause() : resume()
+    if (document.hidden) pause()
+    else resume()
   }
 
   function onWindowBlur() { pause() }
   function onWindowFocus() { resume() }
 
-  async function autoSavePrayerSession() {
+  function getDurationSeconds() {
+    const rawDuration = Math.floor(getVisibleDuration() / 1000)
+    return Math.min(rawDuration, MAX_PRAYER_DURATION_SECONDS)
+  }
+
+  async function autoSavePrayerSession(trackCheckpoint = false) {
     if (prayedMarked.value || autoSaveComplete.value) return
 
     try {
-      const duration = Math.floor(getVisibleDuration() / 1000)
+      const duration = getDurationSeconds()
       const timestamp = new Date().toISOString()
+
+      // The browser sets `trackEvent` only on the save that should fan out to
+      // Statinator (the 30s checkpoint). The session endpoint handles the
+      // forward via trackEventInBackground; no separate analytics call needed.
+      const shouldTrack = trackCheckpoint && !autoCheckpointTracked.value && duration > 0
+      if (shouldTrack) autoCheckpointTracked.value = true
 
       await $fetch(`/api/people-groups/${slug}/prayer-content/${contentDate.value}/session`, {
         method: 'POST',
         body: {
-          sessionId: sessionId.value,
-          trackingId: trackingId.value || null,
+          session_id: sessionId.value,
+          tracking_id: trackingId.value || null,
           duration,
           timestamp,
-          peopleGroupId: peopleGroupId?.value
+          people_group_id: peopleGroupId?.value,
+          track_event: shouldTrack ? 'prayer_auto_tracked' : undefined,
+          language: locale.value
         }
       })
     } catch (err: any) {
@@ -90,19 +96,19 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
     cancelAutoSaveTimeouts()
 
     try {
-      const MAX_DURATION = 2 * 60 * 60
-      const rawDuration = Math.floor(getVisibleDuration() / 1000)
-      const duration = Math.min(rawDuration, MAX_DURATION)
+      const duration = getDurationSeconds()
       const timestamp = new Date().toISOString()
 
       await $fetch(`/api/people-groups/${slug}/prayer-content/${contentDate.value}/session`, {
         method: 'POST',
         body: {
-          sessionId: sessionId.value,
-          trackingId: trackingId.value || null,
+          session_id: sessionId.value,
+          tracking_id: trackingId.value || null,
           duration,
           timestamp,
-          peopleGroupId: peopleGroupId?.value
+          people_group_id: peopleGroupId?.value,
+          track_event: 'prayer_logged',
+          language: locale.value
         }
       })
 
@@ -120,7 +126,8 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
   }
 
   function formatDate(dateString: string, language: string) {
-    const date = new Date(dateString)
+    const [year, month, day] = dateString.split('-').map(Number)
+    const date = new Date(year!, month! - 1, day!)
     return date.toLocaleDateString(language || 'en', {
       weekday: 'long',
       year: 'numeric',
@@ -132,11 +139,20 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
   function setupAutoSave() {
     accumulatedDuration.value = 0
     lastVisibleTime.value = Date.now()
-    const autoSaveIntervals = [5 * 60 * 1000, 10 * 60 * 1000, 15 * 60 * 1000]
+    isActive.value = !document.hidden
 
-    autoSaveIntervals.forEach((interval) => {
+    // Report immediately with duration 0
+    autoSavePrayerSession()
+
+    // Schedule: 30s, 60s, then every 60s up to 15 minutes
+    const intervals: number[] = [30 * 1000, 60 * 1000]
+    for (let t = 2 * 60 * 1000; t <= 15 * 60 * 1000; t += 60 * 1000) {
+      intervals.push(t)
+    }
+
+    intervals.forEach((interval) => {
       const timeout = setTimeout(() => {
-        autoSavePrayerSession()
+        autoSavePrayerSession(interval === 30 * 1000)
       }, interval)
       autoSaveTimeouts.value.push(timeout)
     })

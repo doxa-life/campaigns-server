@@ -47,6 +47,18 @@
       "championedBy": "Un gruppo etnico sostenuto da {link}.",
       "doxaFoundation": "Doxa.Life"
     },
+    "share": {
+      "button": "Condividi",
+      "qrCode": "Codice QR",
+      "shareLink": "Condividi link",
+      "copyLink": "Copia link",
+      "copied": "Link copiato!",
+      "copiedDescription": "Il link della pagina è stato copiato negli appunti.",
+      "copyFailed": "Impossibile copiare il link",
+      "qrTitle": "Scansiona per visitare",
+      "qrDescription": "Scansiona questo codice QR per aprire questa pagina su un altro dispositivo.",
+      "close": "Chiudi"
+    },
     "pageTitle": "Campagna",
     "signupButton": "Iscriviti per pregare",
     "loading": "Caricamento campagna...",
@@ -191,6 +203,10 @@
         "title": "Email Verificata!",
         "message": "La tua email e stata verificata con successo. Ora riceverai promemoria di preghiera per {campaign}."
       },
+      "alreadyVerified": {
+        "title": "Gia Verificata",
+        "message": "La tua email e gia stata verificata. Sei pronto a ricevere promemoria di preghiera per {campaign}."
+      },
       "error": {
         "title": "Verifica Fallita",
         "generic": "Impossibile verificare la tua email. Questo link potrebbe essere gia stato usato o e scaduto."
@@ -312,7 +328,7 @@
       "hint": "Clicca per terminare il tuo momento di preghiera"
     },
     "thankYou": "Grazie per aver pregato!",
-    "meetThePeople": "Incontra il Gruppo Etnico",
+    "meetThePeople": "Il Mio Gruppo Etnico",
     "peopleGroupOfTheDay": "Gruppo Etnico del Giorno",
     "dayInTheLife": "Un Giorno nella Vita",
     "pauseAndPray": "Fermati e Prega",
@@ -346,6 +362,44 @@
     "minutes": "min",
     "yes": "Si",
     "no": "No"
+  },
+  "contact": {
+    "verify": {
+      "pageTitle": "Verifica Email",
+      "verifying": "Verifica della tua email in corso...",
+      "success": {
+        "title": "Email Verificata!",
+        "message": "La tua email è stata verificata. Grazie per il tuo interesse nella partnership DOXA."
+      },
+      "alreadyVerified": {
+        "title": "Già Verificata",
+        "message": "La tua email è già stata verificata."
+      },
+      "error": {
+        "title": "Verifica Fallita",
+        "generic": "Impossibile verificare la tua email. Questo link potrebbe essere già stato usato o è scaduto."
+      }
+    }
+  },
+  "adoption": {
+    "verify": {
+      "pageTitle": "Verifica Adozione",
+      "verifying": "Verifica della tua adozione in corso...",
+      "success": {
+        "title": "Adozione Confermata!",
+        "message": "La tua adozione dei {peopleGroupName} è stata confermata. Benvenuto a bordo!"
+      },
+      "alreadyVerified": {
+        "title": "Già Verificata",
+        "message": "La tua email è già stata verificata."
+      },
+      "error": {
+        "title": "Verifica Fallita",
+        "generic": "Impossibile verificare la tua email. Questo link potrebbe essere già stato usato o è scaduto."
+      },
+      "viewPeopleGroup": "Visualizza pagina di iscrizione alla preghiera",
+      "viewResources": "Visualizza risorse di adozione"
+    }
   },
   "followupPage": {
     "recording": "Registrazione della tua risposta...",
@@ -405,7 +459,10 @@
       "closing": "Siamo profondamente grati di unirci a tutta la Chiesa mentre cerchiamo di portare tutto il Vangelo a tutto il mondo.",
       "reminderTimeNote": "Il tuo promemoria giornaliero è impostato per le {time}.",
       "startPraying": "Inizia a Pregare",
-      "profileInstructions": "Puoi aggiornare i dettagli del tuo profilo e le tue notifiche qui:"
+      "profileInstructions": "Puoi aggiornare i dettagli del tuo profilo e le tue notifiche qui:",
+      "addToCalendar": "Aggiungi questo promemoria al tuo calendario:",
+      "googleCalendar": "Google Calendar",
+      "otherCalendars": "Altri calendari (.ics)"
     },
     "reminder": {
       "subject": "Promemoria di Preghiera - {campaign}",
@@ -444,6 +501,241 @@
       "thursday": "Giovedi",
       "friday": "Venerdi",
       "saturday": "Sabato"
+    },
+    "contactVerification": {
+      "subject": "Verifica la tua email per ricevere aggiornamenti da DOXA",
+      "header": "Verifica la Tua Email",
+      "thankYou": "Grazie per aver contattato DOXA. Hai scelto di ricevere aggiornamenti via email dalla partnership DOXA.",
+      "pleaseVerify": "Per iniziare a ricevere aggiornamenti, verifica il tuo indirizzo email cliccando il pulsante qui sotto:",
+      "verifyButton": "Verifica Email",
+      "linkInstructions": "Se il pulsante non funziona, puoi anche copiare e incollare questo link nel tuo browser:",
+      "note": "Nota:",
+      "expiration": "Questo link di verifica scadrà tra 7 giorni.",
+      "ignoreMessage": "Se non hai inviato un modulo di contatto, puoi ignorare questa email."
+    },
+    "adoptionVerification": {
+      "subject": "Verifica la tua email per adottare i {peopleGroupName}",
+      "header": "Verifica la Tua Email",
+      "thankYou": "Grazie per il tuo impegno nell'adottare i {peopleGroupName}.",
+      "pleaseVerify": "Verifica il tuo indirizzo email cliccando il pulsante qui sotto per confermare la tua adozione:",
+      "verifyButton": "Verifica Email",
+      "linkInstructions": "Se il pulsante non funziona, puoi anche copiare e incollare questo link nel tuo browser:",
+      "note": "Nota:",
+      "expiration": "Questo link di verifica scadrà tra 7 giorni.",
+      "ignoreMessage": "Se non hai inviato un modulo di adozione, puoi ignorare questa email."
+    },
+    "adoptionWelcome": {
+      "subject": "Aggiornamento adozione DOXA: Il tuo impegno per i {peopleGroupName}",
+      "headerTitle": "Aggiornamento di adozione DOXA",
+      "greeting": "Caro/a {firstName},",
+      "intro": "Oggi, nell'ambito della partnership DOXA, hai cambiato lo stato dei {peopleGroupName} da [waiting] ad [adopted], il primo passo fondamentale verso il coinvolgimento.",
+      "introContinued": "Ora sei un difensore principale, intercessore e mobilitatore per un gruppo etnico che, fino a questo momento, non aveva alcuna testimonianza costante né uno sforzo di preghiera dedicato.",
+      "waiting": "in attesa",
+      "adopted": "adottato",
+      "resourcesIntro": "Le seguenti risorse ti aiuteranno a gestire questa opportunità.",
+      "section1Title": "1. Il tuo gruppo etnico adottato",
+      "resourcesButton": "Visualizza risorse di adozione",
+      "section1Item1": "URL e codice QR del tuo gruppo etnico, consigli, risposte alle domande frequenti e altro",
+      "section1Item2": "Immagini per aiutarti a presentare questo alla tua chiesa o piccolo gruppo",
+      "section1Item3": "Un link dedicato per facilitare il contributo finanziario alla Fondazione DOXA",
+      "section2Title": "2. Le tue risorse di adozione",
+      "section2Intro": "Abbiamo preparato una serie di risorse specifiche per il tuo gruppo etnico per aiutarti a mobilitare e condividere rapidamente e facilmente questa iniziativa. Troverai:",
+      "fullProfileText": "Consulta i dettagli del tuo gruppo etnico visitando il loro",
+      "fullProfileButton": "Profilo completo del gruppo etnico",
+      "prayerPageText": "Mobilita persone a pregare attraverso questa",
+      "prayerPageButton": "pagina di preghiera",
+      "section3Title": "3. I tuoi primi 30 giorni",
+      "section3Intro": "Ecco i prossimi passi d'azione che raccomandiamo:",
+      "step1Label": "Interiorizzare:",
+      "step1Text": "Prega 10 minuti al giorno per i {peopleGroupName}. Chiedi a Dio di darti un cuore per questo luogo e queste persone. Chiedigli di darti saggezza per i prossimi passi e favore presso tutti coloro che ascolteranno grazie ai tuoi sforzi per condividere la visione. Chiedigli di preparare i cuori. Aspettati che Lui risponda — è già all'opera! Inizia visitando la loro {prayerPageLink}.",
+      "step1PrayerPage": "pagina di preghiera",
+      "step2Label": "Strategia e socializzazione:",
+      "step2Text": "Elabora un piano con la leadership della tua chiesa su come presentare questo alla tua chiesa e comunità. Condividi i tuoi media digitali e altre risorse delle tue {adoptionResourcesLink} con la tua famiglia ecclesiale e sulle tue piattaforme social. Fai sapere alle persone che questo gruppo etnico è la tua priorità.",
+      "step2AdoptionResources": "risorse di adozione",
+      "step3Label": "Mobilitare il nucleo:",
+      "step3Text": "Identifica 5 persone che si iscriveranno per pregare con te. Considera leader di preghiera, membri di piccoli gruppi e amici spiritualmente fedeli che probabilmente condividono priorità e visione. Un piccolo nucleo in accordo costante e pieno di aspettativa può essere l'inizio di un movimento.",
+      "section4Title": "4. Lasciati incoraggiare dagli aggiornamenti DOXA",
+      "section4Text": "Ogni mese riceverai un aggiornamento strategico mensile — con informazioni su eventuali progressi regionali, nuove risorse o traguardi di mobilitazione relativi al tuo gruppo etnico. Se hai domande, bisogno di incoraggiamento o aiuto per pensare ai prossimi passi, vogliamo aiutarti. Contattaci a {contactEmail}.",
+      "closingCount": "C'erano {beforeCount} gruppi etnici in attesa di adozione. Grazie al tuo \"sì\" di oggi, quel numero ora è {afterCount}. Siamo grati di collaborare con te in questa nobile impresa.",
+      "signoff": "Per la gloria di Dio,",
+      "teamName": "Il team DOXA"
+    }
+  },
+  "calendar": {
+    "addToCalendar": "Aggiungi al tuo calendario",
+    "googleCalendar": "Google Calendar",
+    "downloadIcs": "Altri calendari",
+    "eventTitle": "Preghiera per i {campaign}",
+    "eventDescription": "Sessione di preghiera di {duration} minuti per i {campaign}"
+  },
+  "inbox":   {
+    "title": "Posta in arrivo",
+    "searchPlaceholder": "Cerca conversazioni",
+    "empty": "Nessuna conversazione",
+    "selectPrompt": "Seleziona una conversazione per visualizzarla",
+    "conversation": "Conversazione",
+    "conversations": "Conversazioni",
+    "internalNotes": "Note interne",
+    "activity": "Attività",
+    "needsReview": "Da revisionare",
+    "unassigned": "Non assegnata",
+    "assignedTo": "Assegnata a {name}",
+    "assignToMe": "Assegna a me",
+    "assign": "Assegna",
+    "unassign": "Rimuovi assegnazione",
+    "spamScore": "Punteggio spam",
+    "filters": {
+      "all": "Tutte",
+      "unassigned": "Non assegnate",
+      "mine": "Mie",
+      "open": "Aperte",
+      "pending": "In attesa",
+      "closed": "Chiuse",
+      "spam": "Spam",
+      "held": "In sospeso"
+    },
+    "status": {
+      "open": "Aperta",
+      "pending": "In attesa",
+      "closed": "Chiusa",
+      "spam": "Spam"
+    },
+    "direction": {
+      "inbound": "Ricevuto",
+      "outbound": "Inviato"
+    },
+    "compose": {
+      "from": "Da",
+      "reply": "Rispondi",
+      "send": "Invia",
+      "saveDraft": "Salva bozza",
+      "draft": "Bozza",
+      "sending": "Invio…",
+      "cannedResponse": "Risposta predefinita",
+      "attach": "Allega file",
+      "placeholder": "Scrivi la tua risposta…",
+      "language": "Lingua",
+      "newEmail": "Nuova email",
+      "to": "A",
+      "recipientPlaceholder": "name{'@'}example.com",
+      "subjectLabel": "Oggetto",
+      "bodyLabel": "Messaggio",
+      "bodyPlaceholder": "Scrivi il tuo messaggio…"
+    },
+    "actions": {
+      "close": "Chiudi",
+      "reopen": "Riapri",
+      "markSpam": "Segna come spam",
+      "unmarkSpam": "Non è spam",
+      "showQuoted": "Mostra testo citato",
+      "hideQuoted": "Nascondi testo citato"
+    },
+    "confirm": {
+      "closeTitle": "Chiudi conversazione",
+      "closeMessage": "Chiudere questa conversazione? Si riaprirà automaticamente se il contatto risponde.",
+      "spamTitle": "Segna come spam",
+      "spamMessage": "Bloccare questo mittente e chiudere la conversazione? I suoi messaggi futuri verranno chiusi automaticamente."
+    },
+    "toasts": {
+      "sent": "Risposta inviata",
+      "emailSent": "Email inviata",
+      "draftSaved": "Bozza salvata",
+      "assigned": "Conversazione assegnata",
+      "statusChanged": "Stato aggiornato",
+      "markedSpam": "Segnata come spam",
+      "unmarkedSpam": "Rimossa dallo spam",
+      "error": "Qualcosa è andato storto"
+    },
+    "identity": {
+      "alias": "Alias email",
+      "aliasHint": "Solo la parte locale — george diventa george{'@'}doxa.life",
+      "signature": "Firma email",
+      "save": "Salva"
+    },
+    "canned": {
+      "title": "Risposte predefinite",
+      "new": "Nuova risposta predefinita",
+      "name": "Titolo",
+      "body": "Contenuto",
+      "save": "Salva",
+      "delete": "Elimina"
+    },
+    "autoAck": {
+      "subject": "Abbiamo ricevuto il tuo messaggio",
+      "greeting": "Ciao,",
+      "greetingNamed": "Ciao {name},",
+      "body": "Grazie per aver contattato {appName}. Abbiamo ricevuto il tuo messaggio e un membro del nostro team ti risponderà presto.",
+      "signoff": "In Cristo,\nIl team di {appName}"
+    }
+  },
+  "survey": {
+    "may2026": {
+      "page": {
+        "title": "La tua esperienza di preghiera",
+        "intro": "Grazie per pregare con DOXA. Queste cinque domande richiedono circa tre minuti e le tue risposte ci aiutano a migliorare gli spunti di preghiera quotidiani. Non ci sono risposte giuste o sbagliate: vogliamo solo conoscere la tua esperienza sincera.",
+        "submit": "Invia le mie risposte",
+        "thanksTitle": "Grazie!",
+        "thanks": "Grazie: abbiamo ricevuto le tue risposte. Ti siamo grati per il tempo che hai dedicato e per le tue preghiere.",
+        "editNotice": "Hai già risposto, grazie! Puoi aggiornare le tue risposte qui sotto e salvarle di nuovo, se vuoi.",
+        "invalidTitle": "Link non valido",
+        "invalid": "Questo link al sondaggio non sembra valido. Usa il link della tua email oppure contattaci se hai bisogno di aiuto.",
+        "closedTitle": "Sondaggio chiuso",
+        "closed": "Questo sondaggio non accetta più risposte. Grazie per il tuo interesse.",
+        "goHome": "Vai alla home page",
+        "errorTitle": "Qualcosa è andato storto",
+        "error": "Non siamo riusciti a salvare le tue risposte. Riprova."
+      },
+      "questions": {
+        "focus": {
+          "label": "Quanto gli spunti di preghiera quotidiani ti hanno aiutato a sentirti concentrato e coinvolto nel pregare per i gruppi etnici non raggiunti?",
+          "scale": {
+            "1": "Per niente concentrato",
+            "5": "Estremamente concentrato"
+          }
+        },
+        "experience": {
+          "label": "Raccontaci di più sulla tua esperienza: cosa ha reso gli spunti di preghiera utili (o no) per te personalmente?"
+        },
+        "clarity": {
+          "label": "Con quanta chiarezza gli spunti di preghiera comunicavano per cosa pregare e perché è importante?",
+          "scale": {
+            "1": "Molto poco chiari",
+            "5": "Molto chiari"
+          }
+        },
+        "content_amount": {
+          "label": "La quantità di contenuti di preghiera corrisponde al tempo che hai per pregare?",
+          "scale": {
+            "1": "Troppi per il mio tempo di preghiera",
+            "3": "Quantità giusta",
+            "5": "Troppo pochi per il mio tempo di preghiera"
+          }
+        },
+        "heart": {
+          "label": "Come ha influito la tua partecipazione a questa campagna di preghiera sul tuo cuore o sulla tua prospettiva verso i gruppi etnici non raggiunti?"
+        }
+      },
+      "email": {
+        "subject": "Ci racconti come sta andando la preghiera?",
+        "header": "Ci piacerebbe conoscere la tua opinione",
+        "greeting": "Ciao {name},",
+        "greetingFallback": "Ciao,",
+        "p1": "Grazie per intercedere in preghiera per i gruppi etnici non raggiunti del mondo. La tua fedeltà è il cuore di ciò che DOXA esiste per sostenere.",
+        "p2": "Cerchiamo sempre di rendere gli spunti di preghiera quotidiani più utili e, prima di incontrarci come squadra per pianificare i prossimi passi, ci piacerebbe molto ascoltarti. Potresti dedicare qualche minuto a rispondere a cinque brevi domande sulla tua esperienza?",
+        "p3": "La tua opinione sincera — ciò che funziona e ciò che non funziona — plasma direttamente i contenuti di preghiera che creiamo.",
+        "cta": "Rispondi al sondaggio",
+        "signoff": "Con gratitudine,",
+        "team": "Il team DOXA"
+      }
+    },
+    "admin": {
+      "title": "Sondaggio per intercessori – maggio 2026",
+      "heading": "Sondaggi",
+      "totalResponses": "{count} risposte",
+      "exportCsv": "Esporta CSV",
+      "average": "Media",
+      "noResponses": "Ancora nessuna risposta",
+      "selectPrompt": "Seleziona un sondaggio per vedere le risposte."
     }
   }
 }

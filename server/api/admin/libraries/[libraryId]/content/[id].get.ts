@@ -2,8 +2,7 @@ import { libraryContentService } from '#server/database/library-content'
 import { getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  // Require authentication
-  await requireAuth(event)
+  await requirePermission(event, 'content.view')
 
   const id = getIntParam(event, 'id')
 

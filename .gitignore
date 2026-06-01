@@ -4,7 +4,11 @@
 .nuxt
 .nitro
 .cache
+.vscode
 dist
+
+# Extracted base layer (regenerated; no longer used after merge)
+.layers
 
 # Database files
 server/database/*.sqlite
@@ -25,6 +29,8 @@ logs
 .DS_Store
 .fleet
 .idea
+__pycache__/
+*.pyc
 
 # Local env files
 .env
@@ -34,3 +40,7 @@ logs
 /data/tmp/
 /data/bibles/
 wip
+/scripts/
+/.nuxtrc
+context
+.claude/plans/

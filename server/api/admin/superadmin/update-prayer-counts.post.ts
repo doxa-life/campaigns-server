@@ -7,7 +7,7 @@ import { handleApiError } from '#server/utils/api-helpers'
  */
 export default defineEventHandler(async (event) => {
   // Verify admin authentication
-  await requireAdmin(event)
+  await requireSuperAdmin(event)
 
   console.log('Manual prayer stats update triggered by admin')
 

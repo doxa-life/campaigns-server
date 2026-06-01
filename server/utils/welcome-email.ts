@@ -1,4 +1,13 @@
 import { t, localePath } from './translations'
+import { generateGoogleCalendarUrl, getIcsDownloadUrl } from './calendar-links'
+
+export interface WelcomeEmailCalendarOptions {
+  subscriptionId: number
+  frequency: string
+  daysOfWeek?: number[]
+  timezone: string
+  prayerDuration: number
+}
 
 export async function sendWelcomeEmail(
   to: string,
@@ -8,7 +17,8 @@ export async function sendWelcomeEmail(
   profileId: string,
   locale: string = 'en',
   trackingId?: string,
-  reminderTime?: string
+  reminderTime?: string,
+  calendarOptions?: WelcomeEmailCalendarOptions
 ): Promise<boolean> {
   const config = useRuntimeConfig()
   const baseUrl = config.public.siteUrl || 'http://localhost:3000'
@@ -31,6 +41,60 @@ export async function sendWelcomeEmail(
   const reminderTimeText = reminderTime
     ? t('email.welcome.reminderTimeNote', locale, { time: reminderTime })
     : ''
+
+  // Calendar links
+  let calendarHtml = ''
+  let calendarText = ''
+  if (calendarOptions && reminderTime) {
+    const addToCalendarLabel = t('email.welcome.addToCalendar', locale)
+    const googleLabel = t('email.welcome.googleCalendar', locale)
+    const icsLabel = t('email.welcome.otherCalendars', locale)
+
+    const googleUrl = generateGoogleCalendarUrl({
+      title: t('calendar.eventTitle', locale, { campaign: peopleGroupName }),
+      description: t('calendar.eventDescription', locale, { duration: calendarOptions.prayerDuration, campaign: peopleGroupName }),
+      frequency: calendarOptions.frequency,
+      daysOfWeek: calendarOptions.daysOfWeek,
+      timePreference: reminderTime,
+      timezone: calendarOptions.timezone,
+      durationMinutes: calendarOptions.prayerDuration,
+      url: peopleGroupUrl
+    })
+    const icsUrl = getIcsDownloadUrl(calendarOptions.subscriptionId, profileId, baseUrl)
+
+    calendarHtml = `
+        <div style="text-align: center; margin: 20px 0;">
+          <p style="font-size: 14px; color: #3B463D; margin-bottom: 12px; font-weight: 500;">
+            ${addToCalendarLabel}
+          </p>
+          <a href="${googleUrl}" style="
+            background: #ffffff;
+            color: #3B463D;
+            padding: 10px 18px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            font-size: 13px;
+            display: inline-block;
+            border: 1px solid #3B463D;
+            margin: 0 4px;
+          ">${googleLabel}</a>
+          <a href="${icsUrl}" style="
+            background: #ffffff;
+            color: #3B463D;
+            padding: 10px 18px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            font-size: 13px;
+            display: inline-block;
+            border: 1px solid #3B463D;
+            margin: 0 4px;
+          ">${icsLabel}</a>
+        </div>`
+
+    calendarText = `\n${addToCalendarLabel}\n${googleLabel}: ${googleUrl}\n${icsLabel}: ${icsUrl}\n`
+  }
 
   const html = `
     <!DOCTYPE html>
@@ -67,7 +131,7 @@ ${reminderTimeText ? `
             ${reminderTimeText}
           </p>
         </div>
-` : ''}
+` : ''}${calendarHtml}
         <div style="text-align: center; margin: 30px 0;">
           <a href="${peopleGroupUrl}" style="
             background: #3B463D;
@@ -123,7 +187,7 @@ ${reminderExplanation}
 ${sharedGoal}
 
 ${closing}
-${reminderTimeText ? `\n${reminderTimeText}\n` : ''}
+${reminderTimeText ? `\n${reminderTimeText}\n` : ''}${calendarText}
 ${startPraying}: ${peopleGroupUrl}
 
 ${managePreferences}: ${profileUrl}

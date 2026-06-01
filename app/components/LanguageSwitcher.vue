@@ -20,6 +20,7 @@ import { getLanguageFlag, ENABLED_LANGUAGE_CODES } from '~/utils/languages'
 const { locale, locales } = useI18n()
 const switchLocalePath = useSwitchLocalePath()
 const router = useRouter()
+const { trackEvent } = useTracking()
 
 const selectedLanguage = ref(locale.value)
 const availableLocales = computed(() =>
@@ -32,6 +33,14 @@ watch(locale, (newLang) => {
 })
 
 async function onLanguageChange() {
+  const fromLang = locale.value
+  const toLang = selectedLanguage.value
+  trackEvent('language_switched', {
+    metadata: {
+      from_lang: fromLang,
+      to_lang: toLang
+    }
+  })
   const newPath = switchLocalePath(selectedLanguage.value)
   await router.push(newPath)
 }

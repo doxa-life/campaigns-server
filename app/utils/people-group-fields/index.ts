@@ -27,6 +27,11 @@ import { field as imbLat } from './fields/imb-lat'
 import { field as imbLng } from './fields/imb-lng'
 import { field as imbIsIndigenous } from './fields/imb-is-indigenous'
 
+// Status
+import { field as status } from './fields/status'
+import { field as reasonUnlisted } from './fields/reason-unlisted'
+import { field as reasonEngaged } from './fields/reason-engaged'
+
 // Population & Engagement fields
 import { field as imbPopulation } from './fields/imb-population'
 import { field as imbPopulationClass } from './fields/imb-population-class'
@@ -59,6 +64,9 @@ import { field as imbRegOfPeople2 } from './fields/imb-reg-of-people-2'
 import { field as imbRegOfPeople1 } from './fields/imb-reg-of-people-1'
 import { field as imbRegOfPeople25 } from './fields/imb-reg-of-people-25'
 
+// Believers count (engagement)
+import { field as believersCount } from './fields/believers-count'
+
 // Resources fields
 import { field as imbBibleAvailable } from './fields/imb-bible-available'
 import { field as imbJesusFilmAvailable } from './fields/imb-jesus-film-available'
@@ -70,6 +78,11 @@ import { field as imbTotalResourcesAvailable } from './fields/imb-total-resource
 import { field as imbBibleTranslationLevel } from './fields/imb-bible-translation-level'
 import { field as imbBibleYearPublished } from './fields/imb-bible-year-published'
 
+// Workers fields
+import { field as workersLongTerm } from './fields/workers-long-term'
+import { field as workersLocalLanguages } from './fields/workers-local-languages'
+import { field as workersMultiplicative } from './fields/workers-multiplicative'
+
 // WAGF/Doxa fields
 import { field as doxaWagfRegion } from './fields/doxa-wagf-region'
 import { field as doxaWagfBlock } from './fields/doxa-wagf-block'
@@ -77,12 +90,15 @@ import { field as doxaWagfMember } from './fields/doxa-wagf-member'
 
 // Media fields
 import { field as imageUrl } from './fields/image-url'
-import { field as imbPictureCreditHtml } from './fields/imb-picture-credit-html'
+import { field as pictureCredit } from './fields/picture-credit'
 import { field as imbHasPhoto } from './fields/imb-has-photo'
 import { field as imbPeopleSearchText } from './fields/imb-people-search-text'
 
 // All fields array
 export const allFields: FieldDefinition[] = [
+  // Status
+  status,
+  reasonUnlisted,
   // Basic
   name,
   imbDisplayName,
@@ -111,8 +127,10 @@ export const allFields: FieldDefinition[] = [
   imbEvangelicalPercentage,
   imbEvangelicalLevel,
   imbEngagementStatus,
+  reasonEngaged,
   imbCongregationExisting,
   imbChurchPlanting,
+  believersCount,
   // Strategic
   imbGsec,
   imbStrategicPriorityIndex,
@@ -142,13 +160,17 @@ export const allFields: FieldDefinition[] = [
   imbTotalResourcesAvailable,
   imbBibleTranslationLevel,
   imbBibleYearPublished,
+  // Workers
+  workersLongTerm,
+  workersLocalLanguages,
+  workersMultiplicative,
   // WAGF
   doxaWagfRegion,
   doxaWagfBlock,
   doxaWagfMember,
   // Media
   imageUrl,
-  imbPictureCreditHtml,
+  pictureCredit,
   imbHasPhoto,
   imbPeopleSearchText
 ]

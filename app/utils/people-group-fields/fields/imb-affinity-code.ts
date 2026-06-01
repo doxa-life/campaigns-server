@@ -4,7 +4,7 @@ export const field: FieldDefinition = {
   key: 'imb_affinity_code',
   labelKey: 'peopleGroups.fields.imb_affinity_code',
   type: 'select',
-  category: 'strategic',
+  category: 'geography',
   options: [
     { value: 'AG800', labelKey: 'peopleGroups.options.affinityCode.AG800' },
     { value: 'AG650', labelKey: 'peopleGroups.options.affinityCode.AG650' },

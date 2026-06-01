@@ -21,6 +21,8 @@ export const field: FieldDefinition = {
     { value: 'A011', labelKey: 'peopleGroups.options.rop1.A011' },
     { value: 'A013', labelKey: 'peopleGroups.options.rop1.A013' },
     { value: 'A014', labelKey: 'peopleGroups.options.rop1.A014' },
-    { value: 'A015', labelKey: 'peopleGroups.options.rop1.A015' }
+    { value: 'A015', labelKey: 'peopleGroups.options.rop1.A015' },
+    { value: 'A018', labelKey: 'peopleGroups.options.rop1.A018' },
+    { value: 'A019', labelKey: 'peopleGroups.options.rop1.A019' }
   ]
 }

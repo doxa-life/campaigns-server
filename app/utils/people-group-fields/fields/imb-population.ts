@@ -1,8 +1,8 @@
 import type { FieldDefinition } from '../types'
 
 export const field: FieldDefinition = {
-  key: 'imb_population',
-  labelKey: 'peopleGroups.fields.imb_population',
+  key: 'population',
+  labelKey: 'peopleGroups.fields.population',
   type: 'number',
   category: 'population',
   tableColumn: true

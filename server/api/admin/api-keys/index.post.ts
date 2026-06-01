@@ -4,7 +4,7 @@ export default defineEventHandler(async (event) => {
   if (event.context.apiKeyAuth) {
     throw createError({ statusCode: 403, statusMessage: 'API keys cannot be managed via API key auth' })
   }
-  const user = await requireAdmin(event)
+  const user = await requirePermission(event, 'users.manage')
   const body = await readBody(event)
 
   const name = body?.name?.trim()

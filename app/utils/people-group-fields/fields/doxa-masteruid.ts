@@ -4,5 +4,6 @@ export const field: FieldDefinition = {
   key: 'doxa_masteruid',
   labelKey: 'peopleGroups.fields.doxa_masteruid',
   type: 'text',
-  category: 'identifiers'
+  category: 'identifiers',
+  hidden: true
 }
