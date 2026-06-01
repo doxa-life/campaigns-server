@@ -86,7 +86,7 @@ export default defineEventHandler(async (event) => {
         subscriber.profile_id,
         subscriber.preferred_language || 'en',
         subscriber.tracking_id,
-        latestActive?.time_preference,
+        latestActive?.time_preference ?? undefined,
         latestActive ? {
           subscriptionId: latestActive.id,
           frequency: latestActive.frequency,
@@ -142,7 +142,9 @@ export default defineEventHandler(async (event) => {
 
   // Generate calendar URLs server-side so we don't expose profile_id to the client
   let calendarUrls = null
-  if (latestActive && subscriber) {
+  // A calendar event needs a concrete reminder time; no-time signups have none.
+  if (latestActive && latestActive.time_preference && subscriber) {
+    const timePreference = latestActive.time_preference
     const config = useRuntimeConfig()
     const baseUrl = config.public.siteUrl || 'http://localhost:3000'
     const locale = subscriber.preferred_language || 'en'
@@ -154,7 +156,7 @@ export default defineEventHandler(async (event) => {
       description: t('calendar.eventDescription', locale, { duration: latestActive.prayer_duration, campaign: peopleGroup.name }),
       frequency: latestActive.frequency,
       daysOfWeek: latestActive.days_of_week.length > 0 ? latestActive.days_of_week : undefined,
-      timePreference: latestActive.time_preference,
+      timePreference,
       timezone: latestActive.timezone,
       durationMinutes: latestActive.prayer_duration,
       url: prayerUrl

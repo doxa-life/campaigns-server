@@ -17,6 +17,7 @@ This project includes the former base-layer auth, theme, email, storage, databas
 - **Reference `documentation/nuxt-ui-modals.md`** when building modals
 - **Use Nuxt UI components** - See https://ui.nuxt.com/llms.txt for documentation
 - **Type-check after editing `.ts`/`.vue` files** — Run `npx nuxi typecheck` to catch type errors you introduced. Fix any you caused; do not fix pre-existing ones unless asked.
+- **Update `server/openapi.yaml`** when adding or changing a public API endpoint — keep its request/response shape, auth, validation, and required fields in sync with the handler so the published API docs stay accurate.
 
 ## Nuxt Routing Rules (CRITICAL)
 

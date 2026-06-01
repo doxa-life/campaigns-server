@@ -139,6 +139,57 @@ describe('POST /api/people-groups/[slug]/anon-signup', async () => {
     })
   })
 
+  describe('No-time signup', () => {
+    it('records a daily 5-minute commitment when frequency and time are omitted', async () => {
+      const pg = await createTestPeopleGroup(sql)
+      const res = await $fetch(`/api/people-groups/${pg.slug}/anon-signup`, {
+        method: 'POST',
+        headers,
+        body: {}
+      })
+
+      expect(res.tracking_id).toBeTruthy()
+      expect(res.subscription_id).toBeTruthy()
+
+      const [subscriber] = await sql`SELECT * FROM subscribers WHERE tracking_id = ${res.tracking_id}`
+      const subs = await getAllTestSubscriptions(sql, pg.id, subscriber.id)
+      expect(subs.length).toBe(1)
+      expect(subs[0]!.delivery_method).toBe('app')
+      expect(subs[0]!.status).toBe('active')
+      // Counts in the stats as a daily 5-minute commitment, with no fixed time.
+      expect(subs[0]!.frequency).toBe('daily')
+      expect(subs[0]!.time_preference).toBeNull()
+      expect(Number(subs[0]!.prayer_duration)).toBe(5)
+      expect(subs[0]!.next_reminder_utc).toBeNull()
+    })
+
+    it('defaults frequency to daily (and keeps the 10-min default) when only a time is given', async () => {
+      const pg = await createTestPeopleGroup(sql)
+      const res = await $fetch(`/api/people-groups/${pg.slug}/anon-signup`, {
+        method: 'POST',
+        headers,
+        body: { time: '08:00', timezone: 'America/New_York' }
+      })
+
+      const [subscriber] = await sql`SELECT * FROM subscribers WHERE tracking_id = ${res.tracking_id}`
+      const subs = await getAllTestSubscriptions(sql, pg.id, subscriber.id)
+      expect(subs[0]!.frequency).toBe('daily')
+      expect(subs[0]!.time_preference).toBe('08:00')
+      expect(Number(subs[0]!.prayer_duration)).toBe(10)
+      expect(subs[0]!.next_reminder_utc).not.toBeNull()
+    })
+
+    it('still rejects an invalid time even when frequency is omitted', async () => {
+      const pg = await createTestPeopleGroup(sql)
+      const error = await $fetch(`/api/people-groups/${pg.slug}/anon-signup`, {
+        method: 'POST',
+        headers,
+        body: { time: '8am' }
+      }).catch(e => e)
+      expect(error.statusCode).toBe(400)
+    })
+  })
+
   describe('Email dedup', () => {
     it('dedups against an existing email subscriber when email is provided', async () => {
       const pg = await createTestPeopleGroup(sql)

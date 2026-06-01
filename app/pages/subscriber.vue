@@ -213,7 +213,7 @@
                     <span class="text-[var(--ui-text-muted)]">{{ $t('campaign.signup.form.daysOfWeek.label') }}:</span>
                     <span>{{ formatDaysOfWeek(reminder.days_of_week) }}</span>
                   </div>
-                  <div class="flex justify-between">
+                  <div v-if="reminder.time_preference" class="flex justify-between">
                     <span class="text-[var(--ui-text-muted)]">{{ $t('campaign.signup.form.time.label') }}:</span>
                     <span>{{ reminder.time_preference }} ({{ reminder.timezone }})</span>
                   </div>

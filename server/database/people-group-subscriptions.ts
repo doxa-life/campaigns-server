@@ -12,7 +12,7 @@ export interface PeopleGroupSubscription {
   delivery_method: 'email' | 'whatsapp' | 'app'
   frequency: string
   days_of_week: number[]
-  time_preference: string
+  time_preference: string | null
   timezone: string
   prayer_duration: number
   next_reminder_utc: string | null
@@ -52,7 +52,7 @@ export interface CreateSubscriptionInput {
   delivery_method: 'email' | 'whatsapp' | 'app'
   frequency: string
   days_of_week?: number[]
-  time_preference: string
+  time_preference?: string | null
   timezone?: string
   prayer_duration?: number
 }
@@ -64,6 +64,7 @@ class PeopleGroupSubscriptionService {
     const days_of_week_json = input.days_of_week ? JSON.stringify(input.days_of_week) : null
     const timezone = input.timezone || 'UTC'
     const status = input.status || 'active'
+    const time_preference = input.time_preference ?? null
 
     const [row] = await this.sql`
       INSERT INTO campaign_subscriptions (
@@ -72,13 +73,15 @@ class PeopleGroupSubscriptionService {
       )
       VALUES (
         ${input.people_group_id}, ${input.subscriber_id}, ${input.delivery_method},
-        ${input.frequency}, ${days_of_week_json}, ${input.time_preference},
+        ${input.frequency}, ${days_of_week_json}, ${time_preference},
         ${timezone}, ${input.prayer_duration || 10}, ${status}
       )
       RETURNING *
     `
 
-    if (status === 'active') {
+    // No reminder time means no schedule (e.g. app signups where reminders are
+    // handled on-device); leave next_reminder_utc NULL.
+    if (status === 'active' && time_preference) {
       await this.setInitialNextReminder(row?.id)
     }
     return (await this.getById(row?.id))!
@@ -453,6 +456,9 @@ class PeopleGroupSubscriptionService {
   async setInitialNextReminder(subscriptionId: number): Promise<void> {
     const subscription = await this.getById(subscriptionId)
     if (!subscription) return
+    // Without a reminder time there is no schedule to compute (e.g. no-time
+    // app signups); leave next_reminder_utc as-is (NULL).
+    if (!subscription.time_preference) return
 
     const nextUtc = await calculateNextReminderUtc({
       timezone: subscription.timezone || 'UTC',
@@ -467,6 +473,7 @@ class PeopleGroupSubscriptionService {
   async setNextReminderAfterSend(subscriptionId: number): Promise<void> {
     const subscription = await this.getById(subscriptionId)
     if (!subscription) return
+    if (!subscription.time_preference) return
 
     const nextUtc = calculateNextReminderAfterSend({
       timezone: subscription.timezone || 'UTC',

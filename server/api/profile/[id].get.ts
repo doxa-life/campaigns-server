@@ -66,7 +66,9 @@ export default defineEventHandler(async (event) => {
           timezone: sub.timezone,
           prayer_duration: sub.prayer_duration,
           status: sub.status,
-          calendar_urls: sub.status === 'active' ? {
+          // A calendar event needs a concrete reminder time; no-time signups
+          // (reminders handled on-device) have none.
+          calendar_urls: sub.status === 'active' && sub.time_preference ? {
             google: generateGoogleCalendarUrl({
               title: t('calendar.eventTitle', locale, { campaign: pgName }),
               description: t('calendar.eventDescription', locale, { duration: sub.prayer_duration, campaign: pgName }),

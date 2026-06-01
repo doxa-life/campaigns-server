@@ -238,8 +238,10 @@ paths:
       description: >
         Records a prayer signup for a people group from the mobile app without
         requiring contact information. Notifications are handled on-device; the
-        server only records the schedule. Upserts a single app subscription per
-        (subscriber, people group) and returns a stable anonymous identity. An
+        server only records the schedule. Both `frequency` and `time` are
+        optional — when omitted the signup is recorded as a daily 5-minute prayer
+        commitment with no fixed reminder time. Upserts a single app subscription
+        per (subscriber, people group) and returns a stable anonymous identity. An
         email may optionally be supplied to dedup against an existing subscriber
         and attach news consents.
       operationId: anonSignupForPeopleGroup
@@ -258,9 +260,6 @@ paths:
           application/json:
             schema:
               type: object
-              required:
-                - frequency
-                - time
               properties:
                 tracking_id:
                   type: string
@@ -269,10 +268,14 @@ paths:
                 frequency:
                   type: string
                   enum: [daily, weekly]
+                  description: Optional; defaults to `daily` when omitted
                   example: daily
                 time:
                   type: string
-                  description: Reminder time, HH:MM (24h, local)
+                  description: >
+                    Optional reminder time, HH:MM (24h, local). When omitted the
+                    signup has no fixed time (reminders are handled on-device) and
+                    counts as a daily 5-minute prayer commitment.
                   example: "08:00"
                 days_of_week:
                   type: array
@@ -318,7 +321,7 @@ paths:
                   subscription_id:
                     type: integer
         '400':
-          description: Missing/invalid fields (weekly without days_of_week, bad time, invalid email)
+          description: Invalid fields (weekly without days_of_week, malformed time, invalid email)
         '403':
           description: Missing or invalid app secret
         '404':

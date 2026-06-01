@@ -11,7 +11,7 @@ interface ReminderInfo {
   id: number
   frequency: string
   days_of_week: number[]
-  time_preference: string
+  time_preference: string | null
   timezone: string
 }
 

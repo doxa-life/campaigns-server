@@ -31,19 +31,26 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event)
 
-  if (!body.frequency || !body.time) {
-    throw createError({ statusCode: 400, statusMessage: 'Missing required fields: frequency, time' })
-  }
+  // Time is optional. When omitted, the signup records a commitment with no
+  // specific reminder time — reminders are handled on-device for app signups.
+  const time_preference = typeof body.time === 'string' && body.time.trim() ? body.time : undefined
 
-  if (!TIME_REGEX.test(body.time)) {
+  if (time_preference && !TIME_REGEX.test(time_preference)) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid time. Must be HH:MM (24h)' })
   }
 
+  // Frequency is optional too; default to a daily commitment when omitted.
+  const frequency = typeof body.frequency === 'string' && body.frequency.trim() ? body.frequency : 'daily'
+
   const days_of_week = Array.isArray(body.days_of_week) ? body.days_of_week : undefined
 
-  if (body.frequency === 'weekly' && (!days_of_week || days_of_week.length === 0)) {
+  if (frequency === 'weekly' && (!days_of_week || days_of_week.length === 0)) {
     throw createError({ statusCode: 400, statusMessage: 'Days of week are required for weekly frequency' })
   }
+
+  // No-time signups count as a 5-minute daily commitment in the stats; timed
+  // signups keep the existing default (undefined → 10 on create, preserved on update).
+  const prayer_duration = time_preference ? undefined : 5
 
   const timezone = body.timezone && isValidTimezone(body.timezone) ? body.timezone : 'UTC'
   const language = body.language && ['en', 'es', 'fr'].includes(body.language) ? body.language : 'en'
@@ -73,10 +80,11 @@ export default defineEventHandler(async (event) => {
     // a concurrent call (e.g. mobile double-tap) wins the race.
     const updateAppSub = async (id: number, status: string) => {
       await peopleGroupSubscriptionService.updateSubscription(id, {
-        frequency: body.frequency,
+        frequency,
         days_of_week,
-        time_preference: body.time,
-        timezone
+        time_preference,
+        timezone,
+        prayer_duration
       })
       if (status !== 'active') {
         await peopleGroupSubscriptionService.resubscribe(id)
@@ -99,10 +107,11 @@ export default defineEventHandler(async (event) => {
           people_group_id: peopleGroup.id,
           subscriber_id: subscriber.id,
           delivery_method: 'app',
-          frequency: body.frequency,
+          frequency,
           days_of_week,
-          time_preference: body.time,
+          time_preference,
           timezone,
+          prayer_duration,
           status: 'active'
         })
       } catch (err: any) {
@@ -137,7 +146,7 @@ export default defineEventHandler(async (event) => {
         people_group_slug: slug,
         people_group_id: peopleGroup.id,
         subscription_id: subscription.id,
-        frequency: body.frequency,
+        frequency,
         delivery_method: 'app',
         source: 'mobile_app'
       }
@@ -149,9 +158,9 @@ export default defineEventHandler(async (event) => {
       link_text: peopleGroup.name,
       link_url: `/admin/people-groups/${peopleGroup.id}`,
       form_values: {
-        frequency: body.frequency,
+        frequency,
         days_of_week,
-        time: body.time,
+        time: time_preference ?? null,
         timezone,
         language
       }

@@ -23,6 +23,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Subscription not found' })
   }
 
+  // A calendar event needs a concrete reminder time; no-time signups have none.
+  if (!subscription.time_preference) {
+    throw createError({ statusCode: 400, statusMessage: 'Subscription has no reminder time' })
+  }
+
   const subscriber = await subscriberService.getSubscriberByProfileId(profileId)
   if (!subscriber || subscriber.id !== subscription.subscriber_id) {
     throw createError({ statusCode: 404, statusMessage: 'Subscription not found' })
