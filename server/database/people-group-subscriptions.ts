@@ -1,6 +1,6 @@
 import type { Fragment } from 'postgres'
 import { getSql } from './db'
-import { buildSet } from './sql-helpers'
+import { buildSet, committedDailyMinutes } from './sql-helpers'
 import { calculateNextReminderUtc, calculateNextReminderAfterSend } from '../utils/next-reminder-calculator'
 import { contactMethodService } from './contact-methods'
 import { appConfigService } from './app-config'
@@ -507,7 +507,8 @@ class PeopleGroupSubscriptionService {
 
   async getCommitmentStats(peopleGroupId: number): Promise<{ people_committed: number; committed_duration: number }> {
     const [result] = await this.sql`
-      SELECT COUNT(*) as people_committed, COALESCE(SUM(prayer_duration), 0) as committed_duration
+      SELECT COUNT(*) as people_committed,
+        COALESCE(ROUND(SUM(${committedDailyMinutes(this.sql)}))::int, 0) as committed_duration
       FROM campaign_subscriptions
       WHERE people_group_id = ${peopleGroupId} AND status = 'active'
     `
@@ -518,7 +519,8 @@ class PeopleGroupSubscriptionService {
     if (peopleGroupIds.length === 0) return new Map()
 
     const results = await this.sql`
-      SELECT people_group_id, COUNT(*) as people_committed, COALESCE(SUM(prayer_duration), 0) as committed_duration
+      SELECT people_group_id, COUNT(*) as people_committed,
+        COALESCE(ROUND(SUM(${committedDailyMinutes(this.sql)}))::int, 0) as committed_duration
       FROM campaign_subscriptions
       WHERE people_group_id IN ${this.sql(peopleGroupIds)} AND status = 'active'
       GROUP BY people_group_id
@@ -538,7 +540,7 @@ class PeopleGroupSubscriptionService {
     const [totals] = await this.sql`
       SELECT
         COUNT(*) as people_committed,
-        COALESCE(SUM(cs.prayer_duration), 0) as committed_duration,
+        COALESCE(ROUND(SUM(${committedDailyMinutes(this.sql)}))::int, 0) as committed_duration,
         COUNT(DISTINCT cs.people_group_id) as people_groups_with_commitment
       FROM campaign_subscriptions cs
       JOIN people_groups pg ON pg.id = cs.people_group_id
@@ -551,7 +553,7 @@ class PeopleGroupSubscriptionService {
         JOIN people_groups pg ON pg.id = cs.people_group_id
         WHERE cs.status = 'active' AND pg.status != 'archived'
         GROUP BY cs.people_group_id
-        HAVING SUM(cs.prayer_duration) >= 1440
+        HAVING SUM(${committedDailyMinutes(this.sql)}) >= 1440
       ) g
     `
     return {

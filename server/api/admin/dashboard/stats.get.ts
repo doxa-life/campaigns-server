@@ -1,4 +1,5 @@
 import { getSql } from '#server/database/db'
+import { committedDailyMinutes } from '#server/database/sql-helpers'
 
 export default defineEventHandler(async (event) => {
   await requirePermission(event, 'people_groups.view')
@@ -31,7 +32,7 @@ export default defineEventHandler(async (event) => {
     `.then(rows => rows[0]),
     sql`
       SELECT COALESCE(SUM(
-        cs.prayer_duration * GREATEST(0,
+        (${committedDailyMinutes(sql)}) * GREATEST(0,
           FLOOR(EXTRACT(EPOCH FROM (NOW() - cs.created_at)) / 86400)
         )
       ), 0) as total
@@ -40,7 +41,7 @@ export default defineEventHandler(async (event) => {
       WHERE cs.status = 'active' AND pg.status != 'archived'
     `.then(rows => rows[0]),
     sql`
-      SELECT COALESCE(SUM(cs.prayer_duration), 0) as total
+      SELECT COALESCE(ROUND(SUM(${committedDailyMinutes(sql)}))::int, 0) as total
       FROM campaign_subscriptions cs
       JOIN people_groups pg ON pg.id = cs.people_group_id
       WHERE cs.status = 'active' AND pg.status != 'archived'

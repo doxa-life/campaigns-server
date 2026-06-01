@@ -1,4 +1,5 @@
 import { getSql } from '#server/database/db'
+import { committedDailyMinutes } from '#server/database/sql-helpers'
 
 export interface ActivityStats {
   newSubscribers: number
@@ -44,7 +45,7 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
     sql`
       SELECT COALESCE(SUM(daily_committed), 0) as total
       FROM (
-        SELECT d.date, SUM(cs.prayer_duration) as daily_committed
+        SELECT d.date, SUM(${committedDailyMinutes(sql)}) as daily_committed
         FROM generate_series(${startIso}::date, (${endIso}::date - INTERVAL '1 day'), '1 day'::interval) as d(date)
         JOIN campaign_subscriptions cs
           ON cs.status = 'active'

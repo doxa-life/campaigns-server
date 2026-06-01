@@ -1,4 +1,5 @@
 import { getSql } from '#server/database/db'
+import { committedDailyMinutes } from '#server/database/sql-helpers'
 
 export default defineEventHandler(async (event) => {
   await requirePermission(event, 'people_groups.view')
@@ -19,7 +20,7 @@ export default defineEventHandler(async (event) => {
     sql`
       SELECT
         TO_CHAR(d.date, 'YYYY-MM-DD') as date,
-        COALESCE(SUM(cs.prayer_duration), 0) as committed,
+        COALESCE(ROUND(SUM(${committedDailyMinutes(sql)}))::int, 0) as committed,
         COUNT(DISTINCT cs.subscriber_id) as unique_subscribers
       FROM generate_series(
         (NOW() - INTERVAL '29 days')::date,
