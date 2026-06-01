@@ -830,7 +830,10 @@ components:
           description: Total number of active prayer commitments
         committed_duration:
           type: integer
-          description: Total committed prayer minutes across active subscriptions
+          description: >
+            Frequency-weighted daily committed prayer minutes across active
+            subscriptions. Weekly commitments are scaled by days-per-week ÷ 7, so
+            the figure reflects average minutes committed per day.
         global_start_date:
           type: string
           format: date
@@ -890,7 +893,10 @@ components:
           example: 234
         total_with_full_prayer:
           type: integer
-          description: Number of people groups whose active prayer commitments sum to 1440+ minutes (full 24-hour daily coverage)
+          description: >
+            Number of people groups whose frequency-weighted daily committed
+            minutes sum to 1440+ (full 24-hour daily coverage). Weekly
+            commitments count as days-per-week ÷ 7 of their duration.
           example: 45
         total_with_prayer_committed:
           type: integer
@@ -906,5 +912,7 @@ components:
           example: 1200
         committed_duration:
           type: integer
-          description: Total committed prayer minutes across all active subscriptions
+          description: >
+            Frequency-weighted daily committed prayer minutes across all active
+            subscriptions (weekly commitments scaled by days-per-week ÷ 7).
           example: 36000
