@@ -145,8 +145,8 @@ async function translateFromEnglish() {
       method: 'POST',
       body: {
         text: englishText,
-        targetLanguages,
-        sourceLanguage: 'en'
+        target_languages: targetLanguages,
+        source_language: 'en'
       }
     })
 

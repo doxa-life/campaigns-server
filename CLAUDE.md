@@ -151,6 +151,22 @@ API routes follow Nitro conventions:
 - `server/api/people-groups/[slug]/` - Public people group endpoints
 - `server/api/libraries/` - Public library endpoints
 
+### Wire Naming Convention (snake_case JSON)
+
+All API JSON keys — request bodies **and** response shapes — use **snake_case**
+(`tracking_id`, `people_group_id`, `days_of_week`, `target_languages`). This
+matches the database columns 1:1, so the wire maps straight to SQL with no
+field translation. Keep the three layers distinct:
+
+- **Wire (JSON over HTTP)**: snake_case — `body.tracking_id`, `return { tracking_id }`
+- **DB columns**: snake_case (same as wire)
+- **Internal JS/TS/Vue** (locals, fn params, component props, composables): camelCase
+
+When a handler reads a snake_case wire key but wants a camelCase local, alias on
+destructure: `const { tracking_id: trackingId } = body` (see
+`server/api/collect/heartbeat.post.ts`). Do **not** read camelCase keys directly
+off `body` or return camelCase keys in responses.
+
 ### Authentication
 
 - JWT-based authentication

@@ -34,14 +34,14 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event)
 
-  if (!body.fieldKey || typeof body.fieldKey !== 'string') {
+  if (!body.field_key || typeof body.field_key !== 'string') {
     throw createError({
       statusCode: 400,
       statusMessage: 'Field key is required'
     })
   }
 
-  const { fieldKey, overwrite = false } = body
+  const { field_key: fieldKey, overwrite = false } = body
 
   // Validate field exists and is translatable
   const field = allFields.find((f: FieldDefinition) => f.key === fieldKey)

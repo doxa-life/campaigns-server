@@ -41,12 +41,12 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
       await $fetch(`/api/people-groups/${slug}/prayer-content/${contentDate.value}/session`, {
         method: 'POST',
         body: {
-          sessionId: sessionId.value,
-          trackingId: trackingId.value || null,
+          session_id: sessionId.value,
+          tracking_id: trackingId.value || null,
           duration,
           timestamp,
-          peopleGroupId: peopleGroupId?.value,
-          trackEvent: shouldTrack ? 'prayer_auto_tracked' : undefined,
+          people_group_id: peopleGroupId?.value,
+          track_event: shouldTrack ? 'prayer_auto_tracked' : undefined,
           language: locale.value
         }
       })
@@ -74,12 +74,12 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
       await $fetch(`/api/people-groups/${slug}/prayer-content/${contentDate.value}/session`, {
         method: 'POST',
         body: {
-          sessionId: sessionId.value,
-          trackingId: trackingId.value || null,
+          session_id: sessionId.value,
+          tracking_id: trackingId.value || null,
           duration,
           timestamp,
-          peopleGroupId: peopleGroupId?.value,
-          trackEvent: 'prayer_logged',
+          people_group_id: peopleGroupId?.value,
+          track_event: 'prayer_logged',
           language: locale.value
         }
       })

@@ -922,7 +922,7 @@ async function translateField() {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({
-        fieldKey: selectedTranslateField.value,
+        field_key: selectedTranslateField.value,
         overwrite: translateOverwrite.value
       })
     })

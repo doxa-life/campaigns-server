@@ -351,10 +351,10 @@ async function handleTranslate(options: { sourceLanguage: string; targetLanguage
     const response = await $fetch(`/api/admin/libraries/${props.libraryId}/content/${sourceTranslation.id}/translate`, {
       method: 'POST',
       body: {
-        sourceLanguage: options.sourceLanguage,
-        targetLanguages: options.targetLanguages,
+        source_language: options.sourceLanguage,
+        target_languages: options.targetLanguages,
         overwrite: options.overwrite,
-        retranslateVerses: options.retranslateVerses
+        retranslate_verses: options.retranslateVerses
       }
     })
 

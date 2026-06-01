@@ -27,14 +27,14 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event)
 
-  if (!body.sourceLanguage) {
+  if (!body.source_language) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Source language is required'
     })
   }
 
-  const { sourceLanguage, overwrite = false, targetLanguages: requestedTargetLanguages, retranslateVerses = true } = body
+  const { source_language: sourceLanguage, overwrite = false, target_languages: requestedTargetLanguages, retranslate_verses: retranslateVerses = true } = body
 
   // Verify there's source content
   const sourceContent = await libraryContentService.getLibraryContent(libraryId, {

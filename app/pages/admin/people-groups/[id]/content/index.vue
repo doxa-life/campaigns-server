@@ -515,10 +515,10 @@ async function handleStartBulkTranslation(options: { sourceLanguage: string; tar
     const response = await $fetch(`/api/admin/libraries/${selectedLibrary.value.id}/translate`, {
       method: 'POST',
       body: {
-        sourceLanguage: options.sourceLanguage,
+        source_language: options.sourceLanguage,
         overwrite: options.overwrite,
-        targetLanguages: options.targetLanguages,
-        retranslateVerses: options.retranslateVerses
+        target_languages: options.targetLanguages,
+        retranslate_verses: options.retranslateVerses
       }
     })
 
