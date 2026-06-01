@@ -33,8 +33,7 @@
       <UCard class="max-w-md w-full text-center">
         <UIcon name="i-lucide-check-circle" class="w-16 h-16 mx-auto mb-4 text-[var(--ui-success)]" />
         <h1 class="text-2xl font-bold mb-4">{{ $t('survey.may2026.page.thanksTitle') }}</h1>
-        <p class="text-[var(--ui-text-muted)] mb-6">{{ $t('survey.may2026.page.thanks') }}</p>
-        <UButton :to="localePath('/')">{{ $t('survey.may2026.page.goHome') }}</UButton>
+        <p class="text-[var(--ui-text-muted)]">{{ $t('survey.may2026.page.thanks') }}</p>
       </UCard>
     </div>
 
