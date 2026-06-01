@@ -40,6 +40,7 @@ __pycache__/
 /data/tmp/
 /data/bibles/
 wip
+/scripts/
 /.nuxtrc
 context
 .claude/plans/
