@@ -7,7 +7,7 @@ import { getSql } from '#server/database/db'
 import { handleApiError } from '#server/utils/api-helpers'
 import { trackEventInBackground } from '#server/utils/tracking'
 
-// When the client sets `body.trackEvent` to one of these values, the session
+// When the client sets `body.track_event` to one of these values, the session
 // save also fires the corresponding event to Statinator via the server-side
 // forwarder (`trackEventInBackground`). The browser builds no Statinator
 // payload itself — only the string flag and the language.
@@ -41,8 +41,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Validate request body
-  const { sessionId, trackingId, duration, timestamp, peopleGroupId } = body
+  // Validate request body. Wire keys are snake_case; we alias to camelCase locals.
+  const { session_id: sessionId, tracking_id: trackingId, duration, timestamp, people_group_id: peopleGroupId } = body
 
   // Use peopleGroupId if provided (faster), otherwise lookup by slug
   let peopleGroup
@@ -62,7 +62,7 @@ export default defineEventHandler(async (event) => {
   if (!sessionId || duration === undefined || !timestamp) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'sessionId, duration, and timestamp are required'
+      statusMessage: 'session_id, duration, and timestamp are required'
     })
   }
 
@@ -77,13 +77,13 @@ export default defineEventHandler(async (event) => {
       DO UPDATE SET duration = EXCLUDED.duration, timestamp = EXCLUDED.timestamp, content_date = EXCLUDED.content_date
     `
 
-    // Optional Statinator forward. The browser sets `trackEvent` only on saves
+    // Optional Statinator forward. The browser sets `track_event` only on saves
     // that should fire an event (the 30s checkpoint and the explicit
     // mark-as-prayed) — every other auto-save just upserts the row.
-    if (typeof body.trackEvent === 'string' && ALLOWED_TRACK_EVENTS.has(body.trackEvent)) {
-      const source = body.trackEvent === 'prayer_logged' ? 'explicit' : 'auto'
+    if (typeof body.track_event === 'string' && ALLOWED_TRACK_EVENTS.has(body.track_event)) {
+      const source = body.track_event === 'prayer_logged' ? 'explicit' : 'auto'
       trackEventInBackground(event, {
-        eventType: body.trackEvent,
+        eventType: body.track_event,
         value: typeof duration === 'number' ? duration : null,
         anonymousHash: trackingId || null,
         language: typeof body.language === 'string' ? body.language.slice(0, 32) : null,

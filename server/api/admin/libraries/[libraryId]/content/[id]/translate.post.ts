@@ -42,21 +42,21 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
   // Validate required fields
-  if (!body.sourceLanguage) {
+  if (!body.source_language) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Source language is required'
     })
   }
 
-  if (!body.targetLanguages || !Array.isArray(body.targetLanguages) || body.targetLanguages.length === 0) {
+  if (!body.target_languages || !Array.isArray(body.target_languages) || body.target_languages.length === 0) {
     throw createError({
       statusCode: 400,
       statusMessage: 'At least one target language is required'
     })
   }
 
-  const { sourceLanguage, targetLanguages, overwrite = false, retranslateVerses = true } = body
+  const { source_language: sourceLanguage, target_languages: targetLanguages, overwrite = false, retranslate_verses: retranslateVerses = true } = body
 
   // Get the source content
   const sourceContent = await libraryContentService.getLibraryContentById(contentId)
