@@ -34,6 +34,13 @@ const emit = defineEmits<{
   'update:modelValue': [value: any]
 }>()
 
+// Nuxt UI's `mention` prop type omits `suggestion`/`suggestions` (it expects its
+// own EditorMentionMenu), but UEditor still forwards them to Mention.configure at
+// runtime. Binding via a computed sidesteps the object-literal excess-property check.
+const mentionConfig = computed(() =>
+  props.mentions ? { HTMLAttributes: { class: 'mention' }, suggestion: mentionSuggestion } : false
+)
+
 const { showError } = useModal()
 const { createCustomHandlers } = useEditorHandlers()
 
@@ -416,7 +423,7 @@ const setHighlight = (color: string | null) => {
       :handlers="customHandlers"
       :placeholder="editorConfig.placeholder.default"
       :image="false"
-      :mention="props.mentions ? { HTMLAttributes: { class: 'mention' }, suggestion: mentionSuggestion } : false"
+      :mention="mentionConfig"
       :editor-props="{ transformPastedHTML, handlePaste }"
       class="editor-content"
     >

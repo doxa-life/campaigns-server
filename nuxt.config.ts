@@ -1,42 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { fileURLToPath } from 'node:url'
-import { existsSync, readdirSync, rmSync } from 'node:fs'
-import { extname, join } from 'node:path'
 import { generateI18nLocales } from './config/languages'
 
 const appTitle = process.env.APP_TITLE || 'Base'
-const baseLayerUrl = process.env.BASE_LAYER_URL || 'github:corsacca/nuxt-base#master'
-
-const LAYERS_DIR = '.layers'
-
-// Strip layer-level tsconfig.json files. The nuxt-base layer ships a
-// tsconfig.json that references ./.nuxt/tsconfig.*.json — only generated when
-// the layer is opened as its own project. Under node_modules Vite skips it;
-// at .layers/<name> Vite picks it up and crashes on the missing references.
-function stripLayerTsconfigs() {
-  if (!existsSync(LAYERS_DIR)) return
-  for (const name of readdirSync(LAYERS_DIR)) {
-    const tsconfig = join(LAYERS_DIR, name, 'tsconfig.json')
-    if (existsSync(tsconfig)) rmSync(tsconfig)
-  }
-}
-
-stripLayerTsconfigs()
-
-const isRemoteLayer = /^(github|gitlab|bitbucket|sourcehut|npm|https?):/.test(baseLayerUrl)
 
 export default defineNuxtConfig({
-  // Testing local base layer changes (switch back to github:corsacca/nuxt-base#TAG before deploying)
-  extends: [
-    isRemoteLayer
-      ? [baseLayerUrl, { giget: { dir: `${LAYERS_DIR}/nuxt-base`, forceClean: true } }]
-      : baseLayerUrl
-  ],
-
-  hooks: {
-    'modules:before': stripLayerTsconfigs
-  },
-
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   ssr: false,
@@ -70,7 +38,13 @@ export default defineNuxtConfig({
     }
   },
 
-  modules: ['@nuxtjs/i18n', '@nuxt/icon'],
+  modules: ['@nuxtjs/i18n', '@nuxt/icon', '@nuxt/ui'],
+
+  ui: {
+    theme: {
+      colors: ['primary', 'secondary', 'info', 'success', 'warning', 'error', 'neutral', 'kashmir-blue', 'brand-slate', 'brand-success', 'brand-warning', 'brand-error', 'brand-info']
+    }
+  },
 
   i18n: {
     locales: generateI18nLocales(),
@@ -96,7 +70,7 @@ export default defineNuxtConfig({
 
   nitro: {
     watchOptions: {
-      ignored: ['**/node_modules/.c12/**', '**/.layers/**', '**/.claude/**']
+      ignored: ['**/.claude/**']
     },
     imports: {
       // Exclude server/utils/app from auto-imports to avoid conflicts with base layer
@@ -104,29 +78,15 @@ export default defineNuxtConfig({
       exclude: [
         '**/server/utils/app/**'
       ]
-    },
-    rollupConfig: {
-      plugins: [
-        {
-          name: 'resolve-base-layer-ts',
-          resolveId(source: string) {
-            if ((source.includes('.layers/') || source.includes('.c12')) && !extname(source)) {
-              const tsPath = source + '.ts'
-              if (existsSync(tsPath)) return tsPath
-            }
-            return null
-          }
-        }
-      ]
     }
   },
 
-  watch: ['!node_modules/.c12/**', '!.layers/**', '!.claude/**'],
+  watch: ['!.claude/**'],
 
   vite: {
     server: {
       watch: {
-        ignored: ['**/node_modules/.c12/**', '**/.layers/**', '**/.claude/**']
+        ignored: ['**/.claude/**']
       }
     },
     optimizeDeps: {
@@ -152,13 +112,20 @@ export default defineNuxtConfig({
     databaseUrl: process.env.DATABASE_URL || '',
 
     // Email configuration (base layer)
+    emailProvider: process.env.EMAIL_PROVIDER || 'smtp',
     smtpHost: process.env.SMTP_HOST || 'localhost',
     smtpPort: process.env.SMTP_PORT || '1025',
     smtpUser: process.env.SMTP_USER || '',
     smtpPass: process.env.SMTP_PASS || '',
     smtpFrom: process.env.SMTP_FROM || 'noreply@localhost.com',
+    smtpFromName: process.env.SMTP_FROM_NAME || '',
     smtpSecure: process.env.SMTP_SECURE || 'false',
     smtpRejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED || 'true',
+
+    // AWS SES configuration (base layer)
+    awsRegion: process.env.AWS_REGION || process.env.AWS_SES_REGION || '',
+    awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
 
     // S3 configuration (base layer)
     s3Endpoint: process.env.S3_ENDPOINT || '',
@@ -204,6 +171,7 @@ export default defineNuxtConfig({
       appName: appTitle,
       nodeEnv: process.env.NODE_ENV || 'development',
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+      baseUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
       // Inbox sending identity (used by the composer's From selector)
       inboxContactAddress: process.env.INBOX_CONTACT_ADDRESS || 'contact@doxa.life',
       inboxDomain: process.env.INBOX_DOMAIN || 'doxa.life',

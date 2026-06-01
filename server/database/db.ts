@@ -18,9 +18,8 @@ function getTestSql(): ReturnType<typeof postgres> | null {
   return testSql
 }
 
-// Get the production sql connection (auto-imported from base layer server/utils/database.ts)
+// Get the production sql connection (auto-imported from server/utils/database.ts)
 function getProductionSql(): Sql {
-  // sql is auto-imported by Nitro from the base layer's server/utils/database.ts
   // @ts-ignore - sql is auto-imported
   return sql
 }

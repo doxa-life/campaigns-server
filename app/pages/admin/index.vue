@@ -600,7 +600,7 @@ const totalSignups = computed(() => {
 
 const maxLanguageCount = computed(() => {
   if (!data.value?.signupsByLanguage?.length) return 1
-  return Math.max(1, data.value.signupsByLanguage[0].count)
+  return Math.max(1, data.value.signupsByLanguage[0]?.count ?? 1)
 })
 
 function languageBarWidth(count: number): string {
