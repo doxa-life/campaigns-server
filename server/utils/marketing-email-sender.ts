@@ -23,6 +23,10 @@ export interface MarketingSendOptions {
   html: string
   text?: string
   replyTo?: string
+  // RFC 8058 one-click unsubscribe endpoint (receives a POST). When set, the
+  // List-Unsubscribe + List-Unsubscribe-Post headers are added so Gmail/Yahoo/
+  // Apple Mail render a native one-click unsubscribe and route opt-outs here.
+  listUnsubscribeUrl?: string
 }
 
 function getMarketingMailgunConfig() {
@@ -59,6 +63,10 @@ export async function sendMarketingEmail(options: MarketingSendOptions): Promise
       form.append('html', options.html)
       form.append('text', options.text || options.html.replace(/<[^>]*>/g, ''))
       if (options.replyTo) form.append('h:Reply-To', options.replyTo)
+      if (options.listUnsubscribeUrl) {
+        form.append('h:List-Unsubscribe', `<${options.listUnsubscribeUrl}>`)
+        form.append('h:List-Unsubscribe-Post', 'List-Unsubscribe=One-Click')
+      }
 
       const url = `https://${host}/v3/${domain}/messages`
       const auth = Buffer.from(`api:${apiKey}`).toString('base64')

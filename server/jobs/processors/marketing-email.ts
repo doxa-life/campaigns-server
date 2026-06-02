@@ -52,16 +52,21 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
   const profileId = subscriber?.profile_id || 'unknown'
   const subscriberLanguage = subscriber?.preferred_language || 'en'
 
-  let unsubscribeUrl: string
+  // Resolve which consent this email's unsubscribe targets, then build both the
+  // human-facing preferences page (body link) and the RFC 8058 one-click endpoint
+  // (List-Unsubscribe header) from the same params so they stay in sync.
+  let unsubQuery: string
   if (cached.email.audience_type === 'people_group' && cached.email.people_group_slug) {
-    unsubscribeUrl = `${baseUrl}${localePath('/unsubscribe', subscriberLanguage)}?id=${profileId}&type=people_group&slug=${cached.email.people_group_slug}`
+    unsubQuery = `id=${profileId}&type=people_group&slug=${cached.email.people_group_slug}`
   } else if (cached.email.audience_type === 'active_pg') {
     // The all-active-subscribers audience carries product/feedback emails (surveys,
     // evaluations), so its opt-out targets the product-emails consent category.
-    unsubscribeUrl = `${baseUrl}${localePath('/unsubscribe', subscriberLanguage)}?id=${profileId}&type=product`
+    unsubQuery = `id=${profileId}&type=product`
   } else {
-    unsubscribeUrl = `${baseUrl}${localePath('/unsubscribe', subscriberLanguage)}?id=${profileId}&type=doxa`
+    unsubQuery = `id=${profileId}&type=doxa`
   }
+  const unsubscribeUrl = `${baseUrl}${localePath('/unsubscribe', subscriberLanguage)}?${unsubQuery}`
+  const listUnsubscribeUrl = `${baseUrl}/api/marketing/unsubscribe?${unsubQuery}`
 
   const template = getMarketingTemplate(cached.email.template)
 
@@ -95,7 +100,8 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
     to: payload.recipient_email,
     subject,
     html,
-    text
+    text,
+    listUnsubscribeUrl
   })
 
   if (sent) {
