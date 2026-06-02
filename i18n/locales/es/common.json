@@ -672,7 +672,7 @@
     "may2026": {
       "page": {
         "title": "Tu experiencia de oración",
-        "intro": "Gracias por orar con DOXA. Estas cinco preguntas toman unos tres minutos, y tus respuestas nos ayudan a mejorar las indicaciones de oración diaria. No hay respuestas correctas ni incorrectas; solo queremos conocer tu experiencia sincera.",
+        "intro": "Gracias por unirte y orar con DOXA por los grupos étnicos no comprometidos. Estas seis preguntas toman unos tres minutos, y tus respuestas ayudarán a dar forma a las futuras indicaciones de oración diaria. No hay respuestas correctas ni incorrectas; solo queremos conocer tu experiencia sincera.",
         "submit": "Enviar mis respuestas",
         "thanksTitle": "¡Gracias!",
         "thanks": "Gracias: hemos recibido tus respuestas. Agradecemos el tiempo que dedicaste y tus oraciones.",
@@ -686,33 +686,44 @@
         "error": "No pudimos guardar tus respuestas. Inténtalo de nuevo."
       },
       "questions": {
+        "frequency": {
+          "label": "¿Cuántos días por semana sueles usar el contenido de oración seleccionado que ofrece DOXA?",
+          "options": {
+            "1": "Casi nunca (0–1)",
+            "2": "Algunos días (2–3)",
+            "3": "La mayoría de los días (4–6)",
+            "4": "Todos los días (7)"
+          }
+        },
         "focus": {
-          "label": "¿Qué tan bien te ayudaron las indicaciones de oración diaria a sentirte concentrado y comprometido al orar por los grupos étnicos no alcanzados?",
+          "label": "Las indicaciones de oración diaria me ayudan a concentrarme y a involucrarme al orar por los grupos étnicos no alcanzados.",
           "scale": {
-            "1": "Nada concentrado",
-            "5": "Muy concentrado"
+            "1": "Para nada",
+            "3": "Algo",
+            "5": "Mucho"
           }
         },
         "experience": {
-          "label": "Cuéntanos más sobre tu experiencia: ¿qué hizo que las indicaciones te resultaran útiles (o no) personalmente?"
+          "label": "Cuéntanos más sobre tu experiencia: ¿qué parte de la página de oración diaria te ha resultado más útil, y por qué?"
         },
         "clarity": {
-          "label": "¿Con qué claridad comunicaban las indicaciones de oración por qué orar y por qué es importante?",
+          "label": "Las indicaciones de oración comunican con claridad por qué motivos orar y por qué es importante.",
           "scale": {
-            "1": "Muy poco claras",
-            "5": "Muy claras"
+            "1": "Para nada",
+            "3": "Algo",
+            "5": "Mucho"
           }
         },
-        "content_amount": {
-          "label": "¿La cantidad de contenido de oración se ajusta al tiempo que tienes para orar?",
+        "balance": {
+          "label": "La combinación de las Escrituras, los motivos de oración y la reflexión se siente equilibrada para un tiempo de oración de unos 10 minutos.",
           "scale": {
-            "1": "Demasiado para mi tiempo de oración",
-            "3": "Justo lo adecuado",
-            "5": "Muy poco para mi tiempo de oración"
+            "1": "Para nada",
+            "3": "Algo",
+            "5": "Mucho"
           }
         },
-        "heart": {
-          "label": "¿Cómo ha afectado tu participación en esta campaña de oración a tu corazón o tu perspectiva hacia los grupos étnicos no alcanzados?"
+        "improvement": {
+          "label": "Si pudiéramos mejorar una sola cosa del contenido diario futuro, ¿qué cambiarías, agregarías o quitarías?"
         }
       },
       "email": {
@@ -720,8 +731,8 @@
         "header": "Nos encantaría tu opinión",
         "greeting": "Hola {name}:",
         "greetingFallback": "Hola:",
-        "p1": "Gracias por interceder en oración por los grupos étnicos no alcanzados del mundo. Tu fidelidad es el corazón de lo que DOXA existe para apoyar.",
-        "p2": "Siempre buscamos que las indicaciones de oración diaria sean más útiles y, antes de reunirnos como equipo para planificar los próximos pasos, nos encantaría escucharte. ¿Podrías dedicar unos minutos a responder cinco preguntas breves sobre tu experiencia?",
+        "p1": "Ha sido un privilegio unirnos a ti en intercesión por los grupos étnicos no alcanzados del mundo.",
+        "p2": "Siempre buscamos que las indicaciones de oración diaria sean más útiles y, antes de reunirnos como equipo para planificar los próximos pasos, nos encantaría escucharte. ¿Podrías dedicar unos minutos a responder seis preguntas breves sobre tu experiencia?",
         "p3": "Tu opinión sincera —lo que funciona y lo que no— moldea directamente el contenido de oración que creamos.",
         "cta": "Responder la encuesta",
         "signoff": "Con gratitud,",

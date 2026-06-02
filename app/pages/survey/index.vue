@@ -65,6 +65,12 @@
               />
               <p class="mt-2 text-xs text-[var(--ui-text-muted)]">{{ scaleLegend(question) }}</p>
             </div>
+            <div v-else-if="question.type === 'choice'" class="mt-3">
+              <URadioGroup
+                v-model="answers[question.key]"
+                :items="choiceItems(question)"
+              />
+            </div>
             <UTextarea
               v-else
               v-model="answers[question.key]"
@@ -124,6 +130,13 @@ function scaleItems(question: SurveyQuestion) {
   return Array.from({ length: max - min + 1 }, (_, i) => ({
     label: String(min + i),
     value: min + i
+  }))
+}
+
+function choiceItems(question: SurveyQuestion) {
+  return (question.options ?? []).map(value => ({
+    label: t(may2026I18n.optionLabel(question.key, value)),
+    value
   }))
 }
 

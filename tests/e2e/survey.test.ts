@@ -72,14 +72,25 @@ describe('POST /api/survey/response', () => {
     expect(error.statusCode).toBe(400)
   })
 
-  it('stores scale and text answers', async () => {
+  it('rejects a choice answer outside the allowed options', async () => {
+    const subscriber = await createTestSubscriber(sql, { name: 'Test Survey Bad Choice' })
+
+    const error = await $fetch('/api/survey/response', {
+      method: 'POST',
+      body: { id: subscriber.profile_id, answers: { frequency: 9 } }
+    }).catch(e => e)
+
+    expect(error.statusCode).toBe(400)
+  })
+
+  it('stores choice, scale and text answers', async () => {
     const subscriber = await createTestSubscriber(sql, { name: 'Test Survey Submit' })
 
     const result = await $fetch('/api/survey/response', {
       method: 'POST',
       body: {
         id: subscriber.profile_id,
-        answers: { focus: 4, clarity: 5, content_amount: 3, experience: 'Loved it', heart: 'Changed me' }
+        answers: { frequency: 3, focus: 4, clarity: 5, balance: 3, experience: 'Loved it', improvement: 'More Scripture' }
       }
     })
     expect(result.success).toBe(true)
@@ -87,13 +98,17 @@ describe('POST /api/survey/response', () => {
     const stored = await getSurveyResponse(subscriber.id)
     expect(stored).not.toBeNull()
     const byKey = Object.fromEntries(stored!.answers.map((a: any) => [a.question_key, a]))
+    expect(byKey.frequency.value_int).toBe(3)
     expect(byKey.focus.value_int).toBe(4)
     expect(byKey.clarity.value_int).toBe(5)
+    expect(byKey.balance.value_int).toBe(3)
     expect(byKey.experience.value_text).toBe('Loved it')
+    expect(byKey.improvement.value_text).toBe('More Scripture')
 
     // GET should now report alreadyResponded with the saved answers prefilled.
     const get = await $fetch(`/api/survey/response?id=${subscriber.profile_id}`)
     expect(get.alreadyResponded).toBe(true)
+    expect(get.answers.frequency).toBe(3)
     expect(get.answers.focus).toBe(4)
     expect(get.answers.experience).toBe('Loved it')
   })

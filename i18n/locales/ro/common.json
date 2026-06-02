@@ -668,7 +668,7 @@
     "may2026": {
       "page": {
         "title": "Experiența ta de rugăciune",
-        "intro": "Îți mulțumim că te rogi alături de DOXA. Aceste cinci întrebări durează aproximativ trei minute, iar răspunsurile tale ne ajută să îmbunătățim subiectele zilnice de rugăciune. Nu există răspunsuri corecte sau greșite — vrem doar să aflăm experiența ta sinceră.",
+        "intro": "Îți mulțumim că te alături DOXA și te rogi pentru grupurile etnice neangajate. Aceste șase întrebări durează aproximativ trei minute, iar răspunsurile tale vor ajuta la modelarea viitoarelor subiecte zilnice de rugăciune. Nu există răspunsuri corecte sau greșite — vrem doar să aflăm experiența ta sinceră.",
         "submit": "Trimite răspunsurile mele",
         "thanksTitle": "Mulțumim!",
         "thanks": "Mulțumim — am primit răspunsurile tale. Îți suntem recunoscători pentru timpul acordat și pentru rugăciunile tale.",
@@ -682,33 +682,44 @@
         "error": "Nu am putut salva răspunsurile tale. Te rugăm să încerci din nou."
       },
       "questions": {
+        "frequency": {
+          "label": "În câte zile pe săptămână folosești de obicei conținutul de rugăciune oferit de DOXA?",
+          "options": {
+            "1": "Rar (0–1)",
+            "2": "Unele zile (2–3)",
+            "3": "În majoritatea zilelor (4–6)",
+            "4": "În fiecare zi (7)"
+          }
+        },
         "focus": {
-          "label": "Cât de mult te-au ajutat subiectele zilnice de rugăciune să te simți concentrat și implicat în rugăciunea pentru grupurile etnice neatinse?",
+          "label": "Subiectele zilnice de rugăciune mă ajută să mă concentrez și să mă implic în rugăciunea pentru grupurile etnice neatinse.",
           "scale": {
-            "1": "Deloc concentrat",
-            "5": "Extrem de concentrat"
+            "1": "Deloc",
+            "3": "Oarecum",
+            "5": "Foarte mult"
           }
         },
         "experience": {
-          "label": "Spune-ne mai multe despre experiența ta: ce a făcut ca subiectele de rugăciune să fie utile (sau nu) pentru tine personal?"
+          "label": "Spune-ne mai multe despre experiența ta: ce parte a paginii zilnice de rugăciune ți-a fost cea mai utilă și de ce?"
         },
         "clarity": {
-          "label": "Cât de clar comunicau subiectele de rugăciune pentru ce să te rogi și de ce contează?",
+          "label": "Subiectele de rugăciune comunică clar pentru ce să te rogi și de ce este important.",
           "scale": {
-            "1": "Foarte neclare",
-            "5": "Foarte clare"
+            "1": "Deloc",
+            "3": "Oarecum",
+            "5": "Foarte mult"
           }
         },
-        "content_amount": {
-          "label": "Cantitatea de conținut de rugăciune corespunde timpului pe care îl ai pentru rugăciune?",
+        "balance": {
+          "label": "Combinația dintre Scriptură, punctele de rugăciune și reflecție pare echilibrată pentru un timp de rugăciune de aproximativ 10 minute.",
           "scale": {
-            "1": "Prea mult pentru timpul meu de rugăciune",
-            "3": "Exact potrivit",
-            "5": "Prea puțin pentru timpul meu de rugăciune"
+            "1": "Deloc",
+            "3": "Oarecum",
+            "5": "Foarte mult"
           }
         },
-        "heart": {
-          "label": "Cum ți-a influențat participarea la această campanie de rugăciune inima sau perspectiva față de grupurile etnice neatinse?"
+        "improvement": {
+          "label": "Dacă am putea îmbunătăți un singur lucru la conținutul zilnic viitor, ce ai schimba, ai adăuga sau ai elimina?"
         }
       },
       "email": {
@@ -716,8 +727,8 @@
         "header": "Ne-ar plăcea să aflăm părerea ta",
         "greeting": "Bună, {name},",
         "greetingFallback": "Bună,",
-        "p1": "Îți mulțumim că stai în rugăciune pentru grupurile etnice neatinse ale lumii. Credincioșia ta este inima a ceea ce DOXA dorește să sprijine.",
-        "p2": "Căutăm mereu să facem subiectele zilnice de rugăciune mai utile și, înainte de a ne întâlni ca echipă pentru a planifica pașii următori, ne-ar plăcea să te ascultăm. Ai putea să acorzi câteva minute pentru a răspunde la cinci întrebări scurte despre experiența ta?",
+        "p1": "A fost un privilegiu să ne unim cu tine în mijlocire pentru grupurile etnice neatinse ale lumii.",
+        "p2": "Căutăm mereu să facem subiectele zilnice de rugăciune mai utile și, înainte de a ne întâlni ca echipă pentru a planifica pașii următori, ne-ar plăcea să te ascultăm. Ai putea să acorzi câteva minute pentru a răspunde la șase întrebări scurte despre experiența ta?",
         "p3": "Părerea ta sinceră — ce funcționează și ce nu — modelează direct conținutul de rugăciune pe care îl creăm.",
         "cta": "Completează sondajul",
         "signoff": "Cu recunoștință,",

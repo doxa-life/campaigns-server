@@ -672,7 +672,7 @@
     "may2026": {
       "page": {
         "title": "Ihre Gebetserfahrung",
-        "intro": "Danke, dass Sie mit DOXA beten. Diese fünf Fragen dauern etwa drei Minuten, und Ihre Antworten helfen uns, die täglichen Gebetsanliegen zu verbessern. Es gibt keine richtigen oder falschen Antworten – wir möchten einfach Ihre ehrliche Erfahrung erfahren.",
+        "intro": "Danke, dass Sie sich DOXA anschließen und für die nicht-engagierten Volksgruppen beten. Diese sechs Fragen dauern etwa drei Minuten, und Ihre Antworten helfen, die künftigen täglichen Gebetsanliegen zu gestalten. Es gibt keine richtigen oder falschen Antworten – wir möchten einfach Ihre ehrliche Erfahrung erfahren.",
         "submit": "Meine Antworten senden",
         "thanksTitle": "Vielen Dank!",
         "thanks": "Danke – Ihre Antworten sind eingegangen. Wir sind dankbar für Ihre Zeit und Ihre Gebete.",
@@ -686,33 +686,44 @@
         "error": "Wir konnten Ihre Antworten nicht speichern. Bitte versuchen Sie es erneut."
       },
       "questions": {
+        "frequency": {
+          "label": "An wie vielen Tagen pro Woche nutzen Sie in der Regel die von DOXA bereitgestellten Gebetsinhalte?",
+          "options": {
+            "1": "Selten (0–1)",
+            "2": "An manchen Tagen (2–3)",
+            "3": "An den meisten Tagen (4–6)",
+            "4": "Jeden Tag (7)"
+          }
+        },
         "focus": {
-          "label": "Wie gut haben Ihnen die täglichen Gebetsanliegen geholfen, sich beim Gebet für unerreichte Volksgruppen konzentriert und eingebunden zu fühlen?",
+          "label": "Die täglichen Gebetsanliegen helfen mir, mich beim Gebet für unerreichte Volksgruppen zu konzentrieren und einzubringen.",
           "scale": {
-            "1": "Überhaupt nicht konzentriert",
-            "5": "Äußerst konzentriert"
+            "1": "Überhaupt nicht",
+            "3": "Etwas",
+            "5": "Voll und ganz"
           }
         },
         "experience": {
-          "label": "Erzählen Sie uns mehr über Ihre Erfahrung: Was hat die Gebetsanliegen für Sie persönlich hilfreich (oder nicht hilfreich) gemacht?"
+          "label": "Erzählen Sie uns mehr über Ihre Erfahrung: Welcher Teil der täglichen Gebetsseite war für Sie am hilfreichsten, und warum?"
         },
         "clarity": {
-          "label": "Wie klar haben die Gebetsanliegen vermittelt, wofür zu beten ist und warum es wichtig ist?",
+          "label": "Die Gebetsanliegen vermitteln klar, wofür zu beten ist und warum es wichtig ist.",
           "scale": {
-            "1": "Sehr unklar",
-            "5": "Sehr klar"
+            "1": "Überhaupt nicht",
+            "3": "Etwas",
+            "5": "Voll und ganz"
           }
         },
-        "content_amount": {
-          "label": "Passt die Menge an Gebetsinhalten zu der Zeit, die Sie zum Beten haben?",
+        "balance": {
+          "label": "Die Mischung aus Schrift, Gebetsanliegen und Besinnung wirkt ausgewogen für eine Gebetszeit von etwa 10 Minuten.",
           "scale": {
-            "1": "Zu viel für meine Gebetszeit",
-            "3": "Genau richtig",
-            "5": "Zu wenig für meine Gebetszeit"
+            "1": "Überhaupt nicht",
+            "3": "Etwas",
+            "5": "Voll und ganz"
           }
         },
-        "heart": {
-          "label": "Wie hat die Teilnahme an dieser Gebetskampagne Ihr Herz oder Ihre Sichtweise gegenüber unerreichten Volksgruppen verändert?"
+        "improvement": {
+          "label": "Wenn wir eine einzige Sache an den künftigen täglichen Inhalten verbessern könnten, was würden Sie ändern, hinzufügen oder weglassen?"
         }
       },
       "email": {
@@ -720,8 +731,8 @@
         "header": "Wir freuen uns über Ihr Feedback",
         "greeting": "Hallo {name},",
         "greetingFallback": "Hallo,",
-        "p1": "Danke, dass Sie im Gebet für die unerreichten Volksgruppen der Welt einstehen. Ihre Treue ist das Herzstück dessen, was DOXA unterstützen möchte.",
-        "p2": "Wir möchten die täglichen Gebetsanliegen immer hilfreicher gestalten, und bevor wir uns als Team treffen, um die nächsten Schritte zu planen, würden wir gerne von Ihnen hören. Würden Sie sich ein paar Minuten Zeit nehmen, um fünf kurze Fragen zu Ihrer Erfahrung zu beantworten?",
+        "p1": "Es ist ein Vorrecht, gemeinsam mit Ihnen in Fürbitte für die unerreichten Volksgruppen der Welt einzutreten.",
+        "p2": "Wir möchten die täglichen Gebetsanliegen immer hilfreicher gestalten, und bevor wir uns als Team treffen, um die nächsten Schritte zu planen, würden wir gerne von Ihnen hören. Würden Sie sich ein paar Minuten Zeit nehmen, um sechs kurze Fragen zu Ihrer Erfahrung zu beantworten?",
         "p3": "Ihr ehrliches Feedback – was funktioniert und was nicht – prägt direkt die Gebetsinhalte, die wir erstellen.",
         "cta": "An der Umfrage teilnehmen",
         "signoff": "Mit Dankbarkeit,",

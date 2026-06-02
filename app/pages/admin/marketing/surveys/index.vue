@@ -65,15 +65,17 @@
               {{ item.number }}. {{ $t(questionLabel(item.key)) }}
             </div>
 
-            <template v-if="item.type === 'scale' && item.scale">
+            <template v-if="(item.type === 'scale' || item.type === 'choice') && item.scale">
               <p class="text-sm text-[var(--ui-text-muted)] mb-4">
-                {{ $t('survey.admin.average') }}:
-                <span class="font-semibold text-[var(--ui-text)]">{{ item.scale.average != null ? item.scale.average.toFixed(2) : '—' }}</span>
+                <template v-if="item.type === 'scale'">
+                  {{ $t('survey.admin.average') }}:
+                  <span class="font-semibold text-[var(--ui-text)]">{{ item.scale.average != null ? item.scale.average.toFixed(2) : '—' }}</span>
+                </template>
                 ({{ item.scale.count }})
               </p>
               <div class="space-y-2">
                 <div v-for="point in scalePoints(item.key)" :key="point" class="flex items-center gap-3">
-                  <span class="w-4 text-sm text-[var(--ui-text-muted)]">{{ point }}</span>
+                  <span :class="item.type === 'choice' ? 'w-36 shrink-0' : 'w-4'" class="text-sm text-[var(--ui-text-muted)]">{{ pointLabel(item.key, point) }}</span>
                   <UProgress :model-value="item.scale.distribution[point] || 0" :max="item.scale.count || 1" class="flex-1" />
                   <span class="w-10 text-right text-sm tabular-nums">{{ item.scale.distribution[point] || 0 }}</span>
                 </div>
@@ -112,6 +114,8 @@ definePageMeta({
   middleware: 'auth'
 })
 
+const { t } = useI18n()
+
 interface SurveyListItem { key: string; title: string; status: string; response_count: number }
 interface ScaleAggregate { key: string; count: number; average: number | null; distribution: Record<number, number> }
 interface TextAggregate { key: string; answers: string[] }
@@ -147,8 +151,8 @@ const renderQuestions = computed(() => {
     key: question.key,
     type: question.type,
     number: index + 1,
-    scale: question.type === 'scale' ? results.scale.find(a => a.key === question.key) ?? null : null,
-    text: question.type === 'text' ? results.text.find(t => t.key === question.key) ?? null : null
+    scale: question.type !== 'text' ? results.scale.find(a => a.key === question.key) ?? null : null,
+    text: question.type === 'text' ? results.text.find(a => a.key === question.key) ?? null : null
   }))
 })
 
@@ -159,9 +163,17 @@ function questionLabel(key: string) {
 function scalePoints(key: string): number[] {
   const question = getMay2026Question(key)
   if (!question) return []
+  if (question.type === 'choice') return question.options ?? []
   const min = question.min ?? 1
   const max = question.max ?? 5
   return Array.from({ length: max - min + 1 }, (_, i) => min + i)
+}
+
+// Distribution row label: option text for choice questions, the bare number for scales.
+function pointLabel(key: string, point: number): string {
+  const question = getMay2026Question(key)
+  if (question?.type === 'choice') return t(may2026I18n.optionLabel(key, point))
+  return String(point)
 }
 
 async function exportCsv() {

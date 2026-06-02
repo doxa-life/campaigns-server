@@ -672,7 +672,7 @@
     "may2026": {
       "page": {
         "title": "Votre expérience de prière",
-        "intro": "Merci de prier avec DOXA. Ces cinq questions prennent environ trois minutes, et vos réponses nous aident à améliorer les sujets de prière quotidiens. Il n'y a pas de bonne ou de mauvaise réponse ; nous voulons simplement connaître votre expérience sincère.",
+        "intro": "Merci de vous joindre à DOXA et de prier pour les groupes ethniques non-engagés. Ces six questions prennent environ trois minutes, et vos réponses contribueront à façonner les futurs sujets de prière quotidiens. Il n'y a pas de bonne ou de mauvaise réponse ; nous voulons simplement connaître votre expérience sincère.",
         "submit": "Envoyer mes réponses",
         "thanksTitle": "Merci !",
         "thanks": "Merci, vos réponses ont bien été enregistrées. Nous vous sommes reconnaissants du temps que vous avez consacré et de vos prières.",
@@ -686,33 +686,44 @@
         "error": "Nous n'avons pas pu enregistrer vos réponses. Veuillez réessayer."
       },
       "questions": {
+        "frequency": {
+          "label": "Combien de jours par semaine utilisez-vous généralement le contenu de prière proposé par DOXA ?",
+          "options": {
+            "1": "Rarement (0–1)",
+            "2": "Quelques jours (2–3)",
+            "3": "La plupart des jours (4–6)",
+            "4": "Tous les jours (7)"
+          }
+        },
         "focus": {
-          "label": "Dans quelle mesure les sujets de prière quotidiens vous ont-ils aidé à vous sentir concentré et engagé dans la prière pour les groupes ethniques non-atteints ?",
+          "label": "Les sujets de prière quotidiens m'aident à me concentrer et à m'engager dans la prière pour les groupes ethniques non-atteints.",
           "scale": {
-            "1": "Pas du tout concentré",
-            "5": "Extrêmement concentré"
+            "1": "Pas du tout",
+            "3": "Un peu",
+            "5": "Tout à fait"
           }
         },
         "experience": {
-          "label": "Parlez-nous davantage de votre expérience : qu'est-ce qui a rendu les sujets de prière utiles (ou non) pour vous personnellement ?"
+          "label": "Parlez-nous davantage de votre expérience : quelle partie de la page de prière quotidienne vous a été la plus utile, et pourquoi ?"
         },
         "clarity": {
-          "label": "Avec quelle clarté les sujets de prière indiquaient-ils quoi prier et pourquoi c'est important ?",
+          "label": "Les sujets de prière indiquent clairement pour quoi prier et pourquoi c'est important.",
           "scale": {
-            "1": "Très peu clairs",
-            "5": "Très clairs"
+            "1": "Pas du tout",
+            "3": "Un peu",
+            "5": "Tout à fait"
           }
         },
-        "content_amount": {
-          "label": "La quantité de contenu de prière correspond-elle au temps dont vous disposez pour prier ?",
+        "balance": {
+          "label": "Le mélange de l'Écriture, des sujets de prière et de la réflexion semble équilibré pour un temps de prière d'environ 10 minutes.",
           "scale": {
-            "1": "Trop pour mon temps de prière",
-            "3": "Juste comme il faut",
-            "5": "Trop peu pour mon temps de prière"
+            "1": "Pas du tout",
+            "3": "Un peu",
+            "5": "Tout à fait"
           }
         },
-        "heart": {
-          "label": "Comment votre participation à cette campagne de prière a-t-elle influencé votre cœur ou votre regard envers les groupes ethniques non-atteints ?"
+        "improvement": {
+          "label": "Si nous pouvions améliorer une seule chose dans le contenu quotidien à venir, que changeriez-vous, ajouteriez-vous ou supprimeriez-vous ?"
         }
       },
       "email": {
@@ -720,8 +731,8 @@
         "header": "Votre avis nous intéresse",
         "greeting": "Bonjour {name},",
         "greetingFallback": "Bonjour,",
-        "p1": "Merci d'intercéder dans la prière pour les groupes ethniques non-atteints du monde. Votre fidélité est au cœur de ce que DOXA cherche à soutenir.",
-        "p2": "Nous cherchons toujours à rendre les sujets de prière quotidiens plus utiles et, avant de nous réunir en équipe pour planifier la suite, nous aimerions beaucoup vous entendre. Pourriez-vous prendre quelques minutes pour répondre à cinq courtes questions sur votre expérience ?",
+        "p1": "Ce fut un privilège de nous unir à vous dans l'intercession pour les groupes ethniques non-atteints du monde.",
+        "p2": "Nous cherchons toujours à rendre les sujets de prière quotidiens plus utiles et, avant de nous réunir en équipe pour planifier la suite, nous aimerions beaucoup vous entendre. Pourriez-vous prendre quelques minutes pour répondre à six courtes questions sur votre expérience ?",
         "p3": "Votre avis sincère — ce qui fonctionne, ce qui ne fonctionne pas — façonne directement le contenu de prière que nous créons.",
         "cta": "Répondre à l'enquête",
         "signoff": "Avec gratitude,",

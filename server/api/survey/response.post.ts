@@ -8,11 +8,12 @@ const MAX_TEXT_LENGTH = 5000
 
 // Readable labels for the subscriber activity-log entry (admin-facing, English).
 const ACTIVITY_LABELS: Record<string, string> = {
-  focus: 'Focus & engagement (1-5)',
-  experience: 'What made the prompts helpful',
-  clarity: 'Clarity of prompts (1-5)',
-  content_amount: 'Amount of content (1-5)',
-  heart: 'Heart & perspective'
+  frequency: 'Days per week using content (1-4)',
+  focus: 'Helps me focus & engage (1-5)',
+  experience: 'Most helpful part of the prayer page',
+  clarity: 'Communicates what & why to pray (1-5)',
+  balance: 'Scripture/prayer/reflection balance (1-5)',
+  improvement: 'One thing to change, add, or remove'
 }
 
 export default defineEventHandler(async (event) => {
@@ -49,6 +50,15 @@ export default defineEventHandler(async (event) => {
       const min = question.min ?? 1
       const max = question.max ?? 5
       if (!Number.isInteger(num) || num < min || num > max) {
+        throw createError({ statusCode: 400, statusMessage: `Invalid value for ${question.key}` })
+      }
+      answers.push({ question_key: question.key, value_int: num })
+      formValues[ACTIVITY_LABELS[question.key] ?? question.key] = num
+    } else if (question.type === 'choice') {
+      if (value === undefined || value === null || value === '') continue
+      const num = Number(value)
+      const options = question.options ?? []
+      if (!Number.isInteger(num) || !options.includes(num)) {
         throw createError({ statusCode: 400, statusMessage: `Invalid value for ${question.key}` })
       }
       answers.push({ question_key: question.key, value_int: num })

@@ -674,7 +674,7 @@
     "may2026": {
       "page": {
         "title": "Your prayer experience",
-        "intro": "Thank you for praying with DOXA. These five questions take about three minutes, and your answers help us shape the daily prayer prompts. There are no right or wrong answers — we just want your honest experience.",
+        "intro": "Thank you for joining and praying with DOXA for the unengaged. These six questions take about three minutes, and your answers will help shape future daily prayer prompts. There are no right or wrong answers — we just want your honest experience.",
         "submit": "Send my responses",
         "thanksTitle": "Thank you!",
         "thanks": "Thank you — your responses are in. We're grateful for the time you took, and for your prayers.",
@@ -688,33 +688,44 @@
         "error": "We couldn't save your responses. Please try again."
       },
       "questions": {
+        "frequency": {
+          "label": "How many days per week do you typically use the curated prayer content provided by DOXA?",
+          "options": {
+            "1": "Rarely (0–1)",
+            "2": "Some days (2–3)",
+            "3": "Most days (4–6)",
+            "4": "Every day (7)"
+          }
+        },
         "focus": {
-          "label": "How well did the daily prayer prompts help you feel focused and engaged in praying for unreached peoples?",
+          "label": "The daily prayer prompts help me focus and engage in praying for unreached peoples.",
           "scale": {
-            "1": "Not at all focused",
-            "5": "Extremely focused"
+            "1": "Not at all",
+            "3": "Somewhat",
+            "5": "Very much"
           }
         },
         "experience": {
-          "label": "Tell us more about your experience — what made the prompts feel helpful (or not) for you personally?"
+          "label": "Tell us more about your experience — what part of the daily prayer page has been most helpful to you, and why?"
         },
         "clarity": {
-          "label": "How clearly did the prayer prompts communicate what to pray for and why it matters?",
+          "label": "The prayer prompts clearly communicate what to pray for and why it is important.",
           "scale": {
-            "1": "Very unclear",
-            "5": "Very clear"
+            "1": "Not at all",
+            "3": "Somewhat",
+            "5": "Very much"
           }
         },
-        "content_amount": {
-          "label": "Does the amount of prayer content match the time you have to pray?",
+        "balance": {
+          "label": "The mix of Scripture, prayer points, and reflection feels balanced for an approximately 10-minute prayer time.",
           "scale": {
-            "1": "Too much for my prayer time",
-            "3": "Just right",
-            "5": "Too little for my prayer time"
+            "1": "Not at all",
+            "3": "Somewhat",
+            "5": "Very much"
           }
         },
-        "heart": {
-          "label": "How has participating in this prayer campaign affected your heart or perspective toward unreached peoples?"
+        "improvement": {
+          "label": "If we could improve one thing about future daily content, what would you change, add, or remove?"
         }
       },
       "email": {
@@ -722,8 +733,8 @@
         "header": "We'd love your feedback",
         "greeting": "Hi {name},",
         "greetingFallback": "Hi there,",
-        "p1": "Thank you for standing in prayer for the unreached peoples of the world. Your faithfulness is the heart of what DOXA exists to support.",
-        "p2": "We're always trying to make the daily prayer prompts more helpful, and before we meet as a team to plan what's next, we'd love to hear from you. Would you take a few minutes to answer five short questions about your experience?",
+        "p1": "It has been a privilege to join with you in intercession for the unreached peoples of the world.",
+        "p2": "We're always trying to make the daily prayer prompts more helpful, and before we meet as a team to plan what's next, we'd love to hear from you. Would you take a few minutes to answer six short questions about your experience?",
         "p3": "Your honest feedback — what's working, what isn't — directly shapes the prayer content we create.",
         "cta": "Take the survey",
         "signoff": "With gratitude,",

@@ -1,6 +1,6 @@
 import { getSql } from './db'
 import {
-  MAY_2026_SCALE_KEYS,
+  MAY_2026_NUMERIC_KEYS,
   MAY_2026_TEXT_KEYS,
   MAY_2026_SURVEY_QUESTIONS
 } from '#shared/surveys/may-2026-survey'
@@ -123,7 +123,7 @@ class SurveyService {
       GROUP BY sa.question_key, sa.value_int
     `
 
-    const scale: ScaleAggregate[] = MAY_2026_SCALE_KEYS.map((key) => {
+    const scale: ScaleAggregate[] = MAY_2026_NUMERIC_KEYS.map((key) => {
       const rows = scaleRows.filter(r => r.question_key === key)
       const distribution: Record<number, number> = {}
       let sum = 0
@@ -186,7 +186,7 @@ class SurveyService {
       }
       for (const question of MAY_2026_SURVEY_QUESTIONS) {
         const answer = answers.find(a => a.response_id === response.id && a.question_key === question.key)
-        row[question.key] = question.type === 'scale' ? (answer?.value_int ?? '') : (answer?.value_text ?? '')
+        row[question.key] = question.type === 'text' ? (answer?.value_text ?? '') : (answer?.value_int ?? '')
       }
       return row
     })
