@@ -746,7 +746,14 @@
       "exportCsv": "Esporta CSV",
       "average": "Media",
       "noResponses": "Ancora nessuna risposta",
-      "selectPrompt": "Seleziona un sondaggio per vedere le risposte."
+      "selectPrompt": "Seleziona un sondaggio per vedere le risposte.",
+      "summaryTab": "Riepilogo",
+      "responsesTab": "Risposte",
+      "deleteResponse": "Elimina risposta",
+      "deleteResponseConfirm": "Sei sicuro di voler eliminare questa risposta al sondaggio?",
+      "deleteResponseWarning": "Questa operazione rimuove definitivamente la risposta e tutti i suoi dati. L’azione non può essere annullata.",
+      "responseDeleted": "Risposta eliminata",
+      "deleteFailed": "Impossibile eliminare la risposta"
     }
   }
 }

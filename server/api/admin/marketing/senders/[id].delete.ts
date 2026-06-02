@@ -1,7 +1,7 @@
 import { marketingSenderService } from '#server/database/marketing-senders'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'marketing.send')
 
   const id = Number(getRouterParam(event, 'id'))
   if (!id || isNaN(id)) {

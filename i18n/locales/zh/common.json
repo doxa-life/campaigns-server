@@ -746,7 +746,14 @@
       "exportCsv": "导出 CSV",
       "average": "平均",
       "noResponses": "暂无回复",
-      "selectPrompt": "选择一份问卷以查看其回复。"
+      "selectPrompt": "选择一份问卷以查看其回复。",
+      "summaryTab": "摘要",
+      "responsesTab": "回复",
+      "deleteResponse": "删除回复",
+      "deleteResponseConfirm": "确定要删除这份问卷回复吗？",
+      "deleteResponseWarning": "此操作将永久删除该回复及其所有作答内容，且无法撤销。",
+      "responseDeleted": "回复已删除",
+      "deleteFailed": "删除回复失败"
     }
   }
 }

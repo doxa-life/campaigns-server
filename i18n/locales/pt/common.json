@@ -746,7 +746,14 @@
       "exportCsv": "Exportar CSV",
       "average": "Média",
       "noResponses": "Ainda não há respostas",
-      "selectPrompt": "Selecione uma pesquisa para ver suas respostas."
+      "selectPrompt": "Selecione uma pesquisa para ver suas respostas.",
+      "summaryTab": "Resumo",
+      "responsesTab": "Respostas",
+      "deleteResponse": "Excluir resposta",
+      "deleteResponseConfirm": "Tem certeza de que deseja excluir esta resposta da pesquisa?",
+      "deleteResponseWarning": "Isso remove permanentemente a resposta e todos os seus dados. Esta ação não pode ser desfeita.",
+      "responseDeleted": "Resposta excluída",
+      "deleteFailed": "Falha ao excluir a resposta"
     }
   }
 }

@@ -748,7 +748,14 @@
       "exportCsv": "Export CSV",
       "average": "Average",
       "noResponses": "No responses yet",
-      "selectPrompt": "Select a survey to view its responses."
+      "selectPrompt": "Select a survey to view its responses.",
+      "summaryTab": "Summary",
+      "responsesTab": "Responses",
+      "deleteResponse": "Delete response",
+      "deleteResponseConfirm": "Are you sure you want to delete this survey response?",
+      "deleteResponseWarning": "This permanently removes the response and all its answers. This action cannot be undone.",
+      "responseDeleted": "Response deleted",
+      "deleteFailed": "Failed to delete response"
     }
   }
 }

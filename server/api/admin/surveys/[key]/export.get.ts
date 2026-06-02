@@ -9,7 +9,7 @@ function csvEscape(value: unknown): string {
 }
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'subscribers.view')
+  await requirePermission(event, 'marketing.view')
 
   const key = getRouterParam(event, 'key')
   if (!key) {

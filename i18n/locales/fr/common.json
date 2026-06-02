@@ -746,7 +746,14 @@
       "exportCsv": "Exporter en CSV",
       "average": "Moyenne",
       "noResponses": "Pas encore de réponses",
-      "selectPrompt": "Sélectionnez une enquête pour voir ses réponses."
+      "selectPrompt": "Sélectionnez une enquête pour voir ses réponses.",
+      "summaryTab": "Résumé",
+      "responsesTab": "Réponses",
+      "deleteResponse": "Supprimer la réponse",
+      "deleteResponseConfirm": "Voulez-vous vraiment supprimer cette réponse à l'enquête ?",
+      "deleteResponseWarning": "Cette opération supprime définitivement la réponse et toutes ses données. Cette action est irréversible.",
+      "responseDeleted": "Réponse supprimée",
+      "deleteFailed": "Échec de la suppression de la réponse"
     }
   }
 }

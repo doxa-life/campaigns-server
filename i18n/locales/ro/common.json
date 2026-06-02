@@ -742,7 +742,14 @@
       "exportCsv": "Exportă CSV",
       "average": "Medie",
       "noResponses": "Încă nu există răspunsuri",
-      "selectPrompt": "Selectează un sondaj pentru a vedea răspunsurile."
+      "selectPrompt": "Selectează un sondaj pentru a vedea răspunsurile.",
+      "summaryTab": "Rezumat",
+      "responsesTab": "Răspunsuri",
+      "deleteResponse": "Șterge răspunsul",
+      "deleteResponseConfirm": "Sigur dorești să ștergi acest răspuns la sondaj?",
+      "deleteResponseWarning": "Această acțiune elimină definitiv răspunsul și toate datele asociate. Acțiunea nu poate fi anulată.",
+      "responseDeleted": "Răspuns șters",
+      "deleteFailed": "Ștergerea răspunsului a eșuat"
     }
   }
 }

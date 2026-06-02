@@ -746,7 +746,14 @@
       "exportCsv": "Exportar CSV",
       "average": "Promedio",
       "noResponses": "Aún no hay respuestas",
-      "selectPrompt": "Selecciona una encuesta para ver sus respuestas."
+      "selectPrompt": "Selecciona una encuesta para ver sus respuestas.",
+      "summaryTab": "Resumen",
+      "responsesTab": "Respuestas",
+      "deleteResponse": "Eliminar respuesta",
+      "deleteResponseConfirm": "¿Estás seguro de que quieres eliminar esta respuesta de la encuesta?",
+      "deleteResponseWarning": "Esto elimina permanentemente la respuesta y todos sus datos. Esta acción no se puede deshacer.",
+      "responseDeleted": "Respuesta eliminada",
+      "deleteFailed": "No se pudo eliminar la respuesta"
     }
   }
 }

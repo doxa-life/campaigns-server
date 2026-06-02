@@ -13,12 +13,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Survey not found' })
   }
 
-  const results = await surveyService.getResults(survey.id)
+  const responses = await surveyService.listResponses(survey.id)
 
-  return {
-    key: survey.key,
-    title: survey.title,
-    status: survey.status,
-    ...results
-  }
+  return { responses }
 })

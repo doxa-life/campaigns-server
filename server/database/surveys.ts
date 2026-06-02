@@ -38,6 +38,17 @@ export interface SurveyResults {
   text: TextAggregate[]
 }
 
+export interface SurveyResponseListItem {
+  id: number
+  profile_id: string | null
+  subscriber_name: string
+  submitted_at: string
+  updated_at: string
+  preferred_language: string
+  people_groups: string[]
+  answers: Record<string, number | string>
+}
+
 class SurveyService {
   private sql = getSql()
 
@@ -190,6 +201,62 @@ class SurveyService {
       }
       return row
     })
+  }
+
+  /** Individual responses for the admin responses view — includes the numeric id for deletion. */
+  async listResponses(surveyId: number): Promise<SurveyResponseListItem[]> {
+    const responses = await this.sql<{
+      id: number
+      profile_id: string | null
+      subscriber_name: string | null
+      metadata: Record<string, unknown> | null
+      created_at: string
+      updated_at: string
+    }[]>`
+      SELECT sr.id, sr.profile_id, s.name AS subscriber_name, sr.metadata, sr.created_at, sr.updated_at
+      FROM survey_responses sr
+      JOIN subscribers s ON s.id = sr.subscriber_id
+      WHERE sr.survey_id = ${surveyId}
+      ORDER BY sr.created_at DESC
+    `
+
+    if (responses.length === 0) return []
+
+    const answers = await this.sql<{ response_id: number; question_key: string; value_int: number | null; value_text: string | null }[]>`
+      SELECT sa.response_id, sa.question_key, sa.value_int, sa.value_text
+      FROM survey_answers sa
+      JOIN survey_responses sr ON sr.id = sa.response_id
+      WHERE sr.survey_id = ${surveyId}
+    `
+
+    return responses.map((response) => {
+      const answerMap: Record<string, number | string> = {}
+      for (const answer of answers) {
+        if (answer.response_id !== response.id) continue
+        if (answer.value_int !== null) answerMap[answer.question_key] = answer.value_int
+        else if (answer.value_text !== null) answerMap[answer.question_key] = answer.value_text
+      }
+      return {
+        id: response.id,
+        profile_id: response.profile_id,
+        subscriber_name: response.subscriber_name ?? '',
+        submitted_at: response.created_at,
+        updated_at: response.updated_at,
+        preferred_language: (response.metadata as any)?.preferred_language ?? '',
+        people_groups: ((response.metadata as any)?.people_group_names ?? []) as string[],
+        answers: answerMap
+      }
+    })
+  }
+
+  /** Delete a single response (and its answers via ON DELETE CASCADE). Scoped by survey to prevent cross-survey deletes. */
+  async deleteResponse(surveyId: number, responseId: number): Promise<boolean> {
+    const rows = await this.sql<{ id: number }[]>`
+      DELETE FROM survey_responses
+      WHERE id = ${responseId} AND survey_id = ${surveyId}
+      RETURNING id
+    `
+    return rows.length > 0
   }
 }
 

@@ -746,7 +746,14 @@
       "exportCsv": "CSV exportieren",
       "average": "Durchschnitt",
       "noResponses": "Noch keine Antworten",
-      "selectPrompt": "Wählen Sie eine Umfrage, um die Antworten zu sehen."
+      "selectPrompt": "Wählen Sie eine Umfrage, um die Antworten zu sehen.",
+      "summaryTab": "Zusammenfassung",
+      "responsesTab": "Antworten",
+      "deleteResponse": "Antwort löschen",
+      "deleteResponseConfirm": "Möchten Sie diese Umfrageantwort wirklich löschen?",
+      "deleteResponseWarning": "Dadurch werden die Antwort und alle zugehörigen Angaben dauerhaft entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
+      "responseDeleted": "Antwort gelöscht",
+      "deleteFailed": "Antwort konnte nicht gelöscht werden"
     }
   }
 }

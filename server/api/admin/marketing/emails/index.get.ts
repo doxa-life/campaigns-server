@@ -1,7 +1,7 @@
 import { marketingEmailService } from '#server/database/marketing-emails'
 
 export default defineEventHandler(async (event) => {
-  const user = await requirePermission(event, 'people_groups.view')
+  const user = await requirePermission(event, 'marketing.view')
 
   const query = getQuery(event)
   const filters = {

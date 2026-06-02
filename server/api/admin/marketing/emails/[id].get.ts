@@ -2,7 +2,7 @@ import { marketingEmailService } from '#server/database/marketing-emails'
 import { jobQueueService } from '#server/database/job-queue'
 
 export default defineEventHandler(async (event) => {
-  const user = await requirePermission(event, 'people_groups.view')
+  const user = await requirePermission(event, 'marketing.view')
 
   const id = Number(getRouterParam(event, 'id'))
   if (!id || isNaN(id)) {

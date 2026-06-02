@@ -2,7 +2,7 @@ import { marketingSenderService } from '#server/database/marketing-senders'
 import { handleApiError } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  const user = await requireAdmin(event)
+  const user = await requirePermission(event, 'marketing.send')
 
   const body = await readBody(event)
 

@@ -746,7 +746,14 @@
       "exportCsv": "تصدير CSV",
       "average": "المتوسط",
       "noResponses": "لا توجد إجابات بعد",
-      "selectPrompt": "اختر استبيانًا لعرض إجاباته."
+      "selectPrompt": "اختر استبيانًا لعرض إجاباته.",
+      "summaryTab": "ملخص",
+      "responsesTab": "الإجابات",
+      "deleteResponse": "حذف الإجابة",
+      "deleteResponseConfirm": "هل أنت متأكد أنك تريد حذف هذه الإجابة على الاستبيان؟",
+      "deleteResponseWarning": "سيؤدي هذا إلى إزالة الإجابة وجميع تفاصيلها نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+      "responseDeleted": "تم حذف الإجابة",
+      "deleteFailed": "فشل حذف الإجابة"
     }
   }
 }

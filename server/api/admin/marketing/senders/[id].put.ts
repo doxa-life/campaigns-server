@@ -2,7 +2,7 @@ import { marketingSenderService } from '#server/database/marketing-senders'
 import { handleApiError } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  await requireAdmin(event)
+  await requirePermission(event, 'marketing.send')
 
   const id = Number(getRouterParam(event, 'id'))
   if (!id || isNaN(id)) {

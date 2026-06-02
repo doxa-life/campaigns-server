@@ -36,15 +36,32 @@
               {{ $t('survey.admin.totalResponses', { count: data?.totalResponses ?? 0 }) }}
             </p>
           </div>
-          <UButton
-            icon="i-lucide-download"
-            variant="outline"
-            :loading="exporting"
-            :disabled="!data?.totalResponses"
-            @click="exportCsv"
-          >
-            {{ $t('survey.admin.exportCsv') }}
-          </UButton>
+          <div class="flex items-center gap-2">
+            <UButton
+              :variant="view === 'summary' ? 'solid' : 'outline'"
+              :color="view === 'summary' ? 'primary' : 'neutral'"
+              @click="view = 'summary'"
+            >
+              {{ $t('survey.admin.summaryTab') }}
+            </UButton>
+            <UButton
+              :variant="view === 'responses' ? 'solid' : 'outline'"
+              :color="view === 'responses' ? 'primary' : 'neutral'"
+              @click="view = 'responses'"
+            >
+              {{ $t('survey.admin.responsesTab') }}
+            </UButton>
+            <UButton
+              icon="i-lucide-download"
+              variant="outline"
+              color="neutral"
+              :loading="exporting"
+              :disabled="!data?.totalResponses"
+              @click="exportCsv"
+            >
+              {{ $t('survey.admin.exportCsv') }}
+            </UButton>
+          </div>
         </div>
 
         <div v-if="pending" class="flex justify-center py-20">
@@ -58,8 +75,9 @@
           </UCard>
         </div>
 
-        <!-- Questions in their original order (scale and text interleaved) -->
-        <div v-else class="space-y-6">
+        <template v-else>
+          <!-- Summary: questions in their original order (scale and text interleaved) -->
+          <div v-if="view === 'summary'" class="space-y-6">
           <UCard v-for="item in renderQuestions" :key="item.key">
             <div class="text-base font-medium mb-1">
               {{ item.number }}. {{ $t(questionLabel(item.key)) }}
@@ -96,9 +114,57 @@
               <p v-else class="text-sm text-[var(--ui-text-muted)]">{{ $t('survey.admin.noResponses') }}</p>
             </template>
           </UCard>
-        </div>
+          </div>
+
+          <!-- Responses: individual submissions with delete -->
+          <div v-else>
+            <div v-if="responsesPending" class="flex justify-center py-20">
+              <UIcon name="i-lucide-loader" class="w-8 h-8 animate-spin" />
+            </div>
+            <div v-else class="space-y-4">
+              <UCard v-for="response in responses" :key="response.id">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="min-w-0">
+                    <div class="text-sm font-medium">{{ response.subscriber_name || '—' }}</div>
+                    <div class="text-xs text-[var(--ui-text-muted)] mt-0.5">
+                      <span>{{ formatDate(response.submitted_at) }}</span>
+                      <span v-if="response.preferred_language"> · {{ getLanguageName(response.preferred_language) }}</span>
+                      <span v-if="response.people_groups.length"> · {{ response.people_groups.join(', ') }}</span>
+                    </div>
+                  </div>
+                  <UButton
+                    icon="i-lucide-trash-2"
+                    color="error"
+                    variant="ghost"
+                    size="sm"
+                    :aria-label="$t('survey.admin.deleteResponse')"
+                    @click="askDelete(response)"
+                  />
+                </div>
+                <div class="mt-3 space-y-2">
+                  <div v-for="q in answeredQuestions(response)" :key="q.key">
+                    <div class="text-xs text-[var(--ui-text-muted)]">{{ $t(questionLabel(q.key)) }}</div>
+                    <div class="text-sm whitespace-pre-wrap">{{ q.display }}</div>
+                  </div>
+                </div>
+              </UCard>
+            </div>
+          </div>
+        </template>
       </template>
     </section>
+
+    <ConfirmModal
+      v-model:open="showDeleteModal"
+      :title="$t('survey.admin.deleteResponse')"
+      :message="$t('survey.admin.deleteResponseConfirm')"
+      :warning="$t('survey.admin.deleteResponseWarning')"
+      :confirm-text="$t('survey.admin.deleteResponse')"
+      confirm-color="error"
+      :loading="deleting"
+      @confirm="confirmDelete"
+      @cancel="cancelDelete"
+    />
   </div>
 </template>
 
@@ -126,8 +192,20 @@ interface SurveyResults {
   scale: ScaleAggregate[]
   text: TextAggregate[]
 }
+interface SurveyResponseItem {
+  id: number
+  profile_id: string | null
+  subscriber_name: string
+  submitted_at: string
+  updated_at: string
+  preferred_language: string
+  people_groups: string[]
+  answers: Record<string, number | string>
+}
 
+const toast = useToast()
 const exporting = ref(false)
+const view = ref<'summary' | 'responses'>('summary')
 
 const { data: listData } = await useAsyncData('admin-surveys', () =>
   $fetch<{ surveys: SurveyListItem[] }>('/api/admin/surveys')
@@ -135,12 +213,74 @@ const { data: listData } = await useAsyncData('admin-surveys', () =>
 const surveys = computed(() => listData.value?.surveys ?? [])
 const selectedKey = ref(surveys.value[0]?.key ?? '')
 
-const { data, pending } = await useAsyncData<SurveyResults | null>('admin-survey-results',
+const { data, pending, refresh: refreshResults } = await useAsyncData<SurveyResults | null>('admin-survey-results',
   () => selectedKey.value
     ? $fetch<SurveyResults>(`/api/admin/surveys/${selectedKey.value}/results`)
     : Promise.resolve(null),
   { watch: [selectedKey] }
 )
+
+const { data: responsesData, pending: responsesPending, refresh: refreshResponses } = await useAsyncData<{ responses: SurveyResponseItem[] } | null>('admin-survey-responses',
+  () => selectedKey.value
+    ? $fetch<{ responses: SurveyResponseItem[] }>(`/api/admin/surveys/${selectedKey.value}/responses`)
+    : Promise.resolve(null),
+  { watch: [selectedKey] }
+)
+const responses = computed(() => responsesData.value?.responses ?? [])
+
+// Delete-response flow
+const showDeleteModal = ref(false)
+const responseToDelete = ref<SurveyResponseItem | null>(null)
+const deleting = ref(false)
+
+function askDelete(response: SurveyResponseItem) {
+  responseToDelete.value = response
+  showDeleteModal.value = true
+}
+
+function cancelDelete() {
+  showDeleteModal.value = false
+  responseToDelete.value = null
+}
+
+async function confirmDelete() {
+  if (!responseToDelete.value) return
+  deleting.value = true
+  try {
+    await $fetch(`/api/admin/surveys/${selectedKey.value}/responses/${responseToDelete.value.id}`, {
+      method: 'DELETE'
+    })
+    toast.add({ title: t('survey.admin.responseDeleted'), color: 'success' })
+    await Promise.all([refreshResponses(), refreshResults()])
+  } catch (err: any) {
+    toast.add({
+      title: t('survey.admin.deleteFailed'),
+      description: err?.data?.statusMessage,
+      color: 'error'
+    })
+  } finally {
+    deleting.value = false
+    showDeleteModal.value = false
+    responseToDelete.value = null
+  }
+}
+
+const dateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+function formatDate(value: string): string {
+  const parsed = new Date(value)
+  return isNaN(parsed.getTime()) ? value : dateFormatter.format(parsed)
+}
+
+// Answered questions for a single response, in authored order, with a display string.
+function answeredQuestions(response: SurveyResponseItem): Array<{ key: string; display: string }> {
+  return MAY_2026_SURVEY_QUESTIONS
+    .filter(q => response.answers[q.key] !== undefined && response.answers[q.key] !== '')
+    .map((q) => {
+      const value = response.answers[q.key]!
+      const display = q.type === 'text' ? String(value) : pointLabel(q.key, Number(value))
+      return { key: q.key, display }
+    })
+}
 
 // Render questions in their authored order, interleaving scale and text,
 // rather than grouping all scale questions before all text questions.

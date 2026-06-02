@@ -746,7 +746,14 @@
       "exportCsv": "Экспорт в CSV",
       "average": "Среднее",
       "noResponses": "Пока нет ответов",
-      "selectPrompt": "Выберите опрос, чтобы посмотреть ответы."
+      "selectPrompt": "Выберите опрос, чтобы посмотреть ответы.",
+      "summaryTab": "Сводка",
+      "responsesTab": "Ответы",
+      "deleteResponse": "Удалить ответ",
+      "deleteResponseConfirm": "Вы уверены, что хотите удалить этот ответ на опрос?",
+      "deleteResponseWarning": "Это навсегда удалит ответ и все его данные. Это действие нельзя отменить.",
+      "responseDeleted": "Ответ удалён",
+      "deleteFailed": "Не удалось удалить ответ"
     }
   }
 }

@@ -23,7 +23,9 @@ export const ROLES: Record<RoleName, { name: RoleName; description: string; perm
       'content.delete',
       'users.manage',
       'inbox.view',
-      'inbox.send'
+      'inbox.send',
+      'marketing.view',
+      'marketing.send'
     ]
   },
   progress_admin: {

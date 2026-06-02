@@ -533,7 +533,8 @@ const permissionGroupLabels: Record<string, string> = {
   subscribers: 'Subscribers',
   content: 'Content',
   users: 'Users',
-  inbox: 'Inbox'
+  inbox: 'Inbox',
+  marketing: 'Marketing'
 }
 
 const permissionDetails: Record<string, { title: string; description: string }> = {
@@ -555,7 +556,9 @@ const permissionDetails: Record<string, { title: string; description: string }> 
   'content.delete': { title: 'Delete Content', description: 'Delete content' },
   'users.manage': { title: 'Manage Users', description: 'Invite, edit, and manage user roles' },
   'inbox.view': { title: 'View Inbox', description: 'View the shared email inbox and conversations' },
-  'inbox.send': { title: 'Send from Inbox', description: 'Reply to and send messages from the shared inbox' }
+  'inbox.send': { title: 'Send from Inbox', description: 'Reply to and send messages from the shared inbox' },
+  'marketing.view': { title: 'View Marketing', description: 'View marketing emails, senders, and survey results' },
+  'marketing.send': { title: 'Manage & Send Marketing', description: 'Create/send marketing emails and delete survey responses' }
 }
 
 const allPermissions = Object.keys(permissionDetails)
