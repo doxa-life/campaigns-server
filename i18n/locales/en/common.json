@@ -247,6 +247,10 @@
       "unsubscribeButton": "Unsubscribe",
       "unsubscribeFromAll": "Unsubscribe from all {campaign} reminders",
       "preferencesUpdated": "Your email preferences have been updated.",
+      "unsubscribedFrom": "You've been unsubscribed from {item}.",
+      "justTurnedOff": "Just turned off",
+      "remindersUnaffected": "Your daily prayer reminders are unaffected.",
+      "peopleGroupUpdatesLabel": "updates about this people group",
       "noActiveSubscriptions": "You have no active subscriptions.",
       "current": "Current",
       "reminderFormat": {
@@ -274,7 +278,9 @@
         "description": "Choose what communications you'd like to receive:",
         "campaignUpdates": "Updates about {campaign}",
         "doxaGeneral": "General updates from Doxa",
-        "doxaGeneralHint": "Progress updates and news from Doxa"
+        "doxaGeneralHint": "Progress updates and news from Doxa",
+        "productEmails": "Product emails",
+        "productEmailsHint": "Occasional emails about the prayer tools you use — surveys, feedback requests, and product updates. Not promotional. Your daily prayer reminders are unaffected."
       },
       "consentUpdated": "Communication preferences updated.",
       "subscriptions": "Your Subscriptions",

@@ -247,6 +247,10 @@
       "unsubscribeButton": "إلغاء الاشتراك",
       "unsubscribeFromAll": "إلغاء الاشتراك من جميع تذكيرات {campaign}",
       "preferencesUpdated": "تم تحديث تفضيلات بريدك الإلكتروني.",
+      "unsubscribedFrom": "تم إلغاء اشتراكك في {item}.",
+      "justTurnedOff": "تم إيقافه للتو",
+      "remindersUnaffected": "لن تتأثر تذكيرات الصلاة اليومية.",
+      "peopleGroupUpdatesLabel": "التحديثات حول هذه المجموعة البشرية",
       "noActiveSubscriptions": "ليس لديك اشتراكات نشطة.",
       "current": "الحالي",
       "reminderFormat": {
@@ -274,7 +278,9 @@
         "description": "اختر ما تريد استلامه من رسائل:",
         "campaignUpdates": "تحديثات حول {campaign}",
         "doxaGeneral": "تحديثات عامة من دوكسا",
-        "doxaGeneralHint": "تحديثات التقدم والأخبار من دوكسا"
+        "doxaGeneralHint": "تحديثات التقدم والأخبار من دوكسا",
+        "productEmails": "رسائل المنتج",
+        "productEmailsHint": "رسائل عرضية حول أدوات الصلاة التي تستخدمها — استبيانات وطلبات رأي وتحديثات المنتج. ليست ترويجية. لن تتأثر تذكيرات الصلاة اليومية."
       },
       "consentUpdated": "تم تحديث تفضيلات التواصل.",
       "subscriptions": "اشتراكاتك",

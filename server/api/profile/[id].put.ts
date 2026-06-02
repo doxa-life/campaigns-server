@@ -123,6 +123,10 @@ export default defineEventHandler(async (event) => {
       await contactMethodService.updateDoxaConsent(currentEmail.id, body.consent_doxa_general)
     }
 
+    if (body.consent_product_emails !== undefined) {
+      await contactMethodService.updateProductEmailsConsent(currentEmail.id, body.consent_product_emails)
+    }
+
     // People group consent update. Accept either an explicit id or a slug
     // (marketing unsubscribe links carry the slug). Slug is resolved server-side
     // so it works even when the subscriber has no prayer subscription for it.
@@ -191,6 +195,7 @@ export default defineEventHandler(async (event) => {
   // Build consent state for response
   const consents = {
     doxa_general: updatedEmail?.consent_doxa_general || false,
+    product_emails: updatedEmail?.consent_product_emails ?? true,
     people_group_ids: updatedEmail?.consented_people_group_ids || []
   }
 

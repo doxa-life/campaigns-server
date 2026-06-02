@@ -89,6 +89,8 @@ export default defineEventHandler(async (event) => {
   const consents = {
     doxa_general: primaryEmail?.consent_doxa_general || false,
     doxa_general_at: primaryEmail?.consent_doxa_general_at || null,
+    product_emails: primaryEmail?.consent_product_emails ?? true,
+    product_emails_at: primaryEmail?.consent_product_emails_at || null,
     peopleGroups: (primaryEmail?.consented_people_group_ids || []).map(peopleGroupId => ({
       people_group_id: peopleGroupId,
       consented_at: primaryEmail?.consented_people_group_ids_at?.[String(peopleGroupId)] || null

@@ -12,6 +12,8 @@ export interface ContactMethod {
   verified_at: string | null
   consent_doxa_general: boolean
   consent_doxa_general_at: string | null
+  consent_product_emails: boolean
+  consent_product_emails_at: string | null
   consented_people_group_ids: number[]
   consented_people_group_ids_at: Record<string, string>
   created_at: string
@@ -188,6 +190,17 @@ class ContactMethodService {
     return this.getById(id)
   }
 
+  async updateProductEmailsConsent(id: number, granted: boolean): Promise<ContactMethod | null> {
+    await this.sql`
+      UPDATE contact_methods
+      SET consent_product_emails = ${granted},
+          consent_product_emails_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${id}
+    `
+    return this.getById(id)
+  }
+
   async getContactsWithDoxaConsent(): Promise<ContactMethod[]> {
     return await this.sql`
       SELECT * FROM contact_methods
@@ -201,6 +214,23 @@ class ContactMethodService {
     return await this.sql`
       SELECT cm.* FROM contact_methods cm
       WHERE cm.consent_doxa_general = true AND cm.verified = true
+      AND EXISTS (
+        SELECT 1 FROM campaign_subscriptions cs
+        WHERE cs.subscriber_id = cm.subscriber_id AND cs.status = 'active'
+      )
+      ORDER BY cm.created_at DESC
+    `
+  }
+
+  // Verified email contacts whose subscriber has an active people group subscription,
+  // regardless of Doxa-wide consent. Email-typed only, since there is no consent column
+  // implicitly restricting the rows here. Excludes contacts who opted out of the
+  // product/feedback email category (surveys, evaluations, product updates).
+  async getContactsWithActiveSubscription(): Promise<ContactMethod[]> {
+    return await this.sql`
+      SELECT cm.* FROM contact_methods cm
+      WHERE cm.type = 'email' AND cm.verified = true
+      AND cm.consent_product_emails = true
       AND EXISTS (
         SELECT 1 FROM campaign_subscriptions cs
         WHERE cs.subscriber_id = cm.subscriber_id AND cs.status = 'active'

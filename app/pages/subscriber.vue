@@ -117,6 +117,18 @@
             />
           </div>
 
+          <!-- Product / feedback emails -->
+          <div class="flex items-center justify-between py-2 border-b border-[var(--ui-border)]">
+            <div>
+              <p class="text-sm font-medium">{{ $t('campaign.profile.emailPreferences.productEmails') }}</p>
+              <p class="text-xs text-[var(--ui-text-muted)]">{{ $t('campaign.profile.emailPreferences.productEmailsHint') }}</p>
+            </div>
+            <USwitch
+              v-model="consentForm.product_emails"
+              @update:model-value="updateProductConsent"
+            />
+          </div>
+
           <!-- People group-specific consents -->
           <div
             v-for="pgGroup in data.peopleGroups"
@@ -375,6 +387,7 @@ interface ProfileResponse {
   consents: {
     doxa_general: boolean
     doxa_general_at: string | null
+    product_emails: boolean
     peopleGroups: Array<{
       people_group_id: number
       consented_at: string | null
@@ -395,6 +408,7 @@ const globalForm = ref({
 // Consent form state
 const consentForm = ref({
   doxa_general: false,
+  product_emails: true,
   people_group_ids: [] as number[]
 })
 
@@ -428,6 +442,7 @@ watch(data, (newData) => {
   if (newData?.consents) {
     consentForm.value = {
       doxa_general: newData.consents.doxa_general || false,
+      product_emails: newData.consents.product_emails ?? true,
       people_group_ids: (newData.consents.peopleGroups || []).map((c: any) => c.people_group_id)
     }
   }
@@ -655,6 +670,30 @@ async function updateDoxaConsent(granted: boolean) {
   } catch (err: any) {
     // Revert on error
     consentForm.value.doxa_general = !granted
+    toast.add({
+      title: err.data?.statusMessage || t('campaign.profile.error.failed'),
+      color: 'error'
+    })
+  }
+}
+
+// Update product/feedback emails consent
+async function updateProductConsent(granted: boolean) {
+  try {
+    await $fetch(`/api/profile/${profileId}`, {
+      method: 'PUT',
+      body: {
+        consent_product_emails: granted
+      }
+    })
+
+    toast.add({
+      title: t('campaign.profile.consentUpdated'),
+      color: 'success'
+    })
+  } catch (err: any) {
+    // Revert on error
+    consentForm.value.product_emails = !granted
     toast.add({
       title: err.data?.statusMessage || t('campaign.profile.error.failed'),
       color: 'error'

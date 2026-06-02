@@ -247,6 +247,10 @@
       "unsubscribeButton": "Cancelar Inscricao",
       "unsubscribeFromAll": "Cancelar todos os lembretes de {campaign}",
       "preferencesUpdated": "Suas preferencias de e-mail foram atualizadas.",
+      "unsubscribedFrom": "Você cancelou a inscrição em {item}.",
+      "justTurnedOff": "Acabou de ser desativado",
+      "remindersUnaffected": "Seus lembretes diários de oração não são afetados.",
+      "peopleGroupUpdatesLabel": "novidades sobre este grupo de pessoas",
       "noActiveSubscriptions": "Voce nao tem inscricoes ativas.",
       "current": "Atual",
       "reminderFormat": {
@@ -274,7 +278,9 @@
         "description": "Escolha quais comunicacoes voce gostaria de receber:",
         "campaignUpdates": "Atualizacoes sobre {campaign}",
         "doxaGeneral": "Atualizacoes gerais do Doxa",
-        "doxaGeneralHint": "Atualizacoes de progresso e noticias do Doxa"
+        "doxaGeneralHint": "Atualizacoes de progresso e noticias do Doxa",
+        "productEmails": "E-mails do produto",
+        "productEmailsHint": "E-mails ocasionais sobre as ferramentas de oração que você usa — pesquisas, pedidos de opinião e novidades do produto. Não é promocional. Seus lembretes diários de oração não são afetados."
       },
       "consentUpdated": "Preferencias de comunicacao atualizadas.",
       "subscriptions": "Suas Inscricoes",

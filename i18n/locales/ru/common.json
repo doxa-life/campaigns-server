@@ -247,6 +247,10 @@
       "unsubscribeButton": "Отписаться",
       "unsubscribeFromAll": "Отписаться от всех напоминаний {campaign}",
       "preferencesUpdated": "Ваши настройки почты обновлены.",
+      "unsubscribedFrom": "Вы отписались от {item}.",
+      "justTurnedOff": "Только что отключено",
+      "remindersUnaffected": "Ваши ежедневные напоминания о молитве не затрагиваются.",
+      "peopleGroupUpdatesLabel": "новости об этой народности",
       "noActiveSubscriptions": "У вас нет активных подписок.",
       "current": "Текущая",
       "reminderFormat": {
@@ -274,7 +278,9 @@
         "description": "Выберите, какие уведомления вы хотите получать:",
         "campaignUpdates": "Новости о {campaign}",
         "doxaGeneral": "Общие новости от Doxa",
-        "doxaGeneralHint": "Новости и обновления от Doxa"
+        "doxaGeneralHint": "Новости и обновления от Doxa",
+        "productEmails": "Письма о продукте",
+        "productEmailsHint": "Периодические письма об инструментах молитвы, которыми вы пользуетесь — опросы, запросы мнения и обновления продукта. Это не реклама. Ваши ежедневные напоминания о молитве не затрагиваются."
       },
       "consentUpdated": "Настройки уведомлений обновлены.",
       "subscriptions": "Ваши подписки",

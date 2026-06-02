@@ -87,6 +87,18 @@
               </div>
 
               <div
+                v-if="isAdmin"
+                class="audience-option"
+                :class="{ selected: form.audience_type === 'active_pg' }"
+                @click="selectAudience('active_pg')"
+              >
+                <input type="radio" v-model="form.audience_type" value="active_pg" />
+                <span class="option-title">All Active Subscribers</span>
+                <span class="option-description">Everyone with an active people group subscription, with or without DOXA consent</span>
+                <span class="option-count" v-if="activePgCount !== null">{{ activePgCount }} recipients</span>
+              </div>
+
+              <div
                 class="audience-option"
                 :class="{ selected: form.audience_type === 'people_group' }"
                 @click="selectAudience('people_group')"
@@ -203,7 +215,7 @@ const router = useRouter()
 const { isAdmin } = useAuthUser()
 const toast = useToast()
 
-type AudienceType = 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'pick'
+type AudienceType = 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'active_pg' | 'pick'
 
 const form = ref({
   subject: '',
@@ -216,6 +228,7 @@ const form = ref({
 
 interface ContactOption { label: string; value: number; email: string }
 const doxaActivePgCount = ref<number | null>(null)
+const activePgCount = ref<number | null>(null)
 const pickedContacts = ref<ContactOption[]>([])
 const contactItems = ref<ContactOption[]>([])
 const contactSearchLoading = ref(false)
@@ -273,6 +286,7 @@ const canSend = computed(() => {
   if (!canSave.value) return false
   if (form.value.audience_type === 'doxa') return !!(doxaCount.value && doxaCount.value > 0)
   if (form.value.audience_type === 'doxa_active_pg') return !!(doxaActivePgCount.value && doxaActivePgCount.value > 0)
+  if (form.value.audience_type === 'active_pg') return !!(activePgCount.value && activePgCount.value > 0)
   if (form.value.audience_type === 'people_group') return !!(peopleGroupCount.value && peopleGroupCount.value > 0)
   if (form.value.audience_type === 'admins') return !!(adminCount.value && adminCount.value > 0)
   if (form.value.audience_type === 'pick') return pickedContacts.value.length > 0
@@ -342,6 +356,16 @@ async function loadDoxaActivePgCount() {
     doxaActivePgCount.value = response.count
   } catch (error) {
     console.error('Failed to load active PG subscriber count:', error)
+  }
+}
+
+async function loadActivePgCount() {
+  if (!isAdmin.value) return
+  try {
+    const response = await $fetch<{ count: number }>('/api/admin/marketing/audience/active-pg')
+    activePgCount.value = response.count
+  } catch (error) {
+    console.error('Failed to load active subscriber count:', error)
   }
 }
 
@@ -548,6 +572,7 @@ onMounted(() => {
   if (isAdmin.value) {
     loadDoxaCount()
     loadDoxaActivePgCount()
+    loadActivePgCount()
   } else {
     form.value.audience_type = 'people_group'
   }

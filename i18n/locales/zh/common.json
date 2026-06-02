@@ -247,6 +247,10 @@
       "unsubscribeButton": "取消订阅",
       "unsubscribeFromAll": "取消所有{campaign}提醒",
       "preferencesUpdated": "您的邮件偏好设置已更新。",
+      "unsubscribedFrom": "您已取消订阅{item}。",
+      "justTurnedOff": "刚刚关闭",
+      "remindersUnaffected": "不影响您的每日祷告提醒。",
+      "peopleGroupUpdatesLabel": "关于该族群的更新",
       "noActiveSubscriptions": "您没有活跃的订阅。",
       "current": "当前",
       "reminderFormat": {
@@ -274,7 +278,9 @@
         "description": "选择您希望接收的通讯内容：",
         "campaignUpdates": "关于{campaign}的更新",
         "doxaGeneral": "Doxa的一般更新",
-        "doxaGeneralHint": "Doxa的进展更新和新闻"
+        "doxaGeneralHint": "Doxa的进展更新和新闻",
+        "productEmails": "产品邮件",
+        "productEmailsHint": "关于你所使用的祷告工具的不定期邮件——问卷、意见征集和产品更新。非促销内容。不影响你的每日祷告提醒。"
       },
       "consentUpdated": "通讯偏好设置已更新。",
       "subscriptions": "您的订阅",
