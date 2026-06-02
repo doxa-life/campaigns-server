@@ -1,5 +1,5 @@
-import { t } from './translations'
-import { MAY_2026_SURVEY_KEY } from '#shared/surveys/may-2026-survey'
+import { surveyService, type SurveyTranslationContent } from '#server/database/surveys'
+import { tiptapToHtml, tiptapToText } from './marketing-email-template'
 
 export interface MarketingTemplateVars {
   surveyUrl: string
@@ -19,71 +19,98 @@ function para(html: string): string {
   return `<p style="margin: 16px 0; font-size: 16px; line-height: 1.6; color: #3B463D;">${html}</p>`
 }
 
-// Personalized greeting, falling back to a generic one when we have no usable name.
-function greeting(locale: string, name?: string): string {
+// Personalized greeting, falling back to the generic one when there's no usable name.
+function greetingLine(email: NonNullable<SurveyTranslationContent['email']>, name?: string): string {
   const clean = name?.trim()
-  if (clean && clean.toLowerCase() !== 'anonymous') {
-    return t('survey.may2026.email.greeting', locale, { name: clean })
+  if (clean && clean.toLowerCase() !== 'anonymous' && email.greeting) {
+    return email.greeting.replace(/\{name\}/g, clean)
   }
-  return t('survey.may2026.email.greetingFallback', locale)
+  return email.greeting_fallback || email.greeting?.replace(/\{name\}/g, '').replace(/\s+/g, ' ').trim() || ''
 }
 
-const may2026Survey: MarketingTemplate = {
-  key: MAY_2026_SURVEY_KEY,
-  label: 'May 2026 Survey',
-  getSubject: locale => t('survey.may2026.email.subject', locale),
-  getHeader: locale => t('survey.may2026.email.header', locale),
-  renderContentHtml: (locale, { surveyUrl, name }) => {
-    const cta = t('survey.may2026.email.cta', locale)
-    const button = `<div style="text-align: center; margin: 32px 0;">`
-      + `<a href="${surveyUrl}" style="display: inline-block; background: #3B463D; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: 600;">${cta}</a>`
-      + `</div>`
-    return [
-      para(greeting(locale, name)),
-      para(t('survey.may2026.email.p1', locale)),
-      para(t('survey.may2026.email.p2', locale)),
-      para(t('survey.may2026.email.p3', locale)),
-      button,
-      para(`${t('survey.may2026.email.signoff', locale)}<br/>${t('survey.may2026.email.team', locale)}`)
-    ].join('')
-  },
-  renderText: (locale, { surveyUrl, name }) => [
-    greeting(locale, name),
-    '',
-    t('survey.may2026.email.p1', locale),
-    '',
-    t('survey.may2026.email.p2', locale),
-    '',
-    t('survey.may2026.email.p3', locale),
-    '',
-    `${t('survey.may2026.email.cta', locale)}: ${surveyUrl}`,
-    '',
-    t('survey.may2026.email.signoff', locale),
-    t('survey.may2026.email.team', locale)
-  ].join('\n')
+/**
+ * Build a marketing template backed by a survey's per-language content. Render
+ * methods are synchronous and close over the already-loaded translations, so the
+ * send processor can call them per-recipient without extra DB round-trips.
+ */
+function buildSurveyTemplate(
+  survey: { key: string; title: string },
+  translations: Record<string, SurveyTranslationContent>
+): MarketingTemplate {
+  const contentFor = (locale: string): SurveyTranslationContent =>
+    translations[locale] ?? translations.en ?? {}
+  const emailFor = (locale: string) => contentFor(locale).email ?? {}
+
+  return {
+    key: survey.key,
+    label: survey.title,
+    getSubject: locale => emailFor(locale).subject || survey.title,
+    getHeader: locale => emailFor(locale).header || '',
+    renderContentHtml: (locale, { surveyUrl, name }) => {
+      const email = emailFor(locale)
+      const cta = email.cta || 'Open'
+      const button = `<div style="text-align: center; margin: 32px 0;">`
+        + `<a href="${surveyUrl}" style="display: inline-block; background: #3B463D; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: 600;">${cta}</a>`
+        + `</div>`
+      const parts = [para(greetingLine(email, name))]
+      const bodyHtml = email.body ? tiptapToHtml(email.body) : ''
+      if (bodyHtml) parts.push(bodyHtml)
+      parts.push(button)
+      if (email.signoff || email.team) {
+        parts.push(para(`${email.signoff ?? ''}${email.signoff && email.team ? '<br/>' : ''}${email.team ?? ''}`))
+      }
+      return parts.join('')
+    },
+    renderText: (locale, { surveyUrl, name }) => {
+      const email = emailFor(locale)
+      const lines = [greetingLine(email, name), '']
+      const bodyText = email.body ? tiptapToText(email.body) : ''
+      if (bodyText) lines.push(bodyText, '')
+      lines.push(`${email.cta || 'Open'}: ${surveyUrl}`, '')
+      if (email.signoff) lines.push(email.signoff)
+      if (email.team) lines.push(email.team)
+      return lines.join('\n')
+    }
+  }
 }
 
-export const MARKETING_TEMPLATES: Record<string, MarketingTemplate> = {
-  [MAY_2026_SURVEY_KEY]: may2026Survey
-}
-
-/** Returns null for the implicit 'default' template (admin-authored content). */
-export function getMarketingTemplate(key?: string | null): MarketingTemplate | null {
+/**
+ * Resolve a marketing email's template. Returns null for the implicit 'default'
+ * template (admin-authored content). Any other key is treated as a survey key and
+ * rendered from that survey's DB-stored, per-language email content.
+ */
+export async function getMarketingTemplate(key?: string | null): Promise<MarketingTemplate | null> {
   if (!key || key === 'default') return null
-  return MARKETING_TEMPLATES[key] ?? null
+  const survey = await surveyService.getByKey(key)
+  if (!survey) return null
+  const translations = await surveyService.getAllTranslations(survey.id)
+  return buildSurveyTemplate(survey, translations)
 }
 
-export function isValidTemplateKey(key: string): boolean {
-  return key === 'default' || key in MARKETING_TEMPLATES
+export async function isValidTemplateKey(key: string): Promise<boolean> {
+  if (key === 'default') return true
+  return (await surveyService.getByKey(key)) !== null
 }
 
-export function listMarketingTemplates(locale: string = 'en'): Array<{ key: string; label: string; subject?: string }> {
-  return [
-    { key: 'default', label: 'Default (write your own)' },
-    ...Object.values(MARKETING_TEMPLATES).map(tpl => ({
-      key: tpl.key,
-      label: tpl.label,
-      subject: tpl.getSubject(locale)
-    }))
+/**
+ * 'default' plus every open survey, each exposing its localized subject so the
+ * marketing-email composer can list them as predefined templates.
+ */
+export async function listMarketingTemplates(
+  locale: string = 'en'
+): Promise<Array<{ key: string; label: string; subject?: string }>> {
+  const surveys = await surveyService.listWithResponseCounts()
+  const templates: Array<{ key: string; label: string; subject?: string }> = [
+    { key: 'default', label: 'Default (write your own)' }
   ]
+  for (const survey of surveys) {
+    if (survey.status !== 'open') continue
+    const content = await surveyService.getTranslation(survey.id, locale)
+    templates.push({
+      key: survey.key,
+      label: survey.title,
+      subject: content.email?.subject || survey.title
+    })
+  }
+  return templates
 }

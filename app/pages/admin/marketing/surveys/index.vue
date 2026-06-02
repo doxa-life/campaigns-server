@@ -2,23 +2,41 @@
   <div class="flex gap-6 items-start">
     <!-- Left: survey list -->
     <aside class="w-72 shrink-0">
-      <h2 class="text-lg font-bold mb-4">{{ $t('survey.admin.heading') }}</h2>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold">{{ $t('survey.admin.heading') }}</h2>
+        <UButton size="xs" icon="i-lucide-plus" @click="showCreate = true">
+          {{ $t('survey.admin.newSurvey') }}
+        </UButton>
+      </div>
       <div class="space-y-1">
-        <button
+        <div
           v-for="survey in surveys"
           :key="survey.key"
-          type="button"
-          class="w-full text-left rounded-lg border px-3 py-2 transition-colors"
+          class="group w-full rounded-lg border px-3 py-2 transition-colors cursor-pointer"
           :class="survey.key === selectedKey
             ? 'border-[var(--ui-text)] bg-[var(--ui-bg-elevated)]'
             : 'border-[var(--ui-border)] hover:border-[var(--ui-text-muted)]'"
           @click="selectedKey = survey.key"
         >
-          <div class="font-medium text-sm">{{ survey.title }}</div>
-          <div class="text-xs text-[var(--ui-text-muted)] mt-0.5">
-            {{ $t('survey.admin.totalResponses', { count: survey.response_count }) }}
+          <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <div class="font-medium text-sm truncate">{{ survey.title }}</div>
+              <div class="text-xs text-[var(--ui-text-muted)] mt-0.5">
+                {{ $t('survey.admin.totalResponses', { count: survey.response_count }) }}
+                <UBadge v-if="survey.status === 'closed'" size="xs" color="neutral" variant="subtle" class="ml-1">
+                  {{ $t('survey.admin.closed') }}
+                </UBadge>
+              </div>
+            </div>
+            <UButton
+              icon="i-lucide-pencil"
+              size="xs"
+              variant="ghost"
+              class="opacity-0 group-hover:opacity-100"
+              @click.stop="navigateTo(`/admin/marketing/surveys/${survey.key}/edit`)"
+            />
           </div>
-        </button>
+        </div>
       </div>
     </aside>
 
@@ -36,15 +54,24 @@
               {{ $t('survey.admin.totalResponses', { count: data?.totalResponses ?? 0 }) }}
             </p>
           </div>
-          <UButton
-            icon="i-lucide-download"
-            variant="outline"
-            :loading="exporting"
-            :disabled="!data?.totalResponses"
-            @click="exportCsv"
-          >
-            {{ $t('survey.admin.exportCsv') }}
-          </UButton>
+          <div class="flex gap-2">
+            <UButton
+              icon="i-lucide-pencil"
+              variant="outline"
+              @click="navigateTo(`/admin/marketing/surveys/${selectedKey}/edit`)"
+            >
+              {{ $t('survey.admin.edit') }}
+            </UButton>
+            <UButton
+              icon="i-lucide-download"
+              variant="outline"
+              :loading="exporting"
+              :disabled="!data?.totalResponses"
+              @click="exportCsv"
+            >
+              {{ $t('survey.admin.exportCsv') }}
+            </UButton>
+          </div>
         </div>
 
         <div v-if="pending" class="flex justify-center py-20">
@@ -62,7 +89,7 @@
         <div v-else class="space-y-6">
           <UCard v-for="item in renderQuestions" :key="item.key">
             <div class="text-base font-medium mb-1">
-              {{ item.number }}. {{ $t(questionLabel(item.key)) }}
+              {{ item.number }}. {{ item.label }}
             </div>
 
             <template v-if="item.type === 'scale' && item.scale">
@@ -72,7 +99,7 @@
                 ({{ item.scale.count }})
               </p>
               <div class="space-y-2">
-                <div v-for="point in scalePoints(item.key)" :key="point" class="flex items-center gap-3">
+                <div v-for="point in item.scalePoints" :key="point" class="flex items-center gap-3">
                   <span class="w-4 text-sm text-[var(--ui-text-muted)]">{{ point }}</span>
                   <UProgress :model-value="item.scale.distribution[point] || 0" :max="item.scale.count || 1" class="flex-1" />
                   <span class="w-10 text-right text-sm tabular-nums">{{ item.scale.distribution[point] || 0 }}</span>
@@ -97,35 +124,50 @@
         </div>
       </template>
     </section>
+
+    <!-- Create survey modal -->
+    <UModal v-model:open="showCreate" :title="$t('survey.admin.newSurvey')">
+      <template #body>
+        <form class="p-2 space-y-4" @submit.prevent="createSurvey">
+          <UFormField :label="$t('survey.admin.titleLabel')" required>
+            <UInput v-model="newTitle" class="w-full" :placeholder="$t('survey.admin.titlePlaceholder')" />
+          </UFormField>
+          <div class="flex justify-end gap-2">
+            <UButton variant="outline" type="button" @click="showCreate = false">{{ $t('common.cancel') }}</UButton>
+            <UButton type="submit" :loading="creating" :disabled="!newTitle.trim()">{{ $t('survey.admin.create') }}</UButton>
+          </div>
+        </form>
+      </template>
+    </UModal>
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  MAY_2026_SURVEY_QUESTIONS,
-  may2026I18n,
-  getMay2026Question
-} from '#shared/surveys/may-2026-survey'
-
 definePageMeta({
   layout: 'admin',
   middleware: 'auth'
 })
 
 interface SurveyListItem { key: string; title: string; status: string; response_count: number }
+interface ResultsQuestion { key: string; type: 'scale' | 'text'; label: string; scalePoints: number[] }
 interface ScaleAggregate { key: string; count: number; average: number | null; distribution: Record<number, number> }
 interface TextAggregate { key: string; answers: string[] }
 interface SurveyResults {
   title: string
   status: string
   totalResponses: number
+  questions: ResultsQuestion[]
   scale: ScaleAggregate[]
   text: TextAggregate[]
 }
 
+const toast = useToast()
 const exporting = ref(false)
+const showCreate = ref(false)
+const creating = ref(false)
+const newTitle = ref('')
 
-const { data: listData } = await useAsyncData('admin-surveys', () =>
+const { data: listData, refresh: refreshList } = await useAsyncData('admin-surveys', () =>
   $fetch<{ surveys: SurveyListItem[] }>('/api/admin/surveys')
 )
 const surveys = computed(() => listData.value?.surveys ?? [])
@@ -138,30 +180,38 @@ const { data, pending } = await useAsyncData<SurveyResults | null>('admin-survey
   { watch: [selectedKey] }
 )
 
-// Render questions in their authored order, interleaving scale and text,
-// rather than grouping all scale questions before all text questions.
+// Render questions in their authored order, interleaving scale and text.
 const renderQuestions = computed(() => {
   const results = data.value
-  if (!results) return []
-  return MAY_2026_SURVEY_QUESTIONS.map((question, index) => ({
+  if (!results?.questions) return []
+  return results.questions.map((question, index) => ({
     key: question.key,
     type: question.type,
+    label: question.label,
+    scalePoints: question.scalePoints,
     number: index + 1,
     scale: question.type === 'scale' ? results.scale.find(a => a.key === question.key) ?? null : null,
     text: question.type === 'text' ? results.text.find(t => t.key === question.key) ?? null : null
   }))
 })
 
-function questionLabel(key: string) {
-  return may2026I18n.questionLabel(key)
-}
-
-function scalePoints(key: string): number[] {
-  const question = getMay2026Question(key)
-  if (!question) return []
-  const min = question.min ?? 1
-  const max = question.max ?? 5
-  return Array.from({ length: max - min + 1 }, (_, i) => min + i)
+async function createSurvey() {
+  if (!newTitle.value.trim()) return
+  creating.value = true
+  try {
+    const res = await $fetch<{ survey: { key: string } }>('/api/admin/surveys', {
+      method: 'POST',
+      body: { title: newTitle.value.trim() }
+    })
+    showCreate.value = false
+    newTitle.value = ''
+    await refreshList()
+    navigateTo(`/admin/marketing/surveys/${res.survey.key}/edit`)
+  } catch (err: any) {
+    toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to create survey', color: 'error' })
+  } finally {
+    creating.value = false
+  }
 }
 
 async function exportCsv() {

@@ -120,3 +120,80 @@ describe('POST /api/survey/response', () => {
     expect(responses[0]!.n).toBe(1)
   })
 })
+
+describe('Dynamic surveys', () => {
+  const KEY = 'test-dynamic-survey'
+
+  async function seedDynamicSurvey() {
+    await sql`DELETE FROM surveys WHERE key = ${KEY}`
+    const [survey] = await sql`
+      INSERT INTO surveys (key, title, status) VALUES (${KEY}, 'Test Dynamic Survey', 'open') RETURNING id
+    `
+    await sql`
+      INSERT INTO survey_questions (survey_id, key, type, position, config) VALUES
+        (${survey!.id}, 'rating', 'scale', 0, ${sql.json({ min: 1, max: 3, scalePoints: [1, 3] })}),
+        (${survey!.id}, 'note', 'text', 1, ${sql.json({})})
+    `
+    await sql`
+      INSERT INTO survey_translations (survey_id, language_code, content) VALUES
+        (${survey!.id}, 'en', ${sql.json({
+          page: { title: 'Test Dynamic', intro: 'Intro' },
+          questions: {
+            rating: { label: 'Your rating', scale: { 1: 'Low', 3: 'High' } },
+            note: { label: 'Any notes?' }
+          },
+          email: { subject: 'Test subject', cta: 'Open', body: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hi' }] }] } }
+        })})
+    `
+    return survey!.id as number
+  }
+
+  afterEach(async () => {
+    await sql`DELETE FROM surveys WHERE key = ${KEY}`
+  })
+
+  it('serves dynamic questions and translated labels for a known subscriber', async () => {
+    await seedDynamicSurvey()
+    const subscriber = await createTestSubscriber(sql, { name: 'Test Dyn Get' })
+
+    const res = await $fetch(`/api/survey/response?id=${subscriber.profile_id}&key=${KEY}&lang=en`)
+
+    expect(res.valid).toBe(true)
+    expect(res.surveyExists).toBe(true)
+    expect(res.status).toBe('open')
+    expect(res.questions.map((q: any) => q.key)).toEqual(['rating', 'note'])
+    expect(res.content.questions.rating.label).toBe('Your rating')
+    expect(res.content.page.title).toBe('Test Dynamic')
+  })
+
+  it('validates and stores answers against the dynamic question config', async () => {
+    await seedDynamicSurvey()
+    const subscriber = await createTestSubscriber(sql, { name: 'Test Dyn Submit' })
+
+    // rating max is 3 for this survey, so 5 is rejected.
+    const bad = await $fetch('/api/survey/response', {
+      method: 'POST',
+      body: { id: subscriber.profile_id, key: KEY, answers: { rating: 5 } }
+    }).catch(e => e)
+    expect(bad.statusCode).toBe(400)
+
+    const ok = await $fetch('/api/survey/response', {
+      method: 'POST',
+      body: { id: subscriber.profile_id, key: KEY, answers: { rating: 2, note: 'great' } }
+    })
+    expect(ok.success).toBe(true)
+
+    const [survey] = await sql`SELECT id FROM surveys WHERE key = ${KEY}`
+    const [response] = await sql`SELECT id FROM survey_responses WHERE survey_id = ${survey!.id} AND subscriber_id = ${subscriber.id}`
+    const answers = await sql`SELECT question_key, value_int, value_text FROM survey_answers WHERE response_id = ${response!.id}`
+    const byKey = Object.fromEntries(answers.map((a: any) => [a.question_key, a]))
+    expect(byKey.rating.value_int).toBe(2)
+    expect(byKey.note.value_text).toBe('great')
+  })
+
+  it('returns surveyExists:false for an unknown survey key', async () => {
+    const res = await $fetch('/api/survey/response?id=00000000-0000-4000-8000-000000000000&key=nope-not-real')
+    expect(res.surveyExists).toBe(false)
+    expect(res.valid).toBe(false)
+  })
+})

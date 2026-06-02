@@ -669,65 +669,6 @@
     }
   },
   "survey": {
-    "may2026": {
-      "page": {
-        "title": "Votre expérience de prière",
-        "intro": "Merci de prier avec DOXA. Ces cinq questions prennent environ trois minutes, et vos réponses nous aident à améliorer les sujets de prière quotidiens. Il n'y a pas de bonne ou de mauvaise réponse ; nous voulons simplement connaître votre expérience sincère.",
-        "submit": "Envoyer mes réponses",
-        "thanksTitle": "Merci !",
-        "thanks": "Merci, vos réponses ont bien été enregistrées. Nous vous sommes reconnaissants du temps que vous avez consacré et de vos prières.",
-        "editNotice": "Vous avez déjà répondu, merci ! Vous pouvez modifier vos réponses ci-dessous et les enregistrer à nouveau si vous le souhaitez.",
-        "invalidTitle": "Lien invalide",
-        "invalid": "Ce lien d'enquête ne semble pas valide. Veuillez utiliser le lien de votre e-mail ou nous contacter si vous avez besoin d'aide.",
-        "closedTitle": "Enquête clôturée",
-        "closed": "Cette enquête n'accepte plus de réponses. Merci de votre intérêt.",
-        "goHome": "Aller à l'accueil",
-        "errorTitle": "Une erreur s'est produite",
-        "error": "Nous n'avons pas pu enregistrer vos réponses. Veuillez réessayer."
-      },
-      "questions": {
-        "focus": {
-          "label": "Dans quelle mesure les sujets de prière quotidiens vous ont-ils aidé à vous sentir concentré et engagé dans la prière pour les groupes ethniques non-atteints ?",
-          "scale": {
-            "1": "Pas du tout concentré",
-            "5": "Extrêmement concentré"
-          }
-        },
-        "experience": {
-          "label": "Parlez-nous davantage de votre expérience : qu'est-ce qui a rendu les sujets de prière utiles (ou non) pour vous personnellement ?"
-        },
-        "clarity": {
-          "label": "Avec quelle clarté les sujets de prière indiquaient-ils quoi prier et pourquoi c'est important ?",
-          "scale": {
-            "1": "Très peu clairs",
-            "5": "Très clairs"
-          }
-        },
-        "content_amount": {
-          "label": "La quantité de contenu de prière correspond-elle au temps dont vous disposez pour prier ?",
-          "scale": {
-            "1": "Trop pour mon temps de prière",
-            "3": "Juste comme il faut",
-            "5": "Trop peu pour mon temps de prière"
-          }
-        },
-        "heart": {
-          "label": "Comment votre participation à cette campagne de prière a-t-elle influencé votre cœur ou votre regard envers les groupes ethniques non-atteints ?"
-        }
-      },
-      "email": {
-        "subject": "Nous raconteriez-vous comment se passe la prière ?",
-        "header": "Votre avis nous intéresse",
-        "greeting": "Bonjour {name},",
-        "greetingFallback": "Bonjour,",
-        "p1": "Merci d'intercéder dans la prière pour les groupes ethniques non-atteints du monde. Votre fidélité est au cœur de ce que DOXA cherche à soutenir.",
-        "p2": "Nous cherchons toujours à rendre les sujets de prière quotidiens plus utiles et, avant de nous réunir en équipe pour planifier la suite, nous aimerions beaucoup vous entendre. Pourriez-vous prendre quelques minutes pour répondre à cinq courtes questions sur votre expérience ?",
-        "p3": "Votre avis sincère — ce qui fonctionne, ce qui ne fonctionne pas — façonne directement le contenu de prière que nous créons.",
-        "cta": "Répondre à l'enquête",
-        "signoff": "Avec gratitude,",
-        "team": "L'équipe DOXA"
-      }
-    },
     "admin": {
       "title": "Enquête auprès des intercesseurs – mai 2026",
       "heading": "Enquêtes",

@@ -1,23 +1,16 @@
 import { surveyService, type SurveyAnswerInput } from '#server/database/surveys'
 import { subscriberService } from '#server/database/subscribers'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
-import { MAY_2026_SURVEY_KEY, MAY_2026_SURVEY_QUESTIONS } from '#shared/surveys/may-2026-survey'
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const MAX_TEXT_LENGTH = 5000
-
-// Readable labels for the subscriber activity-log entry (admin-facing, English).
-const ACTIVITY_LABELS: Record<string, string> = {
-  focus: 'Focus & engagement (1-5)',
-  experience: 'What made the prompts helpful',
-  clarity: 'Clarity of prompts (1-5)',
-  content_amount: 'Amount of content (1-5)',
-  heart: 'Heart & perspective'
-}
+const MAX_LABEL_LENGTH = 120
+const DEFAULT_SURVEY_KEY = 'may-2026-survey'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const profileId = typeof body?.id === 'string' ? body.id : ''
+  const surveyKey = typeof body?.key === 'string' && body.key ? body.key : DEFAULT_SURVEY_KEY
 
   if (!UUID_REGEX.test(profileId)) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid survey link' })
@@ -28,7 +21,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Subscriber not found' })
   }
 
-  const survey = await surveyService.getByKey(MAY_2026_SURVEY_KEY)
+  const survey = await surveyService.getByKey(surveyKey)
   if (!survey) {
     throw createError({ statusCode: 500, statusMessage: 'Survey not configured' })
   }
@@ -36,29 +29,34 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, statusMessage: 'This survey is closed' })
   }
 
+  const questions = await surveyService.getQuestions(survey.id)
+  // English question labels for the subscriber activity-log entry (admin-facing).
+  const enContent = await surveyService.getTranslation(survey.id, 'en')
+
   const incoming: Record<string, unknown> = body?.answers && typeof body.answers === 'object' ? body.answers : {}
   const answers: SurveyAnswerInput[] = []
   const formValues: Record<string, number | string> = {}
 
-  for (const question of MAY_2026_SURVEY_QUESTIONS) {
+  for (const question of questions) {
     const value = incoming[question.key]
+    const label = (enContent.questions?.[question.key]?.label || question.key).slice(0, MAX_LABEL_LENGTH)
 
     if (question.type === 'scale') {
       if (value === undefined || value === null || value === '') continue
       const num = Number(value)
-      const min = question.min ?? 1
-      const max = question.max ?? 5
+      const min = question.config?.min ?? 1
+      const max = question.config?.max ?? 5
       if (!Number.isInteger(num) || num < min || num > max) {
         throw createError({ statusCode: 400, statusMessage: `Invalid value for ${question.key}` })
       }
       answers.push({ question_key: question.key, value_int: num })
-      formValues[ACTIVITY_LABELS[question.key] ?? question.key] = num
+      formValues[label] = num
     } else {
       if (typeof value !== 'string') continue
       const text = value.trim().slice(0, MAX_TEXT_LENGTH)
       if (!text) continue
       answers.push({ question_key: question.key, value_text: text })
-      formValues[ACTIVITY_LABELS[question.key] ?? question.key] = text
+      formValues[label] = text
     }
   }
 

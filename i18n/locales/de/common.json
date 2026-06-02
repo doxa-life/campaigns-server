@@ -669,65 +669,6 @@
     }
   },
   "survey": {
-    "may2026": {
-      "page": {
-        "title": "Ihre Gebetserfahrung",
-        "intro": "Danke, dass Sie mit DOXA beten. Diese fünf Fragen dauern etwa drei Minuten, und Ihre Antworten helfen uns, die täglichen Gebetsanliegen zu verbessern. Es gibt keine richtigen oder falschen Antworten – wir möchten einfach Ihre ehrliche Erfahrung erfahren.",
-        "submit": "Meine Antworten senden",
-        "thanksTitle": "Vielen Dank!",
-        "thanks": "Danke – Ihre Antworten sind eingegangen. Wir sind dankbar für Ihre Zeit und Ihre Gebete.",
-        "editNotice": "Sie haben bereits geantwortet – vielen Dank! Sie können Ihre Antworten unten aktualisieren und erneut speichern, wenn Sie möchten.",
-        "invalidTitle": "Ungültiger Link",
-        "invalid": "Dieser Umfrage-Link scheint ungültig zu sein. Bitte verwenden Sie den Link aus Ihrer E-Mail oder kontaktieren Sie uns, wenn Sie Hilfe benötigen.",
-        "closedTitle": "Umfrage geschlossen",
-        "closed": "Diese Umfrage nimmt keine Antworten mehr an. Vielen Dank für Ihr Interesse.",
-        "goHome": "Zur Startseite",
-        "errorTitle": "Etwas ist schiefgelaufen",
-        "error": "Wir konnten Ihre Antworten nicht speichern. Bitte versuchen Sie es erneut."
-      },
-      "questions": {
-        "focus": {
-          "label": "Wie gut haben Ihnen die täglichen Gebetsanliegen geholfen, sich beim Gebet für unerreichte Volksgruppen konzentriert und eingebunden zu fühlen?",
-          "scale": {
-            "1": "Überhaupt nicht konzentriert",
-            "5": "Äußerst konzentriert"
-          }
-        },
-        "experience": {
-          "label": "Erzählen Sie uns mehr über Ihre Erfahrung: Was hat die Gebetsanliegen für Sie persönlich hilfreich (oder nicht hilfreich) gemacht?"
-        },
-        "clarity": {
-          "label": "Wie klar haben die Gebetsanliegen vermittelt, wofür zu beten ist und warum es wichtig ist?",
-          "scale": {
-            "1": "Sehr unklar",
-            "5": "Sehr klar"
-          }
-        },
-        "content_amount": {
-          "label": "Passt die Menge an Gebetsinhalten zu der Zeit, die Sie zum Beten haben?",
-          "scale": {
-            "1": "Zu viel für meine Gebetszeit",
-            "3": "Genau richtig",
-            "5": "Zu wenig für meine Gebetszeit"
-          }
-        },
-        "heart": {
-          "label": "Wie hat die Teilnahme an dieser Gebetskampagne Ihr Herz oder Ihre Sichtweise gegenüber unerreichten Volksgruppen verändert?"
-        }
-      },
-      "email": {
-        "subject": "Erzählen Sie uns, wie das Gebet läuft?",
-        "header": "Wir freuen uns über Ihr Feedback",
-        "greeting": "Hallo {name},",
-        "greetingFallback": "Hallo,",
-        "p1": "Danke, dass Sie im Gebet für die unerreichten Volksgruppen der Welt einstehen. Ihre Treue ist das Herzstück dessen, was DOXA unterstützen möchte.",
-        "p2": "Wir möchten die täglichen Gebetsanliegen immer hilfreicher gestalten, und bevor wir uns als Team treffen, um die nächsten Schritte zu planen, würden wir gerne von Ihnen hören. Würden Sie sich ein paar Minuten Zeit nehmen, um fünf kurze Fragen zu Ihrer Erfahrung zu beantworten?",
-        "p3": "Ihr ehrliches Feedback – was funktioniert und was nicht – prägt direkt die Gebetsinhalte, die wir erstellen.",
-        "cta": "An der Umfrage teilnehmen",
-        "signoff": "Mit Dankbarkeit,",
-        "team": "Das DOXA-Team"
-      }
-    },
     "admin": {
       "title": "Fürbitter-Umfrage – Mai 2026",
       "heading": "Umfragen",

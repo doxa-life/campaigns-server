@@ -526,6 +526,11 @@ async function loadTemplates() {
   try {
     const response = await $fetch<{ templates: EmailTemplate[] }>('/api/admin/marketing/templates')
     if (response.templates?.length) templates.value = response.templates
+    // Preselect a template passed via ?template= (e.g. from the survey builder).
+    const requested = useRoute().query.template
+    if (typeof requested === 'string' && templates.value.some(t => t.key === requested)) {
+      form.value.template = requested
+    }
   } catch (error) {
     console.error('Failed to load templates:', error)
   }

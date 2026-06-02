@@ -33,10 +33,10 @@ export default defineEventHandler(async (event) => {
   const baseUrl = config.public.siteUrl || 'https://example.com'
   const unsubscribeUrl = `${baseUrl}/unsubscribe?id=preview`
 
-  const template = getMarketingTemplate(email.template)
+  const template = await getMarketingTemplate(email.template)
 
   if (template) {
-    const surveyUrl = `${baseUrl}/survey?id=preview`
+    const surveyUrl = `${baseUrl}/survey/${email.template}?id=preview`
     const vars = { surveyUrl, name: 'Friend' }
     const html = renderMarketingEmailFromHtml(
       template.renderContentHtml('en', vars),

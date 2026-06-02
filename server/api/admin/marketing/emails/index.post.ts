@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (body.template && !isValidTemplateKey(body.template)) {
+  if (body.template && !(await isValidTemplateKey(body.template))) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Invalid template'

@@ -665,65 +665,6 @@
     }
   },
   "survey": {
-    "may2026": {
-      "page": {
-        "title": "Experiența ta de rugăciune",
-        "intro": "Îți mulțumim că te rogi alături de DOXA. Aceste cinci întrebări durează aproximativ trei minute, iar răspunsurile tale ne ajută să îmbunătățim subiectele zilnice de rugăciune. Nu există răspunsuri corecte sau greșite — vrem doar să aflăm experiența ta sinceră.",
-        "submit": "Trimite răspunsurile mele",
-        "thanksTitle": "Mulțumim!",
-        "thanks": "Mulțumim — am primit răspunsurile tale. Îți suntem recunoscători pentru timpul acordat și pentru rugăciunile tale.",
-        "editNotice": "Ai răspuns deja — mulțumim! Poți actualiza răspunsurile mai jos și le poți salva din nou dacă dorești.",
-        "invalidTitle": "Link nevalid",
-        "invalid": "Acest link al sondajului nu pare valid. Te rugăm să folosești linkul din e-mailul tău sau să ne contactezi dacă ai nevoie de ajutor.",
-        "closedTitle": "Sondaj închis",
-        "closed": "Acest sondaj nu mai acceptă răspunsuri. Îți mulțumim pentru interes.",
-        "goHome": "Mergi la pagina principală",
-        "errorTitle": "Ceva nu a mers bine",
-        "error": "Nu am putut salva răspunsurile tale. Te rugăm să încerci din nou."
-      },
-      "questions": {
-        "focus": {
-          "label": "Cât de mult te-au ajutat subiectele zilnice de rugăciune să te simți concentrat și implicat în rugăciunea pentru grupurile etnice neatinse?",
-          "scale": {
-            "1": "Deloc concentrat",
-            "5": "Extrem de concentrat"
-          }
-        },
-        "experience": {
-          "label": "Spune-ne mai multe despre experiența ta: ce a făcut ca subiectele de rugăciune să fie utile (sau nu) pentru tine personal?"
-        },
-        "clarity": {
-          "label": "Cât de clar comunicau subiectele de rugăciune pentru ce să te rogi și de ce contează?",
-          "scale": {
-            "1": "Foarte neclare",
-            "5": "Foarte clare"
-          }
-        },
-        "content_amount": {
-          "label": "Cantitatea de conținut de rugăciune corespunde timpului pe care îl ai pentru rugăciune?",
-          "scale": {
-            "1": "Prea mult pentru timpul meu de rugăciune",
-            "3": "Exact potrivit",
-            "5": "Prea puțin pentru timpul meu de rugăciune"
-          }
-        },
-        "heart": {
-          "label": "Cum ți-a influențat participarea la această campanie de rugăciune inima sau perspectiva față de grupurile etnice neatinse?"
-        }
-      },
-      "email": {
-        "subject": "Ne spui cum a mers rugăciunea?",
-        "header": "Ne-ar plăcea să aflăm părerea ta",
-        "greeting": "Bună, {name},",
-        "greetingFallback": "Bună,",
-        "p1": "Îți mulțumim că stai în rugăciune pentru grupurile etnice neatinse ale lumii. Credincioșia ta este inima a ceea ce DOXA dorește să sprijine.",
-        "p2": "Căutăm mereu să facem subiectele zilnice de rugăciune mai utile și, înainte de a ne întâlni ca echipă pentru a planifica pașii următori, ne-ar plăcea să te ascultăm. Ai putea să acorzi câteva minute pentru a răspunde la cinci întrebări scurte despre experiența ta?",
-        "p3": "Părerea ta sinceră — ce funcționează și ce nu — modelează direct conținutul de rugăciune pe care îl creăm.",
-        "cta": "Completează sondajul",
-        "signoff": "Cu recunoștință,",
-        "team": "Echipa DOXA"
-      }
-    },
     "admin": {
       "title": "Sondaj pentru mijlocitori – mai 2026",
       "heading": "Sondaje",

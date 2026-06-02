@@ -59,7 +59,7 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
     unsubscribeUrl = `${baseUrl}${localePath('/unsubscribe', subscriberLanguage)}?id=${profileId}&type=doxa`
   }
 
-  const template = getMarketingTemplate(cached.email.template)
+  const template = await getMarketingTemplate(cached.email.template)
 
   let html: string
   let subject: string
@@ -68,7 +68,8 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
   if (template) {
     // Templated emails render per-recipient in the subscriber's language and
     // carry a personalized survey link; the stored subject/content are unused.
-    const surveyUrl = `${baseUrl}${localePath('/survey', subscriberLanguage)}?id=${profileId}`
+    // The template key IS the survey key, so the link targets that survey.
+    const surveyUrl = `${baseUrl}${localePath(`/survey/${cached.email.template}`, subscriberLanguage)}?id=${profileId}`
     const vars = { surveyUrl, name: subscriber?.name }
     const contentHtml = template.renderContentHtml(subscriberLanguage, vars)
     html = renderMarketingEmailFromHtml(contentHtml, undefined, unsubscribeUrl, subscriberLanguage, template.getHeader(subscriberLanguage))

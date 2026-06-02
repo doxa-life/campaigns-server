@@ -4,6 +4,6 @@ export default defineEventHandler(async (event) => {
   await requirePermission(event, 'people_groups.view')
 
   return {
-    templates: listMarketingTemplates('en')
+    templates: await listMarketingTemplates('en')
   }
 })

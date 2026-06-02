@@ -669,65 +669,6 @@
     }
   },
   "survey": {
-    "may2026": {
-      "page": {
-        "title": "Tu experiencia de oración",
-        "intro": "Gracias por orar con DOXA. Estas cinco preguntas toman unos tres minutos, y tus respuestas nos ayudan a mejorar las indicaciones de oración diaria. No hay respuestas correctas ni incorrectas; solo queremos conocer tu experiencia sincera.",
-        "submit": "Enviar mis respuestas",
-        "thanksTitle": "¡Gracias!",
-        "thanks": "Gracias: hemos recibido tus respuestas. Agradecemos el tiempo que dedicaste y tus oraciones.",
-        "editNotice": "Ya respondiste, ¡gracias! Puedes actualizar tus respuestas a continuación y guardarlas de nuevo si lo deseas.",
-        "invalidTitle": "Enlace no válido",
-        "invalid": "Este enlace de la encuesta no parece válido. Usa el enlace de tu correo o contáctanos si necesitas ayuda.",
-        "closedTitle": "Encuesta cerrada",
-        "closed": "Esta encuesta ya no acepta respuestas. Gracias por tu interés.",
-        "goHome": "Ir a la página principal",
-        "errorTitle": "Algo salió mal",
-        "error": "No pudimos guardar tus respuestas. Inténtalo de nuevo."
-      },
-      "questions": {
-        "focus": {
-          "label": "¿Qué tan bien te ayudaron las indicaciones de oración diaria a sentirte concentrado y comprometido al orar por los grupos étnicos no alcanzados?",
-          "scale": {
-            "1": "Nada concentrado",
-            "5": "Muy concentrado"
-          }
-        },
-        "experience": {
-          "label": "Cuéntanos más sobre tu experiencia: ¿qué hizo que las indicaciones te resultaran útiles (o no) personalmente?"
-        },
-        "clarity": {
-          "label": "¿Con qué claridad comunicaban las indicaciones de oración por qué orar y por qué es importante?",
-          "scale": {
-            "1": "Muy poco claras",
-            "5": "Muy claras"
-          }
-        },
-        "content_amount": {
-          "label": "¿La cantidad de contenido de oración se ajusta al tiempo que tienes para orar?",
-          "scale": {
-            "1": "Demasiado para mi tiempo de oración",
-            "3": "Justo lo adecuado",
-            "5": "Muy poco para mi tiempo de oración"
-          }
-        },
-        "heart": {
-          "label": "¿Cómo ha afectado tu participación en esta campaña de oración a tu corazón o tu perspectiva hacia los grupos étnicos no alcanzados?"
-        }
-      },
-      "email": {
-        "subject": "¿Nos cuentas cómo ha ido la oración?",
-        "header": "Nos encantaría tu opinión",
-        "greeting": "Hola {name}:",
-        "greetingFallback": "Hola:",
-        "p1": "Gracias por interceder en oración por los grupos étnicos no alcanzados del mundo. Tu fidelidad es el corazón de lo que DOXA existe para apoyar.",
-        "p2": "Siempre buscamos que las indicaciones de oración diaria sean más útiles y, antes de reunirnos como equipo para planificar los próximos pasos, nos encantaría escucharte. ¿Podrías dedicar unos minutos a responder cinco preguntas breves sobre tu experiencia?",
-        "p3": "Tu opinión sincera —lo que funciona y lo que no— moldea directamente el contenido de oración que creamos.",
-        "cta": "Responder la encuesta",
-        "signoff": "Con gratitud,",
-        "team": "El equipo de DOXA"
-      }
-    },
     "admin": {
       "title": "Encuesta a intercesores – mayo 2026",
       "heading": "Encuestas",
