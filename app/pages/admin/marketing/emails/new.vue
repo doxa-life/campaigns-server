@@ -81,7 +81,7 @@
                 @click="selectAudience('doxa_active_pg')"
               >
                 <input type="radio" v-model="form.audience_type" value="doxa_active_pg" />
-                <span class="option-title">Doxa Active People Group Subscribers</span>
+                <span class="option-title">Active Subscribers with Doxa General Consent</span>
                 <span class="option-description">Opted in to DOXA updates and have an active people group subscription</span>
                 <span class="option-count" v-if="doxaActivePgCount !== null">{{ doxaActivePgCount }} recipients</span>
               </div>
