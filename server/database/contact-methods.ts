@@ -209,6 +209,21 @@ class ContactMethodService {
     `
   }
 
+  // Verified email contacts whose subscriber has an active people group subscription,
+  // regardless of Doxa-wide consent. Email-typed only, since there is no consent column
+  // implicitly restricting the rows here.
+  async getContactsWithActiveSubscription(): Promise<ContactMethod[]> {
+    return await this.sql`
+      SELECT cm.* FROM contact_methods cm
+      WHERE cm.type = 'email' AND cm.verified = true
+      AND EXISTS (
+        SELECT 1 FROM campaign_subscriptions cs
+        WHERE cs.subscriber_id = cm.subscriber_id AND cs.status = 'active'
+      )
+      ORDER BY cm.created_at DESC
+    `
+  }
+
   async getEmailContactsByIds(ids: number[]): Promise<ContactMethod[]> {
     if (ids.length === 0) return []
     return await this.sql`

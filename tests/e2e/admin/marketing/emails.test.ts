@@ -53,9 +53,9 @@ describe('Marketing Emails API', async () => {
       expect(Array.isArray(response.emails)).toBe(true)
     })
 
-    it('succeeds for people_group_editor users', async () => {
-      const response = await $fetch('/api/admin/marketing/emails', editorAuth)
-      expect(response.emails).toBeDefined()
+    it('returns 403 for people_group_editor users (marketing is admin-only)', async () => {
+      const error = await $fetch('/api/admin/marketing/emails', editorAuth).catch((e) => e)
+      expect(error.statusCode).toBe(403)
     })
   })
 
@@ -95,6 +95,21 @@ describe('Marketing Emails API', async () => {
       expect(response.email.subject).toBe('Test Marketing Email')
     })
 
+    it('creates a draft for the active_pg audience', async () => {
+      const response = await $fetch('/api/admin/marketing/emails', {
+        method: 'POST',
+        body: {
+          subject: 'Active Subscribers Email',
+          content_json: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hi' }] }] },
+          audience_type: 'active_pg'
+        },
+        ...adminAuth
+      })
+
+      expect(response.success).toBe(true)
+      expect(response.email.audience_type).toBe('active_pg')
+    })
+
     it('validates required fields', async () => {
       const error = await $fetch('/api/admin/marketing/emails', {
         method: 'POST',
@@ -115,6 +130,24 @@ describe('Marketing Emails API', async () => {
     it('returns 403 for non-superadmin users', async () => {
       const error = await $fetch('/api/admin/marketing/audience/doxa', adminAuth).catch((e) => e)
       expect(error.statusCode).toBe(403)
+    })
+  })
+
+  describe('GET /api/admin/marketing/audience/active-pg', () => {
+    it('returns 401 for unauthenticated requests', async () => {
+      const error = await $fetch('/api/admin/marketing/audience/active-pg').catch((e) => e)
+      expect(error.statusCode).toBe(401)
+    })
+
+    it('returns 403 for users with no role', async () => {
+      const error = await $fetch('/api/admin/marketing/audience/active-pg', noRoleAuth).catch((e) => e)
+      expect(error.statusCode).toBe(403)
+    })
+
+    it('returns a count for admin users', async () => {
+      const response = await $fetch('/api/admin/marketing/audience/active-pg', adminAuth)
+      expect(response.audience_type).toBe('active_pg')
+      expect(typeof response.count).toBe('number')
     })
   })
 })

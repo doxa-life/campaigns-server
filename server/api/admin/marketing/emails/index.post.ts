@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (!body.audience_type || !['doxa', 'people_group', 'admins', 'doxa_active_pg', 'pick'].includes(body.audience_type)) {
+  if (!body.audience_type || !['doxa', 'people_group', 'admins', 'doxa_active_pg', 'active_pg', 'pick'].includes(body.audience_type)) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Valid audience_type is required'
