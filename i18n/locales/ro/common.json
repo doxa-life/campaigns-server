@@ -247,6 +247,10 @@
       "unsubscribeButton": "Dezabonare",
       "unsubscribeFromAll": "Dezabonare de la toate memento-urile {campaign}",
       "preferencesUpdated": "Preferințele tale de email au fost actualizate.",
+      "unsubscribedFrom": "Te-ai dezabonat de la {item}.",
+      "justTurnedOff": "Tocmai dezactivat",
+      "remindersUnaffected": "Mementourile tale zilnice de rugăciune nu sunt afectate.",
+      "peopleGroupUpdatesLabel": "noutăți despre acest grup de oameni",
       "noActiveSubscriptions": "Nu ai abonări active.",
       "current": "Curent",
       "reminderFormat": {
@@ -274,7 +278,9 @@
         "description": "Alege ce comunicări dorești să primești:",
         "campaignUpdates": "Actualizări despre {campaign}",
         "doxaGeneral": "Actualizări generale de la Doxa",
-        "doxaGeneralHint": "Actualizări de progres și știri de la Doxa"
+        "doxaGeneralHint": "Actualizări de progres și știri de la Doxa",
+        "productEmails": "E-mailuri despre produs",
+        "productEmailsHint": "E-mailuri ocazionale despre instrumentele de rugăciune pe care le folosești — sondaje, solicitări de feedback și noutăți despre produs. Nu sunt promoționale. Mementourile tale zilnice de rugăciune nu sunt afectate."
       },
       "consentUpdated": "Preferințele de comunicare au fost actualizate.",
       "subscriptions": "Abonările tale",

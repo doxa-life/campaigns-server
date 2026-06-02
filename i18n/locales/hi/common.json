@@ -247,6 +247,10 @@
       "unsubscribeButton": "सदस्यता रद्द करें",
       "unsubscribeFromAll": "सभी {campaign} रिमाइंडर से सदस्यता रद्द करें",
       "preferencesUpdated": "आपकी ईमेल प्राथमिकताएं अपडेट कर दी गई हैं।",
+      "unsubscribedFrom": "आपने {item} से सदस्यता समाप्त कर दी है।",
+      "justTurnedOff": "अभी बंद किया गया",
+      "remindersUnaffected": "आपके दैनिक प्रार्थना अनुस्मारक अप्रभावित रहते हैं।",
+      "peopleGroupUpdatesLabel": "इस पीपल ग्रुप के बारे में अपडेट",
       "noActiveSubscriptions": "आपकी कोई सक्रिय सदस्यता नहीं है।",
       "current": "वर्तमान",
       "reminderFormat": {
@@ -274,7 +278,9 @@
         "description": "चुनें कि आप कौन से संचार प्राप्त करना चाहेंगे:",
         "campaignUpdates": "{campaign} के बारे में अपडेट",
         "doxaGeneral": "Doxa से सामान्य अपडेट",
-        "doxaGeneralHint": "Doxa से प्रगति अपडेट और समाचार"
+        "doxaGeneralHint": "Doxa से प्रगति अपडेट और समाचार",
+        "productEmails": "उत्पाद ईमेल",
+        "productEmailsHint": "आप जिन प्रार्थना उपकरणों का उपयोग करते हैं, उनके बारे में कभी-कभार ईमेल — सर्वेक्षण, प्रतिक्रिया अनुरोध और उत्पाद अपडेट। यह प्रचार नहीं है। आपके दैनिक प्रार्थना अनुस्मारक अप्रभावित रहते हैं।"
       },
       "consentUpdated": "संचार प्राथमिकताएं अपडेट कर दी गई हैं।",
       "subscriptions": "आपकी सदस्यताएं",

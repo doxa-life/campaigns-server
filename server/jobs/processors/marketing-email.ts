@@ -55,6 +55,10 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
   let unsubscribeUrl: string
   if (cached.email.audience_type === 'people_group' && cached.email.people_group_slug) {
     unsubscribeUrl = `${baseUrl}${localePath('/unsubscribe', subscriberLanguage)}?id=${profileId}&type=people_group&slug=${cached.email.people_group_slug}`
+  } else if (cached.email.audience_type === 'active_pg') {
+    // The all-active-subscribers audience carries product/feedback emails (surveys,
+    // evaluations), so its opt-out targets the product-emails consent category.
+    unsubscribeUrl = `${baseUrl}${localePath('/unsubscribe', subscriberLanguage)}?id=${profileId}&type=product`
   } else {
     unsubscribeUrl = `${baseUrl}${localePath('/unsubscribe', subscriberLanguage)}?id=${profileId}&type=doxa`
   }

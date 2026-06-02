@@ -247,6 +247,10 @@
       "unsubscribeButton": "Se Désabonner",
       "unsubscribeFromAll": "Se désabonner de tous les rappels de {campaign}",
       "preferencesUpdated": "Vos préférences de courriel ont été mises à jour.",
+      "unsubscribedFrom": "Vous vous êtes désabonné de {item}.",
+      "justTurnedOff": "Vient d'être désactivé",
+      "remindersUnaffected": "Vos rappels de prière quotidiens ne sont pas affectés.",
+      "peopleGroupUpdatesLabel": "les nouvelles concernant ce groupe de personnes",
       "noActiveSubscriptions": "Vous n'avez pas d'abonnements actifs.",
       "current": "Actuel",
       "reminderFormat": {
@@ -274,7 +278,9 @@
         "description": "Choisissez les communications que vous souhaitez recevoir :",
         "campaignUpdates": "Mises à jour sur {campaign}",
         "doxaGeneral": "Mises à jour générales de Doxa",
-        "doxaGeneralHint": "Nouvelles et mises à jour de Doxa"
+        "doxaGeneralHint": "Nouvelles et mises à jour de Doxa",
+        "productEmails": "E-mails sur le produit",
+        "productEmailsHint": "E-mails occasionnels sur les outils de prière que vous utilisez — enquêtes, demandes d'avis et nouveautés du produit. Non promotionnel. Vos rappels de prière quotidiens ne sont pas affectés."
       },
       "consentUpdated": "Préférences de communication mises à jour.",
       "subscriptions": "Vos Abonnements",

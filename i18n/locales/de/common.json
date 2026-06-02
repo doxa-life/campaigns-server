@@ -247,6 +247,10 @@
       "unsubscribeButton": "Abmelden",
       "unsubscribeFromAll": "Von allen {campaign}-Erinnerungen abmelden",
       "preferencesUpdated": "Ihre E-Mail-Einstellungen wurden aktualisiert.",
+      "unsubscribedFrom": "Sie haben sich von {item} abgemeldet.",
+      "justTurnedOff": "Gerade deaktiviert",
+      "remindersUnaffected": "Ihre täglichen Gebetserinnerungen bleiben unberührt.",
+      "peopleGroupUpdatesLabel": "Updates zu dieser Volksgruppe",
       "noActiveSubscriptions": "Sie haben keine aktiven Abonnements.",
       "current": "Aktuell",
       "reminderFormat": {
@@ -274,7 +278,9 @@
         "description": "Wählen Sie, welche Mitteilungen Sie erhalten möchten:",
         "campaignUpdates": "Updates über {campaign}",
         "doxaGeneral": "Allgemeine Updates von Doxa",
-        "doxaGeneralHint": "Fortschrittsupdates und Neuigkeiten von Doxa"
+        "doxaGeneralHint": "Fortschrittsupdates und Neuigkeiten von Doxa",
+        "productEmails": "Produkt-E-Mails",
+        "productEmailsHint": "Gelegentliche E-Mails zu den von Ihnen genutzten Gebetstools — Umfragen, Feedback-Anfragen und Produktneuigkeiten. Nicht werblich. Ihre täglichen Gebetserinnerungen bleiben unberührt."
       },
       "consentUpdated": "Kommunikationseinstellungen aktualisiert.",
       "subscriptions": "Ihre Abonnements",

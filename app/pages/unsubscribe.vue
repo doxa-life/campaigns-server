@@ -20,13 +20,21 @@
       </UCard>
     </div>
 
-    <!-- Doxa General / People-group marketing preferences view -->
-    <div v-else-if="(isDoxaType || isPeopleGroupMarketing) && profileData" class="max-w-2xl mx-auto">
+    <!-- Doxa General / People-group marketing / Product email preferences view -->
+    <div v-else-if="(isDoxaType || isPeopleGroupMarketing || isProductType) && profileData" class="max-w-2xl mx-auto">
       <UCard class="mb-6 text-center">
         <UIcon name="i-lucide-check-circle" class="w-12 h-12 mx-auto mb-4 text-green-500" />
         <h1 class="text-2xl font-bold mb-2">{{ $t('campaign.unsubscribe.success.title') }}</h1>
-        <p class="text-[var(--ui-text-muted)]">
-          {{ $t('campaign.unsubscribe.preferencesUpdated') }}
+        <p class="text-[var(--ui-text)]">
+          <template v-if="linkTarget">
+            {{ $t('campaign.unsubscribe.unsubscribedFrom', { item: linkTargetLabel }) }}
+          </template>
+          <template v-else>
+            {{ $t('campaign.unsubscribe.preferencesUpdated') }}
+          </template>
+        </p>
+        <p v-if="linkTarget" class="text-sm text-[var(--ui-text-muted)] mt-2">
+          {{ $t('campaign.unsubscribe.remindersUnaffected') }}
         </p>
       </UCard>
 
@@ -44,14 +52,42 @@
             </p>
 
             <!-- Doxa General Consent -->
-            <div class="flex items-center justify-between py-2 border-b border-[var(--ui-border)]">
+            <div
+              class="flex items-center justify-between py-2 border-b border-[var(--ui-border)] transition-colors"
+              :class="{ 'bg-[var(--ui-bg-elevated)] ring-1 ring-amber-400/60 -mx-3 px-3 rounded-md border-transparent': linkTarget === 'doxa' }"
+            >
               <div>
-                <p class="text-sm font-medium">{{ $t('campaign.profile.emailPreferences.doxaGeneral') }}</p>
-                <p class="text-xs text-[var(--ui-text-muted)]">{{ $t('campaign.profile.emailPreferences.doxaGeneralHint') }}</p>
+                <p class="text-sm font-medium flex items-center gap-2">
+                  {{ $t('campaign.profile.emailPreferences.doxaGeneral') }}
+                  <UBadge v-if="justUnsubscribed === 'doxa'" color="warning" variant="solid" size="md">
+                    {{ $t('campaign.unsubscribe.justTurnedOff') }}
+                  </UBadge>
+                </p>
+                <p class="text-sm text-[var(--ui-text-muted)]">{{ $t('campaign.profile.emailPreferences.doxaGeneralHint') }}</p>
               </div>
               <USwitch
                 v-model="doxaConsentForm.doxa_general"
                 @update:model-value="updateDoxaConsentDirect"
+              />
+            </div>
+
+            <!-- Product / feedback emails -->
+            <div
+              class="flex items-center justify-between py-2 border-b border-[var(--ui-border)] transition-colors"
+              :class="{ 'bg-[var(--ui-bg-elevated)] ring-1 ring-amber-400/60 -mx-3 px-3 rounded-md border-transparent': linkTarget === 'product' }"
+            >
+              <div>
+                <p class="text-sm font-medium flex items-center gap-2">
+                  {{ $t('campaign.profile.emailPreferences.productEmails') }}
+                  <UBadge v-if="justUnsubscribed === 'product'" color="warning" variant="solid" size="md">
+                    {{ $t('campaign.unsubscribe.justTurnedOff') }}
+                  </UBadge>
+                </p>
+                <p class="text-sm text-[var(--ui-text-muted)]">{{ $t('campaign.profile.emailPreferences.productEmailsHint') }}</p>
+              </div>
+              <USwitch
+                v-model="doxaConsentForm.product_emails"
+                @update:model-value="updateProductConsentDirect"
               />
             </div>
 
@@ -83,7 +119,7 @@
             <template #header>
               <div class="flex items-center justify-between">
                 <span class="font-medium">{{ pg.title }}</span>
-                <UBadge color="neutral" size="xs">
+                <UBadge color="neutral" size="md">
                   {{ doxaActiveRemindersCount(pg) }} {{ $t('campaign.unsubscribe.active') }}
                 </UBadge>
               </div>
@@ -98,13 +134,13 @@
               >
                 <div class="flex items-center gap-2">
                   <span class="text-sm">{{ formatReminderSchedule(reminder) }}</span>
-                  <UBadge v-if="reminder.status === 'unsubscribed'" color="neutral" size="xs">
+                  <UBadge v-if="reminder.status === 'unsubscribed'" color="neutral" size="md">
                     {{ $t('campaign.profile.unsubscribed') }}
                   </UBadge>
                 </div>
                 <UButton
                   v-if="reminder.status === 'active'"
-                  size="xs"
+                  size="md"
                   variant="ghost"
                   color="error"
                   :loading="doxaUnsubscribingId === reminder.id"
@@ -114,7 +150,7 @@
                 </UButton>
                 <UButton
                   v-else
-                  size="xs"
+                  size="md"
                   variant="ghost"
                   :loading="doxaResubscribingId === reminder.id"
                   @click="doxaResubscribeReminder(pg.slug, reminder.id)"
@@ -129,7 +165,7 @@
               <UButton
                 variant="outline"
                 color="error"
-                size="sm"
+                size="md"
                 :loading="doxaUnsubscribingFromPeopleGroupId === pg.id"
                 @click="doxaUnsubscribeFromEntirePeopleGroup(pg)"
                 class="w-full"
@@ -199,9 +235,9 @@
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <span class="font-medium">{{ pg.title }}</span>
-                  <UBadge v-if="pg.id === data.people_group.id" color="primary" size="xs">{{ $t('campaign.unsubscribe.current') }}</UBadge>
+                  <UBadge v-if="pg.id === data.people_group.id" color="primary" size="md">{{ $t('campaign.unsubscribe.current') }}</UBadge>
                 </div>
-                <UBadge color="neutral" size="xs">
+                <UBadge color="neutral" size="md">
                   {{ activeRemindersCount(pg) }} {{ $t('campaign.unsubscribe.active') }}
                 </UBadge>
               </div>
@@ -216,13 +252,13 @@
               >
                 <div class="flex items-center gap-2">
                   <span class="text-sm">{{ formatReminderSchedule(reminder) }}</span>
-                  <UBadge v-if="reminder.status === 'unsubscribed'" color="neutral" size="xs">
+                  <UBadge v-if="reminder.status === 'unsubscribed'" color="neutral" size="md">
                     {{ $t('campaign.profile.unsubscribed') }}
                   </UBadge>
                 </div>
                 <UButton
                   v-if="reminder.status === 'active'"
-                  size="xs"
+                  size="md"
                   variant="ghost"
                   color="error"
                   :loading="unsubscribingId === reminder.id"
@@ -232,7 +268,7 @@
                 </UButton>
                 <UButton
                   v-else
-                  size="xs"
+                  size="md"
                   variant="ghost"
                   :loading="resubscribingId === reminder.id"
                   @click="resubscribeReminder(pg.slug, reminder.id)"
@@ -247,7 +283,7 @@
               <UButton
                 variant="outline"
                 color="error"
-                size="sm"
+                size="md"
                 :loading="unsubscribingFromPeopleGroupId === pg.id"
                 @click="unsubscribeFromEntirePeopleGroup(pg)"
                 class="w-full"
@@ -281,11 +317,23 @@
             <div class="flex items-center justify-between py-2 border-b border-[var(--ui-border)]">
               <div>
                 <p class="text-sm font-medium">{{ $t('campaign.profile.emailPreferences.doxaGeneral') }}</p>
-                <p class="text-xs text-[var(--ui-text-muted)]">{{ $t('campaign.profile.emailPreferences.doxaGeneralHint') }}</p>
+                <p class="text-sm text-[var(--ui-text-muted)]">{{ $t('campaign.profile.emailPreferences.doxaGeneralHint') }}</p>
               </div>
               <USwitch
                 v-model="consentForm.doxa_general"
                 @update:model-value="updateDoxaConsent"
+              />
+            </div>
+
+            <!-- Product / feedback emails -->
+            <div class="flex items-center justify-between py-2 border-b border-[var(--ui-border)]">
+              <div>
+                <p class="text-sm font-medium">{{ $t('campaign.profile.emailPreferences.productEmails') }}</p>
+                <p class="text-sm text-[var(--ui-text-muted)]">{{ $t('campaign.profile.emailPreferences.productEmailsHint') }}</p>
+              </div>
+              <USwitch
+                v-model="consentForm.product_emails"
+                @update:model-value="updateProductConsent"
               />
             </div>
 
@@ -356,6 +404,7 @@ interface ProfileData {
   consents: {
     doxa_general: boolean
     doxa_general_at: string | null
+    product_emails: boolean
     peopleGroups: Array<{ people_group_id: number; consented_at: string | null }>
   }
 }
@@ -377,6 +426,30 @@ const isDoxaType = computed(() => unsubscribeType === 'doxa' || (!slug && !unsub
 // which is what a `slug`-only link (from reminder emails) does.
 const isPeopleGroupMarketing = computed(() => unsubscribeType === 'people_group' && !!slug)
 
+// A product/feedback email unsubscribe (surveys, evaluations) sent to active
+// subscribers. Targets only the product-emails consent — leaves prayer reminders
+// and the marketing consents untouched.
+const isProductType = computed(() => unsubscribeType === 'product')
+
+// Set when this visit actually flipped a preference off — drives the "Just turned
+// off" badge. Stays null if the preference was already off.
+const justUnsubscribed = ref<'product' | 'doxa' | 'people_group' | null>(null)
+
+// What this link controls, regardless of prior state — so even a repeat visit
+// (when the toggle was already off) still points out which preference it is.
+const linkTarget = computed<'product' | 'doxa' | 'people_group' | null>(() => {
+  if (isProductType.value) return 'product'
+  if (isPeopleGroupMarketing.value) return 'people_group'
+  if (isDoxaType.value) return 'doxa'
+  return null
+})
+const linkTargetLabel = computed(() => {
+  if (linkTarget.value === 'product') return t('campaign.profile.emailPreferences.productEmails')
+  if (linkTarget.value === 'doxa') return t('campaign.profile.emailPreferences.doxaGeneral')
+  if (linkTarget.value === 'people_group') return t('campaign.unsubscribe.peopleGroupUpdatesLabel')
+  return ''
+})
+
 // Loading and error state
 const loading = ref(true)
 const loadError = ref<string | null>(null)
@@ -391,6 +464,7 @@ const profileData = ref<ProfileData | null>(null)
 // Doxa consent form
 const doxaConsentForm = ref({
   doxa_general: false,
+  product_emails: true,
   people_group_ids: [] as number[]
 })
 
@@ -416,6 +490,7 @@ async function loadData() {
       // Initialize consent form
       doxaConsentForm.value = {
         doxa_general: response.consents?.doxa_general || false,
+        product_emails: response.consents?.product_emails ?? true,
         people_group_ids: (response.consents?.peopleGroups || []).map(c => c.people_group_id)
       }
 
@@ -432,6 +507,7 @@ async function loadData() {
           body: { consent_doxa_general: false }
         })
         doxaConsentForm.value.doxa_general = false
+        justUnsubscribed.value = 'doxa'
       }
     } else if (isPeopleGroupMarketing.value) {
       // People-group MARKETING unsubscribe: remove the communication consent for
@@ -441,6 +517,7 @@ async function loadData() {
 
       doxaConsentForm.value = {
         doxa_general: response.consents?.doxa_general || false,
+        product_emails: response.consents?.product_emails ?? true,
         people_group_ids: (response.consents?.peopleGroups || []).map(c => c.people_group_id)
       }
       doxaLocalPeopleGroups.value = response.peopleGroups.map(c => ({
@@ -455,6 +532,32 @@ async function loadData() {
         body: { consent_people_group_slug: slug, consent_people_group_updates: false }
       })
       doxaConsentForm.value.people_group_ids = upd.consents?.people_group_ids || []
+      justUnsubscribed.value = 'people_group'
+    } else if (isProductType.value) {
+      // Product/feedback email opt-out: turn off the product-emails consent only.
+      // Leaves prayer reminders and the marketing consents untouched.
+      const response = await $fetch<ProfileData>(`/api/profile/${profileId}`)
+      profileData.value = response
+
+      doxaConsentForm.value = {
+        doxa_general: response.consents?.doxa_general || false,
+        product_emails: response.consents?.product_emails ?? true,
+        people_group_ids: (response.consents?.peopleGroups || []).map(c => c.people_group_id)
+      }
+      doxaLocalPeopleGroups.value = response.peopleGroups.map(c => ({
+        ...c,
+        reminders: c.reminders.map(r => ({ ...r, status: r.status || 'active' as const }))
+      }))
+
+      // Auto opt-out from product emails on landing (one-click unsubscribe).
+      if (doxaConsentForm.value.product_emails) {
+        await $fetch(`/api/profile/${profileId}`, {
+          method: 'PUT',
+          body: { consent_product_emails: false }
+        })
+        doxaConsentForm.value.product_emails = false
+        justUnsubscribed.value = 'product'
+      }
     } else if (slug) {
       // People group unsubscribe - use existing flow
       const [unsubData, profData] = await Promise.all([
@@ -470,6 +573,7 @@ async function loadData() {
       if (profData?.consents) {
         consentForm.value = {
           doxa_general: profData.consents.doxa_general || false,
+          product_emails: profData.consents.product_emails ?? true,
           people_group_ids: (profData.consents.peopleGroups || []).map((c: any) => c.people_group_id)
         }
       }
@@ -492,6 +596,7 @@ onMounted(() => {
 // Consent form state for people group view
 const consentForm = ref({
   doxa_general: false,
+  product_emails: true,
   people_group_ids: [] as number[]
 })
 
@@ -673,6 +778,27 @@ async function updateDoxaConsent(granted: boolean) {
   }
 }
 
+// Update product/feedback emails consent (reminder-view form)
+async function updateProductConsent(granted: boolean) {
+  try {
+    await $fetch(`/api/profile/${profileId}`, {
+      method: 'PUT',
+      body: { consent_product_emails: granted }
+    })
+
+    toast.add({
+      title: t('campaign.profile.consentUpdated'),
+      color: 'success'
+    })
+  } catch (err: any) {
+    consentForm.value.product_emails = !granted
+    toast.add({
+      title: err.data?.statusMessage || t('campaign.profile.error.failed'),
+      color: 'error'
+    })
+  }
+}
+
 // Update people group-specific consent
 async function updatePeopleGroupConsent(peopleGroupId: number, peopleGroupSlug: string, granted: boolean) {
   try {
@@ -803,6 +929,26 @@ async function updateDoxaConsentDirect(granted: boolean) {
   } catch (err: any) {
     // Revert on error
     doxaConsentForm.value.doxa_general = !granted
+    toast.add({
+      title: err.data?.statusMessage || t('campaign.profile.error.failed'),
+      color: 'error'
+    })
+  }
+}
+
+async function updateProductConsentDirect(granted: boolean) {
+  try {
+    await $fetch(`/api/profile/${profileId}`, {
+      method: 'PUT',
+      body: { consent_product_emails: granted }
+    })
+
+    toast.add({
+      title: t('campaign.profile.consentUpdated'),
+      color: 'success'
+    })
+  } catch (err: any) {
+    doxaConsentForm.value.product_emails = !granted
     toast.add({
       title: err.data?.statusMessage || t('campaign.profile.error.failed'),
       color: 'error'

@@ -247,6 +247,10 @@
       "unsubscribeButton": "Cancelar Suscripción",
       "unsubscribeFromAll": "Cancelar suscripción de todos los recordatorios de {campaign}",
       "preferencesUpdated": "Tus preferencias de correo han sido actualizadas.",
+      "unsubscribedFrom": "Te has dado de baja de {item}.",
+      "justTurnedOff": "Acabas de desactivarlo",
+      "remindersUnaffected": "Tus recordatorios diarios de oración no se ven afectados.",
+      "peopleGroupUpdatesLabel": "novedades sobre este grupo de personas",
       "noActiveSubscriptions": "No tienes suscripciones activas.",
       "current": "Actual",
       "reminderFormat": {
@@ -274,7 +278,9 @@
         "description": "Elija qué comunicaciones desea recibir:",
         "campaignUpdates": "Actualizaciones sobre {campaign}",
         "doxaGeneral": "Actualizaciones generales de Doxa",
-        "doxaGeneralHint": "Noticias y actualizaciones de Doxa"
+        "doxaGeneralHint": "Noticias y actualizaciones de Doxa",
+        "productEmails": "Correos del producto",
+        "productEmailsHint": "Correos ocasionales sobre las herramientas de oración que usas: encuestas, solicitudes de opinión y novedades del producto. No es promocional. Tus recordatorios diarios de oración no se ven afectados."
       },
       "consentUpdated": "Preferencias de comunicación actualizadas.",
       "subscriptions": "Sus Suscripciones",

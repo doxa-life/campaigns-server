@@ -247,6 +247,10 @@
       "unsubscribeButton": "Annulla iscrizione",
       "unsubscribeFromAll": "Annulla l'iscrizione da tutti i promemoria di {campaign}",
       "preferencesUpdated": "Le tue preferenze email sono state aggiornate.",
+      "unsubscribedFrom": "Hai annullato l'iscrizione a {item}.",
+      "justTurnedOff": "Appena disattivato",
+      "remindersUnaffected": "I tuoi promemoria di preghiera quotidiani non sono interessati.",
+      "peopleGroupUpdatesLabel": "aggiornamenti su questo gruppo di persone",
       "noActiveSubscriptions": "Non hai iscrizioni attive.",
       "current": "Corrente",
       "reminderFormat": {
@@ -274,7 +278,9 @@
         "description": "Scegli quali comunicazioni desideri ricevere:",
         "campaignUpdates": "Aggiornamenti su {campaign}",
         "doxaGeneral": "Aggiornamenti generali da Doxa",
-        "doxaGeneralHint": "Aggiornamenti sui progressi e notizie da Doxa"
+        "doxaGeneralHint": "Aggiornamenti sui progressi e notizie da Doxa",
+        "productEmails": "Email sul prodotto",
+        "productEmailsHint": "Email occasionali sugli strumenti di preghiera che usi — sondaggi, richieste di opinione e aggiornamenti sul prodotto. Non promozionali. I tuoi promemoria di preghiera quotidiani non sono interessati."
       },
       "consentUpdated": "Preferenze di comunicazione aggiornate.",
       "subscriptions": "Le Tue Iscrizioni",
