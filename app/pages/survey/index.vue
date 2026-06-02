@@ -13,8 +13,7 @@
       <UCard class="max-w-md w-full text-center">
         <UIcon name="i-lucide-alert-circle" class="w-16 h-16 mx-auto mb-4 text-[var(--ui-error)]" />
         <h1 class="text-2xl font-bold mb-4">{{ $t('survey.may2026.page.invalidTitle') }}</h1>
-        <p class="text-[var(--ui-text-muted)] mb-6">{{ $t('survey.may2026.page.invalid') }}</p>
-        <UButton :to="localePath('/')">{{ $t('survey.may2026.page.goHome') }}</UButton>
+        <p class="text-[var(--ui-text-muted)]">{{ $t('survey.may2026.page.invalid') }}</p>
       </UCard>
     </div>
 
@@ -23,8 +22,7 @@
       <UCard class="max-w-md w-full text-center">
         <UIcon name="i-lucide-clock" class="w-16 h-16 mx-auto mb-4 text-[var(--ui-text-muted)]" />
         <h1 class="text-2xl font-bold mb-4">{{ $t('survey.may2026.page.closedTitle') }}</h1>
-        <p class="text-[var(--ui-text-muted)] mb-6">{{ $t('survey.may2026.page.closed') }}</p>
-        <UButton :to="localePath('/')">{{ $t('survey.may2026.page.goHome') }}</UButton>
+        <p class="text-[var(--ui-text-muted)]">{{ $t('survey.may2026.page.closed') }}</p>
       </UCard>
     </div>
 
@@ -88,7 +86,6 @@
 import { MAY_2026_SURVEY_QUESTIONS, may2026I18n, type SurveyQuestion } from '#shared/surveys/may-2026-survey'
 
 const route = useRoute()
-const localePath = useLocalePath()
 const { t } = useI18n()
 const toast = useToast()
 
