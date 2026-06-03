@@ -83,39 +83,11 @@ export const uploadImage = async (
 }
 
 /**
- * Validate image file before upload
- *
- * @param file - The file to validate
- * @returns Validation result with error message if invalid
- */
-export const validateImageFile = (file: File): { valid: boolean; error?: string } => {
-  // Check file size
-  if (file.size > editorConfig.upload.image.maxSize) {
-    const maxSizeMB = editorConfig.upload.image.maxSize / (1024 * 1024)
-    return {
-      valid: false,
-      error: `File size exceeds ${maxSizeMB}MB limit`
-    }
-  }
-
-  // Check file type
-  if (!file.type.startsWith('image/')) {
-    return {
-      valid: false,
-      error: 'Only image files are allowed'
-    }
-  }
-
-  return { valid: true }
-}
-
-/**
  * Composable for image upload functionality
  */
 export const useImageUpload = () => {
   return {
     uploadImage,
-    validateImageFile,
     config: editorConfig.upload.image
   }
 }

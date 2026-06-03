@@ -191,20 +191,3 @@ export function isValidTimezone(timezone: string): boolean {
     return false
   }
 }
-
-/**
- * Get user-friendly timezone label.
- */
-export function getTimezoneLabel(timezone: string): string {
-  try {
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone,
-      timeZoneName: 'long'
-    })
-    const parts = formatter.formatToParts(new Date())
-    const tzName = parts.find(p => p.type === 'timeZoneName')?.value
-    return tzName || timezone
-  } catch {
-    return timezone
-  }
-}
