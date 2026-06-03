@@ -6,6 +6,7 @@ export interface ActivityStats {
   totalSubscribers: number
   totalPrayerTime: number
   prayerCommitted: number
+  surveyFillOuts: number
   groupsWithPrayer: number
   groupsWith144: number
   groupsAdopted: number
@@ -23,6 +24,7 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
     totalSubscribersRow,
     prayerTimeRow,
     prayerCommittedRow,
+    surveyFillOutsRow,
     groupsWithPrayerRow,
     groupsWith144Row,
     groupsAdoptedRow,
@@ -53,6 +55,7 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
         GROUP BY d.date
       ) daily_totals
     `.then(rows => rows[0]),
+    sql`SELECT COUNT(*) as count FROM survey_responses WHERE created_at >= ${startIso} AND created_at < ${endIso}`.then(rows => rows[0]),
     sql`SELECT COUNT(DISTINCT people_group_id) as count FROM campaign_subscriptions WHERE status = 'active'`.then(rows => rows[0]),
     sql`SELECT COUNT(*) as count FROM (SELECT people_group_id FROM campaign_subscriptions WHERE status = 'active' GROUP BY people_group_id HAVING COUNT(*) >= 144) sub`.then(rows => rows[0]),
     sql`SELECT COUNT(*) as count FROM people_group_adoptions WHERE status = 'active'`.then(rows => rows[0]),
@@ -64,6 +67,7 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
     totalSubscribers: Number(totalSubscribersRow?.count ?? 0),
     totalPrayerTime: Number(prayerTimeRow?.total ?? 0),
     prayerCommitted: Math.round(Number(prayerCommittedRow?.total ?? 0)),
+    surveyFillOuts: Number(surveyFillOutsRow?.count ?? 0),
     groupsWithPrayer: Number(groupsWithPrayerRow?.count ?? 0),
     groupsWith144: Number(groupsWith144Row?.count ?? 0),
     groupsAdopted: Number(groupsAdoptedRow?.count ?? 0),
