@@ -339,7 +339,7 @@
                       />
                     </UFormField>
 
-                    <UFormField v-if="subscription.frequency !== 'daily' && subscription.days_of_week" :label="getSubscriberFieldLabel('days_of_week')">
+                    <UFormField v-if="subscription.frequency !== 'daily' && subscription.days_of_week?.length" :label="getSubscriberFieldLabel('days_of_week')">
                       <div class="field-display">{{ formatDaysOfWeek(subscription.days_of_week) }}</div>
                     </UFormField>
 
@@ -680,7 +680,7 @@ interface Subscription {
   people_group_slug: string
   delivery_method: 'email' | 'whatsapp' | 'app'
   frequency: string
-  days_of_week: string | null
+  days_of_week: number[] | null
   time_preference: string
   timezone: string
   prayer_duration: number
@@ -1537,11 +1537,12 @@ function filterByPeopleGroup(subscription: Subscription) {
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-function formatDaysOfWeek(daysJson: string | null): string {
-  if (!daysJson) return ''
+function formatDaysOfWeek(days: number[] | string | null): string {
+  if (!days) return ''
   try {
-    const days = JSON.parse(daysJson) as number[]
-    return days.sort((a, b) => a - b).map(d => dayNames[d]).join(', ')
+    const arr = typeof days === 'string' ? JSON.parse(days) as number[] : days
+    if (!Array.isArray(arr) || arr.length === 0) return ''
+    return [...arr].sort((a, b) => a - b).map(d => dayNames[d]).join(', ')
   } catch {
     return ''
   }
