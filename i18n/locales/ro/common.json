@@ -215,6 +215,17 @@
       "startPraying": "Începe rugăciunea"
     },
     "unsubscribe": {
+      "confirm": {
+        "title": "Confirmă dezabonarea",
+        "button": "Dezabonare",
+        "processing": "Se dezabonează...",
+        "doxa": "Ești sigur că vrei să te dezabonezi de la actualizările generale de la Doxa?",
+        "product": "Ești sigur că vrei să te dezabonezi de la e-mailurile despre produs?",
+        "peopleGroup": "Ești sigur că vrei să te dezabonezi de la noutățile despre {campaign}?",
+        "peopleGroupGeneric": "Ești sigur că vrei să te dezabonezi de la noutățile despre acest grup de oameni?",
+        "reminders": "Ești sigur că vrei să te dezabonezi de la memento-urile de rugăciune pentru {campaign}?",
+        "remindersGeneric": "Ești sigur că vrei să te dezabonezi de la aceste memento-uri de rugăciune?"
+      },
       "pageTitle": "Dezabonare",
       "processing": "Se procesează cererea ta...",
       "success": {

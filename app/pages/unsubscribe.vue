@@ -20,6 +20,24 @@
       </UCard>
     </div>
 
+    <!-- Confirm step (issue #69): the opt-out fires only on this explicit click,
+         never on GET load, so email scanners/prefetchers can't silently unsubscribe. -->
+    <div v-else-if="!performed" class="flex items-center justify-center min-h-[50vh]">
+      <UCard class="max-w-md w-full text-center">
+        <UIcon name="i-lucide-mail-x" class="w-12 h-12 mx-auto mb-4 text-[var(--ui-text-muted)]" />
+        <h1 class="text-2xl font-bold mb-2">{{ $t('campaign.unsubscribe.confirm.title') }}</h1>
+        <p class="text-[var(--ui-text-muted)] mb-6">{{ confirmPrompt }}</p>
+        <UButton
+          color="error"
+          size="lg"
+          :loading="performing"
+          @click="confirmUnsubscribe"
+        >
+          {{ performing ? $t('campaign.unsubscribe.confirm.processing') : $t('campaign.unsubscribe.confirm.button') }}
+        </UButton>
+      </UCard>
+    </div>
+
     <!-- Doxa General / People-group marketing / Product email preferences view -->
     <div v-else-if="(isDoxaType || isPeopleGroupMarketing || isProductType) && profileData" class="max-w-2xl mx-auto">
       <UCard class="mb-6 text-center">
@@ -450,9 +468,34 @@ const linkTargetLabel = computed(() => {
   return ''
 })
 
+// Name of the people group this link targets (for the confirm prompt), resolved
+// from the loaded profile by slug. Empty when unknown → a generic prompt is used.
+const confirmGroupName = computed(() =>
+  profileData.value?.peopleGroups.find(p => p.slug === slug)?.title || ''
+)
+
+// The single-CTA confirm prompt, phrased per unsubscribe type.
+const confirmPrompt = computed(() => {
+  if (isProductType.value) return t('campaign.unsubscribe.confirm.product')
+  if (isPeopleGroupMarketing.value) {
+    return confirmGroupName.value
+      ? t('campaign.unsubscribe.confirm.peopleGroup', { campaign: confirmGroupName.value })
+      : t('campaign.unsubscribe.confirm.peopleGroupGeneric')
+  }
+  if (isDoxaType.value) return t('campaign.unsubscribe.confirm.doxa')
+  return confirmGroupName.value
+    ? t('campaign.unsubscribe.confirm.reminders', { campaign: confirmGroupName.value })
+    : t('campaign.unsubscribe.confirm.remindersGeneric')
+})
+
 // Loading and error state
 const loading = ref(true)
 const loadError = ref<string | null>(null)
+
+// The opt-out is gated behind an explicit click (issue #69): GET load only reads,
+// so email scanners/prefetchers that fetch the link can't silently unsubscribe.
+const performed = ref(false)
+const performing = ref(false)
 
 // People group unsubscribe data
 const data = ref<UnsubscribeData | null>(null)
@@ -483,7 +526,7 @@ async function loadData() {
 
   try {
     if (isDoxaType.value) {
-      // Doxa unsubscribe - just fetch profile and auto-unsubscribe from Doxa
+      // Read-only on load — the opt-out happens on explicit confirm (issue #69).
       const response = await $fetch<ProfileData>(`/api/profile/${profileId}`)
       profileData.value = response
 
@@ -499,19 +542,9 @@ async function loadData() {
         ...c,
         reminders: c.reminders.map(r => ({ ...r, status: r.status || 'active' as const }))
       }))
-
-      // Auto-unsubscribe from Doxa general if this is an unsubscribe link
-      if (doxaConsentForm.value.doxa_general) {
-        await $fetch(`/api/profile/${profileId}`, {
-          method: 'PUT',
-          body: { consent_doxa_general: false }
-        })
-        doxaConsentForm.value.doxa_general = false
-        justUnsubscribed.value = 'doxa'
-      }
     } else if (isPeopleGroupMarketing.value) {
-      // People-group MARKETING unsubscribe: remove the communication consent for
-      // this people group. Must NOT cancel the daily prayer reminder subscriptions.
+      // People-group MARKETING unsubscribe: removes the communication consent for
+      // this people group (on confirm). Must NOT cancel the daily prayer reminders.
       const response = await $fetch<ProfileData>(`/api/profile/${profileId}`)
       profileData.value = response
 
@@ -524,18 +557,9 @@ async function loadData() {
         ...c,
         reminders: c.reminders.map(r => ({ ...r, status: r.status || 'active' as const }))
       }))
-
-      // Slug is resolved to the people group server-side, so this works even if the
-      // subscriber has no prayer subscription for it.
-      const upd = await $fetch<{ consents?: { doxa_general: boolean; people_group_ids: number[] } }>(`/api/profile/${profileId}`, {
-        method: 'PUT',
-        body: { consent_people_group_slug: slug, consent_people_group_updates: false }
-      })
-      doxaConsentForm.value.people_group_ids = upd.consents?.people_group_ids || []
-      justUnsubscribed.value = 'people_group'
     } else if (isProductType.value) {
-      // Product/feedback email opt-out: turn off the product-emails consent only.
-      // Leaves prayer reminders and the marketing consents untouched.
+      // Product/feedback email opt-out (on confirm): turns off the product-emails
+      // consent only. Leaves prayer reminders and the marketing consents untouched.
       const response = await $fetch<ProfileData>(`/api/profile/${profileId}`)
       profileData.value = response
 
@@ -548,25 +572,10 @@ async function loadData() {
         ...c,
         reminders: c.reminders.map(r => ({ ...r, status: r.status || 'active' as const }))
       }))
-
-      // Auto opt-out from product emails on landing (one-click unsubscribe).
-      if (doxaConsentForm.value.product_emails) {
-        await $fetch(`/api/profile/${profileId}`, {
-          method: 'PUT',
-          body: { consent_product_emails: false }
-        })
-        doxaConsentForm.value.product_emails = false
-        justUnsubscribed.value = 'product'
-      }
     } else if (slug) {
-      // People group unsubscribe - use existing flow
-      const [unsubData, profData] = await Promise.all([
-        $fetch<UnsubscribeData>(`/api/people-groups/${slug}/unsubscribe`, {
-          query: { id: profileId, sid: subscriptionId }
-        }),
-        $fetch<ProfileData>(`/api/profile/${profileId}`)
-      ])
-      data.value = unsubData
+      // Prayer-reminder unsubscribe. Read-only on load — the unsubscribe call
+      // (which mutates) only runs on explicit confirm (issue #69).
+      const profData = await $fetch<ProfileData>(`/api/profile/${profileId}`)
       profileData.value = profData
 
       // Initialize consent form
@@ -592,6 +601,51 @@ async function loadData() {
 onMounted(() => {
   loadData()
 })
+
+// Perform the opt-out. Only ever called from the confirm button click — never on
+// load — so the mutation requires a deliberate human action (issue #69).
+async function confirmUnsubscribe() {
+  performing.value = true
+  try {
+    if (isProductType.value) {
+      await $fetch(`/api/profile/${profileId}`, {
+        method: 'PUT',
+        body: { consent_product_emails: false }
+      })
+      doxaConsentForm.value.product_emails = false
+      justUnsubscribed.value = 'product'
+    } else if (isPeopleGroupMarketing.value) {
+      // Slug is resolved to the people group server-side, so this works even if the
+      // subscriber has no prayer subscription for it.
+      const upd = await $fetch<{ consents?: { doxa_general: boolean; people_group_ids: number[] } }>(`/api/profile/${profileId}`, {
+        method: 'PUT',
+        body: { consent_people_group_slug: slug, consent_people_group_updates: false }
+      })
+      doxaConsentForm.value.people_group_ids = upd.consents?.people_group_ids || []
+      justUnsubscribed.value = 'people_group'
+    } else if (isDoxaType.value) {
+      await $fetch(`/api/profile/${profileId}`, {
+        method: 'PUT',
+        body: { consent_doxa_general: false }
+      })
+      doxaConsentForm.value.doxa_general = false
+      justUnsubscribed.value = 'doxa'
+    } else if (slug) {
+      data.value = await $fetch<UnsubscribeData>(`/api/people-groups/${slug}/unsubscribe`, {
+        query: { id: profileId, sid: subscriptionId }
+      })
+    }
+    performed.value = true
+  } catch (err: any) {
+    toast.add({
+      title: t('campaign.unsubscribe.error.title'),
+      description: t('campaign.unsubscribe.error.message'),
+      color: 'error'
+    })
+  } finally {
+    performing.value = false
+  }
+}
 
 // Consent form state for people group view
 const consentForm = ref({

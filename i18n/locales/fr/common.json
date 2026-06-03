@@ -215,6 +215,17 @@
       "startPraying": "Commencer à Prier"
     },
     "unsubscribe": {
+      "confirm": {
+        "title": "Confirmer le désabonnement",
+        "button": "Se Désabonner",
+        "processing": "Désabonnement en cours...",
+        "doxa": "Êtes-vous sûr de vouloir vous désabonner des mises à jour générales de Doxa ?",
+        "product": "Êtes-vous sûr de vouloir vous désabonner des e-mails sur le produit ?",
+        "peopleGroup": "Êtes-vous sûr de vouloir vous désabonner des nouvelles concernant {campaign} ?",
+        "peopleGroupGeneric": "Êtes-vous sûr de vouloir vous désabonner des nouvelles concernant ce groupe de personnes ?",
+        "reminders": "Êtes-vous sûr de vouloir vous désabonner des rappels de prière pour {campaign} ?",
+        "remindersGeneric": "Êtes-vous sûr de vouloir vous désabonner de ces rappels de prière ?"
+      },
       "pageTitle": "Se Désabonner",
       "processing": "Traitement de votre demande...",
       "success": {

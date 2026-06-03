@@ -216,6 +216,17 @@
     },
     "unsubscribe": {
       "pageTitle": "Unsubscribe",
+      "confirm": {
+        "title": "Confirm unsubscribe",
+        "button": "Unsubscribe",
+        "processing": "Unsubscribing...",
+        "doxa": "Are you sure you want to unsubscribe from general updates from Doxa?",
+        "product": "Are you sure you want to unsubscribe from product emails?",
+        "peopleGroup": "Are you sure you want to unsubscribe from updates about {campaign}?",
+        "peopleGroupGeneric": "Are you sure you want to unsubscribe from updates about this people group?",
+        "reminders": "Are you sure you want to unsubscribe from prayer reminders for {campaign}?",
+        "remindersGeneric": "Are you sure you want to unsubscribe from these prayer reminders?"
+      },
       "processing": "Processing your request...",
       "success": {
         "title": "Unsubscribed",

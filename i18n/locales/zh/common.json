@@ -215,6 +215,17 @@
       "startPraying": "开始祷告"
     },
     "unsubscribe": {
+      "confirm": {
+        "title": "确认取消订阅",
+        "button": "取消订阅",
+        "processing": "正在取消订阅...",
+        "doxa": "您确定要取消订阅Doxa的一般更新吗？",
+        "product": "您确定要取消订阅产品邮件吗？",
+        "peopleGroup": "您确定要取消订阅关于{campaign}的更新吗？",
+        "peopleGroupGeneric": "您确定要取消订阅关于该族群的更新吗？",
+        "reminders": "您确定要取消订阅{campaign}的祷告提醒吗？",
+        "remindersGeneric": "您确定要取消订阅这些祷告提醒吗？"
+      },
       "pageTitle": "取消订阅",
       "processing": "正在处理您的请求...",
       "success": {
