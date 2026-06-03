@@ -215,6 +215,17 @@
       "startPraying": "Inizia a Pregare"
     },
     "unsubscribe": {
+      "confirm": {
+        "title": "Conferma annullamento iscrizione",
+        "button": "Annulla iscrizione",
+        "processing": "Annullamento iscrizione in corso...",
+        "doxa": "Sei sicuro di voler annullare l'iscrizione dagli aggiornamenti generali da Doxa?",
+        "product": "Sei sicuro di voler annullare l'iscrizione dalle email sul prodotto?",
+        "peopleGroup": "Sei sicuro di voler annullare l'iscrizione dagli aggiornamenti su {campaign}?",
+        "peopleGroupGeneric": "Sei sicuro di voler annullare l'iscrizione dagli aggiornamenti su questo gruppo di persone?",
+        "reminders": "Sei sicuro di voler annullare l'iscrizione dai promemoria di preghiera per {campaign}?",
+        "remindersGeneric": "Sei sicuro di voler annullare l'iscrizione da questi promemoria di preghiera?"
+      },
       "pageTitle": "Annulla Iscrizione",
       "processing": "Elaborazione della tua richiesta...",
       "success": {

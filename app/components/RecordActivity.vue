@@ -135,6 +135,7 @@ function getEventColor(label: string): 'success' | 'warning' | 'error' | 'neutra
     'DELETE': 'error',
     'Linked': 'success',
     'Unlinked': 'error',
+    'Unsubscribed': 'warning',
     'Report Update': 'success'
   }
   return colors[label] || 'neutral'
@@ -147,6 +148,7 @@ function getEventIcon(label: string): string | undefined {
     'DELETE': 'i-lucide-trash',
     'Linked': 'i-lucide-link',
     'Unlinked': 'i-lucide-link-2-off',
+    'Unsubscribed': 'i-lucide-mail-x',
     'Report Update': 'i-lucide-file-check'
   }
   return icons[label]

@@ -215,6 +215,17 @@
       "startPraying": "Empezar a Orar"
     },
     "unsubscribe": {
+      "confirm": {
+        "title": "Confirmar cancelación de suscripción",
+        "button": "Cancelar Suscripción",
+        "processing": "Cancelando suscripción...",
+        "doxa": "¿Está seguro de que desea cancelar la suscripción a las actualizaciones generales de Doxa?",
+        "product": "¿Está seguro de que desea cancelar la suscripción a los correos del producto?",
+        "peopleGroup": "¿Está seguro de que desea cancelar la suscripción a las novedades sobre {campaign}?",
+        "peopleGroupGeneric": "¿Está seguro de que desea cancelar la suscripción a las novedades sobre este grupo de personas?",
+        "reminders": "¿Está seguro de que desea cancelar la suscripción a los recordatorios de oración de {campaign}?",
+        "remindersGeneric": "¿Está seguro de que desea cancelar la suscripción a estos recordatorios de oración?"
+      },
       "pageTitle": "Cancelar Suscripción",
       "processing": "Procesando su solicitud...",
       "success": {

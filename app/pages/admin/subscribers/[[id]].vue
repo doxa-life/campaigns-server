@@ -1604,7 +1604,8 @@ function getEventColor(eventType: string): 'success' | 'warning' | 'error' | 'ne
     'FOLLOWUP_RESPONSE': 'primary',
     'Survey Response': 'primary',
     'Linked': 'success',
-    'Unlinked': 'error'
+    'Unlinked': 'error',
+    'Unsubscribed': 'warning'
   }
   return colors[eventType] || 'neutral'
 }
@@ -1617,7 +1618,8 @@ function getEventIcon(eventType: string): string | undefined {
     'FOLLOWUP_RESPONSE': 'i-lucide-message-circle',
     'Survey Response': 'i-lucide-clipboard-list',
     'Linked': 'i-lucide-link',
-    'Unlinked': 'i-lucide-link-2-off'
+    'Unlinked': 'i-lucide-link-2-off',
+    'Unsubscribed': 'i-lucide-mail-x'
   }
   return icons[eventType]
 }
