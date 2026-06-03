@@ -3,6 +3,7 @@ import { contactMethodService } from '#server/database/contact-methods'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
 import { peopleGroupService } from '#server/database/people-groups'
 import { sendSignupVerificationEmail } from '#server/utils/signup-verification-email'
+import { logContactUnsubscribe } from '#server/utils/log-contact-unsubscribe'
 
 export default defineEventHandler(async (event) => {
   const profileId = getRouterParam(event, 'id')
@@ -121,10 +122,17 @@ export default defineEventHandler(async (event) => {
   if (currentEmail) {
     if (body.consent_doxa_general !== undefined) {
       await contactMethodService.updateDoxaConsent(currentEmail.id, body.consent_doxa_general)
+      // Record the opt-out on the contact's activity feed, only on a real on→off flip.
+      if (body.consent_doxa_general === false && currentEmail.consent_doxa_general) {
+        logContactUnsubscribe(event, subscriber.id, 'doxa')
+      }
     }
 
     if (body.consent_product_emails !== undefined) {
       await contactMethodService.updateProductEmailsConsent(currentEmail.id, body.consent_product_emails)
+      if (body.consent_product_emails === false && currentEmail.consent_product_emails !== false) {
+        logContactUnsubscribe(event, subscriber.id, 'product')
+      }
     }
 
     // People group consent update. Accept either an explicit id or a slug
@@ -137,10 +145,15 @@ export default defineEventHandler(async (event) => {
     }
 
     if (consentPeopleGroupId !== undefined && body.consent_people_group_updates !== undefined) {
+      const wasConsented = (currentEmail.consented_people_group_ids || []).includes(consentPeopleGroupId)
       if (body.consent_people_group_updates) {
         await contactMethodService.addPeopleGroupConsent(currentEmail.id, consentPeopleGroupId)
       } else {
         await contactMethodService.removePeopleGroupConsent(currentEmail.id, consentPeopleGroupId)
+        if (wasConsented) {
+          const pg = await peopleGroupService.getPeopleGroupById(consentPeopleGroupId)
+          if (pg) logContactUnsubscribe(event, subscriber.id, 'people_group', { id: pg.id, name: pg.name })
+        }
       }
     }
   }

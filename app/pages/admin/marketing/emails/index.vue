@@ -162,7 +162,7 @@ const error = ref('')
 function audienceLabel(email: MarketingEmail): string {
   switch (email.audience_type) {
     case 'doxa': return 'DOXA'
-    case 'doxa_active_pg': return 'Active PG Subscribers'
+    case 'doxa_active_pg': return 'Active Subscribers with Doxa General Consent'
     case 'active_pg': return 'All Active Subscribers'
     case 'pick': return `Picked Contacts (${email.recipient_contact_method_ids?.length ?? 0})`
     case 'admins': return 'Admins (test)'

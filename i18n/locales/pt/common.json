@@ -65,7 +65,7 @@
     "notFound": {
       "title": "Campanha Nao Encontrada",
       "message": "A campanha que voce esta procurando nao existe ou nao esta disponivel.",
-      "goHome": "Ir para Inicio"
+      "goHome": "Ir para Início"
     },
     "startsOn": {
       "message": "As atualizações diárias de oração começarão em {date}",
@@ -215,47 +215,58 @@
       "startPraying": "Comecar a Orar"
     },
     "unsubscribe": {
-      "pageTitle": "Cancelar Inscricao",
-      "processing": "Processando sua solicitacao...",
+      "confirm": {
+        "title": "Confirmar cancelamento de inscrição",
+        "button": "Cancelar Inscrição",
+        "processing": "Cancelando inscrição...",
+        "doxa": "Tem certeza de que deseja cancelar a inscrição das atualizações gerais do Doxa?",
+        "product": "Tem certeza de que deseja cancelar a inscrição dos e-mails do produto?",
+        "peopleGroup": "Tem certeza de que deseja cancelar a inscrição das novidades sobre {campaign}?",
+        "peopleGroupGeneric": "Tem certeza de que deseja cancelar a inscrição das novidades sobre este grupo de pessoas?",
+        "reminders": "Tem certeza de que deseja cancelar a inscrição dos lembretes de oração de {campaign}?",
+        "remindersGeneric": "Tem certeza de que deseja cancelar a inscrição destes lembretes de oração?"
+      },
+      "pageTitle": "Cancelar Inscrição",
+      "processing": "Processando sua solicitação...",
       "success": {
-        "title": "Inscricao Cancelada",
-        "message": "Voce foi removido deste lembrete.",
+        "title": "Inscrição Cancelada",
+        "message": "Você foi removido deste lembrete.",
         "campaign": "Campanha: {title}",
         "resubscribe": "Reinscrever-se",
         "resubscribing": "Reinscrevendo..."
       },
       "alreadyDone": {
-        "title": "Ja Cancelado",
-        "message": "Voce ja foi removido deste lembrete."
+        "title": "Já Cancelado",
+        "message": "Você já foi removido deste lembrete."
       },
-      "unsubscribedFromCampaign": "Voce foi removido de todos os lembretes de {campaign}.",
+      "unsubscribedFromCampaign": "Você foi removido de todos os lembretes de {campaign}.",
       "resubscribed": {
         "title": "Bem-vindo de Volta!",
-        "message": "Voce foi reinscrito nos lembretes de oracao. Voce recebera seu proximo lembrete no horario agendado.",
+        "message": "Você foi reinscrito nos lembretes de oração. Você receberá seu próximo lembrete no horário agendado.",
         "viewCampaign": "Ver Campanha"
       },
       "error": {
         "title": "Erro",
         "message": "Algo deu errado. Por favor, tente novamente.",
-        "goHome": "Ir para Inicio"
+        "goHome": "Ir para Início"
       },
-      "otherReminders": "Voce tem outros lembretes para esta campanha:",
-      "unsubscribeThis": "Cancelar Inscricao",
-      "unsubscribeAll": "Cancelar Todas as Inscricoes",
-      "yourSubscriptions": "Suas Inscricoes",
+      "otherReminders": "Você tem outros lembretes para esta campanha:",
+      "unsubscribeThis": "Cancelar Inscrição",
+      "unsubscribeAll": "Cancelar Todas as Inscrições",
+      "yourSubscriptions": "Suas Inscrições",
       "active": "ativo",
-      "unsubscribeButton": "Cancelar Inscricao",
+      "unsubscribeButton": "Cancelar Inscrição",
       "unsubscribeFromAll": "Cancelar todos os lembretes de {campaign}",
-      "preferencesUpdated": "Suas preferencias de e-mail foram atualizadas.",
+      "preferencesUpdated": "Suas preferências de e-mail foram atualizadas.",
       "unsubscribedFrom": "Você cancelou a inscrição em {item}.",
       "justTurnedOff": "Acabou de ser desativado",
       "remindersUnaffected": "Seus lembretes diários de oração não são afetados.",
       "peopleGroupUpdatesLabel": "novidades sobre este grupo de pessoas",
-      "noActiveSubscriptions": "Voce nao tem inscricoes ativas.",
+      "noActiveSubscriptions": "Você não tem inscrições ativas.",
       "current": "Atual",
       "reminderFormat": {
-        "daily": "Diariamente as {time}",
-        "weekly": "{days} as {time}"
+        "daily": "Diariamente às {time}",
+        "weekly": "{days} às {time}"
       }
     },
     "profile": {
@@ -283,12 +294,12 @@
         "productEmailsHint": "E-mails ocasionais sobre as ferramentas de oração que você usa — pesquisas, pedidos de opinião e novidades do produto. Não é promocional. Seus lembretes diários de oração não são afetados."
       },
       "consentUpdated": "Preferencias de comunicacao atualizadas.",
-      "subscriptions": "Suas Inscricoes",
+      "subscriptions": "Suas Inscrições",
       "saveAccount": "Salvar Conta",
       "unsubscribed": "Cancelado",
       "current": "Atual",
       "viewCampaign": "Ver Campanha",
-      "unsubscribeButton": "Cancelar Inscricao",
+      "unsubscribeButton": "Cancelar Inscrição",
       "resubscribeButton": "Reinscrever-se",
       "unsubscribeConfirm": "Tem certeza de que deseja cancelar a inscricao de {campaign}?",
       "unsubscribeSuccess": "Sua inscricao foi cancelada.",
@@ -415,7 +426,7 @@
       "invalidResponse": "Tipo de resposta invalido.",
       "failed": "Falha ao registrar sua resposta. Por favor, tente novamente."
     },
-    "goHome": "Ir para Inicio",
+    "goHome": "Ir para Início",
     "committed": {
       "title": "Obrigado pelo seu compromisso!",
       "message": "Estamos muito felizes em saber que voce continua fiel na oracao. Sua dedicacao esta fazendo a diferenca!",
@@ -443,7 +454,7 @@
       "hello": "Ola {name}!",
       "automatedMessage": "Esta e uma mensagem automatica de {appName}. Por favor, nao responda a este e-mail.",
       "managePreferences": "Gerenciar Preferencias",
-      "unsubscribe": "Cancelar Inscricao"
+      "unsubscribe": "Cancelar Inscrição"
     },
     "verification": {
       "subject": "Verifique seu e-mail para {campaign}",

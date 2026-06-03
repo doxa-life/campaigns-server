@@ -215,6 +215,17 @@
       "startPraying": "Mit dem Beten beginnen"
     },
     "unsubscribe": {
+      "confirm": {
+        "title": "Abmeldung bestätigen",
+        "button": "Abmelden",
+        "processing": "Abmeldung läuft...",
+        "doxa": "Sind Sie sicher, dass Sie sich von allgemeinen Updates von Doxa abmelden möchten?",
+        "product": "Sind Sie sicher, dass Sie sich von Produkt-E-Mails abmelden möchten?",
+        "peopleGroup": "Sind Sie sicher, dass Sie sich von Updates zu {campaign} abmelden möchten?",
+        "peopleGroupGeneric": "Sind Sie sicher, dass Sie sich von Updates zu dieser Volksgruppe abmelden möchten?",
+        "reminders": "Sind Sie sicher, dass Sie sich von Gebetserinnerungen für {campaign} abmelden möchten?",
+        "remindersGeneric": "Sind Sie sicher, dass Sie sich von diesen Gebetserinnerungen abmelden möchten?"
+      },
       "pageTitle": "Abmelden",
       "processing": "Ihre Anfrage wird bearbeitet...",
       "success": {
