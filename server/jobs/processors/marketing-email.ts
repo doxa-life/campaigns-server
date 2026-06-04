@@ -76,6 +76,9 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
   } else {
     unsubQuery = `id=${profileId}&type=doxa`
   }
+  // Attribute the opt-out back to this email so its unsubscribe_count can be
+  // tallied when the recipient actually unsubscribes (via either path).
+  unsubQuery += `&me=${payload.marketing_email_id}`
   const unsubscribeUrl = `${baseUrl}${localePath('/unsubscribe', subscriberLanguage)}?${unsubQuery}`
   const listUnsubscribeUrl = `${baseUrl}/api/marketing/unsubscribe?${unsubQuery}`
 

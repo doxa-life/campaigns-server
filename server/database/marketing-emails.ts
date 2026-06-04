@@ -23,6 +23,7 @@ export interface MarketingEmail {
   recipient_count: number
   sent_count: number
   failed_count: number
+  unsubscribe_count: number
 }
 
 export interface MarketingEmailWithPeopleGroup extends MarketingEmail {
@@ -237,6 +238,14 @@ class MarketingEmailService {
     await this.sql`
       UPDATE marketing_emails
       SET failed_count = failed_count + 1, updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${id}
+    `
+  }
+
+  async incrementUnsubscribeCount(id: number): Promise<void> {
+    await this.sql`
+      UPDATE marketing_emails
+      SET unsubscribe_count = unsubscribe_count + 1, updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE id = ${id}
     `
   }

@@ -4,10 +4,16 @@ import { peopleGroupSubscriptionService } from '#server/database/people-group-su
 import { peopleGroupService } from '#server/database/people-groups'
 import { sendSignupVerificationEmail } from '#server/utils/signup-verification-email'
 import { logContactUnsubscribe } from '#server/utils/log-contact-unsubscribe'
+import { marketingEmailService } from '#server/database/marketing-emails'
 
 export default defineEventHandler(async (event) => {
   const profileId = getRouterParam(event, 'id')
   const body = await readBody(event)
+
+  // When a consent flips off from a marketing-email unsubscribe link, the page
+  // forwards the email id so the opt-out can be attributed to it. Absent on the
+  // in-page preference toggles, which must not affect any email's count.
+  const meId = body.marketing_email_id ? Number(body.marketing_email_id) : null
 
   if (!profileId) {
     throw createError({
@@ -125,6 +131,7 @@ export default defineEventHandler(async (event) => {
       // Record the opt-out on the contact's activity feed, only on a real on→off flip.
       if (body.consent_doxa_general === false && currentEmail.consent_doxa_general) {
         logContactUnsubscribe(event, subscriber.id, 'doxa')
+        if (meId) await marketingEmailService.incrementUnsubscribeCount(meId)
       }
     }
 
@@ -132,6 +139,7 @@ export default defineEventHandler(async (event) => {
       await contactMethodService.updateProductEmailsConsent(currentEmail.id, body.consent_product_emails)
       if (body.consent_product_emails === false && currentEmail.consent_product_emails !== false) {
         logContactUnsubscribe(event, subscriber.id, 'product')
+        if (meId) await marketingEmailService.incrementUnsubscribeCount(meId)
       }
     }
 
@@ -153,6 +161,7 @@ export default defineEventHandler(async (event) => {
         if (wasConsented) {
           const pg = await peopleGroupService.getPeopleGroupById(consentPeopleGroupId)
           if (pg) logContactUnsubscribe(event, subscriber.id, 'people_group', { id: pg.id, name: pg.name })
+          if (meId) await marketingEmailService.incrementUnsubscribeCount(meId)
         }
       }
     }

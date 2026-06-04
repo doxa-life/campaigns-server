@@ -432,6 +432,9 @@ const slug = route.query.slug as string
 const profileId = route.query.id as string
 const subscriptionId = route.query.sid as string | undefined
 const unsubscribeType = route.query.type as string | undefined
+// Marketing email id (if this link came from a marketing email), forwarded on
+// confirm so the opt-out is attributed to that email's unsubscribe count.
+const marketingEmailId = route.query.me as string | undefined
 const { t } = useI18n()
 const localePath = useLocalePath()
 const toast = useToast()
@@ -610,7 +613,7 @@ async function confirmUnsubscribe() {
     if (isProductType.value) {
       await $fetch(`/api/profile/${profileId}`, {
         method: 'PUT',
-        body: { consent_product_emails: false }
+        body: { consent_product_emails: false, marketing_email_id: marketingEmailId }
       })
       doxaConsentForm.value.product_emails = false
       justUnsubscribed.value = 'product'
@@ -619,14 +622,14 @@ async function confirmUnsubscribe() {
       // subscriber has no prayer subscription for it.
       const upd = await $fetch<{ consents?: { doxa_general: boolean; people_group_ids: number[] } }>(`/api/profile/${profileId}`, {
         method: 'PUT',
-        body: { consent_people_group_slug: slug, consent_people_group_updates: false }
+        body: { consent_people_group_slug: slug, consent_people_group_updates: false, marketing_email_id: marketingEmailId }
       })
       doxaConsentForm.value.people_group_ids = upd.consents?.people_group_ids || []
       justUnsubscribed.value = 'people_group'
     } else if (isDoxaType.value) {
       await $fetch(`/api/profile/${profileId}`, {
         method: 'PUT',
-        body: { consent_doxa_general: false }
+        body: { consent_doxa_general: false, marketing_email_id: marketingEmailId }
       })
       doxaConsentForm.value.doxa_general = false
       justUnsubscribed.value = 'doxa'

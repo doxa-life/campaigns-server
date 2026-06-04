@@ -38,6 +38,7 @@
             <th>Audience</th>
             <th>Status</th>
             <th>Recipients</th>
+            <th>Unsubscribes</th>
             <th>Author</th>
             <th>Updated</th>
             <th>Actions</th>
@@ -71,6 +72,10 @@
                 {{ email.sent_count }}/{{ email.recipient_count }}
                 <span v-if="email.failed_count > 0" class="failed-count">({{ email.failed_count }} failed)</span>
               </template>
+            </td>
+            <td class="recipients-cell">
+              <template v-if="email.status === 'draft'">-</template>
+              <template v-else>{{ email.unsubscribe_count }}</template>
             </td>
             <td class="author-cell">
               <div class="author-info">
@@ -166,6 +171,7 @@ interface MarketingEmail {
   recipient_count: number
   sent_count: number
   failed_count: number
+  unsubscribe_count: number
   created_at: string
   updated_at: string
   created_by_name?: string
