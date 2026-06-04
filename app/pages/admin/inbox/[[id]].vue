@@ -180,6 +180,10 @@
                   <span class="msg-time">{{ formatTime(m.created_at) }}</span>
                 </span>
               </div>
+              <div v-if="m.direction === 'inbound' ? m.to_email : m.from_email" class="msg-addr">
+                <span v-if="m.direction === 'inbound'"><span class="addr-label">{{ $t('inbox.compose.to') }}:</span> {{ m.to_email }}</span>
+                <span v-else><span class="addr-label">{{ $t('inbox.compose.from') }}:</span> {{ m.from_email }}</span>
+              </div>
               <div class="msg-body" v-html="sanitizeMessageHtml(messageDisplayHtml(m))" />
               <UButton
                 v-if="m.direction === 'inbound' && m.body_stripped_html && m.body_html && m.body_html !== m.body_stripped_html"
@@ -335,6 +339,7 @@ interface Message {
   status: string
   from_name: string | null
   from_email: string | null
+  to_email: string | null
   sender_name: string | null
   body_html: string | null
   body_stripped_html: string | null
@@ -888,6 +893,8 @@ a.contact-name:hover { text-decoration: underline; }
 .msg.outbound { background: var(--ui-bg-elevated); }
 .msg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; gap: 0.5rem; }
 .msg-from { font-weight: 600; font-size: 0.85rem; }
+.msg-addr { display: flex; flex-wrap: wrap; gap: 0.1rem 1rem; font-size: 0.7rem; color: var(--ui-text-muted); margin: -0.25rem 0 0.5rem; word-break: break-all; }
+.msg-addr .addr-label { font-weight: 500; }
 .msg-meta { display: flex; align-items: center; gap: 0.4rem; }
 .msg-time { font-size: 0.7rem; color: var(--ui-text-muted); }
 .msg-body { font-size: 0.875rem; line-height: 1.5; word-break: break-word; }
