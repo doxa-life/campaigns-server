@@ -23,12 +23,22 @@
             Send Now
           </UButton>
         </div>
-        <div v-else>
+        <div v-else class="flex items-center gap-3">
           <UBadge
             :label="email.status"
             :color="getStatusColor(email.status)"
             size="lg"
           />
+          <UButton
+            v-if="email.status === 'queued' || email.status === 'sending'"
+            color="error"
+            variant="soft"
+            icon="i-lucide-octagon-x"
+            :loading="stopping"
+            @click="showStopModal = true"
+          >
+            Stop sending
+          </UButton>
         </div>
       </div>
 
@@ -195,6 +205,19 @@
       </template>
     </UModal>
 
+    <!-- Stop Sending Modal -->
+    <ConfirmModal
+      v-model:open="showStopModal"
+      title="Stop sending?"
+      message="Recipients not yet emailed won't receive this."
+      warning="Emails already in flight may still go out."
+      confirm-text="Stop sending"
+      confirm-color="error"
+      :loading="stopping"
+      @confirm="stopSending"
+      @cancel="showStopModal = false"
+    />
+
     <!-- Unsaved Changes Modal -->
     <ConfirmModal
       v-model:open="showUnsavedChangesModal"
@@ -228,7 +251,7 @@ interface MarketingEmail {
   sender_id: number | null
   sender_name?: string
   sender_local_part?: string
-  status: 'draft' | 'queued' | 'sending' | 'sent' | 'failed'
+  status: 'draft' | 'queued' | 'sending' | 'sent' | 'failed' | 'cancelled'
   sent_at: string | null
   created_at: string
   updated_at: string
@@ -281,8 +304,11 @@ const previewHtml = ref('')
 const isSaved = ref(false)
 const showUnsavedChangesModal = ref(false)
 const pendingNavigation = ref<any>(null)
+const stopping = ref(false)
+const showStopModal = ref(false)
 
 const isDraft = computed(() => email.value?.status === 'draft')
+const isInProgress = computed(() => email.value?.status === 'queued' || email.value?.status === 'sending')
 
 const peopleGroupOptions = computed(() => {
   return peopleGroups.value.map(c => ({
@@ -322,7 +348,8 @@ function getStatusColor(status: string): BadgeColor {
     queued: 'warning',
     sending: 'info',
     sent: 'success',
-    failed: 'error'
+    failed: 'error',
+    cancelled: 'neutral'
   }
   return colors[status] || 'neutral'
 }
@@ -557,6 +584,67 @@ function cancelLeave() {
   showUnsavedChangesModal.value = false
   pendingNavigation.value = null
 }
+
+// Refresh status + delivery stats without toggling the page loading state, so
+// polling doesn't flash the "Loading email..." view.
+async function refreshStatus() {
+  if (!email.value) return
+  try {
+    const response = await $fetch<{ email: MarketingEmail; queueStats?: QueueStats }>(`/api/admin/marketing/emails/${email.value.id}`)
+    email.value = response.email
+    queueStats.value = response.queueStats || null
+  } catch {
+    // Ignore transient polling errors
+  }
+}
+
+async function stopSending() {
+  if (!email.value) return
+  try {
+    stopping.value = true
+    await $fetch(`/api/admin/marketing/emails/${email.value.id}/cancel`, { method: 'POST' })
+    showStopModal.value = false
+    toast.add({
+      title: 'Sending stopped',
+      description: 'No further recipients will be emailed.',
+      color: 'success'
+    })
+    await refreshStatus()
+  } catch (err: any) {
+    toast.add({
+      title: 'Error',
+      description: err.data?.statusMessage || 'Failed to stop sending',
+      color: 'error'
+    })
+  } finally {
+    stopping.value = false
+  }
+}
+
+// Auto-refresh while a send is in progress so stats and the Stop button stay current.
+let refreshInterval: ReturnType<typeof setInterval> | null = null
+
+function startAutoRefresh() {
+  if (refreshInterval) return
+  refreshInterval = setInterval(async () => {
+    if (isInProgress.value) await refreshStatus()
+    else stopAutoRefresh()
+  }, 5000)
+}
+
+function stopAutoRefresh() {
+  if (refreshInterval) {
+    clearInterval(refreshInterval)
+    refreshInterval = null
+  }
+}
+
+watch(isInProgress, (inProgress) => {
+  if (inProgress) startAutoRefresh()
+  else stopAutoRefresh()
+})
+
+onBeforeUnmount(() => stopAutoRefresh())
 
 onBeforeRouteLeave((_to, _from, next) => {
   if (isSaved.value || !isDraft.value || !hasUnsavedChanges.value) {

@@ -107,6 +107,15 @@
               >
                 Delete
               </UButton>
+              <UButton
+                v-if="email.status === 'queued' || email.status === 'sending'"
+                @click.stop="stopEmail(email)"
+                variant="link"
+                size="sm"
+                color="error"
+              >
+                Stop
+              </UButton>
             </td>
           </tr>
         </tbody>
@@ -123,6 +132,18 @@
       :loading="deleting"
       @confirm="confirmDelete"
       @cancel="cancelDelete"
+    />
+
+    <ConfirmModal
+      v-model:open="showStopModal"
+      title="Stop sending?"
+      :message="emailToStop ? `Stop sending &quot;${emailToStop.subject}&quot;? Recipients not yet emailed won't receive it.` : ''"
+      warning="Emails already in flight may still go out."
+      confirm-text="Stop sending"
+      confirm-color="error"
+      :loading="stopping"
+      @confirm="confirmStop"
+      @cancel="cancelStop"
     />
   </div>
 </template>
@@ -141,7 +162,7 @@ interface MarketingEmail {
   people_group_id: number | null
   people_group_name?: string
   recipient_contact_method_ids?: number[] | null
-  status: 'draft' | 'queued' | 'sending' | 'sent' | 'failed'
+  status: 'draft' | 'queued' | 'sending' | 'sent' | 'failed' | 'cancelled'
   recipient_count: number
   sent_count: number
   failed_count: number
@@ -176,13 +197,18 @@ const showDeleteModal = ref(false)
 const emailToDelete = ref<MarketingEmail | null>(null)
 const deleting = ref(false)
 
+const showStopModal = ref(false)
+const emailToStop = ref<MarketingEmail | null>(null)
+const stopping = ref(false)
+
 const statusOptions = [
   { label: 'All statuses', value: 'all' },
   { label: 'Draft', value: 'draft' },
   { label: 'Queued', value: 'queued' },
   { label: 'Sending', value: 'sending' },
   { label: 'Sent', value: 'sent' },
-  { label: 'Failed', value: 'failed' }
+  { label: 'Failed', value: 'failed' },
+  { label: 'Cancelled', value: 'cancelled' }
 ]
 
 const filteredEmails = computed(() => {
@@ -198,7 +224,8 @@ function getStatusColor(status: string): BadgeColor {
     queued: 'warning',
     sending: 'info',
     sent: 'success',
-    failed: 'error'
+    failed: 'error',
+    cancelled: 'neutral'
   }
   return colors[status] || 'neutral'
 }
@@ -254,6 +281,45 @@ async function confirmDelete() {
 function cancelDelete() {
   showDeleteModal.value = false
   emailToDelete.value = null
+}
+
+function stopEmail(email: MarketingEmail) {
+  emailToStop.value = email
+  showStopModal.value = true
+}
+
+async function confirmStop() {
+  if (!emailToStop.value) return
+
+  try {
+    stopping.value = true
+    await $fetch(`/api/admin/marketing/emails/${emailToStop.value.id}/cancel`, {
+      method: 'POST'
+    })
+
+    toast.add({
+      title: 'Sending stopped',
+      description: 'No further recipients will be emailed.',
+      color: 'success'
+    })
+
+    showStopModal.value = false
+    emailToStop.value = null
+    await loadEmails()
+  } catch (err: any) {
+    toast.add({
+      title: 'Error',
+      description: err.data?.statusMessage || 'Failed to stop sending',
+      color: 'error'
+    })
+  } finally {
+    stopping.value = false
+  }
+}
+
+function cancelStop() {
+  showStopModal.value = false
+  emailToStop.value = null
 }
 
 function formatDate(dateString: string) {

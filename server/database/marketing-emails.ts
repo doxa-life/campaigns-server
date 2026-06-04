@@ -13,7 +13,7 @@ export interface MarketingEmail {
   people_group_id: number | null
   recipient_contact_method_ids: number[] | null
   sender_id: number | null
-  status: 'draft' | 'queued' | 'sending' | 'sent' | 'failed'
+  status: 'draft' | 'queued' | 'sending' | 'sent' | 'failed' | 'cancelled'
   created_by: string
   updated_by: string | null
   sent_by: string | null
@@ -59,7 +59,7 @@ export interface UpdateMarketingEmailData {
 }
 
 export interface MarketingEmailFilters {
-  status?: 'draft' | 'queued' | 'sending' | 'sent' | 'failed'
+  status?: 'draft' | 'queued' | 'sending' | 'sent' | 'failed' | 'cancelled'
   audience_type?: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'active_pg' | 'pick'
   people_group_id?: number
 }
@@ -91,6 +91,13 @@ class MarketingEmailService {
   async getById(id: number): Promise<MarketingEmail | null> {
     const [row] = await this.sql`SELECT * FROM marketing_emails WHERE id = ${id}`
     return (row as MarketingEmail) || null
+  }
+
+  // Lightweight status read so the send processor can detect a mid-send cancel
+  // without going through (or being masked by) its cached email object.
+  async getStatus(id: number): Promise<MarketingEmail['status'] | null> {
+    const [row] = await this.sql`SELECT status FROM marketing_emails WHERE id = ${id}`
+    return (row?.status as MarketingEmail['status']) ?? null
   }
 
   async getByIdWithPeopleGroup(id: number): Promise<MarketingEmailWithPeopleGroup | null> {

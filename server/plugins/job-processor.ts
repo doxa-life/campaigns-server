@@ -114,12 +114,15 @@ async function processJobQueue(): Promise<boolean> {
 
   for (const emailId of marketingEmailIds) {
     const isComplete = await jobQueueService.isComplete('marketing_email', emailId)
-    if (isComplete) {
-      const stats = await jobQueueService.getJobStats('marketing_email', emailId)
-      const finalStatus = stats.failed > 0 && stats.completed === 0 ? 'failed' : 'sent'
-      await marketingEmailService.updateStatus(emailId, finalStatus)
-      console.log(`  Marketing email ${emailId} complete: ${stats.completed} sent, ${stats.failed} failed`)
-    }
+    if (!isComplete) continue
+    // Only finalize emails still mid-send — never resurrect one that was cancelled
+    // (or already finalized) into sent/failed.
+    const email = await marketingEmailService.getById(emailId)
+    if (!email || (email.status !== 'queued' && email.status !== 'sending')) continue
+    const stats = await jobQueueService.getJobStats('marketing_email', emailId)
+    const finalStatus = stats.failed > 0 && stats.completed === 0 ? 'failed' : 'sent'
+    await marketingEmailService.updateStatus(emailId, finalStatus)
+    console.log(`  Marketing email ${emailId} complete: ${stats.completed} sent, ${stats.failed} failed`)
   }
 
   console.log('Job processing complete')

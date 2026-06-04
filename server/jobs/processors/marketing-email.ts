@@ -16,6 +16,13 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
   const config = useRuntimeConfig()
   const baseUrl = config.public.siteUrl || 'http://localhost:3000'
 
+  // Stop sending the moment the parent email is cancelled. Checked live (not via
+  // the cached email below) so a mid-send cancel takes effect immediately.
+  const liveStatus = await marketingEmailService.getStatus(payload.marketing_email_id)
+  if (liveStatus === 'cancelled') {
+    return { success: true, data: { skipped: 'cancelled' } }
+  }
+
   let cached = emailCache.get(payload.marketing_email_id)
   if (!cached) {
     const email = await marketingEmailService.getByIdWithPeopleGroup(payload.marketing_email_id)
