@@ -689,7 +689,7 @@
     "may2026": {
       "page": {
         "title": "Tu experiencia de oración",
-        "intro": "Gracias por unirte y orar con DOXA por los grupos étnicos no comprometidos. Estas seis preguntas toman unos tres minutos, y tus respuestas ayudarán a dar forma a las futuras indicaciones de oración diaria. No hay respuestas correctas ni incorrectas; solo queremos conocer tu experiencia sincera.",
+        "intro": "Gracias por dedicar unos minutos a ayudarnos a dar forma al futuro contenido de oración diaria. No hay respuestas correctas ni incorrectas; solo queremos conocer tu experiencia sincera.",
         "submit": "Enviar mis respuestas",
         "thanksTitle": "¡Gracias!",
         "thanks": "Gracias: hemos recibido tus respuestas. Agradecemos el tiempo que dedicaste y tus oraciones.",
@@ -739,6 +739,29 @@
             "5": "Mucho"
           }
         },
+        "scripted_preference": {
+          "label": "El contenido de oración incluye tanto motivos de oración con sugerencias estratégicas sobre cómo orar (p. ej.: Por favor, ora para que Dios levante misioneros de todo el mundo para plantar juntos la Iglesia entre los grupos étnicos no alcanzados.) como oraciones redactadas (p. ej.: Padre, hoy oramos para que este grupo étnico experimente la promesa que le hiciste a Abraham de que serían bendecidos a través de él. Amén.). ¿Qué preferirías:",
+          "options": {
+            "1": "Que todas las peticiones de oración sean redactadas",
+            "2": "Que aproximadamente la mitad de las peticiones de oración sean redactadas",
+            "3": "Que solo una petición de oración sea redactada (formato actual)",
+            "4": "Que ninguna petición de oración sea redactada"
+          }
+        },
+        "new_pg_daily": {
+          "label": "¿Disfrutas ver cada día un nuevo grupo étnico no alcanzado y no comprometido?",
+          "options": {
+            "1": "Sí",
+            "2": "No"
+          }
+        },
+        "background_info": {
+          "label": "¿Te resulta útil ver la información de contexto sobre tu grupo étnico al final del contenido de oración cada día?",
+          "options": {
+            "1": "Sí",
+            "2": "No"
+          }
+        },
         "improvement": {
           "label": "Si pudiéramos mejorar una sola cosa del contenido diario futuro, ¿qué cambiarías, agregarías o quitarías?"
         }
@@ -749,7 +772,7 @@
         "greeting": "Hola {name}:",
         "greetingFallback": "Hola:",
         "p1": "Ha sido un privilegio unirnos a ti en intercesión por los grupos étnicos no alcanzados del mundo.",
-        "p2": "Siempre buscamos que las indicaciones de oración diaria sean más útiles y, antes de reunirnos como equipo para planificar los próximos pasos, nos encantaría escucharte. ¿Podrías dedicar unos minutos a responder seis preguntas breves sobre tu experiencia?",
+        "p2": "Siempre buscamos que las indicaciones de oración diaria sean más útiles y, antes de reunirnos como equipo para planificar los próximos pasos, nos encantaría escucharte. ¿Podrías dedicar unos minutos a responder unas pocas preguntas breves sobre tu experiencia?",
         "p3": "Tu opinión sincera —lo que funciona y lo que no— moldea directamente el contenido de oración que creamos.",
         "cta": "Responder la encuesta",
         "signoff": "Con gratitud,",

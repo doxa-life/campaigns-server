@@ -685,7 +685,7 @@
     "may2026": {
       "page": {
         "title": "Experiența ta de rugăciune",
-        "intro": "Îți mulțumim că te alături DOXA și te rogi pentru grupurile etnice neangajate. Aceste șase întrebări durează aproximativ trei minute, iar răspunsurile tale vor ajuta la modelarea viitoarelor subiecte zilnice de rugăciune. Nu există răspunsuri corecte sau greșite — vrem doar să aflăm experiența ta sinceră.",
+        "intro": "Îți mulțumim că îți dedici câteva minute pentru a ne ajuta să modelăm viitorul conținut zilnic de rugăciune. Nu există răspunsuri corecte sau greșite — vrem doar să aflăm experiența ta sinceră.",
         "submit": "Trimite răspunsurile mele",
         "thanksTitle": "Mulțumim!",
         "thanks": "Mulțumim — am primit răspunsurile tale. Îți suntem recunoscători pentru timpul acordat și pentru rugăciunile tale.",
@@ -735,6 +735,29 @@
             "5": "Foarte mult"
           }
         },
+        "scripted_preference": {
+          "label": "Conținutul de rugăciune cuprinde atât puncte de rugăciune cu sugestii strategice despre cum să te rogi (de ex.: Te rugăm să te rogi ca Dumnezeu să ridice misionari din toată lumea pentru a planta împreună Biserica printre grupurile etnice neatinse.), cât și rugăciuni redactate dinainte (de ex.: Tată, astăzi ne rugăm ca acest grup etnic să experimenteze promisiunea pe care i-ai făcut-o lui Avraam, că vor fi binecuvântați prin el. Amin.). Ce ai prefera:",
+          "options": {
+            "1": "Toate cererile de rugăciune să fie redactate dinainte",
+            "2": "Aproximativ jumătate dintre cererile de rugăciune să fie redactate dinainte",
+            "3": "Doar o singură cerere de rugăciune să fie redactată dinainte (formatul actual)",
+            "4": "Nicio cerere de rugăciune să nu fie redactată dinainte"
+          }
+        },
+        "new_pg_daily": {
+          "label": "Îți place să vezi în fiecare zi un nou grup etnic neatins și neangajat?",
+          "options": {
+            "1": "Da",
+            "2": "Nu"
+          }
+        },
+        "background_info": {
+          "label": "Îți este util să vezi în fiecare zi informațiile de context despre grupul tău etnic la finalul conținutului de rugăciune?",
+          "options": {
+            "1": "Da",
+            "2": "Nu"
+          }
+        },
         "improvement": {
           "label": "Dacă am putea îmbunătăți un singur lucru la conținutul zilnic viitor, ce ai schimba, ai adăuga sau ai elimina?"
         }
@@ -745,7 +768,7 @@
         "greeting": "Bună, {name},",
         "greetingFallback": "Bună,",
         "p1": "A fost un privilegiu să ne unim cu tine în mijlocire pentru grupurile etnice neatinse ale lumii.",
-        "p2": "Căutăm mereu să facem subiectele zilnice de rugăciune mai utile și, înainte de a ne întâlni ca echipă pentru a planifica pașii următori, ne-ar plăcea să te ascultăm. Ai putea să acorzi câteva minute pentru a răspunde la șase întrebări scurte despre experiența ta?",
+        "p2": "Căutăm mereu să facem subiectele zilnice de rugăciune mai utile și, înainte de a ne întâlni ca echipă pentru a planifica pașii următori, ne-ar plăcea să te ascultăm. Ai putea să acorzi câteva minute pentru a răspunde la câteva întrebări scurte despre experiența ta?",
         "p3": "Părerea ta sinceră — ce funcționează și ce nu — modelează direct conținutul de rugăciune pe care îl creăm.",
         "cta": "Completează sondajul",
         "signoff": "Cu recunoștință,",

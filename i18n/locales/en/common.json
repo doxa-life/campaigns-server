@@ -691,7 +691,7 @@
     "may2026": {
       "page": {
         "title": "Your prayer experience",
-        "intro": "Thank you for joining and praying with DOXA for the unengaged. These six questions take about three minutes, and your answers will help shape future daily prayer prompts. There are no right or wrong answers — we just want your honest experience.",
+        "intro": "Thank you for taking a few minutes to help us shape future daily prayer content. There are no right or wrong answers — we just want your honest experience.",
         "submit": "Send my responses",
         "thanksTitle": "Thank you!",
         "thanks": "Thank you — your responses are in. We're grateful for the time you took, and for your prayers.",
@@ -741,6 +741,29 @@
             "5": "Very much"
           }
         },
+        "scripted_preference": {
+          "label": "The prayer content contains both prayer points with strategic suggestions for how to pray (i.e. Please pray that God would raise up missionaries from all over the world to plant the Church together among unreached people groups.) and scripted prayers (i.e. Father, today we pray that this people group would experience the promise you made to Abraham that they would be blessed through him. Amen.). Would you prefer:",
+          "options": {
+            "1": "All prayer requests be scripted",
+            "2": "About half the prayer requests be scripted",
+            "3": "Only one prayer request be scripted (current format)",
+            "4": "No prayer requests be scripted"
+          }
+        },
+        "new_pg_daily": {
+          "label": "Do you enjoy seeing a new Unengaged Unreached People Group being shown each day?",
+          "options": {
+            "1": "Yes",
+            "2": "No"
+          }
+        },
+        "background_info": {
+          "label": "Is it helpful to see the background information on your people group at the bottom of the prayer content each day?",
+          "options": {
+            "1": "Yes",
+            "2": "No"
+          }
+        },
         "improvement": {
           "label": "If we could improve one thing about future daily content, what would you change, add, or remove?"
         }
@@ -751,7 +774,7 @@
         "greeting": "Hi {name},",
         "greetingFallback": "Hi there,",
         "p1": "It has been a privilege to join with you in intercession for the unreached peoples of the world.",
-        "p2": "We're always trying to make the daily prayer prompts more helpful, and before we meet as a team to plan what's next, we'd love to hear from you. Would you take a few minutes to answer six short questions about your experience?",
+        "p2": "We're always trying to make the daily prayer prompts more helpful, and before we meet as a team to plan what's next, we'd love to hear from you. Would you take a few minutes to answer a few short questions about your experience?",
         "p3": "Your honest feedback — what's working, what isn't — directly shapes the prayer content we create.",
         "cta": "Take the survey",
         "signoff": "With gratitude,",

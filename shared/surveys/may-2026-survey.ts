@@ -27,6 +27,9 @@ export const MAY_2026_SURVEY_QUESTIONS: SurveyQuestion[] = [
   { key: 'experience', type: 'text' },
   { key: 'clarity', type: 'scale', min: 1, max: 5, scalePoints: [1, 3, 5] },
   { key: 'balance', type: 'scale', min: 1, max: 5, scalePoints: [1, 3, 5] },
+  { key: 'scripted_preference', type: 'choice', options: [1, 2, 3, 4] },
+  { key: 'new_pg_daily', type: 'choice', options: [1, 2] },
+  { key: 'background_info', type: 'choice', options: [1, 2] },
   { key: 'improvement', type: 'text' }
 ]
 

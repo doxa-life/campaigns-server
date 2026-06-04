@@ -13,6 +13,9 @@ const ACTIVITY_LABELS: Record<string, string> = {
   experience: 'Most helpful part of the prayer page',
   clarity: 'Communicates what & why to pray (1-5)',
   balance: 'Scripture/prayer/reflection balance (1-5)',
+  scripted_preference: 'Scripted vs strategic prayer preference (1-4)',
+  new_pg_daily: 'Enjoys a new people group each day (1=Yes, 2=No)',
+  background_info: 'Background info helpful (1=Yes, 2=No)',
   improvement: 'One thing to change, add, or remove'
 }
 

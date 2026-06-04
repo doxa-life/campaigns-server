@@ -689,7 +689,7 @@
     "may2026": {
       "page": {
         "title": "Ihre Gebetserfahrung",
-        "intro": "Danke, dass Sie sich DOXA anschließen und für die nicht-engagierten Volksgruppen beten. Diese sechs Fragen dauern etwa drei Minuten, und Ihre Antworten helfen, die künftigen täglichen Gebetsanliegen zu gestalten. Es gibt keine richtigen oder falschen Antworten – wir möchten einfach Ihre ehrliche Erfahrung erfahren.",
+        "intro": "Danke, dass Sie sich ein paar Minuten Zeit nehmen, um uns zu helfen, die künftigen täglichen Gebetsinhalte zu gestalten. Es gibt keine richtigen oder falschen Antworten – wir möchten einfach Ihre ehrliche Erfahrung erfahren.",
         "submit": "Meine Antworten senden",
         "thanksTitle": "Vielen Dank!",
         "thanks": "Danke – Ihre Antworten sind eingegangen. Wir sind dankbar für Ihre Zeit und Ihre Gebete.",
@@ -739,6 +739,29 @@
             "5": "Voll und ganz"
           }
         },
+        "scripted_preference": {
+          "label": "Die Gebetsinhalte enthalten sowohl Gebetsanliegen mit strategischen Vorschlägen, wie man beten kann (z. B.: Bitte bete darum, dass Gott Missionare aus aller Welt erweckt, um gemeinsam die Gemeinde unter unerreichten Volksgruppen zu gründen.), als auch vorformulierte Gebete (z. B.: Vater, heute beten wir, dass diese Volksgruppe die Verheißung erfährt, die du Abraham gegeben hast, dass sie durch ihn gesegnet werden. Amen.). Was würden Sie bevorzugen:",
+          "options": {
+            "1": "Alle Gebetsanliegen sollen vorformuliert sein",
+            "2": "Etwa die Hälfte der Gebetsanliegen sollen vorformuliert sein",
+            "3": "Nur ein Gebetsanliegen soll vorformuliert sein (aktuelles Format)",
+            "4": "Kein Gebetsanliegen soll vorformuliert sein"
+          }
+        },
+        "new_pg_daily": {
+          "label": "Gefällt es Ihnen, jeden Tag eine neue unerreichte und nicht-engagierte Volksgruppe zu sehen?",
+          "options": {
+            "1": "Ja",
+            "2": "Nein"
+          }
+        },
+        "background_info": {
+          "label": "Ist es hilfreich, täglich am Ende der Gebetsinhalte die Hintergrundinformationen zu Ihrer Volksgruppe zu sehen?",
+          "options": {
+            "1": "Ja",
+            "2": "Nein"
+          }
+        },
         "improvement": {
           "label": "Wenn wir eine einzige Sache an den künftigen täglichen Inhalten verbessern könnten, was würden Sie ändern, hinzufügen oder weglassen?"
         }
@@ -749,7 +772,7 @@
         "greeting": "Hallo {name},",
         "greetingFallback": "Hallo,",
         "p1": "Es ist ein Vorrecht, gemeinsam mit Ihnen in Fürbitte für die unerreichten Volksgruppen der Welt einzutreten.",
-        "p2": "Wir möchten die täglichen Gebetsanliegen immer hilfreicher gestalten, und bevor wir uns als Team treffen, um die nächsten Schritte zu planen, würden wir gerne von Ihnen hören. Würden Sie sich ein paar Minuten Zeit nehmen, um sechs kurze Fragen zu Ihrer Erfahrung zu beantworten?",
+        "p2": "Wir möchten die täglichen Gebetsanliegen immer hilfreicher gestalten, und bevor wir uns als Team treffen, um die nächsten Schritte zu planen, würden wir gerne von Ihnen hören. Würden Sie sich ein paar Minuten Zeit nehmen, um ein paar kurze Fragen zu Ihrer Erfahrung zu beantworten?",
         "p3": "Ihr ehrliches Feedback – was funktioniert und was nicht – prägt direkt die Gebetsinhalte, die wir erstellen.",
         "cta": "An der Umfrage teilnehmen",
         "signoff": "Mit Dankbarkeit,",

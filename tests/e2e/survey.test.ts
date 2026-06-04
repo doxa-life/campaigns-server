@@ -90,7 +90,7 @@ describe('POST /api/survey/response', () => {
       method: 'POST',
       body: {
         id: subscriber.profile_id,
-        answers: { frequency: 3, focus: 4, clarity: 5, balance: 3, experience: 'Loved it', improvement: 'More Scripture' }
+        answers: { frequency: 3, focus: 4, clarity: 5, balance: 3, scripted_preference: 2, new_pg_daily: 1, background_info: 2, experience: 'Loved it', improvement: 'More Scripture' }
       }
     })
     expect(result.success).toBe(true)
@@ -102,6 +102,9 @@ describe('POST /api/survey/response', () => {
     expect(byKey.focus.value_int).toBe(4)
     expect(byKey.clarity.value_int).toBe(5)
     expect(byKey.balance.value_int).toBe(3)
+    expect(byKey.scripted_preference.value_int).toBe(2)
+    expect(byKey.new_pg_daily.value_int).toBe(1)
+    expect(byKey.background_info.value_int).toBe(2)
     expect(byKey.experience.value_text).toBe('Loved it')
     expect(byKey.improvement.value_text).toBe('More Scripture')
 

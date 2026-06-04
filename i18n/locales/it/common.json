@@ -689,7 +689,7 @@
     "may2026": {
       "page": {
         "title": "La tua esperienza di preghiera",
-        "intro": "Grazie per esserti unito e per pregare con DOXA per i gruppi etnici non coinvolti. Queste sei domande richiedono circa tre minuti e le tue risposte aiuteranno a dare forma ai futuri spunti di preghiera quotidiani. Non ci sono risposte giuste o sbagliate: vogliamo solo conoscere la tua esperienza sincera.",
+        "intro": "Grazie per aver dedicato qualche minuto ad aiutarci a dare forma ai futuri contenuti di preghiera quotidiani. Non ci sono risposte giuste o sbagliate: vogliamo solo conoscere la tua esperienza sincera.",
         "submit": "Invia le mie risposte",
         "thanksTitle": "Grazie!",
         "thanks": "Grazie: abbiamo ricevuto le tue risposte. Ti siamo grati per il tempo che hai dedicato e per le tue preghiere.",
@@ -739,6 +739,29 @@
             "5": "Moltissimo"
           }
         },
+        "scripted_preference": {
+          "label": "Il contenuto di preghiera comprende sia spunti di preghiera con suggerimenti strategici su come pregare (ad es.: Ti preghiamo di chiedere che Dio susciti missionari da tutto il mondo per piantare insieme la Chiesa tra i gruppi etnici non raggiunti.) sia preghiere preformulate (ad es.: Padre, oggi preghiamo che questo gruppo etnico sperimenti la promessa che hai fatto ad Abramo, che sarebbero benedetti attraverso di lui. Amen.). Cosa preferiresti:",
+          "options": {
+            "1": "Che tutte le richieste di preghiera siano preformulate",
+            "2": "Che circa la metà delle richieste di preghiera siano preformulate",
+            "3": "Che solo una richiesta di preghiera sia preformulata (formato attuale)",
+            "4": "Che nessuna richiesta di preghiera sia preformulata"
+          }
+        },
+        "new_pg_daily": {
+          "label": "Ti piace vedere ogni giorno un nuovo gruppo etnico non raggiunto e non coinvolto?",
+          "options": {
+            "1": "Sì",
+            "2": "No"
+          }
+        },
+        "background_info": {
+          "label": "Ti è utile vedere ogni giorno le informazioni di contesto sul tuo gruppo etnico in fondo al contenuto di preghiera?",
+          "options": {
+            "1": "Sì",
+            "2": "No"
+          }
+        },
         "improvement": {
           "label": "Se potessimo migliorare una sola cosa nei futuri contenuti quotidiani, cosa cambieresti, aggiungeresti o toglieresti?"
         }
@@ -749,7 +772,7 @@
         "greeting": "Ciao {name},",
         "greetingFallback": "Ciao,",
         "p1": "È stato un privilegio unirci a te nell'intercessione per i gruppi etnici non raggiunti del mondo.",
-        "p2": "Cerchiamo sempre di rendere gli spunti di preghiera quotidiani più utili e, prima di incontrarci come squadra per pianificare i prossimi passi, ci piacerebbe molto ascoltarti. Potresti dedicare qualche minuto a rispondere a sei brevi domande sulla tua esperienza?",
+        "p2": "Cerchiamo sempre di rendere gli spunti di preghiera quotidiani più utili e, prima di incontrarci come squadra per pianificare i prossimi passi, ci piacerebbe molto ascoltarti. Potresti dedicare qualche minuto a rispondere a qualche breve domanda sulla tua esperienza?",
         "p3": "La tua opinione sincera — ciò che funziona e ciò che non funziona — plasma direttamente i contenuti di preghiera che creiamo.",
         "cta": "Rispondi al sondaggio",
         "signoff": "Con gratitudine,",

@@ -689,7 +689,7 @@
     "may2026": {
       "page": {
         "title": "Votre expérience de prière",
-        "intro": "Merci de vous joindre à DOXA et de prier pour les groupes ethniques non-engagés. Ces six questions prennent environ trois minutes, et vos réponses contribueront à façonner les futurs sujets de prière quotidiens. Il n'y a pas de bonne ou de mauvaise réponse ; nous voulons simplement connaître votre expérience sincère.",
+        "intro": "Merci de prendre quelques minutes pour nous aider à façonner le futur contenu de prière quotidien. Il n'y a pas de bonne ou de mauvaise réponse ; nous voulons simplement connaître votre expérience sincère.",
         "submit": "Envoyer mes réponses",
         "thanksTitle": "Merci !",
         "thanks": "Merci, vos réponses ont bien été enregistrées. Nous vous sommes reconnaissants du temps que vous avez consacré et de vos prières.",
@@ -739,6 +739,29 @@
             "5": "Tout à fait"
           }
         },
+        "scripted_preference": {
+          "label": "Le contenu de prière comprend à la fois des sujets de prière avec des suggestions stratégiques sur la manière de prier (p. ex. : Veuillez prier pour que Dieu suscite des missionnaires du monde entier afin d'implanter ensemble l'Église parmi les groupes ethniques non-atteints.) et des prières rédigées (p. ex. : Père, aujourd'hui nous prions pour que ce groupe ethnique fasse l'expérience de la promesse que tu as faite à Abraham, qu'ils seraient bénis à travers lui. Amen.). Que préféreriez-vous :",
+          "options": {
+            "1": "Que toutes les demandes de prière soient rédigées",
+            "2": "Qu'environ la moitié des demandes de prière soient rédigées",
+            "3": "Qu'une seule demande de prière soit rédigée (format actuel)",
+            "4": "Qu'aucune demande de prière ne soit rédigée"
+          }
+        },
+        "new_pg_daily": {
+          "label": "Aimez-vous voir chaque jour un nouveau groupe ethnique non-atteint et non-engagé ?",
+          "options": {
+            "1": "Oui",
+            "2": "Non"
+          }
+        },
+        "background_info": {
+          "label": "Vous est-il utile de voir les informations de contexte sur votre groupe ethnique en bas du contenu de prière chaque jour ?",
+          "options": {
+            "1": "Oui",
+            "2": "Non"
+          }
+        },
         "improvement": {
           "label": "Si nous pouvions améliorer une seule chose dans le contenu quotidien à venir, que changeriez-vous, ajouteriez-vous ou supprimeriez-vous ?"
         }
@@ -749,7 +772,7 @@
         "greeting": "Bonjour {name},",
         "greetingFallback": "Bonjour,",
         "p1": "Ce fut un privilège de nous unir à vous dans l'intercession pour les groupes ethniques non-atteints du monde.",
-        "p2": "Nous cherchons toujours à rendre les sujets de prière quotidiens plus utiles et, avant de nous réunir en équipe pour planifier la suite, nous aimerions beaucoup vous entendre. Pourriez-vous prendre quelques minutes pour répondre à six courtes questions sur votre expérience ?",
+        "p2": "Nous cherchons toujours à rendre les sujets de prière quotidiens plus utiles et, avant de nous réunir en équipe pour planifier la suite, nous aimerions beaucoup vous entendre. Pourriez-vous prendre quelques minutes pour répondre à quelques courtes questions sur votre expérience ?",
         "p3": "Votre avis sincère — ce qui fonctionne, ce qui ne fonctionne pas — façonne directement le contenu de prière que nous créons.",
         "cta": "Répondre à l'enquête",
         "signoff": "Avec gratitude,",
