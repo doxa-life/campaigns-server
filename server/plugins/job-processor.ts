@@ -49,13 +49,12 @@ export default defineNitroPlugin((nitroApp) => {
 async function processJobQueue(): Promise<boolean> {
   // Process translation jobs one at a time so the progress UI can update between jobs.
   // Other job types (marketing emails) are batched for throughput.
-  const translationJob = await jobQueueService.getPendingJobs('translation_batch', 1)
+  const translationJob = await jobQueueService.claimJobs('translation_batch', 1)
 
   if (translationJob.length > 0) {
     const job = translationJob[0]!
     console.log(`Processing translation job ${job.id}...`)
     try {
-      await jobQueueService.markProcessing(job.id)
       const processor = getProcessor(job.type)
       const result = await processor(job)
 
@@ -77,7 +76,7 @@ async function processJobQueue(): Promise<boolean> {
 
   // Process other job types in batches
   const batchSize = 10
-  const pending = await jobQueueService.getPendingJobs(undefined, batchSize)
+  const pending = await jobQueueService.claimJobs(undefined, batchSize)
 
   if (pending.length === 0) return false
 
@@ -87,8 +86,6 @@ async function processJobQueue(): Promise<boolean> {
 
   for (const job of pending) {
     try {
-      await jobQueueService.markProcessing(job.id)
-
       const processor = getProcessor(job.type)
       const result = await processor(job)
 

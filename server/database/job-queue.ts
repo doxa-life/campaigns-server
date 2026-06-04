@@ -105,34 +105,34 @@ class JobQueueService {
     return (row as Job) || null
   }
 
-  async getPendingJobs(type?: JobType, limit: number = 10): Promise<Job[]> {
-    if (type) {
-      return await this.sql`
-        SELECT * FROM jobs
-        WHERE status = 'pending'
-          AND scheduled_at <= CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-          AND type = ${type}
-        ORDER BY priority DESC, scheduled_at ASC
-        LIMIT ${limit}
-      `
-    }
+  /**
+   * Atomically claim a batch of pending jobs for this instance.
+   *
+   * The app runs on multiple instances, each polling the queue concurrently.
+   * Selecting and flipping the rows to 'processing' in a single statement —
+   * with FOR UPDATE SKIP LOCKED on the inner select — guarantees two instances
+   * can never claim the same row, so each job is processed (and its email sent)
+   * exactly once. Returns the claimed rows, already in 'processing' status with
+   * attempts incremented.
+   */
+  async claimJobs(type?: JobType, limit: number = 10): Promise<Job[]> {
+    const typeFilter = type ? this.sql`AND type = ${type}` : this.sql``
     return await this.sql`
-      SELECT * FROM jobs
-      WHERE status = 'pending'
-        AND scheduled_at <= CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      ORDER BY priority DESC, scheduled_at ASC
-      LIMIT ${limit}
-    `
-  }
-
-  async markProcessing(id: number): Promise<void> {
-    await this.sql`
       UPDATE jobs
       SET status = 'processing',
           attempts = attempts + 1,
           last_attempt_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
           updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ${id}
+      WHERE id IN (
+        SELECT id FROM jobs
+        WHERE status = 'pending'
+          AND scheduled_at <= CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+          ${typeFilter}
+        ORDER BY priority DESC, scheduled_at ASC
+        LIMIT ${limit}
+        FOR UPDATE SKIP LOCKED
+      )
+      RETURNING *
     `
   }
 
