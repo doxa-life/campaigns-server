@@ -37,11 +37,11 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // Delete every recipient job that hasn't started yet, then mark the email
-    // cancelled. Jobs already processing finish; the processor's per-job status
-    // check skips any remaining sends for a cancelled email.
-    const cancelledCount = await jobQueueService.cancelPendingJobs('marketing_email', id)
+    // Mark cancelled BEFORE deleting pending jobs, so the processor's per-job live
+    // status check skips any in-flight jobs that haven't sent yet during the brief
+    // window before the delete lands. Then drop every not-yet-started recipient job.
     await marketingEmailService.updateStatus(id, 'cancelled')
+    const cancelledCount = await jobQueueService.cancelPendingJobs('marketing_email', id)
 
     const stats = await jobQueueService.getJobStats('marketing_email', id)
 

@@ -18,7 +18,6 @@ export default defineEventHandler(async (event) => {
       name: body.name.trim(),
       local_part: body.local_part.trim(),
       reply_to: body.reply_to?.trim() || null,
-      is_default: !!body.is_default,
       created_by: user.userId
     })
     return { success: true, sender }

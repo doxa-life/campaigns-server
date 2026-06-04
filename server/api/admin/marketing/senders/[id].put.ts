@@ -27,8 +27,7 @@ export default defineEventHandler(async (event) => {
     const sender = await marketingSenderService.update(id, {
       name: body.name?.trim(),
       local_part: body.local_part?.trim(),
-      reply_to: body.reply_to !== undefined ? (body.reply_to?.trim() || null) : undefined,
-      is_default: body.is_default
+      reply_to: body.reply_to !== undefined ? (body.reply_to?.trim() || null) : undefined
     })
     return { success: true, sender }
   } catch (error) {
