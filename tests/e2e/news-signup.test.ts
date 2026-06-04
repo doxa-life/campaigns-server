@@ -125,4 +125,36 @@ describe('POST /api/news-signup', async () => {
     expect(contact).toBeDefined()
     expect(contact!.value.toLowerCase()).toBe(email.toLowerCase())
   })
+
+  it('updates a placeholder anonymous name with the news signup name', async () => {
+    const anon = await createTestSubscriber(sql, { name: 'Anonymous' })
+    const email = `test-news-name-${Date.now()}@example.com`
+
+    const res = await $fetch('/api/news-signup', {
+      method: 'POST',
+      headers: { 'x-app-secret': SECRET },
+      body: { name: 'Real Name', email, tracking_id: anon.tracking_id, consent_doxa_general: true }
+    })
+
+    expect(res.tracking_id).toBe(anon.tracking_id)
+
+    const [subscriber] = await sql`SELECT name FROM subscribers WHERE id = ${anon.id}`
+    expect(subscriber.name).toBe('Real Name')
+  })
+
+  it('preserves an existing real name on news signup', async () => {
+    const existing = await createTestSubscriber(sql, { name: 'Existing Real Name' })
+    const email = `test-news-keepname-${Date.now()}@example.com`
+
+    const res = await $fetch('/api/news-signup', {
+      method: 'POST',
+      headers: { 'x-app-secret': SECRET },
+      body: { name: 'Different Name', email, tracking_id: existing.tracking_id, consent_doxa_general: true }
+    })
+
+    expect(res.tracking_id).toBe(existing.tracking_id)
+
+    const [subscriber] = await sql`SELECT name FROM subscribers WHERE id = ${existing.id}`
+    expect(subscriber.name).toBe('Existing Real Name')
+  })
 })
