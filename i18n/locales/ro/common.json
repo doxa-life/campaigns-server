@@ -745,7 +745,7 @@
           }
         },
         "new_pg_daily": {
-          "label": "Îți place să vezi în fiecare zi un nou grup etnic neatins și neangajat?",
+          "label": "Îți place secțiunea care te încurajează să te rogi în fiecare zi pentru un alt grup etnic neangajat, pe lângă grupul tău etnic specific?",
           "options": {
             "1": "Da",
             "2": "Nu"

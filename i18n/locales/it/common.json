@@ -749,7 +749,7 @@
           }
         },
         "new_pg_daily": {
-          "label": "Ti piace vedere ogni giorno un nuovo gruppo etnico non raggiunto e non coinvolto?",
+          "label": "Ti piace la sezione che ti incoraggia a pregare ogni giorno per un diverso gruppo etnico non coinvolto, oltre al tuo gruppo etnico specifico?",
           "options": {
             "1": "Sì",
             "2": "No"

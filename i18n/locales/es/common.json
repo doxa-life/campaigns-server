@@ -749,7 +749,7 @@
           }
         },
         "new_pg_daily": {
-          "label": "¿Disfrutas ver cada día un nuevo grupo étnico no alcanzado y no comprometido?",
+          "label": "¿Disfrutas la sección que te anima a orar cada día por un grupo étnico no comprometido diferente, además de tu grupo étnico específico?",
           "options": {
             "1": "Sí",
             "2": "No"

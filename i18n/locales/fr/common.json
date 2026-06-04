@@ -749,7 +749,7 @@
           }
         },
         "new_pg_daily": {
-          "label": "Aimez-vous voir chaque jour un nouveau groupe ethnique non-atteint et non-engagé ?",
+          "label": "Aimez-vous la section qui vous encourage à prier chaque jour pour un groupe ethnique non-engagé différent, en plus de votre propre groupe ethnique ?",
           "options": {
             "1": "Oui",
             "2": "Non"

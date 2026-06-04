@@ -749,7 +749,7 @@
           }
         },
         "new_pg_daily": {
-          "label": "Gefällt es Ihnen, jeden Tag eine neue unerreichte und nicht-engagierte Volksgruppe zu sehen?",
+          "label": "Gefällt Ihnen der Abschnitt, der Sie dazu ermutigt, jeden Tag für eine andere nicht-engagierte Volksgruppe zu beten – zusätzlich zu Ihrer eigenen Volksgruppe?",
           "options": {
             "1": "Ja",
             "2": "Nein"

@@ -751,7 +751,7 @@
           }
         },
         "new_pg_daily": {
-          "label": "Do you enjoy seeing a new Unengaged Unreached People Group being shown each day?",
+          "label": "Do you enjoy the section encouraging you to pray for a different, unengaged people group each day in addition to your specific people group?",
           "options": {
             "1": "Yes",
             "2": "No"
