@@ -262,7 +262,7 @@ const doxaCount = ref<number | null>(null)
 const peopleGroupCount = ref<number | null>(null)
 const adminCount = ref<number | null>(null)
 
-interface Sender { id: number; name: string; local_part: string; is_default: boolean }
+interface Sender { id: number; name: string; local_part: string }
 const senders = ref<Sender[]>([])
 const senderDomain = ref('')
 
@@ -303,6 +303,7 @@ const canSave = computed(() => {
 
 const canSend = computed(() => {
   if (!canSave.value) return false
+  if (senderOptions.value.length > 0 && !form.value.sender_id) return false
   if (form.value.audience_type === 'doxa') return !!(doxaCount.value && doxaCount.value > 0)
   if (form.value.audience_type === 'people_group') return !!(peopleGroupCount.value && peopleGroupCount.value > 0)
   if (form.value.audience_type === 'admins') return !!(adminCount.value && adminCount.value > 0)
@@ -353,6 +354,7 @@ async function loadEmail() {
         content: response.email.content_json
       }
       originalForm.value = JSON.stringify(form.value)
+      applySingleSenderDefault()
 
       if (response.email.audience_type === 'people_group' && response.email.people_group_id) {
         void loadPeopleGroupCount()
@@ -396,11 +398,21 @@ async function loadAdminCount() {
   }
 }
 
+// No default sender: only auto-select when there's a single sender. Called after
+// both the email and the sender list load, since either may resolve first.
+function applySingleSenderDefault() {
+  const [onlySender] = senders.value
+  if (!form.value.sender_id && senders.value.length === 1 && onlySender) {
+    form.value.sender_id = onlySender.id
+  }
+}
+
 async function loadSenders() {
   try {
     const response = await $fetch<{ senders: Sender[]; domain: string }>('/api/admin/marketing/senders')
     senders.value = response.senders || []
     senderDomain.value = response.domain || ''
+    applySingleSenderDefault()
   } catch (error) {
     console.error('Failed to load senders:', error)
   }

@@ -246,7 +246,7 @@ const doxaCount = ref<number | null>(null)
 const peopleGroupCount = ref<number | null>(null)
 const adminCount = ref<number | null>(null)
 
-interface Sender { id: number; name: string; local_part: string; is_default: boolean }
+interface Sender { id: number; name: string; local_part: string }
 const senders = ref<Sender[]>([])
 const senderDomain = ref('')
 
@@ -284,6 +284,7 @@ const canSave = computed(() => {
 
 const canSend = computed(() => {
   if (!canSave.value) return false
+  if (senderOptions.value.length > 0 && !form.value.sender_id) return false
   if (form.value.audience_type === 'doxa') return !!(doxaCount.value && doxaCount.value > 0)
   if (form.value.audience_type === 'doxa_active_pg') return !!(doxaActivePgCount.value && doxaActivePgCount.value > 0)
   if (form.value.audience_type === 'active_pg') return !!(activePgCount.value && activePgCount.value > 0)
@@ -396,9 +397,11 @@ async function loadSenders() {
     const response = await $fetch<{ senders: Sender[]; domain: string }>('/api/admin/marketing/senders')
     senders.value = response.senders || []
     senderDomain.value = response.domain || ''
-    if (!form.value.sender_id) {
-      const def = senders.value.find(s => s.is_default)
-      if (def) form.value.sender_id = def.id
+    // No default sender: only auto-select when there's a single sender (no choice
+    // to make). With multiple senders the user must pick one before sending.
+    const [onlySender] = senders.value
+    if (!form.value.sender_id && senders.value.length === 1 && onlySender) {
+      form.value.sender_id = onlySender.id
     }
   } catch (error) {
     console.error('Failed to load senders:', error)

@@ -55,13 +55,6 @@ class MarketingSenderService {
     return (row as MarketingSender) || null
   }
 
-  async getDefault(): Promise<MarketingSender | null> {
-    const [row] = await this.sql`
-      SELECT * FROM marketing_senders WHERE active = true AND is_default = true LIMIT 1
-    `
-    return (row as MarketingSender) || null
-  }
-
   async create(data: CreateMarketingSenderData): Promise<MarketingSender> {
     this.validateLocalPart(data.local_part)
 

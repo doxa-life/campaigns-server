@@ -27,11 +27,15 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
       await marketingEmailService.updateStatus(email.id, 'sending')
     }
 
-    // Resolve the From identity (chosen sender, else the default sender).
+    // Resolve the From identity. Use the chosen sender; when none was chosen,
+    // fall back to the sole sender only if exactly one exists (there is no default
+    // sender — multiple senders require an explicit choice at send time).
     // Reply-To defaults to the inbox contact address so replies land in the inbox.
-    const sender = email.sender_id
-      ? await marketingSenderService.getById(email.sender_id)
-      : await marketingSenderService.getDefault()
+    let sender = email.sender_id ? await marketingSenderService.getById(email.sender_id) : null
+    if (!sender && !email.sender_id) {
+      const activeSenders = await marketingSenderService.list()
+      if (activeSenders.length === 1 && activeSenders[0]) sender = activeSenders[0]
+    }
     const from = sender ? (buildMarketingFrom(sender.name, sender.local_part) ?? undefined) : undefined
     const replyTo = sender?.reply_to || config.inboxContactAddress || undefined
 

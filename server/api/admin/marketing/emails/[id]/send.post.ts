@@ -1,4 +1,5 @@
 import { marketingEmailService } from '#server/database/marketing-emails'
+import { marketingSenderService } from '#server/database/marketing-senders'
 import { jobQueueService } from '#server/database/job-queue'
 import { contactMethodService } from '#server/database/contact-methods'
 import { handleApiError } from '#server/utils/api-helpers'
@@ -35,6 +36,18 @@ export default defineEventHandler(async (event) => {
       statusCode: 400,
       statusMessage: 'Only drafts can be sent'
     })
+  }
+
+  // No default sender: when more than one sender is configured the From must be
+  // chosen explicitly. A single configured sender is resolved automatically at send.
+  if (!email.sender_id) {
+    const senders = await marketingSenderService.list()
+    if (senders.length > 1) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Select a From sender before sending'
+      })
+    }
   }
 
   const canSend = await marketingEmailService.canUserSendToAudience(

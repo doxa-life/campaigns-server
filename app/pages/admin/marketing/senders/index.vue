@@ -24,7 +24,6 @@
         <div class="sender-info">
           <div class="sender-name">
             {{ s.name }}
-            <UBadge v-if="s.is_default" label="Default" color="primary" variant="subtle" size="sm" />
           </div>
           <div class="sender-address">{{ s.local_part }}@{{ domain || '…' }}</div>
           <div class="sender-reply">Reply-To: {{ s.reply_to || defaultReplyTo }}</div>
@@ -58,8 +57,6 @@
           <UFormField label="Reply-To" :help="`Leave blank to use ${defaultReplyTo}`">
             <UInput v-model="form.reply_to" :placeholder="defaultReplyTo" class="w-full" />
           </UFormField>
-
-          <USwitch v-model="form.is_default" label="Set as default sender" />
         </div>
       </template>
       <template #footer>
@@ -98,7 +95,6 @@ interface Sender {
   name: string
   local_part: string
   reply_to: string | null
-  is_default: boolean
   active: boolean
 }
 
@@ -107,7 +103,7 @@ const domain = ref('')
 const showEditor = ref(false)
 const saving = ref(false)
 const editing = ref<Sender | null>(null)
-const form = ref({ name: '', local_part: '', reply_to: '', is_default: false })
+const form = ref({ name: '', local_part: '', reply_to: '' })
 
 const showDelete = ref(false)
 const pendingDelete = ref<Sender | null>(null)
@@ -126,13 +122,13 @@ async function load() {
 
 function startNew() {
   editing.value = null
-  form.value = { name: '', local_part: '', reply_to: '', is_default: senders.value.length === 0 }
+  form.value = { name: '', local_part: '', reply_to: '' }
   showEditor.value = true
 }
 
 function edit(s: Sender) {
   editing.value = s
-  form.value = { name: s.name, local_part: s.local_part, reply_to: s.reply_to || '', is_default: s.is_default }
+  form.value = { name: s.name, local_part: s.local_part, reply_to: s.reply_to || '' }
   showEditor.value = true
 }
 
@@ -143,8 +139,7 @@ async function save() {
     const body = {
       name: form.value.name.trim(),
       local_part: form.value.local_part.trim(),
-      reply_to: form.value.reply_to.trim() || null,
-      is_default: form.value.is_default
+      reply_to: form.value.reply_to.trim() || null
     }
     if (editing.value?.id) {
       await $fetch(`/api/admin/marketing/senders/${editing.value.id}`, { method: 'PUT', body })
