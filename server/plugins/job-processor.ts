@@ -38,11 +38,29 @@ export default defineNitroPlugin((nitroApp) => {
 
   setTimeout(drainQueue, 15000)
 
+  // Reaper: return jobs stranded in 'processing' by a crashed/redeployed instance
+  // back to the queue. Threshold must comfortably exceed the longest a single job
+  // can legitimately take, so a slow-but-live job is never reclaimed (which would
+  // double-send). 15 min is well past the 5 min drain-cycle assumption above.
+  const staleTimeoutMinutes = Number(process.env.JOB_STALE_TIMEOUT_MINUTES) || 15
+  const reapStaleJobs = async () => {
+    try {
+      const { requeued, failed } = await jobQueueService.reapStaleJobs(staleTimeoutMinutes)
+      if (requeued || failed) {
+        console.log(`Reaped stale jobs: ${requeued} requeued, ${failed} failed`)
+      }
+    } catch (error: any) {
+      console.error('Job reaper error:', error.message)
+    }
+  }
+  const reapInterval = setInterval(reapStaleJobs, 60 * 1000)
+
   console.log('Job processor initialized')
 
   nitroApp.hooks.hook('close', () => {
     console.log('Stopping job processor...')
     clearInterval(interval)
+    clearInterval(reapInterval)
   })
 })
 

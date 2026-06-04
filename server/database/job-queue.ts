@@ -168,6 +168,37 @@ class JobQueueService {
     return result.count > 0
   }
 
+  /**
+   * Recover jobs stranded in 'processing' by an instance that crashed or was
+   * redeployed mid-batch. claimJobs only ever selects 'pending', so without this
+   * sweep a stranded row is never re-claimed and its parent (e.g. a marketing
+   * email) stays wedged in 'sending' forever. Rows past the timeout go back to
+   * 'pending' for re-claim while attempts remain, or to 'failed' once exhausted.
+   * Keyed off last_attempt_at, which claimJobs stamps on every claim. Idempotent
+   * and safe to run concurrently across instances.
+   */
+  async reapStaleJobs(timeoutMinutes: number): Promise<{ requeued: number; failed: number }> {
+    const requeued = await this.sql`
+      UPDATE jobs
+      SET status = 'pending',
+          error_message = NULL,
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE status = 'processing'
+        AND attempts < max_attempts
+        AND last_attempt_at < CURRENT_TIMESTAMP AT TIME ZONE 'UTC' - make_interval(mins => ${timeoutMinutes})
+    `
+    const failed = await this.sql`
+      UPDATE jobs
+      SET status = 'failed',
+          error_message = COALESCE(error_message, 'Stalled in processing past max attempts'),
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE status = 'processing'
+        AND attempts >= max_attempts
+        AND last_attempt_at < CURRENT_TIMESTAMP AT TIME ZONE 'UTC' - make_interval(mins => ${timeoutMinutes})
+    `
+    return { requeued: requeued.count, failed: failed.count }
+  }
+
   async getJobStats(referenceType?: string, referenceId?: number): Promise<JobStats> {
     let result
     if (referenceType && referenceId) {
