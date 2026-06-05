@@ -1,11 +1,31 @@
 import { messageService } from '../../../database/conversation-messages'
+import { contactMethodService } from '../../../database/contact-methods'
 import { validateMailgunWebhook, releaseSeenToken } from '../../../utils/mailgun-webhook'
 
 /**
- * Mailgun delivery-event webhook. Updates the OUTBOUND message's delivery state only.
+ * Mailgun delivery-event webhook. Two independent jobs:
+ *  1. Address suppression — hard bounces / complaints / unsubscribes flag the
+ *     recipient on contact_methods (suppressed_at) so every send path stops mailing
+ *     it. Keyed on `recipient`, so it works for marketing/reminder sends we don't
+ *     otherwise correlate. Temporary failures are ignored (Mailgun retries them).
+ *  2. Outbound message state — updates the matching conversation message's delivery
+ *     state by message-id.
  * Never touches `verified` — ownership is established solely by authenticated inbound
- * (see inbound webhook). Deliverability lives on the message row, separate from consent.
+ * (see inbound webhook). Deliverability lives on the address/message, separate from consent.
  */
+
+/**
+ * Map a Mailgun event to a deliverability-suppression reason, or null when it must
+ * not suppress. `failed` carries a severity (permanent vs temporary); legacy
+ * permanent_fail/rejected/bounced are always permanent. Note: `unsubscribed` is NOT
+ * here — it's handled as a marketing consent opt-out, not a deliverability block.
+ */
+function classifySuppression(eventType: string, severity: string): 'hard_bounce' | 'complaint' | null {
+  if (eventType === 'complained') return 'complaint'
+  if (eventType === 'failed') return severity === 'temporary' ? null : 'hard_bounce'
+  if (eventType === 'permanent_fail' || eventType === 'rejected' || eventType === 'bounced') return 'hard_bounce'
+  return null
+}
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
 
@@ -28,18 +48,57 @@ export default defineEventHandler(async (event) => {
 
   const eventData = body['event-data'] || body
   const eventType = String(eventData.event || '').toLowerCase()
+  const severity = String(eventData.severity || '').toLowerCase()
+  const recipient = String(eventData.recipient || '')
+  const reasonText = eventData['delivery-status']?.message || eventData.reason || eventData.severity || ''
   const messageId =
     eventData.message?.headers?.['message-id'] ||
     eventData['message-id'] ||
     body['Message-Id'] ||
     ''
 
-  if (!messageId) {
-    // Nothing to correlate — acknowledge so Mailgun doesn't retry a useless event.
-    return { status: 'ignored' }
-  }
-
   try {
+    // 1. Address-level suppression — independent of any outbound message match.
+    let suppressed = false
+    const suppressReason = recipient ? classifySuppression(eventType, severity) : null
+    if (suppressReason) {
+      const row = await contactMethodService.suppressByEmail(recipient, suppressReason, reasonText || undefined)
+      if (row) {
+        suppressed = true
+        // Surface on the contact's activity timeline when the address maps to a
+        // subscriber; otherwise keep a registry-row audit entry.
+        if (row.subscriber_id) {
+          logUpdate('subscribers', String(row.subscriber_id), undefined, {
+            badge: 'Email Suppressed', source: 'Mailgun', email: row.value, reason: suppressReason, detail: String(reasonText)
+          })
+        } else {
+          logUpdate('contact_methods', String(row.id), undefined, { email: row.value, reason: suppressReason, detail: String(reasonText) })
+        }
+      }
+    }
+
+    // 1b. Mailgun-tracked unsubscribe — a consent signal, not a dead mailbox. Opt the
+    // address out of marketing only; deliverability (transactional mail) is untouched.
+    let unsubscribed = false
+    if (recipient && eventType === 'unsubscribed') {
+      const row = await contactMethodService.unsubscribeFromMarketing(recipient)
+      if (row) {
+        unsubscribed = true
+        if (row.subscriber_id) {
+          logUpdate('subscribers', String(row.subscriber_id), undefined, {
+            badge: 'Unsubscribed', source: 'Mailgun', email: row.value
+          })
+        }
+      }
+    }
+
+    // 2. Outbound message state — needs a message-id to correlate.
+    if (!messageId) {
+      // No message to correlate; acknowledge so Mailgun doesn't retry a useless event.
+      const status = suppressed ? 'suppressed' : unsubscribed ? 'unsubscribed' : 'ignored'
+      return { status, suppressed, unsubscribed }
+    }
+
     if (eventType === 'delivered') {
       const updated = await messageService.markDeliveryByProviderId(messageId, 'delivered', {
         delivered_at: new Date().toISOString(),
@@ -56,10 +115,11 @@ export default defineEventHandler(async (event) => {
       if (updated) {
         logUpdate('conversation_messages', String(updated.id), undefined, { message: 'Delivery failed', delivery: 'failed', reason })
       }
-      return { status: 'failed', matched: !!updated }
+      return { status: 'failed', matched: !!updated, suppressed }
     }
 
-    return { status: 'ignored', event: eventType }
+    const status = suppressed ? 'suppressed' : unsubscribed ? 'unsubscribed' : 'ignored'
+    return { status, event: eventType, suppressed, unsubscribed }
   } catch (error: any) {
     // Release the seen token so Mailgun's retry (same token) isn't rejected as a replay.
     if (sig?.token) releaseSeenToken(sig.token)

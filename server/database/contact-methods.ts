@@ -1,9 +1,15 @@
 import { getSql } from './db'
 import { randomUUID } from 'crypto'
 
+// Deliverability suppression reasons. An unsubscribe is NOT here — it's a consent
+// signal (see unsubscribeFromMarketing), not a dead/complaining mailbox.
+export type SuppressionReason = 'hard_bounce' | 'complaint'
+
 export interface ContactMethod {
   id: number
-  subscriber_id: number
+  // Nullable: registry-only rows record addresses we've interacted with (e.g. a
+  // bounced test send) that aren't tied to a subscriber.
+  subscriber_id: number | null
   type: 'email' | 'phone'
   value: string
   verified: boolean
@@ -16,6 +22,11 @@ export interface ContactMethod {
   consent_product_emails_at: string | null
   consented_people_group_ids: number[]
   consented_people_group_ids_at: Record<string, string>
+  // Deliverability (fed by the Mailgun delivery webhook). suppressed_at null = deliverable.
+  suppressed_at: string | null
+  suppression_reason: SuppressionReason | null
+  suppression_detail: string | null
+  bounce_count: number
   created_at: string
   updated_at: string
 }
@@ -28,9 +39,14 @@ class ContactMethodService {
     type: 'email' | 'phone',
     value: string
   ): Promise<ContactMethod> {
+    // Claim a pre-existing registry-only row (e.g. one created by a bounce before
+    // this address ever became a subscriber); keep the current owner otherwise.
     const [row] = await this.sql`
       INSERT INTO contact_methods (subscriber_id, type, value)
       VALUES (${subscriberId}, ${type}, ${value})
+      ON CONFLICT (type, value) DO UPDATE
+        SET subscriber_id = COALESCE(contact_methods.subscriber_id, ${subscriberId}),
+            updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       RETURNING *
     `
     return row as ContactMethod
@@ -201,10 +217,105 @@ class ContactMethodService {
     return this.getById(id)
   }
 
+  // --- Deliverability / suppression -----------------------------------------
+
+  async isSuppressed(value: string): Promise<boolean> {
+    const [row] = await this.sql`
+      SELECT 1 FROM contact_methods
+      WHERE type = 'email' AND LOWER(value) = LOWER(${value}) AND suppressed_at IS NOT NULL
+      LIMIT 1
+    `
+    return !!row
+  }
+
+  /**
+   * Mark an address undeliverable (hard bounce / complaint / unsubscribe). Updates
+   * every existing row for the address (case-insensitive); if none exists, records a
+   * registry-only row (no subscriber). Idempotent — repeats bump bounce_count.
+   * Returns the affected row (for activity logging / subscriber resolution).
+   */
+  async suppressByEmail(value: string, reason: SuppressionReason, detail?: string): Promise<ContactMethod | null> {
+    const updated = await this.sql`
+      UPDATE contact_methods
+      SET suppressed_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
+          suppression_reason = ${reason},
+          suppression_detail = ${detail ?? null},
+          bounce_count = bounce_count + 1,
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE type = 'email' AND LOWER(value) = LOWER(${value})
+      RETURNING *
+    `
+    if (updated.length > 0) return updated[0] as ContactMethod
+
+    const [inserted] = await this.sql`
+      INSERT INTO contact_methods (subscriber_id, type, value, suppressed_at, suppression_reason, suppression_detail, bounce_count)
+      VALUES (NULL, 'email', ${value}, CURRENT_TIMESTAMP AT TIME ZONE 'UTC', ${reason}, ${detail ?? null}, 1)
+      ON CONFLICT (type, value) DO UPDATE SET
+        suppressed_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
+        suppression_reason = ${reason},
+        suppression_detail = ${detail ?? null},
+        bounce_count = contact_methods.bounce_count + 1,
+        updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      RETURNING *
+    `
+    return (inserted as ContactMethod) ?? null
+  }
+
+  /**
+   * Opt an address out of all marketing (provider/Mailgun unsubscribe, or our own
+   * one-click). Turns off every marketing consent but leaves deliverability
+   * (suppressed_at) untouched, so transactional mail — e.g. prayer reminders, which
+   * are gated by subscription status, not consent — keeps flowing. Updates existing
+   * rows only (no consent record to flip for an unknown address). Returns the row.
+   */
+  async unsubscribeFromMarketing(value: string): Promise<ContactMethod | null> {
+    const rows = await this.sql`
+      UPDATE contact_methods
+      SET consent_doxa_general = false,
+          consent_doxa_general_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
+          consent_product_emails = false,
+          consent_product_emails_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
+          consented_people_group_ids = '{}',
+          consented_people_group_ids_at = '{}',
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE type = 'email' AND LOWER(value) = LOWER(${value})
+      RETURNING *
+    `
+    return (rows[0] as ContactMethod) ?? null
+  }
+
+  /** Clear suppression on an address (admin un-suppression of a false positive). */
+  async clearSuppressionByEmail(value: string): Promise<ContactMethod | null> {
+    const rows = await this.sql`
+      UPDATE contact_methods
+      SET suppressed_at = NULL, suppression_reason = NULL, suppression_detail = NULL,
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE type = 'email' AND LOWER(value) = LOWER(${value}) AND suppressed_at IS NOT NULL
+      RETURNING *
+    `
+    return (rows[0] as ContactMethod) ?? null
+  }
+
+  /** All currently-suppressed email addresses, with subscriber name when linked. */
+  async listSuppressed(): Promise<Array<{
+    id: number; value: string; suppression_reason: string | null; suppression_detail: string | null
+    suppressed_at: string | null; bounce_count: number; subscriber_id: number | null; subscriber_name: string | null
+  }>> {
+    return await this.sql`
+      SELECT cm.id, cm.value, cm.suppression_reason, cm.suppression_detail,
+        cm.suppressed_at, cm.bounce_count, cm.subscriber_id, s.name as subscriber_name
+      FROM contact_methods cm
+      LEFT JOIN subscribers s ON s.id = cm.subscriber_id
+      WHERE cm.type = 'email' AND cm.suppressed_at IS NOT NULL
+      ORDER BY cm.suppressed_at DESC
+    ` as any
+  }
+
   async getContactsWithDoxaConsent(): Promise<ContactMethod[]> {
     return await this.sql`
       SELECT * FROM contact_methods
       WHERE consent_doxa_general = true AND verified = true
+      AND suppressed_at IS NULL
       ORDER BY created_at DESC
     `
   }
@@ -214,6 +325,7 @@ class ContactMethodService {
     return await this.sql`
       SELECT cm.* FROM contact_methods cm
       WHERE cm.consent_doxa_general = true AND cm.verified = true
+      AND cm.suppressed_at IS NULL
       AND EXISTS (
         SELECT 1 FROM campaign_subscriptions cs
         WHERE cs.subscriber_id = cm.subscriber_id AND cs.status = 'active'
@@ -231,6 +343,7 @@ class ContactMethodService {
       SELECT cm.* FROM contact_methods cm
       WHERE cm.type = 'email' AND cm.verified = true
       AND cm.consent_product_emails = true
+      AND cm.suppressed_at IS NULL
       AND EXISTS (
         SELECT 1 FROM campaign_subscriptions cs
         WHERE cs.subscriber_id = cm.subscriber_id AND cs.status = 'active'
@@ -244,6 +357,7 @@ class ContactMethodService {
     return await this.sql`
       SELECT * FROM contact_methods
       WHERE id IN ${this.sql(ids)} AND type = 'email'
+      AND suppressed_at IS NULL
     `
   }
 
@@ -320,6 +434,7 @@ class ContactMethodService {
     return await this.sql`
       SELECT * FROM contact_methods
       WHERE ${peopleGroupId} = ANY(consented_people_group_ids) AND verified = true
+      AND suppressed_at IS NULL
       ORDER BY created_at DESC
     `
   }

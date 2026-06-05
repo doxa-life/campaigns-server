@@ -23,6 +23,13 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
     return { success: true, data: { skipped: 'cancelled' } }
   }
 
+  // Safety net for addresses suppressed (hard bounce / complaint) after this job
+  // was enqueued. Selection-time filtering already excludes most; skip here without
+  // counting it as a failure.
+  if (await contactMethodService.isSuppressed(payload.recipient_email)) {
+    return { success: true, data: { skipped: 'suppressed' } }
+  }
+
   let cached = emailCache.get(payload.marketing_email_id)
   if (!cached) {
     const email = await marketingEmailService.getByIdWithPeopleGroup(payload.marketing_email_id)
@@ -58,7 +65,7 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
   // the recipient is also a subscriber.
   if (!subscriber && payload.recipient_email) {
     const contact = await contactMethodService.getByValue('email', payload.recipient_email)
-    if (contact) subscriber = await subscriberService.getSubscriberById(contact.subscriber_id)
+    if (contact?.subscriber_id) subscriber = await subscriberService.getSubscriberById(contact.subscriber_id)
   }
   const profileId = subscriber?.profile_id || 'unknown'
   const subscriberLanguage = subscriber?.preferred_language || 'en'

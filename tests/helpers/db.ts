@@ -62,6 +62,9 @@ export async function cleanupTestData(sql: ReturnType<typeof postgres>) {
   await sql`DELETE FROM campaign_subscriptions WHERE people_group_id IN (SELECT id FROM people_groups WHERE slug LIKE 'test-%')`
   await sql`DELETE FROM contact_methods WHERE subscriber_id IN (SELECT id FROM subscribers WHERE name LIKE 'Test %')`
 
+  // Clean registry-only contact rows created by suppression tests (no subscriber)
+  await sql`DELETE FROM contact_methods WHERE subscriber_id IS NULL AND value LIKE 'test-%@example.com'`
+
   // Clean other tables with people_group_id FK
   await sql`DELETE FROM prayer_activity WHERE people_group_id IN (SELECT id FROM people_groups WHERE slug LIKE 'test-%')`
   await sql`DELETE FROM marketing_emails WHERE people_group_id IN (SELECT id FROM people_groups WHERE slug LIKE 'test-%')`
