@@ -2,7 +2,7 @@ import type { Fragment } from 'postgres'
 import { getSql } from './db'
 import { buildWhere, buildSet } from './sql-helpers'
 import { randomUUID } from 'crypto'
-import { contactMethodService, type ContactMethod } from './contact-methods'
+import { contactMethodService, type ContactMethod, type SuppressionReason } from './contact-methods'
 import { peopleGroupSubscriptionService, type PeopleGroupSubscriptionWithDetails } from './people-group-subscriptions'
 import type { FilterState } from '#shared/crm/filter-types'
 import { buildFilterConditions } from '../utils/crm/filter-sql'
@@ -30,12 +30,26 @@ export interface Subscriber {
   updated_at: string
 }
 
+export interface EmailSuppressionInfo {
+  reason: SuppressionReason
+  last_seen_at: string
+}
+
+// Map an email contact row to its suppression badge info (null = deliverable).
+function contactSuppression(c: ContactMethod): EmailSuppressionInfo | null {
+  return c.type === 'email' && c.suppressed_at
+    ? { reason: c.suppression_reason as SuppressionReason, last_seen_at: c.suppressed_at }
+    : null
+}
+
 export interface SubscriberWithContacts extends Subscriber {
   contacts: {
     id: number
     type: 'email' | 'phone'
     value: string
     verified: boolean
+    // Deliverability suppression for email contacts (hard bounce / complaint / unsubscribe).
+    suppression: EmailSuppressionInfo | null
   }[]
 }
 
@@ -49,6 +63,8 @@ export interface SubscriberConsents {
 export interface SubscriberWithSubscriptions extends SubscriberWithContacts {
   primary_email: string | null
   primary_phone: string | null
+  // Suppression state of the primary email, surfaced for list/badge rendering.
+  email_suppression: EmailSuppressionInfo | null
   subscriptions: PeopleGroupSubscriptionWithDetails[]
   consents: SubscriberConsents
   total_prayer_minutes: number
@@ -95,7 +111,7 @@ class SubscriberService {
 
   async getSubscriberByContactMethodId(contactMethodId: number): Promise<Subscriber | null> {
     const contact = await contactMethodService.getById(contactMethodId)
-    if (!contact) return null
+    if (!contact?.subscriber_id) return null
     return this.getSubscriberById(contact.subscriber_id)
   }
 
@@ -111,7 +127,8 @@ class SubscriberService {
         id: c.id,
         type: c.type,
         value: c.value,
-        verified: c.verified
+        verified: c.verified,
+        suppression: contactSuppression(c)
       }))
     }
   }
@@ -158,7 +175,7 @@ class SubscriberService {
   }): Promise<{ subscriber: Subscriber; isNew: boolean }> {
     if (input.email) {
       const emailContact = await contactMethodService.getByValue('email', input.email)
-      if (emailContact) {
+      if (emailContact?.subscriber_id) {
         const subscriber = await this.getSubscriberById(emailContact.subscriber_id)
         if (subscriber) return { subscriber, isNew: false }
       }
@@ -166,7 +183,7 @@ class SubscriberService {
 
     if (input.phone) {
       const phoneContact = await contactMethodService.getByValue('phone', input.phone)
-      if (phoneContact) {
+      if (phoneContact?.subscriber_id) {
         const subscriber = await this.getSubscriberById(phoneContact.subscriber_id)
         if (subscriber) return { subscriber, isNew: false }
       }
@@ -229,7 +246,7 @@ class SubscriberService {
     trackingId?: string | null
   }): Promise<{ subscriber: Subscriber; isNew: boolean }> {
     const emailContact = await contactMethodService.getByValue('email', input.email)
-    if (emailContact) {
+    if (emailContact?.subscriber_id) {
       const subscriber = await this.getSubscriberById(emailContact.subscriber_id)
       if (subscriber) return { subscriber, isNew: false }
     }
@@ -442,10 +459,12 @@ class SubscriberService {
     `
     const contactsBySubscriber = new Map<number, ContactMethod[]>()
     for (const c of contactsRows) {
-      const list = contactsBySubscriber.get(c.subscriber_id) ?? []
+      // Loaded WHERE subscriber_id IN (ids), so subscriber_id is non-null here.
+      const list = contactsBySubscriber.get(c.subscriber_id!) ?? []
       list.push(c)
-      contactsBySubscriber.set(c.subscriber_id, list)
+      contactsBySubscriber.set(c.subscriber_id!, list)
     }
+
 
     const subscriptionRows = await this.sql`
       SELECT cs.*, pg.name as people_group_name, pg.slug as people_group_slug,
@@ -525,10 +544,12 @@ class SubscriberService {
           id: c.id,
           type: c.type,
           value: c.value,
-          verified: c.verified
+          verified: c.verified,
+          suppression: contactSuppression(c)
         })),
         primary_email: emailContact?.value || null,
         primary_phone: phoneContact?.value || null,
+        email_suppression: emailContact ? contactSuppression(emailContact) : null,
         subscriptions,
         consents: {
           doxa_general: emailContact?.consent_doxa_general || false,

@@ -109,7 +109,8 @@ export default defineEventHandler(async (event) => {
         }).catch(err => console.error('Failed to send adoption welcome email:', err))
       }
 
-      const subscriber = await subscriberService.getSubscriberById(result.contactMethod.subscriber_id)
+      // A token-verified contact method is always subscriber-linked.
+      const subscriber = await subscriberService.getSubscriberById(result.contactMethod.subscriber_id!)
 
       if (subscriber && !result.alreadyVerified) {
         trackEventInBackground(event, {
@@ -134,7 +135,7 @@ export default defineEventHandler(async (event) => {
         groupId: pending.group_id,
         contactName: subscriber?.name || formData.first_name || '',
         contactEmail: result.contactMethod.value,
-        subscriberId: result.contactMethod.subscriber_id,
+        subscriberId: result.contactMethod.subscriber_id!,
         phone: formData.phone,
         role: subscriber?.role || undefined,
         language: subscriber?.preferred_language || formData.locale,

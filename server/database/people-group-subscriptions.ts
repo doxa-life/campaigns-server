@@ -398,6 +398,7 @@ class PeopleGroupSubscriptionService {
           AND cs.status = 'active'
           AND cs.delivery_method = 'email'
           AND cm.verified = true
+          AND cm.suppressed_at IS NULL
           AND (cs.claimed_at IS NULL OR cs.claimed_at < CURRENT_TIMESTAMP AT TIME ZONE 'UTC' - INTERVAL '5 minutes')
         ORDER BY cs.next_reminder_utc ASC
         FOR UPDATE OF cs SKIP LOCKED
@@ -438,6 +439,7 @@ class PeopleGroupSubscriptionService {
         AND cs.status = 'active'
         AND cs.delivery_method = 'email'
         AND cm.verified = true
+        AND cm.suppressed_at IS NULL
       ORDER BY cs.next_reminder_utc ASC
     `
     rows.forEach(parseDaysOfWeek)
