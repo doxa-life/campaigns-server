@@ -57,9 +57,11 @@ export default defineEventHandler(async (event) => {
   let subscriber = null
   let latestActive: PeopleGroupSubscription | null = null
   if (result.contactMethod) {
-    await peopleGroupSubscriptionService.activatePendingSubscriptions(result.contactMethod.subscriber_id)
-    await peopleGroupSubscriptionService.setNextRemindersForSubscriber(result.contactMethod.subscriber_id)
-    subscriber = await subscriberService.getSubscriberById(result.contactMethod.subscriber_id)
+    // A token-verified contact method is always subscriber-linked.
+    const subscriberId = result.contactMethod.subscriber_id!
+    await peopleGroupSubscriptionService.activatePendingSubscriptions(subscriberId)
+    await peopleGroupSubscriptionService.setNextRemindersForSubscriber(subscriberId)
+    subscriber = await subscriberService.getSubscriberById(subscriberId)
 
     // Log email verification
     if (!result.alreadyVerified && subscriber) {
@@ -71,7 +73,7 @@ export default defineEventHandler(async (event) => {
 
     // Fetch subscriptions (needed for welcome email and response)
     const subscriptions = await peopleGroupSubscriptionService.getAllBySubscriberAndPeopleGroup(
-      result.contactMethod.subscriber_id,
+      subscriberId,
       peopleGroup.id
     )
     latestActive = subscriptions.filter(s => s.status === 'active').pop() ?? null

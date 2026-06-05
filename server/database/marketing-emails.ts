@@ -243,9 +243,12 @@ class MarketingEmailService {
   }
 
   async incrementUnsubscribeCount(id: number): Promise<void> {
+    // Deliberately does NOT bump updated_at: an unsubscribe can land weeks after a
+    // send, and re-floating the email to the top of the updated_at-ordered list
+    // (with no editorial change) would mislead more than inform.
     await this.sql`
       UPDATE marketing_emails
-      SET unsubscribe_count = unsubscribe_count + 1, updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      SET unsubscribe_count = unsubscribe_count + 1
       WHERE id = ${id}
     `
   }

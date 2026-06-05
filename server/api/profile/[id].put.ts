@@ -85,7 +85,9 @@ export default defineEventHandler(async (event) => {
     if (newEmail !== oldEmail) {
       // Check if new email already exists for another subscriber
       const existingContact = await contactMethodService.getByValue('email', newEmail)
-      if (existingContact && existingContact.subscriber_id !== subscriber.id) {
+      // A registry-only row (subscriber_id null, e.g. a previously-bounced address)
+      // isn't owned by anyone — it gets claimed below, not blocked here.
+      if (existingContact && existingContact.subscriber_id != null && existingContact.subscriber_id !== subscriber.id) {
         throw createError({
           statusCode: 400,
           statusMessage: 'This email is already in use by another subscriber'
