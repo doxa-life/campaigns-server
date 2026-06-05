@@ -1,6 +1,6 @@
 {
   "welcome": "Bem-vindo",
-  "hello": "Ola",
+  "hello": "Olá",
   "language": "Idioma",
   "app": {
     "title": "App"
@@ -29,16 +29,16 @@
     "peopleGroup": {
       "findOutMore": "Saiba mais",
       "overview": {
-        "title": "Visao Geral",
-        "country": "Pais:",
-        "population": "Populacao:",
+        "title": "Visão Geral",
+        "country": "País:",
+        "population": "População:",
         "language": "Idioma:",
-        "religion": "Religiao:",
+        "religion": "Religião:",
         "status": "Status:",
         "churches": "Igrejas:"
       },
       "prayerStatus": {
-        "title": "Status de Oracao",
+        "title": "Status de Oração",
         "description": "pessoas orando 10 minutos por dia por este grupo étnico."
       }
     },
@@ -63,24 +63,24 @@
     "signupButton": "Inscreva-se para orar",
     "loading": "Carregando campanha...",
     "notFound": {
-      "title": "Campanha Nao Encontrada",
-      "message": "A campanha que voce esta procurando nao existe ou nao esta disponivel.",
+      "title": "Campanha Não Encontrada",
+      "message": "A campanha que você está procurando não existe ou não está disponível.",
       "goHome": "Ir para Início"
     },
     "startsOn": {
       "message": "As atualizações diárias de oração começarão em {date}",
-      "signupEarly": "Inscreva-se agora e esteja pronto quando a oracao comecar!"
+      "signupEarly": "Inscreva-se agora e esteja pronto quando a oração começar!"
     },
     "signup": {
       "title": "Inscreva-se para Orar",
-      "description": "Comprometa-se a orar diariamente ou semanalmente e receba lembretes com conteudo de oracao.",
-      "success": "Bem-vindo! Voce se juntou ao movimento de oracao. Voce recebera seu primeiro lembrete de oracao em breve.",
-      "successEmail": "Quase la! Por favor, verifique seu e-mail e clique no link de verificacao para concluir sua inscricao.",
-      "checkSpam": "Nao encontrou o e-mail? Verifique sua pasta de spam.",
+      "description": "Comprometa-se a orar diariamente ou semanalmente e receba lembretes com conteúdo de oração.",
+      "success": "Bem-vindo! Você se juntou ao movimento de oração. Você receberá seu primeiro lembrete de oração em breve.",
+      "successEmail": "Quase lá! Por favor, verifique seu e-mail e clique no link de verificação para concluir sua inscrição.",
+      "checkSpam": "Não encontrou o e-mail? Verifique sua pasta de spam.",
       "modal": {
         "title": "Verifique Seu E-mail",
-        "message": "Enviamos um link de verificacao para:",
-        "hint": "Clique no link no e-mail para concluir sua inscricao. Nao esqueca de verificar sua pasta de spam. Se seu e-mail ja estiver verificado, voce recebera um e-mail de confirmacao.",
+        "message": "Enviamos um link de verificação para:",
+        "hint": "Clique no link no e-mail para concluir sua inscrição. Não esqueça de verificar sua pasta de spam. Se seu e-mail já estiver verificado, você receberá um e-mail de confirmação.",
         "button": "Entendi"
       },
       "form": {
@@ -89,19 +89,19 @@
           "placeholder": "Seu nome"
         },
         "deliveryMethod": {
-          "label": "Como voce gostaria de receber seus lembretes diarios de oracao?",
-          "placeholder": "Selecione um metodo...",
+          "label": "Como você gostaria de receber seus lembretes diários de oração?",
+          "placeholder": "Selecione um método...",
           "email": "E-mail",
           "whatsapp": "WhatsApp",
-          "app": "Aplicativo Movel"
+          "app": "Aplicativo Móvel"
         },
         "email": {
-          "label": "Endereco de E-mail",
+          "label": "Endereço de E-mail",
           "placeholder": "seu{'@'}email.com"
         },
         "phone": {
-          "label": "Numero de Telefone",
-          "hint": "Selecione seu pais e digite seu numero de telefone"
+          "label": "Número de Telefone",
+          "hint": "Selecione seu país e digite seu número de telefone"
         },
         "frequency": {
           "label": "Eu vou orar...",
@@ -122,13 +122,13 @@
           }
         },
         "time": {
-          "label": "Horario do Lembrete",
-          "hint": "Quando voce gostaria de receber seu lembrete de oracao?"
+          "label": "Horário do Lembrete",
+          "hint": "Quando você gostaria de receber seu lembrete de oração?"
         },
         "timezone": {
-          "label": "Seu Fuso Horario",
+          "label": "Seu Fuso Horário",
           "hint": "Detectado automaticamente pelo seu navegador",
-          "searchPlaceholder": "Buscar fusos horarios..."
+          "searchPlaceholder": "Buscar fusos horários..."
         },
         "duration": {
           "label": "Por...",
@@ -139,61 +139,61 @@
           "60min": "1 hora"
         },
         "reminderTime": {
-          "label": "Horario do lembrete"
+          "label": "Horário do lembrete"
         },
         "submit": "Comprometer-se a Orar",
         "submitting": "Inscrevendo...",
         "consent": {
-          "description": "Alem dos lembretes de oracao, mantenha-me informado com:",
-          "campaignUpdates": "Atualizacoes sobre este povo: {campaign}",
-          "doxaGeneral": "Progresso e atualizacoes do {link}"
+          "description": "Além dos lembretes de oração, mantenha-me informado com:",
+          "campaignUpdates": "Atualizações sobre este povo: {campaign}",
+          "doxaGeneral": "Progresso e atualizações do {link}"
         }
       },
       "errors": {
-        "invalidPhone": "Por favor, digite um numero de telefone valido",
-        "failed": "Falha na inscricao. Por favor, tente novamente."
+        "invalidPhone": "Por favor, digite um número de telefone válido",
+        "failed": "Falha na inscrição. Por favor, tente novamente."
       }
     },
     "prayerFuel": {
-      "title": "Oracao de Hoje",
-      "description": "Acesse o conteudo e os pontos de oracao de hoje",
-      "button": "Ver Conteudo de Oracao"
+      "title": "Oração de Hoje",
+      "description": "Acesse o conteúdo e os pontos de oração de hoje",
+      "button": "Ver Conteúdo de Oração"
     },
     "whyPray": {
       "title": "Por Que Orar?",
       "noOne": {
-        "title": "Eles Nao Tem Ninguem",
-        "description": "Muitos grupos étnicos não engajados nao tem igrejas, missionarios e, frequentemente, nenhum crente."
+        "title": "Eles Não Têm Ninguém",
+        "description": "Muitos grupos étnicos não engajados não têm igrejas, missionários e, frequentemente, nenhum crente."
       },
       "opensDoors": {
-        "title": "A Oracao Abre Portas",
-        "description": "A oracao amolece coracoes, abre portas e convida a obra do Espirito Santo muito antes do Evangelho ser proclamado."
+        "title": "A Oração Abre Portas",
+        "description": "A oração amolece corações, abre portas e convida a obra do Espírito Santo muito antes do Evangelho ser proclamado."
       },
       "changed": {
-        "title": "Experimente a Presenca de Deus",
-        "description": "Deus encontrou muitos de maneiras profundas e maravilhosas durante seus momentos de oracao. A oracao diaria fara sua fe crescer e o aproximara de Deus."
+        "title": "Experimente a Presença de Deus",
+        "description": "Deus encontrou muitos de maneiras profundas e maravilhosas durante seus momentos de oração. A oração diária fará sua fé crescer e o aproximará de Deus."
       }
     },
     "sampleContent": {
-      "title": "Receba Conteudo Diario de Oracao",
-      "description": "Aqui esta uma previa do conteudo diario de oracao.",
+      "title": "Receba Conteúdo Diário de Oração",
+      "description": "Aqui está uma prévia do conteúdo diário de oração.",
       "peopleGroupName": "Grupo Étnico",
       "scripture": "Escritura",
       "prayerPoints": "Motivos de Oração",
       "peopleGroupOfDay": "Grupo Étnico do Dia"
     },
     "mobileApp": {
-      "title": "Baixe o Aplicativo Movel",
-      "description": "Baixe nosso aplicativo movel para uma melhor experiencia de oracao",
+      "title": "Baixe o Aplicativo Móvel",
+      "description": "Baixe nosso aplicativo móvel para uma melhor experiência de oração",
       "appStore": {
         "label": "Baixar na",
         "store": "App Store",
         "ariaLabel": "Baixar na App Store"
       },
       "googlePlay": {
-        "label": "Disponivel no",
+        "label": "Disponível no",
         "store": "Google Play",
-        "ariaLabel": "Disponivel no Google Play"
+        "ariaLabel": "Disponível no Google Play"
       }
     },
     "verify": {
@@ -201,18 +201,18 @@
       "verifying": "Verificando seu e-mail...",
       "success": {
         "title": "E-mail Verificado!",
-        "message": "Seu e-mail foi verificado com sucesso. Voce agora recebera lembretes de oracao para {campaign}."
+        "message": "Seu e-mail foi verificado com sucesso. Você agora receberá lembretes de oração para {campaign}."
       },
       "alreadyVerified": {
-        "title": "Ja Verificado",
-        "message": "Seu e-mail ja foi verificado. Voce esta pronto para receber lembretes de oracao para {campaign}."
+        "title": "Já Verificado",
+        "message": "Seu e-mail já foi verificado. Você está pronto para receber lembretes de oração para {campaign}."
       },
       "error": {
-        "title": "Falha na Verificacao",
-        "generic": "Nao foi possivel verificar seu e-mail. Este link pode ja ter sido usado ou expirou."
+        "title": "Falha na Verificação",
+        "generic": "Não foi possível verificar seu e-mail. Este link pode já ter sido usado ou expirou."
       },
       "backToCampaign": "Voltar para a Campanha",
-      "startPraying": "Comecar a Orar"
+      "startPraying": "Começar a Orar"
     },
     "unsubscribe": {
       "confirm": {
@@ -270,30 +270,30 @@
       }
     },
     "profile": {
-      "pageTitle": "Gerenciar Preferencias",
-      "title": "Configuracoes de Lembrete",
-      "greeting": "Ola {name}, gerencie suas preferencias de lembrete de oracao abaixo.",
-      "save": "Salvar Alteracoes",
+      "pageTitle": "Gerenciar Preferências",
+      "title": "Configurações de Lembrete",
+      "greeting": "Olá {name}, gerencie suas preferências de lembrete de oração abaixo.",
+      "save": "Salvar Alterações",
       "saving": "Salvando...",
-      "success": "Suas preferencias foram atualizadas.",
-      "emailChanged": "Enviamos um e-mail de verificacao para seu novo endereco. Por favor, verifique para continuar recebendo lembretes.",
-      "emailNotVerified": "Seu e-mail nao esta verificado. Por favor, verifique sua caixa de entrada para o link de verificacao para receber lembretes.",
-      "emailHint": "Alterar seu e-mail exigira nova verificacao.",
+      "success": "Suas preferências foram atualizadas.",
+      "emailChanged": "Enviamos um e-mail de verificação para seu novo endereço. Por favor, verifique para continuar recebendo lembretes.",
+      "emailNotVerified": "Seu e-mail não está verificado. Por favor, verifique sua caixa de entrada para o link de verificação para receber lembretes.",
+      "emailHint": "Alterar seu e-mail exigirá nova verificação.",
       "sections": {
         "account": "Conta",
         "schedule": "Agenda de Lembretes",
-        "prayer": "Preferencias de Oracao",
-        "emailPreferences": "Preferencias de Comunicacao"
+        "prayer": "Preferências de Oração",
+        "emailPreferences": "Preferências de Comunicação"
       },
       "emailPreferences": {
-        "description": "Escolha quais comunicacoes voce gostaria de receber:",
-        "campaignUpdates": "Atualizacoes sobre {campaign}",
-        "doxaGeneral": "Atualizacoes gerais do Doxa",
-        "doxaGeneralHint": "Atualizacoes de progresso e noticias do Doxa",
+        "description": "Escolha quais comunicações você gostaria de receber:",
+        "campaignUpdates": "Atualizações sobre {campaign}",
+        "doxaGeneral": "Atualizações gerais do Doxa",
+        "doxaGeneralHint": "Atualizações de progresso e notícias do Doxa",
         "productEmails": "E-mails do produto",
         "productEmailsHint": "E-mails ocasionais sobre as ferramentas de oração que você usa — pesquisas, pedidos de opinião e novidades do produto. Não é promocional. Seus lembretes diários de oração não são afetados."
       },
-      "consentUpdated": "Preferencias de comunicacao atualizadas.",
+      "consentUpdated": "Preferências de comunicação atualizadas.",
       "subscriptions": "Suas Inscrições",
       "saveAccount": "Salvar Conta",
       "unsubscribed": "Cancelado",
@@ -301,61 +301,61 @@
       "viewCampaign": "Ver Campanha",
       "unsubscribeButton": "Cancelar Inscrição",
       "resubscribeButton": "Reinscrever-se",
-      "unsubscribeConfirm": "Tem certeza de que deseja cancelar a inscricao de {campaign}?",
-      "unsubscribeSuccess": "Sua inscricao foi cancelada.",
-      "resubscribeSuccess": "Voce foi reinscrito.",
+      "unsubscribeConfirm": "Tem certeza de que deseja cancelar a inscrição de {campaign}?",
+      "unsubscribeSuccess": "Sua inscrição foi cancelada.",
+      "resubscribeSuccess": "Você foi reinscrito.",
       "reminders": "lembretes",
       "reminder": "Lembrete",
       "deleteReminderConfirm": "Tem certeza de que deseja excluir este lembrete?",
       "deleteReminderSuccess": "Lembrete excluido.",
       "error": {
         "title": "Erro",
-        "notFound": "Inscricao nao encontrada.",
-        "failed": "Falha ao salvar alteracoes. Por favor, tente novamente."
+        "notFound": "Inscrição não encontrada.",
+        "failed": "Falha ao salvar alterações. Por favor, tente novamente."
       }
     }
   },
   "prayerFuel": {
-    "pageTitle": "Conteudo de Oracao",
-    "title": "Oracao de Hoje",
-    "loading": "Carregando oracao de hoje...",
+    "pageTitle": "Conteúdo de Oração",
+    "title": "Oração de Hoje",
+    "loading": "Carregando oração de hoje...",
     "backTo": "Voltar para {campaign}",
-    "backToToday": "Voltar para a Oracao de Hoje",
+    "backToToday": "Voltar para a Oração de Hoje",
     "error": {
-      "title": "Nao Foi Possivel Carregar a Oracao",
+      "title": "Não Foi Possível Carregar a Oração",
       "backToCampaign": "Voltar para a Campanha",
-      "recordFailed": "Falha ao registrar oracao. Por favor, tente novamente."
+      "recordFailed": "Falha ao registrar oração. Por favor, tente novamente."
     },
     "noContent": {
-      "title": "Sem Conteudo de Oracao Hoje",
-      "message": "Volte amanha para novo conteudo de oracao."
+      "title": "Sem Conteúdo de Oração Hoje",
+      "message": "Volte amanhã para novo conteúdo de oração."
     },
     "startsOn": {
-      "title": "Conteudo de Oracao Em Breve",
-      "message": "O conteudo diario de oracao comecara em {date}. Inscreva-se agora para receber lembretes quando comecar!"
+      "title": "Conteúdo de Oração Em Breve",
+      "message": "O conteúdo diário de oração começará em {date}. Inscreva-se agora para receber lembretes quando começar!"
     },
     "dateView": {
       "noContent": {
-        "title": "Sem Conteudo de Oracao",
-        "message": "Nao ha conteudo de oracao disponivel para esta data."
+        "title": "Sem Conteúdo de Oração",
+        "message": "Não há conteúdo de oração disponível para esta data."
       }
     },
     "button": {
-      "amen": "Amem",
-      "hint": "Clique para finalizar seu tempo de oracao"
+      "amen": "Amém",
+      "hint": "Clique para finalizar seu tempo de oração"
     },
     "thankYou": "Obrigado por orar!",
     "meetThePeople": "Meu Grupo Étnico",
     "peopleGroupOfTheDay": "Grupo Étnico do Dia",
     "dayInTheLife": "Um Dia na Vida",
     "pauseAndPray": "Pause e Ore",
-    "mapTitle": "Mapa mostrando a localizacao de {name}",
+    "mapTitle": "Mapa mostrando a localização de {name}",
     "pastPrayers": {
-      "title": "Conteudo de Oracao Anterior"
+      "title": "Conteúdo de Oração Anterior"
     },
     "navigation": {
       "previous": "Anterior",
-      "next": "Proximo",
+      "next": "Próximo",
       "today": "Hoje"
     }
   },
@@ -373,12 +373,12 @@
     "edit": "Editar",
     "create": "Criar",
     "back": "Voltar",
-    "next": "Proximo",
+    "next": "Próximo",
     "previous": "Anterior",
     "loading": "Carregando...",
     "minutes": "min",
     "yes": "Sim",
-    "no": "Nao"
+    "no": "Não"
   },
   "contact": {
     "verify": {
@@ -422,50 +422,50 @@
     "recording": "Registrando sua resposta...",
     "error": {
       "title": "Algo deu errado",
-      "invalidLink": "Link invalido. Faltam parametros obrigatorios.",
-      "invalidResponse": "Tipo de resposta invalido.",
+      "invalidLink": "Link inválido. Faltam parâmetros obrigatórios.",
+      "invalidResponse": "Tipo de resposta inválido.",
       "failed": "Falha ao registrar sua resposta. Por favor, tente novamente."
     },
     "goHome": "Ir para Início",
     "committed": {
       "title": "Obrigado pelo seu compromisso!",
-      "message": "Estamos muito felizes em saber que voce continua fiel na oracao. Sua dedicacao esta fazendo a diferenca!",
+      "message": "Estamos muito felizes em saber que você continua fiel na oração. Sua dedicação está fazendo a diferença!",
       "checkInNotice": "Entraremos em contato novamente em alguns meses.",
       "continueButton": "Continuar para a Campanha"
     },
     "sometimes": {
       "title": "Obrigado pela honestidade!",
-      "message": "A vida pode ser corrida, e tudo bem se voce nao conseguiu orar com a frequencia que gostaria.",
-      "suggestion": "Voce gostaria de ajustar sua agenda de oracao para algo mais gerenciavel?",
+      "message": "A vida pode ser corrida, e tudo bem se você não conseguiu orar com a frequência que gostaria.",
+      "suggestion": "Você gostaria de ajustar sua agenda de oração para algo mais gerenciável?",
       "adjustButton": "Ajustar Minha Agenda",
       "continueButton": "Continuar para a Campanha"
     },
     "notPraying": {
       "title": "Entendemos",
-      "message": "Sua inscricao foi pausada. Voce nao recebera lembretes de oracao por enquanto.",
-      "reactivateNotice": "Se voce quiser retomar a oracao no futuro, pode reativar sua inscricao a qualquer momento no seu perfil.",
+      "message": "Sua inscrição foi pausada. Você não receberá lembretes de oração por enquanto.",
+      "reactivateNotice": "Se você quiser retomar a oração no futuro, pode reativar sua inscrição a qualquer momento no seu perfil.",
       "profileButton": "Ver Meu Perfil",
       "visitButton": "Visitar Campanha"
     },
-    "pageTitle": "Verificacao de Oracao"
+    "pageTitle": "Verificação de Oração"
   },
   "email": {
     "common": {
-      "hello": "Ola {name}!",
-      "automatedMessage": "Esta e uma mensagem automatica de {appName}. Por favor, nao responda a este e-mail.",
-      "managePreferences": "Gerenciar Preferencias",
+      "hello": "Olá {name}!",
+      "automatedMessage": "Esta é uma mensagem automática de {appName}. Por favor, não responda a este e-mail.",
+      "managePreferences": "Gerenciar Preferências",
       "unsubscribe": "Cancelar Inscrição"
     },
     "verification": {
       "subject": "Verifique seu e-mail para {campaign}",
       "header": "Verifique Seu E-mail",
-      "thankYou": "Obrigado por se inscrever para lembretes de oracao para {campaign}.",
-      "pleaseVerify": "Por favor, verifique seu endereco de e-mail clicando no botao abaixo:",
+      "thankYou": "Obrigado por se inscrever para lembretes de oração para {campaign}.",
+      "pleaseVerify": "Por favor, verifique seu endereço de e-mail clicando no botão abaixo:",
       "verifyButton": "Verificar E-mail",
-      "linkInstructions": "Se o botao nao funcionar, voce tambem pode copiar e colar este link no seu navegador:",
-      "note": "Observacao:",
-      "expiration": "Este link de verificacao expirara em 7 dias.",
-      "ignoreMessage": "Se voce nao se inscreveu para lembretes de oracao, pode ignorar este e-mail com seguranca."
+      "linkInstructions": "Se o botão não funcionar, você também pode copiar e colar este link no seu navegador:",
+      "note": "Observação:",
+      "expiration": "Este link de verificação expirará em 7 dias.",
+      "ignoreMessage": "Se você não se inscreveu para lembretes de oração, pode ignorar este e-mail com segurança."
     },
     "welcome": {
       "subject": "Bem-vindo ao Doxa! - {campaign}",
@@ -475,49 +475,49 @@
       "sharedGoal": "Através deste movimento, nosso objetivo compartilhado é ver cobertura de oração diária de 24 horas para cada um dos mais de 2.000 grupos étnicos não engajados, homens e mulheres enviados para levar o evangelho a esses grupos até o ano de 2033, e doações sustentadas para apoiar este esforço.",
       "closing": "Somos profundamente gratos por nos unirmos a toda a Igreja enquanto buscamos levar todo o evangelho a todo o mundo.",
       "reminderTimeNote": "Seu lembrete diário está programado para {time}.",
-      "startPraying": "Comecar a Orar",
-      "profileInstructions": "Voce pode atualizar os detalhes do seu perfil e suas notificacoes aqui:",
+      "startPraying": "Começar a Orar",
+      "profileInstructions": "Você pode atualizar os detalhes do seu perfil e suas notificações aqui:",
       "addToCalendar": "Adicione este lembrete ao seu calendário:",
       "googleCalendar": "Google Calendar",
       "otherCalendars": "Outros calendários (.ics)"
     },
     "reminder": {
-      "subject": "Lembrete de Oracao - {campaign}",
-      "header": "Lembrete de Oracao",
-      "timeForPrayer": "E hora da sua sessao de oracao de {duration} minutos.",
-      "viewPrayer": "Ver Oracao de Hoje",
-      "automatedReminder": "Este e um lembrete automatico de oracao de {appName}."
+      "subject": "Lembrete de Oração - {campaign}",
+      "header": "Lembrete de Oração",
+      "timeForPrayer": "É hora da sua sessão de oração de {duration} minutos.",
+      "viewPrayer": "Ver Oração de Hoje",
+      "automatedReminder": "Este é um lembrete automático de oração de {appName}."
     },
     "followup": {
-      "subject": "{campaign}: Como esta seu compromisso de oracao?",
-      "subjectReminder": "Lembrete: {campaign}: Como esta seu compromisso de oracao?",
-      "header": "Verificacao de Oracao",
-      "reminderIntro": "Enviamos uma mensagem na semana passada e gostavamos de fazer um acompanhamento.",
-      "standardIntro": "Gostavamos de saber como esta sua jornada de oracao!",
-      "questionDaily": "Voce ainda esta orando diariamente?",
-      "questionWeekly": "Voce ainda esta orando em {days}?",
+      "subject": "{campaign}: Como está seu compromisso de oração?",
+      "subjectReminder": "Lembrete: {campaign}: Como está seu compromisso de oração?",
+      "header": "Verificação de Oração",
+      "reminderIntro": "Enviamos uma mensagem na semana passada e gostávamos de fazer um acompanhamento.",
+      "standardIntro": "Gostávamos de saber como está sua jornada de oração!",
+      "questionDaily": "Você ainda está orando diariamente?",
+      "questionWeekly": "Você ainda está orando em {days}?",
       "yesDaily": "Sim, oro diariamente",
       "yesWeekly": "Sim, nos meus dias agendados",
-      "sometimes": "As vezes, mas nao todos os dias",
-      "sometimesWeekly": "As vezes, mas nem sempre",
-      "noLonger": "Nao, nao estou mais orando",
-      "feedbackHelps": "Seu feedback nos ajuda a entender como podemos apoiar melhor sua jornada de oracao.",
-      "pauseNotice": "Se nao recebermos resposta, pausaremos seus lembretes de oracao para evitar encher sua caixa de entrada. Voce sempre pode reativa-los no seu perfil.",
-      "commitmentCheckIn": "Esta e uma verificacao de compromisso de {appName}."
+      "sometimes": "Às vezes, mas não todos os dias",
+      "sometimesWeekly": "Às vezes, mas nem sempre",
+      "noLonger": "Não, não estou mais orando",
+      "feedbackHelps": "Seu feedback nos ajuda a entender como podemos apoiar melhor sua jornada de oração.",
+      "pauseNotice": "Se não recebermos resposta, pausaremos seus lembretes de oração para evitar encher sua caixa de entrada. Você sempre pode reativá-los no seu perfil.",
+      "commitmentCheckIn": "Esta é uma verificação de compromisso de {appName}."
     },
     "marketing": {
-      "headerCampaign": "Atualizacoes de {campaign}",
-      "headerDefault": "Atualizacoes de {appName}",
-      "footer": "Voce recebeu este e-mail porque optou por receber atualizacoes de {appName}."
+      "headerCampaign": "Atualizações de {campaign}",
+      "headerDefault": "Atualizações de {appName}",
+      "footer": "Você recebeu este e-mail porque optou por receber atualizações de {appName}."
     },
     "days": {
       "sunday": "Domingo",
       "monday": "Segunda-feira",
-      "tuesday": "Terca-feira",
+      "tuesday": "Terça-feira",
       "wednesday": "Quarta-feira",
       "thursday": "Quinta-feira",
       "friday": "Sexta-feira",
-      "saturday": "Sabado"
+      "saturday": "Sábado"
     },
     "contactVerification": {
       "subject": "Verifique seu e-mail para receber atualizações da DOXA",
