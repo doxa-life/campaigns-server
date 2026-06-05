@@ -238,6 +238,17 @@ class SubscriberService {
       const existing = await this.getSubscriberByTrackingId(input.trackingId)
       if (existing) {
         await contactMethodService.addContactMethod(existing.id, 'email', input.email)
+
+        // Fill in the real name when the existing record is still a placeholder.
+        // The caller passes `name || email`, so a name equal to the email is the
+        // email fallback, not a real name — skip those.
+        const hasRealName = !!input.name && input.name !== input.email
+        const existingIsPlaceholder = !existing.name || existing.name === 'Anonymous'
+        if (hasRealName && existingIsPlaceholder) {
+          const updated = await this.updateSubscriber(existing.id, { name: input.name })
+          if (updated) return { subscriber: updated, isNew: false }
+        }
+
         return { subscriber: existing, isNew: false }
       }
     }
