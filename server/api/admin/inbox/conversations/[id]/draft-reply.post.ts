@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
       language: draft.draft_language,
       sources: draft.sources_used,
       uncertainty: draft.uncertainty,
-      model: config.inboxAiModel || 'claude-sonnet-4-20250514',
+      model: config.inboxAiModel || 'claude-sonnet-4-6',
     }
 
     // Regenerate overwrites the existing draft slot; otherwise create a fresh draft.

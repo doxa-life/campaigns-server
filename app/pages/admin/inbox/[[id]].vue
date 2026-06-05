@@ -22,6 +22,14 @@
             size="sm"
             @click="showCanned = true"
           >{{ $t('inbox.canned.title') }}</UButton>
+          <UButton
+            v-if="canSend"
+            to="/admin/inbox/knowledge-base"
+            icon="i-lucide-book-open"
+            variant="outline"
+            color="neutral"
+            size="sm"
+          >{{ $t('inbox.kb.nav') }}</UButton>
         </div>
       </div>
     </template>
@@ -270,7 +278,7 @@
                 <span class="ai-label"><UIcon name="i-lucide-triangle-alert" /> {{ $t('inbox.ai.uncertainty') }}</span>
                 <ul><li v-for="(u, i) in aiMeta.uncertainty" :key="i">{{ u }}</li></ul>
               </div>
-              <details v-if="aiMeta.gloss" class="ai-gloss">
+              <details v-if="showAiGloss" class="ai-gloss">
                 <summary>{{ $t('inbox.ai.gloss') }} ({{ aiMeta.language }})</summary>
                 <p>{{ aiMeta.gloss }}</p>
               </details>
@@ -437,6 +445,12 @@ const expandedQuoted = ref<Set<number>>(new Set())
 // shown above the composer until the reviewer dismisses it.
 const draftingAi = ref(false)
 const aiMeta = ref<AiDraftMetadata | null>(null)
+// The gloss is only useful when the draft is in a language the reviewer might not read —
+// for an English draft it just duplicates the draft, so hide it.
+const showAiGloss = computed(() => {
+  const lang = aiMeta.value?.language?.toLowerCase() || ''
+  return !!aiMeta.value?.gloss && !lang.startsWith('en')
+})
 // Knowledge-base capture modal state
 const kbModalOpen = ref(false)
 

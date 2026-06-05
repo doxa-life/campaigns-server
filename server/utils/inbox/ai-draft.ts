@@ -141,7 +141,7 @@ export async function generateInboxDraft(conversationId: number): Promise<InboxD
   ].join('\n\n')
 
   const response = await client.messages.create({
-    model: config.inboxAiModel || 'claude-sonnet-4-20250514',
+    model: config.inboxAiModel || 'claude-sonnet-4-6',
     max_tokens: 2048,
     temperature: 0.4,
     system,

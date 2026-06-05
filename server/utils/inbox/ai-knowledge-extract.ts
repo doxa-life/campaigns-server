@@ -73,7 +73,7 @@ export async function extractKnowledgeEntry(conversationId: number): Promise<Kno
     .join('\n\n')
 
   const response = await client.messages.create({
-    model: config.inboxAiModel || 'claude-sonnet-4-20250514',
+    model: config.inboxAiModel || 'claude-sonnet-4-6',
     max_tokens: 1024,
     temperature: 0,
     system: SYSTEM_PROMPT,

@@ -710,6 +710,7 @@
       "language": "Language",
       "save": "Save entry",
       "saved": "Added to knowledge base",
+      "nav": "Knowledge base",
       "pageTitle": "Inbox knowledge base",
       "pageSubtitle": "Anonymised answers captured from real conversations. Used to ground AI draft replies.",
       "empty": "No knowledge entries yet. Use \"Add to knowledge base\" on a resolved conversation to capture one.",
