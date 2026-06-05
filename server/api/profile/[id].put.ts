@@ -186,6 +186,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const subscriptionUpdates: {
+      people_group_id?: number
       delivery_method?: 'email' | 'whatsapp' | 'app'
       frequency?: string
       days_of_week?: number[]
@@ -201,11 +202,50 @@ export default defineEventHandler(async (event) => {
     if (body.timezone !== undefined) subscriptionUpdates.timezone = body.timezone
     if (body.prayer_duration !== undefined) subscriptionUpdates.prayer_duration = body.prayer_duration
 
+    // Move the subscription to a different people group when requested. Accept
+    // an explicit id or a slug (mirroring the consent fields above).
+    let targetPeopleGroupId: number | undefined = body.people_group_id
+    if (targetPeopleGroupId === undefined && body.people_group_slug) {
+      const pg = await peopleGroupService.getPeopleGroupBySlug(body.people_group_slug)
+      if (!pg) {
+        throw createError({
+          statusCode: 404,
+          statusMessage: 'People group not found'
+        })
+      }
+      targetPeopleGroupId = pg.id
+    }
+
+    // The row the updates apply to. When moving an app subscription into a group
+    // the subscriber already has an app row for, repointing would violate the
+    // `(subscriber_id, people_group_id) WHERE delivery_method = 'app'` unique
+    // index — so merge into that existing row and drop the one moved from.
+    let targetSubscriptionId = body.subscription_id
+    if (targetPeopleGroupId !== undefined && targetPeopleGroupId !== subscription.people_group_id) {
+      const existing = await peopleGroupSubscriptionService.getAllBySubscriberAndPeopleGroup(
+        subscriber.id,
+        targetPeopleGroupId
+      )
+      const conflict = subscription.delivery_method === 'app'
+        ? existing.find(s => s.delivery_method === 'app')
+        : undefined
+      if (conflict) {
+        targetSubscriptionId = conflict.id
+        await peopleGroupSubscriptionService.deleteSubscription(subscription.id)
+      } else {
+        // No conflict: repoint the single row in place (subscription_id stays stable).
+        subscriptionUpdates.people_group_id = targetPeopleGroupId
+      }
+    }
+
     if (Object.keys(subscriptionUpdates).length > 0) {
       updatedSubscription = await peopleGroupSubscriptionService.updateSubscription(
-        body.subscription_id,
+        targetSubscriptionId,
         subscriptionUpdates
       )
+    } else if (targetSubscriptionId !== body.subscription_id) {
+      // Merged into the target row with no schedule change — surface the survivor.
+      updatedSubscription = await peopleGroupSubscriptionService.getById(targetSubscriptionId)
     }
   }
 

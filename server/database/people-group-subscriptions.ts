@@ -231,6 +231,7 @@ class PeopleGroupSubscriptionService {
   async updateSubscription(
     id: number,
     updates: {
+      people_group_id?: number
       delivery_method?: 'email' | 'whatsapp' | 'app'
       frequency?: string
       days_of_week?: number[]
@@ -242,6 +243,9 @@ class PeopleGroupSubscriptionService {
     const fields: Fragment[] = []
     let scheduleChanged = false
 
+    // Moving the subscription to a different people group recalculates the next
+    // reminder, same as a schedule change.
+    if (updates.people_group_id !== undefined) { fields.push(this.sql`people_group_id = ${updates.people_group_id}`); scheduleChanged = true }
     if (updates.delivery_method !== undefined) fields.push(this.sql`delivery_method = ${updates.delivery_method}`)
     if (updates.frequency !== undefined) { fields.push(this.sql`frequency = ${updates.frequency}`); scheduleChanged = true }
     if (updates.days_of_week !== undefined) { fields.push(this.sql`days_of_week = ${JSON.stringify(updates.days_of_week)}`); scheduleChanged = true }
