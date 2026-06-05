@@ -59,6 +59,23 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
     setTimeout(() => emailCache.delete(payload.marketing_email_id), 5 * 60 * 1000)
   }
 
+  // Safety net for consent revoked after this job was enqueued: if the recipient
+  // unsubscribed (or otherwise opted out of this audience) while the campaign was
+  // draining, drop the send instead of mailing them — mirrors the suppression net
+  // above. Skipped for 'pick' (testing override that deliberately bypasses consent)
+  // and 'admins' (internal recipients, contact_method_id 0 / no consent row).
+  const audienceType = cached.email.audience_type
+  if (audienceType !== 'pick' && audienceType !== 'admins') {
+    const stillConsented = await contactMethodService.stillConsentsToAudience(
+      payload.contact_method_id,
+      audienceType,
+      cached.email.people_group_id
+    )
+    if (!stillConsented) {
+      return { success: true, data: { skipped: 'unsubscribed' } }
+    }
+  }
+
   let subscriber = await subscriberService.getSubscriberByContactMethodId(payload.contact_method_id)
   // The admins test audience has no contact_method (id 0); resolve by recipient
   // email instead so a test send still gets a working personalized link when
