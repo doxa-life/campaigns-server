@@ -179,6 +179,10 @@
                 <span class="stat-value error">{{ queueStats.failed }}</span>
                 <span class="stat-label">Failed</span>
               </div>
+              <div class="stat">
+                <span class="stat-value">{{ email.unsubscribe_count }}</span>
+                <span class="stat-label">Unsubscribes</span>
+              </div>
             </div>
           </div>
 
@@ -253,6 +257,7 @@ interface MarketingEmail {
   sender_local_part?: string
   status: 'draft' | 'queued' | 'sending' | 'sent' | 'failed' | 'cancelled'
   sent_at: string | null
+  unsubscribe_count: number
   created_at: string
   updated_at: string
 }

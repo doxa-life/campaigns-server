@@ -23,6 +23,7 @@ export interface MarketingEmail {
   recipient_count: number
   sent_count: number
   failed_count: number
+  unsubscribe_count: number
 }
 
 export interface MarketingEmailWithPeopleGroup extends MarketingEmail {
@@ -237,6 +238,17 @@ class MarketingEmailService {
     await this.sql`
       UPDATE marketing_emails
       SET failed_count = failed_count + 1, updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${id}
+    `
+  }
+
+  async incrementUnsubscribeCount(id: number): Promise<void> {
+    // Deliberately does NOT bump updated_at: an unsubscribe can land weeks after a
+    // send, and re-floating the email to the top of the updated_at-ordered list
+    // (with no editorial change) would mislead more than inform.
+    await this.sql`
+      UPDATE marketing_emails
+      SET unsubscribe_count = unsubscribe_count + 1
       WHERE id = ${id}
     `
   }

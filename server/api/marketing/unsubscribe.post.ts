@@ -16,6 +16,7 @@
 import { subscriberService } from '#server/database/subscribers'
 import { contactMethodService } from '#server/database/contact-methods'
 import { peopleGroupService } from '#server/database/people-groups'
+import { marketingEmailService } from '#server/database/marketing-emails'
 import { logContactUnsubscribe } from '#server/utils/log-contact-unsubscribe'
 
 export default defineEventHandler(async (event) => {
@@ -23,6 +24,9 @@ export default defineEventHandler(async (event) => {
   const profileId = query.id as string | undefined
   const type = (query.type as string) || 'doxa'
   const slug = query.slug as string | undefined
+  // `me` (marketing email id) attributes this opt-out back to the email whose
+  // link was used, so its unsubscribe_count can be tallied.
+  const meId = query.me ? Number(query.me) : null
 
   if (!profileId) return { success: true }
 
@@ -40,16 +44,19 @@ export default defineEventHandler(async (event) => {
     if (pg && (email.consented_people_group_ids || []).includes(pg.id)) {
       await contactMethodService.removePeopleGroupConsent(email.id, pg.id)
       logContactUnsubscribe(event, subscriber.id, 'people_group', { id: pg.id, name: pg.name })
+      if (meId) await marketingEmailService.incrementUnsubscribeCount(meId)
     }
   } else if (type === 'product') {
     if (email.consent_product_emails !== false) {
       await contactMethodService.updateProductEmailsConsent(email.id, false)
       logContactUnsubscribe(event, subscriber.id, 'product')
+      if (meId) await marketingEmailService.incrementUnsubscribeCount(meId)
     }
   } else {
     if (email.consent_doxa_general) {
       await contactMethodService.updateDoxaConsent(email.id, false)
       logContactUnsubscribe(event, subscriber.id, 'doxa')
+      if (meId) await marketingEmailService.incrementUnsubscribeCount(meId)
     }
   }
 
