@@ -153,6 +153,14 @@
           size="xs"
           @click="toggleNeedsReview"
         >{{ selected.conversation.needs_review ? $t('inbox.actions.unflagReview') : $t('inbox.actions.flagReview') }}</UButton>
+        <UButton
+          v-if="canSend && ['pending', 'closed'].includes(selected.conversation.status)"
+          icon="i-lucide-book-plus"
+          variant="ghost"
+          color="neutral"
+          size="xs"
+          @click="kbModalOpen = true"
+        >{{ $t('inbox.actions.addKnowledgeBase') }}</UButton>
       </template>
     </template>
 
@@ -177,6 +185,7 @@
                   </UBadge>
                   <UBadge v-if="m.status === 'failed'" color="error" variant="subtle" size="xs">failed</UBadge>
                   <UBadge v-if="m.status === 'held'" color="warning" variant="subtle" size="xs">held</UBadge>
+                  <UBadge v-if="m.ai_generated" color="info" variant="subtle" size="xs" icon="i-lucide-sparkles">{{ $t('inbox.badge.aiDraft') }}</UBadge>
                   <span class="msg-time">{{ formatTime(m.created_at) }}</span>
                 </span>
               </div>
@@ -248,10 +257,35 @@
               :placeholder="$t('inbox.compose.placeholder')"
               class="composer-editor"
             />
+            <!-- AI draft review panel: reviewer-facing aids that are NOT emailed. -->
+            <div v-if="aiMeta" class="ai-review">
+              <div class="ai-review-head">
+                <UBadge color="info" variant="subtle" size="xs" icon="i-lucide-sparkles">{{ $t('inbox.ai.reviewTitle') }}</UBadge>
+                <div class="composer-spacer" />
+                <UButton variant="ghost" color="neutral" size="xs" icon="i-lucide-x" @click="dismissAiMeta">
+                  {{ $t('inbox.ai.dismiss') }}
+                </UButton>
+              </div>
+              <div v-if="aiMeta.uncertainty.length" class="ai-uncertainty">
+                <span class="ai-label"><UIcon name="i-lucide-triangle-alert" /> {{ $t('inbox.ai.uncertainty') }}</span>
+                <ul><li v-for="(u, i) in aiMeta.uncertainty" :key="i">{{ u }}</li></ul>
+              </div>
+              <details v-if="aiMeta.gloss" class="ai-gloss">
+                <summary>{{ $t('inbox.ai.gloss') }} ({{ aiMeta.language }})</summary>
+                <p>{{ aiMeta.gloss }}</p>
+              </details>
+              <div v-if="aiMeta.sources.length" class="ai-sources">
+                <span class="ai-label">{{ $t('inbox.ai.sources') }}:</span>
+                <UBadge v-for="(s, i) in aiMeta.sources" :key="i" color="neutral" variant="subtle" size="xs">{{ s }}</UBadge>
+              </div>
+            </div>
             <div class="composer-actions">
               <input ref="fileInput" type="file" multiple class="hidden-file" @change="onFilesPicked" />
               <UButton icon="i-lucide-paperclip" variant="ghost" color="neutral" size="sm" @click="fileInput?.click()">
                 {{ $t('inbox.compose.attach') }}
+              </UButton>
+              <UButton icon="i-lucide-sparkles" variant="ghost" color="info" size="sm" :loading="draftingAi" @click="draftWithAi">
+                {{ currentDraftId && aiMeta ? $t('inbox.ai.regenerate') : $t('inbox.ai.draft') }}
               </UButton>
               <span v-if="pendingFiles.length" class="pending-files">{{ pendingFiles.map(f => f.name).join(', ') }}</span>
               <div class="composer-spacer" />
@@ -308,6 +342,11 @@
     :my-alias="myAlias"
     @sent="onComposed"
   />
+  <AddToKnowledgeBaseModal
+    v-if="selected"
+    v-model:open="kbModalOpen"
+    :conversation-id="selected.conversation.id"
+  />
 </template>
 
 <script setup lang="ts">
@@ -333,6 +372,13 @@ interface ConversationListItem {
   last_message_at: string | null
   last_message_snippet: string | null
 }
+interface AiDraftMetadata {
+  gloss: string
+  language: string
+  sources: string[]
+  uncertainty: string[]
+  model: string
+}
 interface Message {
   id: number
   direction: 'inbound' | 'outbound'
@@ -345,6 +391,8 @@ interface Message {
   body_stripped_html: string | null
   body_text: string | null
   created_at: string
+  ai_generated?: boolean
+  ai_metadata?: AiDraftMetadata | null
   attachments?: { id: number; filename: string | null; url: string | null }[]
 }
 interface ConversationDetail {
@@ -384,6 +432,13 @@ const sending = ref(false)
 const savingDraft = ref(false)
 const currentDraftId = ref<number | null>(null)
 const expandedQuoted = ref<Set<number>>(new Set())
+
+// AI drafting: review metadata (gloss/sources/uncertainty) for the current AI draft,
+// shown above the composer until the reviewer dismisses it.
+const draftingAi = ref(false)
+const aiMeta = ref<AiDraftMetadata | null>(null)
+// Knowledge-base capture modal state
+const kbModalOpen = ref(false)
 
 const cannedResponses = ref<any[]>([])
 const selectedCanned = ref<number | null>(null)
@@ -753,6 +808,7 @@ async function sendReply() {
     })
     replyHtml.value = ''
     currentDraftId.value = null
+    aiMeta.value = null
     toast.add({ title: t('inbox.toasts.sent'), color: 'success' })
     await refreshSelected()
     await loadConversations()
@@ -764,9 +820,36 @@ async function sendReply() {
   }
 }
 
+// Generate an AI draft for the open conversation. Reuses the current draft slot when
+// one exists (so regenerate doesn't orphan drafts), and loads the result into the composer.
+async function draftWithAi() {
+  if (!selected.value) return
+  draftingAi.value = true
+  try {
+    const res = await $fetch<{ message: Message }>(
+      `/api/admin/inbox/conversations/${selected.value.conversation.id}/draft-reply`,
+      { method: 'POST', body: { from_identity: effectiveFromIdentity(), draft_id: currentDraftId.value ?? undefined } }
+    )
+    replyHtml.value = res.message.body_html || ''
+    currentDraftId.value = res.message.id
+    aiMeta.value = res.message.ai_metadata ?? null
+    await refreshSelected()
+  } catch (e: any) {
+    const msg = e?.statusCode === 503 ? t('inbox.ai.notConfigured') : t('inbox.toasts.error')
+    toast.add({ title: msg, color: 'error' })
+  } finally {
+    draftingAi.value = false
+  }
+}
+
+function dismissAiMeta() {
+  aiMeta.value = null
+}
+
 function loadDraft(d: Message) {
   replyHtml.value = d.body_html || ''
   currentDraftId.value = d.id
+  aiMeta.value = d.ai_metadata ?? null
   if (d.from_email) {
     fromIdentity.value = d.from_email.toLowerCase() === contactAddress.toLowerCase() ? 'contact' : 'personal'
   }
@@ -914,6 +997,14 @@ a.contact-name:hover { text-decoration: underline; }
 .composer-editor { border: 1px solid var(--ui-border); border-radius: 8px; min-height: 120px; margin-bottom: 0.5rem; }
 .composer-actions { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 3.5rem; }
 .composer-spacer { flex: 1; }
+.ai-review { border: 1px solid var(--ui-border); border-radius: 0.5rem; padding: 0.625rem 0.75rem; margin-top: 0.5rem; background: var(--ui-bg-elevated); display: flex; flex-direction: column; gap: 0.5rem; }
+.ai-review-head { display: flex; align-items: center; }
+.ai-label { font-size: 0.75rem; font-weight: 600; color: var(--ui-text-muted); display: inline-flex; align-items: center; gap: 0.25rem; }
+.ai-uncertainty ul { margin: 0.25rem 0 0; padding-left: 1.1rem; font-size: 0.8rem; }
+.ai-uncertainty { color: var(--ui-warning); }
+.ai-gloss summary { font-size: 0.75rem; color: var(--ui-text-muted); cursor: pointer; }
+.ai-gloss p { margin: 0.25rem 0 0; font-size: 0.8rem; white-space: pre-wrap; }
+.ai-sources { display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap; }
 .hidden-file { display: none; }
 .pending-files { font-size: 0.75rem; color: var(--ui-text-muted); }
 .drafts { margin-top: 0.5rem; display: flex; align-items: center; gap: 0.25rem; }

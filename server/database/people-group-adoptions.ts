@@ -93,6 +93,23 @@ class PeopleGroupAdoptionService {
     `
   }
 
+  // Adoptions made by group(s) where this subscriber is the primary contact.
+  // A subscriber can be primary contact of many groups, each adopting many people
+  // groups, so this returns a list. Used to ground inbox AI drafts in the contact's
+  // real adoption status.
+  async getForSubscriberAsPrimaryContact(subscriberId: number): Promise<AdoptionWithDetails[]> {
+    return await this.sql`
+      SELECT a.*, pg.name as people_group_name, pg.slug as people_group_slug,
+        g.name as group_name,
+        (SELECT COUNT(*) FROM adoption_reports WHERE adoption_id = a.id) as report_count
+      FROM people_group_adoptions a
+      JOIN people_groups pg ON a.people_group_id = pg.id
+      JOIN groups g ON a.group_id = g.id
+      WHERE g.primary_subscriber_id = ${subscriberId}
+      ORDER BY a.created_at DESC
+    `
+  }
+
   async getAllActive(): Promise<AdoptionWithDetails[]> {
     return await this.sql`
       SELECT a.*, pg.name as people_group_name, pg.slug as people_group_slug,

@@ -10,6 +10,16 @@ export type MessageStatus =
   | 'received'
   | 'held'
 
+// Reviewer-facing metadata attached to an AI-generated draft. Shown in the composer
+// (gloss, sources, uncertainty) so a teammate can vet the draft before sending; never emailed.
+export interface AiDraftMetadata {
+  gloss: string
+  language: string
+  sources: string[]
+  uncertainty: string[]
+  model: string
+}
+
 export interface ConversationMessage {
   id: number
   conversation_id: number
@@ -34,6 +44,8 @@ export interface ConversationMessage {
   failed_reason: string | null
   provider_message_id: string | null
   delivered_at: string | null
+  ai_generated: boolean
+  ai_metadata: AiDraftMetadata | null
   created_at: string
   updated_at: string
 }
@@ -58,6 +70,8 @@ export interface CreateMessageData {
   authenticated?: boolean
   auth_result?: string | null
   hold_reason?: string | null
+  ai_generated?: boolean
+  ai_metadata?: AiDraftMetadata | null
 }
 
 class MessageService {
@@ -70,14 +84,16 @@ class MessageService {
         from_email, from_name, to_email, subject,
         body_html, body_stripped_html, body_text,
         email_message_id, in_reply_to, email_references,
-        spam_score, raw_s3_key, authenticated, auth_result, hold_reason
+        spam_score, raw_s3_key, authenticated, auth_result, hold_reason,
+        ai_generated, ai_metadata
       ) VALUES (
         ${data.conversation_id}, ${data.direction}, ${data.status || 'received'}, ${data.sender_user_id ?? null},
         ${data.from_email ?? null}, ${data.from_name ?? null}, ${data.to_email ?? null}, ${data.subject ?? null},
         ${data.body_html ?? null}, ${data.body_stripped_html ?? null}, ${data.body_text ?? null},
         ${data.email_message_id ?? null}, ${data.in_reply_to ?? null}, ${data.email_references ?? null},
         ${data.spam_score ?? null}, ${data.raw_s3_key ?? null}, ${data.authenticated ?? false},
-        ${data.auth_result ?? null}, ${data.hold_reason ?? null}
+        ${data.auth_result ?? null}, ${data.hold_reason ?? null},
+        ${data.ai_generated ?? false}, ${data.ai_metadata ? this.sql.json(data.ai_metadata as any) : null}
       )
       RETURNING *
     `
@@ -149,6 +165,27 @@ class MessageService {
       SET body_html = ${data.body_html ?? null},
           body_text = ${data.body_text ?? null},
           from_email = COALESCE(${data.from_email ?? null}, from_email),
+          updated_at = NOW()
+      WHERE id = ${id} AND status = 'draft'
+      RETURNING *
+    `
+    return row ?? null
+  }
+
+  // Overwrite an existing draft with a freshly generated AI draft (regenerate reuses
+  // the same row so we don't orphan drafts). Keeps it marked AI-generated.
+  async updateAiDraft(
+    id: number,
+    data: { body_html: string; body_text: string; subject?: string | null; from_email?: string | null; ai_metadata: AiDraftMetadata }
+  ): Promise<ConversationMessage | null> {
+    const [row] = await this.sql<ConversationMessage[]>`
+      UPDATE conversation_messages
+      SET body_html = ${data.body_html},
+          body_text = ${data.body_text},
+          subject = COALESCE(${data.subject ?? null}, subject),
+          from_email = COALESCE(${data.from_email ?? null}, from_email),
+          ai_generated = true,
+          ai_metadata = ${this.sql.json(data.ai_metadata as any)},
           updated_at = NOW()
       WHERE id = ${id} AND status = 'draft'
       RETURNING *

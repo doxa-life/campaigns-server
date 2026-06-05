@@ -63,6 +63,12 @@
             <span v-if="showExpanded" class="nav-label">Inbox</span>
           </NuxtLink>
         </li>
+        <li v-if="canAccess('inbox.view')">
+          <NuxtLink to="/admin/inbox/knowledge-base" class="nav-link" :title="!showExpanded ? 'Knowledge base' : undefined">
+            <UIcon name="i-lucide-book-open" />
+            <span v-if="showExpanded" class="nav-label">Knowledge base</span>
+          </NuxtLink>
+        </li>
         <li v-if="canAccess('marketing.view')">
           <NuxtLink to="/admin/marketing" class="nav-link" :title="!showExpanded ? 'Marketing' : undefined">
             <UIcon name="i-lucide-megaphone" />
