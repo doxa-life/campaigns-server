@@ -16,13 +16,14 @@ import { validateMailgunWebhook, releaseSeenToken } from '../../../utils/mailgun
 
 /**
  * Map a Mailgun event to a deliverability-suppression reason, or null when it must
- * not suppress. `failed` carries a severity (permanent vs temporary); legacy
- * permanent_fail/rejected/bounced are always permanent. Note: `unsubscribed` is NOT
- * here — it's handled as a marketing consent opt-out, not a deliverability block.
+ * not suppress. A `failed` event suppresses only on an explicit permanent severity —
+ * a missing/unknown severity is treated as transient (don't permanently kill an
+ * address on an ambiguous event). Legacy permanent_fail/rejected/bounced are always
+ * permanent. Note: `unsubscribed` is NOT here — it's a marketing consent opt-out.
  */
 function classifySuppression(eventType: string, severity: string): 'hard_bounce' | 'complaint' | null {
   if (eventType === 'complained') return 'complaint'
-  if (eventType === 'failed') return severity === 'temporary' ? null : 'hard_bounce'
+  if (eventType === 'failed') return severity === 'permanent' ? 'hard_bounce' : null
   if (eventType === 'permanent_fail' || eventType === 'rejected' || eventType === 'bounced') return 'hard_bounce'
   return null
 }

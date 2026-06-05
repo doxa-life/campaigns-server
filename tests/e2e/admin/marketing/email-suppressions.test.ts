@@ -90,6 +90,14 @@ describe('Mailgun delivery webhook → email suppression', () => {
     expect(await getSuppression(email)).toBeFalsy()
   })
 
+  it('does NOT suppress a failed event with no/unknown severity', async () => {
+    const email = testEmail()
+    const res = await postEvent({ event: 'failed', recipient: email }) // severity omitted
+
+    expect(res.suppressed).toBeFalsy()
+    expect(await getSuppression(email)).toBeFalsy()
+  })
+
   it('is idempotent — a repeat permanent failure bumps bounce_count, not row count', async () => {
     const email = testEmail()
     await postEvent({ event: 'failed', severity: 'permanent', recipient: email })
@@ -101,6 +109,22 @@ describe('Mailgun delivery webhook → email suppression', () => {
     `
     expect(rows.length).toBe(1)
     expect((rows[0] as any).bounce_count).toBe(2)
+  })
+})
+
+describe('Admin suppression list', () => {
+  it('lists suppressed addresses with their subscriber and reason', async () => {
+    const { auth } = await createAdminUser(sql)
+    const subscriber = await createTestSubscriber(sql, { name: 'Test Suppression List' })
+    const cm = await createTestContactMethod(sql, subscriber.id, { type: 'email', verified: true })
+
+    await postEvent({ event: 'complained', recipient: cm.value })
+
+    const { suppressions } = await $fetch<{ suppressions: any[] }>('/api/admin/email-suppressions', auth)
+    const entry = suppressions.find(s => s.value.toLowerCase() === cm.value.toLowerCase())
+    expect(entry).toBeTruthy()
+    expect(entry.suppression_reason).toBe('complaint')
+    expect(entry.subscriber_name).toBe('Test Suppression List')
   })
 })
 

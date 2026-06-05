@@ -15,7 +15,7 @@ class BaseMigration {
 }
 
 export default class ContactMethodDeliverabilityMigration extends BaseMigration {
-  id = 80
+  id = 79
   name = 'Contact method deliverability'
 
   async up(sql) {
@@ -47,10 +47,6 @@ export default class ContactMethodDeliverabilityMigration extends BaseMigration 
       CREATE INDEX IF NOT EXISTS idx_contact_methods_suppressed
       ON contact_methods (suppressed_at) WHERE suppressed_at IS NOT NULL
     `)
-
-    // Replaced by the columns above.
-    await this.exec(sql, `DROP TABLE IF EXISTS email_suppressions`)
-    console.log('  ✅ Dropped email_suppressions table')
 
     console.log('🎉 Contact method deliverability migration completed!')
   }
