@@ -138,9 +138,14 @@ async function processJobQueue(): Promise<boolean> {
     const email = await marketingEmailService.getById(emailId)
     if (!email || (email.status !== 'queued' && email.status !== 'sending')) continue
     const stats = await jobQueueService.getJobStats('marketing_email', emailId)
-    const finalStatus = stats.failed > 0 && stats.completed === 0 ? 'failed' : 'sent'
+    // Base the final status on actual deliveries, not completed jobs: a job is marked
+    // completed even when we skipped the recipient (suppressed / unsubscribed /
+    // already-sent), so a campaign where everyone was skipped must not report 'sent'.
+    // sent_count counts real sends only.
+    const finalStatus = email.sent_count > 0 ? 'sent' : 'failed'
     await marketingEmailService.updateStatus(emailId, finalStatus)
-    console.log(`  Marketing email ${emailId} complete: ${stats.completed} sent, ${stats.failed} failed`)
+    const skipped = Math.max(0, stats.completed - email.sent_count)
+    console.log(`  Marketing email ${emailId} complete: ${email.sent_count} sent, ${stats.failed} failed, ${skipped} skipped`)
   }
 
   console.log('Job processing complete')
