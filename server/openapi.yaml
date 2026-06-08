@@ -19,8 +19,46 @@ tags:
     description: Prayer reminder signup operations
   - name: People Groups
     description: Unreached people group data for WordPress themes and map widgets
+  - name: App
+    description: Mobile app support endpoints
 
 paths:
+  /api/app/version:
+    get:
+      tags:
+        - App
+      summary: Mobile app version gate
+      description: |
+        Returns the latest released app version, the minimum supported version
+        (below which the app must force an update), and the platform store URLs.
+        The mobile app calls this on launch/resume to decide whether to show an
+        update banner (optional) or a blocking modal (forced).
+      operationId: getAppVersion
+      responses:
+        '200':
+          description: Current app version configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  latest_version:
+                    type: string
+                    description: Latest released version (semver)
+                    example: "1.1.0"
+                  min_supported_version:
+                    type: string
+                    description: Minimum supported version; below this the app forces an update
+                    example: "1.0.0"
+                  ios_app_store_url:
+                    type: string
+                    nullable: true
+                    description: Deep link to the App Store listing (null if the iOS App Store id is unset)
+                    example: "https://apps.apple.com/app/id1234567890"
+                  android_play_url:
+                    type: string
+                    description: Deep link to the Google Play listing
+                    example: "https://play.google.com/store/apps/details?id=app.prayer.doxa"
   /api/admin/people-groups/bulk-update:
     post:
       tags:
