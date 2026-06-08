@@ -71,10 +71,16 @@ export async function sendMarketingEmail(options: MarketingSendOptions): Promise
       const url = `https://${host}/v3/${domain}/messages`
       const auth = Buffer.from(`api:${apiKey}`).toString('base64')
 
+      // Cap each request so a hung connection fails fast instead of stalling the serial
+      // batch long enough for the stale-job reaper to reclaim (and re-send) live jobs.
+      // A timeout throws AbortError, caught below → returns false → claim released → retry.
+      const timeoutMs = Number(process.env.MARKETING_SEND_TIMEOUT_MS) || 30000
+
       const res = await fetch(url, {
         method: 'POST',
         headers: { Authorization: `Basic ${auth}` },
         body: form,
+        signal: AbortSignal.timeout(timeoutMs),
       })
 
       if (!res.ok) {

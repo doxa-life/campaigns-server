@@ -1,6 +1,9 @@
 /**
- * GET /api/people-groups/:slug/unsubscribe
- * Get subscriber info and unsubscribe from people group reminders
+ * POST /api/people-groups/:slug/unsubscribe
+ * Unsubscribe from people group reminders and return the subscriber's remaining
+ * subscriptions. POST (not GET) because it mutates state: a GET could be silently
+ * triggered by an email scanner / link prefetcher. Params are carried in the query
+ * string (id, sid, all) — the unsubscribe landing page issues this on user confirm.
  */
 import { peopleGroupService } from '#server/database/people-groups'
 import { subscriberService } from '#server/database/subscribers'

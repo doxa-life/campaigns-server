@@ -635,6 +635,7 @@ async function confirmUnsubscribe() {
       justUnsubscribed.value = 'doxa'
     } else if (slug) {
       data.value = await $fetch<UnsubscribeData>(`/api/people-groups/${slug}/unsubscribe`, {
+        method: 'POST',
         query: { id: profileId, sid: subscriptionId }
       })
     }
@@ -720,6 +721,7 @@ async function unsubscribeFromReminder(peopleGroupSlug: string, peopleGroupId: n
   try {
     unsubscribingId.value = reminderId
     await $fetch(`/api/people-groups/${peopleGroupSlug}/unsubscribe`, {
+      method: 'POST',
       query: { id: profileId, sid: reminderId }
     })
 
@@ -745,6 +747,7 @@ async function unsubscribeFromEntirePeopleGroup(pg: PeopleGroupWithReminders) {
   try {
     unsubscribingFromPeopleGroupId.value = pg.id
     await $fetch(`/api/people-groups/${pg.slug}/unsubscribe`, {
+      method: 'POST',
       query: { id: profileId, all: 'true' }
     })
 
@@ -898,6 +901,7 @@ async function doxaUnsubscribeFromReminder(peopleGroupSlug: string, peopleGroupI
   try {
     doxaUnsubscribingId.value = reminderId
     await $fetch(`/api/people-groups/${peopleGroupSlug}/unsubscribe`, {
+      method: 'POST',
       query: { id: profileId, sid: reminderId }
     })
 
@@ -949,6 +953,7 @@ async function doxaUnsubscribeFromEntirePeopleGroup(pg: PeopleGroupWithReminders
   try {
     doxaUnsubscribingFromPeopleGroupId.value = pg.id
     await $fetch(`/api/people-groups/${pg.slug}/unsubscribe`, {
+      method: 'POST',
       query: { id: profileId, all: 'true' }
     })
 

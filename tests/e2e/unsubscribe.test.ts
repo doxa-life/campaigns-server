@@ -22,13 +22,13 @@ afterAll(async () => {
   await closeTestDatabase()
 })
 
-describe('GET /api/people-groups/[slug]/unsubscribe', () => {
+describe('POST /api/people-groups/[slug]/unsubscribe', () => {
 
   it('returns 400 for missing profile_id', async () => {
     const peopleGroup = await createTestPeopleGroup(sql)
 
     const error = await $fetch(`/api/people-groups/${peopleGroup.slug}/unsubscribe`, {
-      method: 'GET'
+      method: 'POST'
     }).catch(e => e)
 
     expect(error.statusCode).toBe(400)
@@ -37,7 +37,7 @@ describe('GET /api/people-groups/[slug]/unsubscribe', () => {
 
   it('returns 404 for non-existent people group', async () => {
     const error = await $fetch('/api/people-groups/non-existent/unsubscribe?id=some-profile-id', {
-      method: 'GET'
+      method: 'POST'
     }).catch(e => e)
 
     expect(error.statusCode).toBe(404)
@@ -48,7 +48,7 @@ describe('GET /api/people-groups/[slug]/unsubscribe', () => {
     const peopleGroup = await createTestPeopleGroup(sql)
 
     const error = await $fetch(`/api/people-groups/${peopleGroup.slug}/unsubscribe?id=non-existent-profile`, {
-      method: 'GET'
+      method: 'POST'
     }).catch(e => e)
 
     expect(error.statusCode).toBe(404)
@@ -68,7 +68,7 @@ describe('GET /api/people-groups/[slug]/unsubscribe', () => {
     })
 
     const response = await $fetch(`/api/people-groups/${peopleGroup.slug}/unsubscribe?id=${subscriber.profile_id}`, {
-      method: 'GET'
+      method: 'POST'
     })
 
     expect(response.success).toBe(true)
@@ -100,7 +100,7 @@ describe('GET /api/people-groups/[slug]/unsubscribe', () => {
 
     // Unsubscribe from specific subscription
     const response = await $fetch(`/api/people-groups/${peopleGroup.slug}/unsubscribe?id=${subscriber.profile_id}&sid=${sub2.id}`, {
-      method: 'GET'
+      method: 'POST'
     })
 
     expect(response.success).toBe(true)
@@ -140,7 +140,7 @@ describe('GET /api/people-groups/[slug]/unsubscribe', () => {
     })
 
     const response = await $fetch(`/api/people-groups/${peopleGroup.slug}/unsubscribe?id=${subscriber.profile_id}&all=true`, {
-      method: 'GET'
+      method: 'POST'
     })
 
     expect(response.message).toContain('Unsubscribed from all 3 reminder(s)')
@@ -172,7 +172,7 @@ describe('GET /api/people-groups/[slug]/unsubscribe', () => {
 
     // Unsubscribe from peopleGroup1
     const response = await $fetch(`/api/people-groups/${peopleGroup1.slug}/unsubscribe?id=${subscriber.profile_id}`, {
-      method: 'GET'
+      method: 'POST'
     })
 
     expect(response.other_people_groups).toBeDefined()
@@ -194,7 +194,7 @@ describe('GET /api/people-groups/[slug]/unsubscribe', () => {
     })
 
     const response = await $fetch(`/api/people-groups/${peopleGroup.slug}/unsubscribe?id=${subscriber.profile_id}`, {
-      method: 'GET'
+      method: 'POST'
     })
 
     expect(response.already_unsubscribed).toBe(true)

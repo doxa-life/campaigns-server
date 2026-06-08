@@ -14,7 +14,7 @@
         <UButton @click="saveEmail" :loading="saving" :disabled="!canSave">
           Save Draft
         </UButton>
-        <UButton @click="sendEmail" :loading="sending" :disabled="!canSend" color="primary">
+        <UButton @click="showSendModal = true" :loading="sending" :disabled="!canSend" color="primary">
           Send Now
         </UButton>
       </div>
@@ -192,6 +192,19 @@
       </template>
     </UModal>
 
+    <!-- Send Confirmation Modal -->
+    <ConfirmModal
+      v-model:open="showSendModal"
+      title="Send this email?"
+      :message="sendConfirmMessage"
+      warning="Sending starts immediately. You can stop it, but emails already sent can't be recalled."
+      confirm-text="Send now"
+      confirm-color="primary"
+      :loading="saving || sending"
+      @confirm="sendEmail"
+      @cancel="showSendModal = false"
+    />
+
     <!-- Unsaved Changes Modal -->
     <ConfirmModal
       v-model:open="showUnsavedChangesModal"
@@ -263,6 +276,7 @@ const showPreview = ref(false)
 const previewHtml = ref('')
 const isSaved = ref(false)
 const showUnsavedChangesModal = ref(false)
+const showSendModal = ref(false)
 const pendingNavigation = ref<any>(null)
 
 const peopleGroupOptions = computed(() => {
@@ -292,6 +306,42 @@ const canSend = computed(() => {
   if (form.value.audience_type === 'admins') return !!(adminCount.value && adminCount.value > 0)
   if (form.value.audience_type === 'pick') return pickedContacts.value.length > 0
   return false
+})
+
+const selectedAudienceCount = computed(() => {
+  if (form.value.audience_type === 'doxa') return doxaCount.value
+  if (form.value.audience_type === 'doxa_active_pg') return doxaActivePgCount.value
+  if (form.value.audience_type === 'active_pg') return activePgCount.value
+  if (form.value.audience_type === 'people_group') return peopleGroupCount.value
+  if (form.value.audience_type === 'admins') return adminCount.value
+  if (form.value.audience_type === 'pick') return pickedContacts.value.length
+  return null
+})
+
+const selectedAudienceLabel = computed(() => {
+  switch (form.value.audience_type) {
+    case 'doxa': return 'DOXA General'
+    case 'doxa_active_pg': return 'Active Subscribers with Doxa General Consent'
+    case 'active_pg': return 'All Active Subscribers'
+    case 'admins': return 'Admins'
+    case 'pick': return 'the picked contacts'
+    case 'people_group': return peopleGroups.value.find(g => g.id === form.value.people_group_id)?.title || 'this people group'
+    default: return ''
+  }
+})
+
+const selectedSenderEmail = computed(() => {
+  const s = senders.value.find(x => x.id === form.value.sender_id)
+    || (senders.value.length === 1 ? senders.value[0] : null)
+  if (!s) return ''
+  return senderDomain.value ? `${s.local_part}@${senderDomain.value}` : s.local_part
+})
+
+const sendConfirmMessage = computed(() => {
+  const count = selectedAudienceCount.value ?? 0
+  const noun = count === 1 ? 'recipient' : 'recipients'
+  const from = selectedSenderEmail.value ? ` from ${selectedSenderEmail.value}` : ''
+  return `This will email ${count} ${noun} in ${selectedAudienceLabel.value}${from} now.`
 })
 
 const hasActualContent = computed(() => {
@@ -491,6 +541,7 @@ async function sendEmail() {
   } finally {
     saving.value = false
     sending.value = false
+    showSendModal.value = false
   }
 }
 
