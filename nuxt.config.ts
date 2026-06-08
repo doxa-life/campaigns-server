@@ -65,7 +65,9 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    '/en/**': { redirect: '/**' }
+    '/en/**': { redirect: '/**' },
+    // Apple fetches this with no file extension; force JSON so Universal Links verify.
+    '/.well-known/apple-app-site-association': { headers: { 'content-type': 'application/json' } }
   },
 
   nitro: {
@@ -165,6 +167,14 @@ export default defineNuxtConfig({
 
     // Statinator analytics
     statinatorApiKey: process.env.STATINATOR_API_KEY || '',
+
+    // Mobile app deep-link / store fallback (used by server/routes/app/[slug].get.ts).
+    // When a "Pray on the app" smart link isn't intercepted by an installed app, this
+    // route redirects to the right store, carrying the people group slug as the Play
+    // install referrer. appleId is the numeric App Store id (empty until the app is live).
+    mobileAppAndroidPackage: process.env.MOBILE_APP_ANDROID_PACKAGE || 'app.prayer.doxa',
+    mobileAppAppleId: process.env.MOBILE_APP_APPLE_ID || '',
+    mobileAppScheme: process.env.MOBILE_APP_SCHEME || 'doxa',
 
     // Public keys (exposed to the frontend)
     public: {
