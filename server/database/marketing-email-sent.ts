@@ -51,7 +51,9 @@ class MarketingEmailSentService {
           marketing_email_id: params.marketingEmailId,
           contact_method_id: params.contactMethodId,
           recipient_email: params.recipientEmail,
-          subject: params.subject
+          // `message` is what RecordActivity.vue renders as the row's detail line,
+          // so the timeline shows which email (its subject) was sent.
+          message: params.subject
         })}
       )
       ON CONFLICT (id) DO NOTHING
