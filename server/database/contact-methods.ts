@@ -324,7 +324,8 @@ class ContactMethodService {
   async getContactsWithDoxaConsentAndActiveSubscription(): Promise<ContactMethod[]> {
     return await this.sql`
       SELECT cm.* FROM contact_methods cm
-      WHERE cm.consent_doxa_general = true AND cm.verified = true
+      WHERE cm.type = 'email'
+      AND cm.consent_doxa_general = true AND cm.verified = true
       AND cm.suppressed_at IS NULL
       AND EXISTS (
         SELECT 1 FROM campaign_subscriptions cs
@@ -454,11 +455,12 @@ class ContactMethodService {
     peopleGroupId?: number | null
   ): Promise<boolean> {
     const [row] = await this.sql`
-      SELECT consent_doxa_general, consent_product_emails, consented_people_group_ids
+      SELECT type, consent_doxa_general, consent_product_emails, consented_people_group_ids
       FROM contact_methods
       WHERE id = ${contactMethodId}
     `
     if (!row) return false
+    if (row.type !== 'email') return false
     switch (audienceType) {
       case 'people_group':
         return peopleGroupId != null && (row.consented_people_group_ids ?? []).includes(peopleGroupId)
