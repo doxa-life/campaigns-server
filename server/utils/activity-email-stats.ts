@@ -55,7 +55,7 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
         GROUP BY d.date
       ) daily_totals
     `.then(rows => rows[0]),
-    sql`SELECT COUNT(*) as count FROM survey_responses WHERE created_at >= ${startIso} AND created_at < ${endIso}`.then(rows => rows[0]),
+    sql`SELECT COUNT(*) as count FROM survey_responses`.then(rows => rows[0]),
     sql`SELECT COUNT(DISTINCT people_group_id) as count FROM campaign_subscriptions WHERE status = 'active'`.then(rows => rows[0]),
     sql`SELECT COUNT(*) as count FROM (SELECT people_group_id FROM campaign_subscriptions WHERE status = 'active' GROUP BY people_group_id HAVING COUNT(*) >= 144) sub`.then(rows => rows[0]),
     sql`SELECT COUNT(*) as count FROM people_group_adoptions WHERE status = 'active'`.then(rows => rows[0]),
