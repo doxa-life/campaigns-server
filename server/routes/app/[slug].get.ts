@@ -4,13 +4,17 @@
  * This is the FALLBACK target. When the app is installed, the OS intercepts the
  * verified App Link / Universal Link (see public/.well-known/*) and opens the app
  * directly — this handler never runs. It only executes when the link is NOT
- * intercepted (app not installed, or links not yet verified):
+ * intercepted (app not installed, or links not yet verified).
  *
- *   - Desktop / unknown UA  → redirect to the public people group profile.
- *   - Mobile (Android/iOS)  → serve a tiny page that first tries the custom-scheme
- *     deep link (covers installed-but-unverified), then, if the app didn't open,
- *     redirects to the matching store. The Play URL carries the slug as the install
- *     referrer so the app can auto-select the people group after a fresh install.
+ * The store badges link here with `?store=android|ios` so we can honour the store
+ * the user actually clicked (rather than guessing). Resolution:
+ *   - Explicit ?store= wins, else infer from the User-Agent.
+ *   - Desktop → redirect straight to the chosen store (no app to deep-link into);
+ *     with no store choice, fall back to the public profile.
+ *   - Mobile → serve a tiny page that first tries the custom-scheme deep link
+ *     (covers installed-but-unverified), then falls back to the store. The Play URL
+ *     carries the slug as the install referrer so the app can auto-select the people
+ *     group after a fresh install.
  */
 
 // Slugs are generated lowercased with hyphens (see server/database/people-groups.ts).
@@ -29,11 +33,6 @@ export default defineEventHandler((event) => {
   const isIOS = /iphone|ipad|ipod/.test(ua)
   const isAndroid = /android/.test(ua)
 
-  // Desktop / unknown → just show the public profile.
-  if (!isIOS && !isAndroid) {
-    return sendRedirect(event, `/${slug}`, 302)
-  }
-
   const referrer = `utm_source=doxa_web&utm_medium=referral&utm_content=${slug}`
   const playUrl =
     `https://play.google.com/store/apps/details?id=${config.mobileAppAndroidPackage}` +
@@ -42,10 +41,27 @@ export default defineEventHandler((event) => {
     ? `https://apps.apple.com/app/id${config.mobileAppAppleId}`
     : null
 
-  const storeUrl = isAndroid ? playUrl : appStoreUrl
-  // iOS before the app is published (no App Store id) → fall back to the profile.
+  // Which store? The badge the user clicked wins; otherwise infer from the device.
+  const storeParam = getQuery(event).store
+  const store =
+    storeParam === 'android' || storeParam === 'ios'
+      ? storeParam
+      : isAndroid
+        ? 'android'
+        : isIOS
+          ? 'ios'
+          : null
+  const storeUrl = store === 'android' ? playUrl : store === 'ios' ? appStoreUrl : null
+
+  // No resolvable store (desktop with no explicit choice, or iOS before the app is
+  // live) → fall back to the public profile.
   if (!storeUrl) {
     return sendRedirect(event, `/${slug}`, 302)
+  }
+
+  // Desktop has no app to deep-link into — send them straight to the chosen store.
+  if (!isAndroid && !isIOS) {
+    return sendRedirect(event, storeUrl, 302)
   }
 
   // Triple-slash so go_router sees path "/app/<slug>" for both the custom scheme and
