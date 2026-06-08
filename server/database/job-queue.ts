@@ -233,6 +233,28 @@ class JobQueueService {
     }
   }
 
+  /**
+   * Drift-free send tally for a marketing email, derived from job terminal states so a
+   * recipient that failed then succeeded on retry isn't double-counted. A completed job
+   * is a real send unless its result carries a `skipped` reason (suppressed /
+   * unsubscribed / already-sent); `failed` counts only permanently-failed recipients.
+   */
+  async getMarketingSendCounts(marketingEmailId: number): Promise<{ sent: number; skipped: number; failed: number }> {
+    const [row] = await this.sql`
+      SELECT
+        COUNT(*) FILTER (WHERE status = 'completed' AND (result->>'skipped') IS NULL) AS sent,
+        COUNT(*) FILTER (WHERE status = 'completed' AND (result->>'skipped') IS NOT NULL) AS skipped,
+        COUNT(*) FILTER (WHERE status = 'failed') AS failed
+      FROM jobs
+      WHERE reference_type = 'marketing_email' AND reference_id = ${marketingEmailId}
+    `
+    return {
+      sent: Number(row?.sent ?? 0),
+      skipped: Number(row?.skipped ?? 0),
+      failed: Number(row?.failed ?? 0)
+    }
+  }
+
   async getJobsByReference(referenceType: string, referenceId: number): Promise<Job[]> {
     return await this.sql`
       SELECT * FROM jobs
