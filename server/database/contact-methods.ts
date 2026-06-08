@@ -314,7 +314,7 @@ class ContactMethodService {
   async getContactsWithDoxaConsent(): Promise<ContactMethod[]> {
     return await this.sql`
       SELECT * FROM contact_methods
-      WHERE consent_doxa_general = true AND verified = true
+      WHERE consent_doxa_general = true AND verified = true AND type = 'email'
       AND suppressed_at IS NULL
       ORDER BY created_at DESC
     `
@@ -433,7 +433,7 @@ class ContactMethodService {
   async getContactsConsentedToPeopleGroup(peopleGroupId: number): Promise<ContactMethod[]> {
     return await this.sql`
       SELECT * FROM contact_methods
-      WHERE ${peopleGroupId} = ANY(consented_people_group_ids) AND verified = true
+      WHERE ${peopleGroupId} = ANY(consented_people_group_ids) AND verified = true AND type = 'email'
       AND suppressed_at IS NULL
       ORDER BY created_at DESC
     `
