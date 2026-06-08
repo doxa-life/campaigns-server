@@ -19,7 +19,7 @@
           <UButton @click="saveEmail" :loading="saving" :disabled="!canSave">
             Save Draft
           </UButton>
-          <UButton @click="sendEmail" :loading="sending" :disabled="!canSend" color="primary">
+          <UButton @click="showSendModal = true" :loading="sending" :disabled="!canSend" color="primary">
             Send Now
           </UButton>
         </div>
@@ -222,6 +222,19 @@
       @cancel="showStopModal = false"
     />
 
+    <!-- Send Confirmation Modal -->
+    <ConfirmModal
+      v-model:open="showSendModal"
+      title="Send this email?"
+      :message="sendConfirmMessage"
+      warning="Sending starts immediately. You can stop it, but emails already sent can't be recalled."
+      confirm-text="Send now"
+      confirm-color="primary"
+      :loading="saving || sending"
+      @confirm="sendEmail"
+      @cancel="showSendModal = false"
+    />
+
     <!-- Unsaved Changes Modal -->
     <ConfirmModal
       v-model:open="showUnsavedChangesModal"
@@ -311,6 +324,7 @@ const showUnsavedChangesModal = ref(false)
 const pendingNavigation = ref<any>(null)
 const stopping = ref(false)
 const showStopModal = ref(false)
+const showSendModal = ref(false)
 
 const isDraft = computed(() => email.value?.status === 'draft')
 const isInProgress = computed(() => email.value?.status === 'queued' || email.value?.status === 'sending')
@@ -343,6 +357,36 @@ const canSend = computed(() => {
 
 const hasUnsavedChanges = computed(() => {
   return JSON.stringify(form.value) !== originalForm.value
+})
+
+const selectedAudienceCount = computed(() => {
+  if (form.value.audience_type === 'doxa') return doxaCount.value
+  if (form.value.audience_type === 'people_group') return peopleGroupCount.value
+  if (form.value.audience_type === 'admins') return adminCount.value
+  return null
+})
+
+const selectedAudienceLabel = computed(() => {
+  if (form.value.audience_type === 'doxa') return 'Doxa General'
+  if (form.value.audience_type === 'admins') return 'Admins (test)'
+  if (form.value.audience_type === 'people_group') {
+    return peopleGroups.value.find(g => g.id === form.value.people_group_id)?.title || 'this people group'
+  }
+  return ''
+})
+
+const selectedSenderEmail = computed(() => {
+  const s = senders.value.find(x => x.id === form.value.sender_id)
+    || (senders.value.length === 1 ? senders.value[0] : null)
+  if (!s) return ''
+  return senderDomain.value ? `${s.local_part}@${senderDomain.value}` : s.local_part
+})
+
+const sendConfirmMessage = computed(() => {
+  const count = selectedAudienceCount.value ?? 0
+  const noun = count === 1 ? 'recipient' : 'recipients'
+  const from = selectedSenderEmail.value ? ` from ${selectedSenderEmail.value}` : ''
+  return `This will email ${count} ${noun} in ${selectedAudienceLabel.value}${from} now.`
 })
 
 type BadgeColor = 'error' | 'info' | 'primary' | 'secondary' | 'success' | 'warning' | 'neutral'
@@ -543,6 +587,7 @@ async function sendEmail() {
   } finally {
     saving.value = false
     sending.value = false
+    showSendModal.value = false
   }
 }
 
