@@ -1,4 +1,4 @@
-import { t } from './translations'
+import { t, escapeHtml } from './translations'
 import { MAY_2026_SURVEY_KEY } from '#shared/surveys/may-2026-survey'
 
 export interface MarketingTemplateVars {
@@ -39,7 +39,8 @@ const may2026Survey: MarketingTemplate = {
       + `<a href="${surveyUrl}" style="display: inline-block; background: #3B463D; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: 600;">${cta}</a>`
       + `</div>`
     return [
-      para(greeting(locale, name)),
+      // Escape the subscriber name here (HTML body); the text version below uses it raw.
+      para(greeting(locale, escapeHtml(name))),
       para(t('survey.may2026.email.p1', locale)),
       para(t('survey.may2026.email.p2', locale)),
       para(t('survey.may2026.email.p3', locale)),
