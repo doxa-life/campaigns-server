@@ -84,9 +84,43 @@ class MessageService {
     return row!
   }
 
+  // Like create(), but atomically no-ops when a row with the same email_message_id
+  // already exists (ON CONFLICT DO NOTHING) — returns null in that case. The caller
+  // treats null as "another delivery already persisted this message" (a duplicate).
+  // Pass a non-null email_message_id (synthesize one when the mail has no Message-Id),
+  // otherwise NULLs never conflict and every retry would insert.
+  async createIfNew(data: CreateMessageData): Promise<ConversationMessage | null> {
+    const [row] = await this.sql<ConversationMessage[]>`
+      INSERT INTO conversation_messages (
+        conversation_id, direction, status, sender_user_id,
+        from_email, from_name, to_email, subject,
+        body_html, body_stripped_html, body_text,
+        email_message_id, in_reply_to, email_references,
+        spam_score, raw_s3_key, authenticated, auth_result, hold_reason
+      ) VALUES (
+        ${data.conversation_id}, ${data.direction}, ${data.status || 'received'}, ${data.sender_user_id ?? null},
+        ${data.from_email ?? null}, ${data.from_name ?? null}, ${data.to_email ?? null}, ${data.subject ?? null},
+        ${data.body_html ?? null}, ${data.body_stripped_html ?? null}, ${data.body_text ?? null},
+        ${data.email_message_id ?? null}, ${data.in_reply_to ?? null}, ${data.email_references ?? null},
+        ${data.spam_score ?? null}, ${data.raw_s3_key ?? null}, ${data.authenticated ?? false},
+        ${data.auth_result ?? null}, ${data.hold_reason ?? null}
+      )
+      ON CONFLICT (email_message_id) DO NOTHING
+      RETURNING *
+    `
+    return row ?? null
+  }
+
   async getById(id: number): Promise<ConversationMessage | null> {
     const [row] = await this.sql<ConversationMessage[]>`SELECT * FROM conversation_messages WHERE id = ${id}`
     return row ?? null
+  }
+
+  // Hard-delete a message by id. Used to release a claimed-but-not-sent staff
+  // forward so a retry can re-send instead of dedup-skipping it.
+  async deleteById(id: number): Promise<boolean> {
+    const result = await this.sql`DELETE FROM conversation_messages WHERE id = ${id}`
+    return result.count > 0
   }
 
   async findByEmailMessageId(messageId: string): Promise<ConversationMessage | null> {

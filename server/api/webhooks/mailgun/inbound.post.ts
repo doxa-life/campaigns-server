@@ -1,5 +1,6 @@
+import { createHash } from 'crypto'
 import { conversationService, type Conversation } from '../../../database/conversations'
-import { messageService } from '../../../database/conversation-messages'
+import { messageService, type ConversationMessage } from '../../../database/conversation-messages'
 import { conversationAttachmentService } from '../../../database/conversation-attachments'
 import { spamSenderService } from '../../../database/spam-senders'
 import { subscriberService } from '../../../database/subscribers'
@@ -78,12 +79,20 @@ export default defineEventHandler(async (event) => {
   const inboxDomain = (config.inboxDomain || 'doxa.life').toLowerCase()
   const domainMatches = parsedRecipient?.domain === inboxDomain
 
-  // --- 2. Idempotency by Message-Id ---
-  if (messageId) {
-    const existing = await messageService.findByEmailMessageId(messageId)
-    if (existing) {
-      return { status: 'duplicate', message_id: existing.id }
-    }
+  // --- 2. Idempotency ---
+  // Prefer the real Message-Id; synthesize a stable key from the envelope when the mail
+  // has none, so a redelivery of a header-less message dedupes instead of duplicating
+  // (a NULL email_message_id never conflicts, so otherwise every retry would re-insert).
+  const dedupeKey = messageId || synthesizeMessageId({
+    from: fromEmail,
+    recipient,
+    subject,
+    date: headers.get('date') || '',
+    body: bodyText || bodyHtml || '',
+  })
+  const existing = await messageService.findByEmailMessageId(dedupeKey)
+  if (existing) {
+    return { status: 'duplicate', message_id: existing.id }
   }
 
   // Everything below must be durable before we 200. Transient DB/S3 errors → retryable 5xx.
@@ -106,7 +115,7 @@ export default defineEventHandler(async (event) => {
             subject: subject || null,
             status: 'spam',
           })
-      await messageService.create({
+      const spamMsg = await messageService.createIfNew({
         conversation_id: convo.id,
         direction: 'inbound',
         status: 'received',
@@ -117,13 +126,14 @@ export default defineEventHandler(async (event) => {
         body_html: bodyHtml,
         body_stripped_html: bodyStrippedHtml,
         body_text: bodyText,
-        email_message_id: messageId,
+        email_message_id: dedupeKey,
         in_reply_to: inReplyTo,
         email_references: references,
         spam_score: spamScore,
         authenticated: auth.authenticated,
         auth_result: auth.authResult,
       })
+      if (!spamMsg) return { status: 'duplicate', conversation_id: convo.id }
       await conversationService.closeForSubscriberAsSpam(subscriber.id)
       return { status: 'spam', conversation_id: convo.id }
     }
@@ -198,7 +208,7 @@ export default defineEventHandler(async (event) => {
       outcome = 'held'
     }
 
-    let storedMessage
+    let storedMessage: ConversationMessage
 
     if (outcome === 'staff') {
       // Record the staff reply as outbound and forward it onward to the contact.
@@ -206,8 +216,37 @@ export default defineEventHandler(async (event) => {
         ? (await contactMethodService.getPrimaryEmail(conversation.subscriber_id))?.value || null
         : null
       const lastInbound = await messageService.getLastInbound(conversation.id)
+      // Snapshot the thread for the quoted history BEFORE claiming the new row, so the
+      // forward never quotes the staff's own message back to the contact.
+      const priorMessages = await messageService.listForConversation(conversation.id)
 
-      let providerMessageId: string | undefined
+      // Claim the durable row FIRST — its unique email_message_id is the idempotency
+      // point, so a concurrent or retried delivery can't pass this and forward twice.
+      // The forward is sent only after the claim succeeds; a confirmed send failure
+      // releases the claim so the redelivery resends cleanly.
+      const claimed = await messageService.createIfNew({
+        conversation_id: conversation.id,
+        direction: 'outbound',
+        status: 'sent',
+        sender_user_id: staffUser!.id,
+        from_email: staffUser!.email_alias ? `${staffUser!.email_alias}@${inboxDomain}` : (config.inboxContactAddress || 'contact@doxa.life'),
+        from_name: staffUser!.display_name,
+        to_email: contactEmail,
+        subject,
+        body_html: bodyHtml,
+        body_stripped_html: bodyStrippedHtml,
+        body_text: bodyText,
+        // Holds the inbound Message-Id (or its synthesized stand-in) so a retried
+        // webhook dedupes here. The forward's provider id lands in provider_message_id.
+        email_message_id: dedupeKey,
+        in_reply_to: inReplyTo,
+        email_references: references,
+        authenticated: auth.authenticated,
+        auth_result: auth.authResult,
+      })
+      if (!claimed) return { status: 'duplicate', conversation_id: conversation.id }
+      storedMessage = claimed
+
       if (contactEmail) {
         const fromAddress = buildFromAddress({
           firstName: staffUser!.display_name,
@@ -225,7 +264,6 @@ export default defineEventHandler(async (event) => {
         // (matters when the original came from a contact form, when the
         // contact sent multiple messages, or when their client doesn't thread).
         // Mirrors what the UI reply path does in the outbound-email job.
-        const priorMessages = await messageService.listForConversation(conversation.id)
         const newHtml = sanitizeEmailHtml(bodyStrippedHtml || bodyHtml)
         const composedHtml = renderInboxMessageEmail({
           bodyHtml: newHtml + buildQuotedHtml(priorMessages),
@@ -242,39 +280,20 @@ export default defineEventHandler(async (event) => {
           inReplyTo: lastInbound?.email_message_id || undefined,
           references: lastInbound?.email_message_id || undefined,
         })
-        providerMessageId = sent.providerMessageId
-      }
-
-      storedMessage = await messageService.create({
-        conversation_id: conversation.id,
-        direction: 'outbound',
-        status: 'sent',
-        sender_user_id: staffUser!.id,
-        from_email: staffUser!.email_alias ? `${staffUser!.email_alias}@${inboxDomain}` : (config.inboxContactAddress || 'contact@doxa.life'),
-        from_name: staffUser!.display_name,
-        to_email: contactEmail,
-        subject,
-        body_html: bodyHtml,
-        body_stripped_html: bodyStrippedHtml,
-        body_text: bodyText,
-        // Keep the inbound Message-Id as the row's email_message_id so a retried
-        // webhook (after a transient failure that occurred *after* the forward)
-        // dedupes here instead of re-sending. The provider's id (used for
-        // threading the contact's reply) lives in provider_message_id below.
-        email_message_id: messageId,
-        in_reply_to: inReplyTo,
-        email_references: references,
-        authenticated: auth.authenticated,
-        auth_result: auth.authResult,
-      })
-      if (providerMessageId) {
-        await messageService.markStatus(storedMessage.id, 'sent', { provider_message_id: providerMessageId })
+        if (!sent.success) {
+          // Release the claim so the redelivery re-sends instead of dedup-skipping a never-sent forward.
+          await messageService.deleteById(storedMessage.id)
+          throw new TransientError(sent.error || 'Staff reply forward failed')
+        }
+        if (sent.providerMessageId) {
+          await messageService.markStatus(storedMessage.id, 'sent', { provider_message_id: sent.providerMessageId })
+        }
       }
       await conversationService.updateStatus(conversation.id, 'pending')
       await conversationService.assignIfUnassigned(conversation.id, staffUser!.id)
       await conversationService.touchLastMessage(conversation.id, storedMessage.created_at, 'outbound')
     } else if (outcome === 'contact') {
-      storedMessage = await messageService.create({
+      const claimed = await messageService.createIfNew({
         conversation_id: conversation.id,
         direction: 'inbound',
         status: 'received',
@@ -285,13 +304,15 @@ export default defineEventHandler(async (event) => {
         body_html: bodyHtml,
         body_stripped_html: bodyStrippedHtml,
         body_text: bodyText,
-        email_message_id: messageId,
+        email_message_id: dedupeKey,
         in_reply_to: inReplyTo,
         email_references: references,
         spam_score: spamScore,
         authenticated: auth.authenticated,
         auth_result: auth.authResult,
       })
+      if (!claimed) return { status: 'duplicate', conversation_id: conversation.id }
+      storedMessage = claimed
       // Contact replied → the ball is back with the team. Flip pending
       // ("waiting on the contact") or closed ("done") back to open so it
       // surfaces as needing attention. Leave spam alone.
@@ -307,7 +328,7 @@ export default defineEventHandler(async (event) => {
       }
     } else {
       // held
-      storedMessage = await messageService.create({
+      const claimed = await messageService.createIfNew({
         conversation_id: conversation.id,
         direction: 'inbound',
         status: 'held',
@@ -318,7 +339,7 @@ export default defineEventHandler(async (event) => {
         body_html: bodyHtml,
         body_stripped_html: bodyStrippedHtml,
         body_text: bodyText,
-        email_message_id: messageId,
+        email_message_id: dedupeKey,
         in_reply_to: inReplyTo,
         email_references: references,
         spam_score: spamScore,
@@ -326,6 +347,8 @@ export default defineEventHandler(async (event) => {
         auth_result: auth.authResult,
         hold_reason: staffUser ? 'Unauthenticated staff reply' : 'Unknown sender',
       })
+      if (!claimed) return { status: 'duplicate', conversation_id: conversation.id }
+      storedMessage = claimed
       await conversationService.setNeedsReview(conversation.id, true)
       await conversationService.touchLastMessage(conversation.id, storedMessage.created_at, 'inbound')
     }
@@ -375,6 +398,11 @@ export default defineEventHandler(async (event) => {
 
     return { status: outcome, conversation_id: conversation.id, message_id: storedMessage.id }
   } catch (error: any) {
+    // Lost a unique-key race (a concurrent delivery already persisted this message).
+    // Treat as a duplicate (200) rather than a retryable 5xx so the provider stops resending.
+    if (error?.code === '23505') {
+      return { status: 'duplicate' }
+    }
     // This token was marked "seen" during signature validation. Since we're about to
     // return a retryable 5xx, release it so Mailgun's retry (which resends the same
     // token) isn't rejected as a replay and the message isn't lost.
@@ -387,6 +415,16 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 503, statusMessage: 'Temporary failure, please retry' })
   }
 })
+
+// Deterministic stand-in Message-Id for inbound mail that arrives without one, so a
+// redelivery of the same message dedupes (same envelope → same key) instead of
+// re-creating the conversation and re-firing acks/notifications.
+function synthesizeMessageId(parts: { from: string; recipient: string; subject: string; date: string; body: string }): string {
+  const hash = createHash('sha256')
+    .update([parts.from, parts.recipient, parts.subject, parts.date, parts.body].join('\n'))
+    .digest('hex')
+  return `<synthesized-${hash}@inbound.local>`
+}
 
 async function persistAttachments(form: FormData, messageId: number): Promise<void> {
   const blocked = /\.(exe|bat|cmd|com|scr|js|jar|vbs|ps1|sh|msi|dll)$/i
