@@ -91,17 +91,21 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
     const rows = await conversationAttachmentService.listForMessage(message.id)
     for (const row of rows) {
       try {
-        const url = await generateSignedUrl(row.s3_key)
-        const res = await fetch(url)
-        if (res.ok) {
-          attachments.push({
-            filename: row.filename || 'attachment',
-            contentType: row.content_type || 'application/octet-stream',
-            data: Buffer.from(await res.arrayBuffer()),
-          })
-        }
+        const res = await fetch(await generateSignedUrl(row.s3_key))
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        attachments.push({
+          filename: row.filename || 'attachment',
+          contentType: row.content_type || 'application/octet-stream',
+          data: Buffer.from(await res.arrayBuffer()),
+        })
       } catch (err: any) {
-        console.error('[OutboundEmail] Attachment fetch failed:', err?.message || err)
+        // Never send a reply with a missing attachment — the thread would falsely read "sent".
+        // Fail/retry the job; mark the message failed only once retries are exhausted.
+        const isLastAttempt = job.attempts >= job.max_attempts - 1
+        if (isLastAttempt) {
+          await messageService.markStatus(message.id, 'failed', { failed_reason: 'Attachment fetch failed' })
+        }
+        throw new Error(`Attachment fetch failed for message ${message.id}: ${err?.message || err}`)
       }
     }
 
