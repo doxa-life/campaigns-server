@@ -213,6 +213,92 @@ export class PrayerContentService {
   }
 
   /**
+   * Resolve how a single library is scheduled relative to the global campaign,
+   * and which of its content days is active on a given date.
+   *
+   * The mapping is not "day 1 = global start date": within a row libraries play
+   * sequentially, so a library's day 1 begins after the libraries ordered before
+   * it (its offset), and repeating libraries cycle their content via modulo.
+   *
+   * Uses the first placement found (a library is normally placed in one row).
+   * `cycleStartDate` is the calendar date of this library's day 1 for the cycle
+   * to display: today's cycle when the library is active, otherwise the first.
+   */
+  async getLibrarySchedule(libraryId: number, date: string): Promise<{
+    scheduled: boolean
+    globalStartDate: string | null
+    repeating: boolean
+    actualDays: number
+    startOffsetDay: number | null
+    todayDayInLibrary: number | null
+    cycleStartDate: string | null
+  }> {
+    const globalStartDate = await appConfigService.getConfig<string>('global_campaign_start_date')
+    const repeating = (await this.getLibraryType(libraryId)) === 'repeating'
+    const actualDays = await this.getLibraryActualDays(libraryId)
+
+    // Find this library's offset: accumulate the day counts of the libraries
+    // ordered before it in the first row that contains it.
+    let startOffsetDay: number | null = null
+    const rows = await this.getGlobalRows()
+    for (const row of rows) {
+      let accumulatedDays = 0
+      const sortedLibraries = [...row.libraries].sort((a, b) => a.order - b.order)
+      for (const libConfig of sortedLibraries) {
+        if (libConfig.libraryId === libraryId) {
+          startOffsetDay = accumulatedDays + 1
+          break
+        }
+        const total = await this.getLibraryTotalDays(libConfig.libraryId)
+        if (total === 0) continue
+        accumulatedDays += total
+      }
+      if (startOffsetDay !== null) break
+    }
+
+    if (!globalStartDate || startOffsetDay === null) {
+      return {
+        scheduled: false,
+        globalStartDate: globalStartDate ?? null,
+        repeating,
+        actualDays,
+        startOffsetDay,
+        todayDayInLibrary: null,
+        cycleStartDate: null
+      }
+    }
+
+    const todayGlobalDay = await this.dateToDayNumber(date)
+    const relative = todayGlobalDay - (startOffsetDay - 1)
+    let todayDayInLibrary: number | null = null
+    if (relative >= 1) {
+      if (repeating) {
+        if (actualDays > 0) todayDayInLibrary = ((relative - 1) % actualDays) + 1
+      } else if (relative <= actualDays) {
+        todayDayInLibrary = relative
+      }
+    }
+
+    // Anchor displayed dates to the cycle that contains today, so the active day
+    // shows today's real date (for repeating libraries that wrap).
+    let cycleStartGlobalDay = startOffsetDay
+    if (repeating && todayDayInLibrary !== null) {
+      cycleStartGlobalDay = todayGlobalDay - (todayDayInLibrary - 1)
+    }
+    const cycleStartDate = await this.dayNumberToDate(cycleStartGlobalDay)
+
+    return {
+      scheduled: true,
+      globalStartDate,
+      repeating,
+      actualDays,
+      startOffsetDay,
+      todayDayInLibrary,
+      cycleStartDate
+    }
+  }
+
+  /**
    * Get all unique library IDs from all rows (for aggregate operations)
    */
   private async getAllLibraryIds(): Promise<number[]> {
