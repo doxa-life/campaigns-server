@@ -35,12 +35,6 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
     return { success: false, data: { error: 'Conversation or subscriber missing' } }
   }
 
-  const contact = await contactMethodService.getPrimaryEmail(conversation.subscriber_id)
-  if (!contact?.value) {
-    await messageService.markStatus(message.id, 'failed', { failed_reason: 'No contact email' })
-    return { success: false, data: { error: 'No contact email' } }
-  }
-
   const sender = message.sender_user_id ? await userService.getUserById(message.sender_user_id) : null
   // Honor the From identity chosen at compose time (stored on the message's from_email):
   // the general contact address, or the sender's personal alias. Falls back to the
@@ -62,6 +56,23 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
   }
 
   const lastInbound = await messageService.getLastInbound(conversation.id)
+
+  // Reply to the address the contact actually used — the explicitly composed to_email, else
+  // the address that last wrote in — falling back to the subscriber's primary email (which may
+  // differ from the one that wrote in, and which getPrimaryEmail doesn't filter for suppression).
+  const recipientEmail = message.to_email
+    || lastInbound?.from_email
+    || (await contactMethodService.getPrimaryEmail(conversation.subscriber_id))?.value
+    || null
+  if (!recipientEmail) {
+    await messageService.markStatus(message.id, 'failed', { failed_reason: 'No contact email' })
+    return { success: false, data: { error: 'No contact email' } }
+  }
+  // Never (re)send to a suppressed address — hard bounce / complaint.
+  if (await contactMethodService.isSuppressed(recipientEmail)) {
+    await messageService.markStatus(message.id, 'failed', { failed_reason: 'Recipient suppressed' })
+    return { success: true, data: { skipped: 'suppressed' } }
+  }
 
   // Build a quoted history of the prior thread so the recipient's email has context
   // (the in-app thread shows messages individually, so we quote only on the sent copy).
@@ -120,7 +131,7 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
 
   const result = await inboxEmailService.send({
     from: fromAddress,
-    to: contact.value,
+    to: recipientEmail,
     subject: message.subject || conversation.subject || 'Re:',
     html,
     text: text || undefined,
