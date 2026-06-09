@@ -188,6 +188,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const subscriptionUpdates: {
+      people_group_id?: number
       delivery_method?: 'email' | 'whatsapp' | 'app'
       frequency?: string
       days_of_week?: number[]
@@ -203,11 +204,58 @@ export default defineEventHandler(async (event) => {
     if (body.timezone !== undefined) subscriptionUpdates.timezone = body.timezone
     if (body.prayer_duration !== undefined) subscriptionUpdates.prayer_duration = body.prayer_duration
 
+    // Move the subscription to the people group identified by slug. The slug
+    // must resolve to a real people group, else 404.
+    let targetPeopleGroupId: number | undefined
+    if (body.people_group_slug) {
+      const pg = await peopleGroupService.getPeopleGroupBySlug(body.people_group_slug)
+      if (!pg) {
+        throw createError({
+          statusCode: 404,
+          statusMessage: 'People group not found'
+        })
+      }
+      targetPeopleGroupId = pg.id
+    }
+
+    // The row the updates apply to. Moving into a group the subscriber already
+    // receives via the same delivery method would duplicate delivery — and for
+    // 'app' it violates the `(subscriber_id, people_group_id) WHERE
+    // delivery_method = 'app'` unique index. When such a row exists we merge into
+    // it (applying the incoming schedule) and drop the one moved from. Match on
+    // the *effective* method, since this same request may also change delivery_method.
+    let targetSubscriptionId = body.subscription_id
+    if (targetPeopleGroupId !== undefined && targetPeopleGroupId !== subscription.people_group_id) {
+      const existing = await peopleGroupSubscriptionService.getAllBySubscriberAndPeopleGroup(
+        subscriber.id,
+        targetPeopleGroupId
+      )
+      const effectiveMethod = subscriptionUpdates.delivery_method ?? subscription.delivery_method
+      const conflict = existing.find(s => s.id !== subscription.id && s.delivery_method === effectiveMethod)
+      if (conflict) {
+        // Hard-delete (not soft-unsubscribe) the moved-from row: it is fully
+        // superseded by the survivor, and a lingering duplicate would re-conflict
+        // on the next move. Linked send/followup history cascades away with it.
+        targetSubscriptionId = conflict.id
+        await peopleGroupSubscriptionService.deleteSubscription(subscription.id)
+      } else {
+        // No conflict: repoint the single row in place (subscription_id stays stable).
+        subscriptionUpdates.people_group_id = targetPeopleGroupId
+      }
+    }
+
+    // People-group email consent is opt-in only: it is set explicitly via the
+    // consent_people_group_* fields, never inferred from which people group a
+    // subscription points at.
+
     if (Object.keys(subscriptionUpdates).length > 0) {
       updatedSubscription = await peopleGroupSubscriptionService.updateSubscription(
-        body.subscription_id,
+        targetSubscriptionId,
         subscriptionUpdates
       )
+    } else if (targetSubscriptionId !== body.subscription_id) {
+      // Merged into the target row with no schedule change — surface the survivor.
+      updatedSubscription = await peopleGroupSubscriptionService.getById(targetSubscriptionId)
     }
   }
 
