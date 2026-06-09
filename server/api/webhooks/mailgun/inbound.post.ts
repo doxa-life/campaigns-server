@@ -260,8 +260,11 @@ export default defineEventHandler(async (event) => {
 
       // Claim the durable row FIRST — its unique email_message_id is the idempotency
       // point, so a concurrent or retried delivery can't pass this and forward twice.
-      // The forward is sent only after the claim succeeds; a confirmed send failure
-      // releases the claim so the redelivery resends cleanly.
+      // The forward is sent only after the claim succeeds; a *confirmed* send failure
+      // releases the claim so the redelivery resends. This is at-most-once: a hard crash
+      // between the insert and the send completing leaves the row reading 'sent' and the
+      // redelivery dedupes (line ~114), so the forward can be lost — but never double-sent.
+      // Deliberate tradeoff vs the old send-then-store ordering, which could double-send.
       const claimed = await messageService.createIfNew({
         conversation_id: conversation.id,
         direction: 'outbound',
@@ -327,7 +330,8 @@ export default defineEventHandler(async (event) => {
           references: lastInbound?.email_message_id || undefined,
         })
         if (!sent.success) {
-          // Release the claim so the redelivery re-sends instead of dedup-skipping a never-sent forward.
+          // Confirmed failure (the provider returned an error — not a crash): release the
+          // claim so the redelivery re-sends instead of dedup-skipping a never-sent forward.
           await messageService.deleteById(storedMessage.id)
           throw new TransientError(sent.error || 'Staff reply forward failed')
         }

@@ -201,8 +201,9 @@ class MessageService {
 
   // Atomically claim a queued message for sending (queued → sent), returning the row only
   // to the winner. The 'sent' status doubles as the per-message send claim — mirroring the
-  // marketing claim — so a requeued or concurrent job can't re-send it. A confirmed send
-  // failure releases it back to 'queued' for retry (see the outbound-email processor).
+  // marketing claim — so a requeued or concurrent job can't re-send it. A *confirmed* send
+  // failure releases it back to 'queued' for retry (see the outbound-email processor); a crash
+  // mid-send leaves it 'sent' (at-most-once — the reply may be lost, but is never double-sent).
   async claimForSend(id: number): Promise<ConversationMessage | null> {
     const [row] = await this.sql<ConversationMessage[]>`
       UPDATE conversation_messages

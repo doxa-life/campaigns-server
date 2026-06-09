@@ -131,7 +131,9 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
   html = renderInboxMessageEmail({ bodyHtml: html, subject: message.subject || conversation.subject || undefined })
 
   // Atomically claim the message (queued → sent) right before sending, so a requeued or
-  // concurrent job can't re-send it; a confirmed failure releases it back to 'queued' below.
+  // concurrent job can't re-send it; a *confirmed* failure releases it back to 'queued' below.
+  // At-most-once: a crash mid-send leaves it 'sent' and the requeued job skips it (the
+  // status check above), so the reply can be lost — but is never double-sent.
   const claimed = await messageService.claimForSend(message.id)
   if (!claimed) return { success: true, data: { skipped: 'not_queued' } }
 
