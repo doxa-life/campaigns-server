@@ -103,7 +103,7 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
       } catch (err: any) {
         // Never send a reply with a missing attachment — the thread would falsely read "sent".
         // Fail/retry the job; mark the message failed only once retries are exhausted.
-        const isLastAttempt = job.attempts >= job.max_attempts - 1
+        const isLastAttempt = job.attempts >= job.max_attempts
         if (isLastAttempt) {
           await messageService.markStatus(message.id, 'failed', { failed_reason: 'Attachment fetch failed' })
         }
@@ -154,9 +154,10 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
 
   // The claim above set the message 'sent'. On a returned failure, release it back to
   // 'queued' so a job retry re-claims and re-sends, or mark it permanently failed on the
-  // final attempt (attempts is incremented at claim time, so this run is the last when
-  // attempts >= max_attempts - 1). The job itself is requeued or failed by failOrRetry.
-  const isLastAttempt = job.attempts >= job.max_attempts - 1
+  // final attempt. attempts is the post-claim count (claimJobs increments it), so this run
+  // is the last when attempts >= max_attempts — the same point at which failOrRetry stops
+  // requeuing the job, so the message and the job fail together (not one attempt early).
+  const isLastAttempt = job.attempts >= job.max_attempts
   if (isLastAttempt) {
     await messageService.markStatus(message.id, 'failed', { failed_reason: result.error || 'Send failed' })
   } else {

@@ -929,4 +929,28 @@ describe('Shared inbox', async () => {
     const second = await drainOutbound(convo.id)
     expect(second.emails.filter(e => typeof e.html === 'string' && e.html.includes('NEEDLE-CLAIM'))).toHaveLength(0)
   })
+
+  it('fails an outbound reply only on the final attempt, not one early', async () => {
+    // The 'failsend' tag makes the test transport simulate a provider failure every attempt.
+    const email = `inbox-retry-${uuidv4().slice(0, 8)}+failsend@example.com`
+    const subId = await makeSubscriber(email)
+    const convo = await makeConversation(subId, { status: 'open' })
+    await postInbound({
+      recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
+      from: `Contact <${email}>`, sender: email,
+      'body-html': '<p>hi</p>',
+      'message-headers': headerJson([['Message-Id', `<retry-${uuidv4()}@example.com>`]]),
+    })
+    await composeReply(convo.id, '<p>keeps failing</p>', 'reply')
+    const status = async () => (await sql`
+      SELECT status FROM conversation_messages WHERE conversation_id = ${convo.id} AND direction = 'outbound'
+    `)[0]!.status
+    // max_attempts defaults to 3; the send fails on every attempt.
+    await drainOutbound(convo.id) // attempt 1
+    expect(await status()).toBe('queued')
+    await drainOutbound(convo.id) // attempt 2 — the off-by-one previously failed it here
+    expect(await status()).toBe('queued')
+    await drainOutbound(convo.id) // attempt 3 — retries exhausted
+    expect(await status()).toBe('failed')
+  })
 })

@@ -69,6 +69,10 @@ class InboxEmailService {
   async send(options: InboxEmailOptions): Promise<InboxEmailResult> {
     // Short-circuit in tests: record the payload, return a synthetic message id.
     if (process.env.VITEST) {
+      // Test hook: a recipient tagged 'failsend' simulates a provider failure, so tests can
+      // exercise the retry / fail-on-final-attempt paths (the real provider isn't called).
+      const to = Array.isArray(options.to) ? options.to.join(',') : options.to
+      if (to.includes('failsend')) return { success: false, error: 'Simulated send failure' }
       const providerMessageId = `<test-${Date.now()}-${Math.random().toString(36).slice(2)}@inbox.test>`
       recordedEmails.push({ ...options, providerMessageId })
       return { success: true, providerMessageId }
