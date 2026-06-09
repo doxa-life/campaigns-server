@@ -10,6 +10,7 @@ import { buildContactReplyAddress, buildFromAddress } from '../../utils/inbox-ad
 import { getInlineImageObject } from '../../utils/app/inbox-inline-images'
 import { renderInboxMessageEmail } from '../../utils/inbox-email-layout'
 import { buildQuotedHtml, buildQuotedText } from '../../utils/inbox-quote'
+import { sanitizeEmailHtml } from '../../utils/inbox-sanitize-html'
 
 /**
  * Sends a queued outbound inbox message. The generic queue only tracks *job* status;
@@ -67,7 +68,10 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
   const prior = (await messageService.listForConversation(conversation.id)).filter(m => m.id !== message.id)
   const quotedHtml = buildQuotedHtml(prior)
   const quotedText = buildQuotedText(prior)
-  let html = (message.body_html || '') + quotedHtml
+  // Sanitize the staff-composed body (which already includes the raw-appended signature and
+  // any canned-response HTML) before it leaves the system — this is the one outbound sink
+  // that carries staff content out from the brand domain. Quoted history is already sanitized.
+  let html = sanitizeEmailHtml(message.body_html || '') + quotedHtml
   const text = (message.body_text || '') + quotedText
 
   // Re-attach any files linked to this outbound message
