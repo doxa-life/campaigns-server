@@ -60,6 +60,8 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
   // Reply to the address the contact actually used — the explicitly composed to_email, else
   // the address that last wrote in — falling back to the subscriber's primary email (which may
   // differ from the one that wrote in, and which getPrimaryEmail doesn't filter for suppression).
+  // getLastInbound is received-only, so a held/wrong-From sender who knew the reply token can't
+  // become the reply target.
   const recipientEmail = message.to_email
     || lastInbound?.from_email
     || (await contactMethodService.getPrimaryEmail(conversation.subscriber_id))?.value
@@ -150,10 +152,10 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
     return { success: true }
   }
 
-  // The claim above set the message 'sent'; release it back to 'queued' so a job retry
-  // re-claims and re-attempts, or mark it permanently failed once retries are exhausted.
-  // job.attempts is the pre-increment count for this run, and retryJob stops once
-  // attempts+1 reaches max_attempts — so this run is the last when attempts >= max_attempts - 1.
+  // The claim above set the message 'sent'. On a returned failure, release it back to
+  // 'queued' so a job retry re-claims and re-sends, or mark it permanently failed on the
+  // final attempt (attempts is incremented at claim time, so this run is the last when
+  // attempts >= max_attempts - 1). The job itself is requeued or failed by failOrRetry.
   const isLastAttempt = job.attempts >= job.max_attempts - 1
   if (isLastAttempt) {
     await messageService.markStatus(message.id, 'failed', { failed_reason: result.error || 'Send failed' })

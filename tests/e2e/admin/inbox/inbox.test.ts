@@ -189,6 +189,105 @@ describe('Shared inbox', async () => {
     expect(c!.assigned_user_id).toBe(agent.id)
   })
 
+  it('staff reply-by-email targets the address that last wrote in', async () => {
+    const primaryEmail = `inbox-primary-${uuidv4().slice(0, 8)}@example.com`
+    const replyEmail = `inbox-reply-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(primaryEmail, { verified: true })
+    await sql`
+      INSERT INTO contact_methods (subscriber_id, type, value, verified)
+      VALUES (${subId}, 'email', ${replyEmail}, true)
+    `
+    const convo = await makeConversation(subId, { status: 'open' })
+    await sql`
+      INSERT INTO conversation_messages (conversation_id, direction, status, from_email, email_message_id)
+      VALUES (${convo.id}, 'inbound', 'received', ${replyEmail}, ${`<last-${uuidv4()}@example.com>`})
+    `
+
+    const signedAddress = buildSignedReplyAddress({
+      token: convo.reply_token,
+      userId: agent.id,
+      conversationId: convo.id,
+      secret: REPLY_SECRET,
+      contactAddress: CONTACT_ADDRESS,
+    })
+    const agentDomain = agent.email.split('@')[1]!
+
+    const res = await postInbound({
+      recipient: signedAddress,
+      from: `George <${agent.email}>`,
+      sender: agent.email,
+      subject: 'Re: Existing thread',
+      'body-html': '<p>Replying to the active address</p>',
+      'message-headers': headerJson([
+        ['Message-Id', `<staff-last-address-${uuidv4()}@example.com>`],
+        ['Authentication-Results', `mx.${INBOX_DOMAIN}; dkim=pass header.d=${agentDomain}; spf=pass`],
+      ]),
+    })
+    expect(res.status).toBe('staff')
+
+    const [out] = await sql`
+      SELECT status, to_email
+      FROM conversation_messages
+      WHERE conversation_id = ${convo.id} AND direction = 'outbound'
+      ORDER BY id DESC
+      LIMIT 1
+    `
+    expect(out!.status).toBe('sent')
+    expect(out!.to_email).toBe(replyEmail)
+  })
+
+  it('staff reply-by-email does not send to a suppressed contact address', async () => {
+    const primaryEmail = `inbox-supp-primary-${uuidv4().slice(0, 8)}@example.com`
+    const replyEmail = `inbox-supp-reply-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(primaryEmail, { verified: true })
+    await sql`
+      INSERT INTO contact_methods (subscriber_id, type, value, verified, suppressed_at, suppression_reason)
+      VALUES (${subId}, 'email', ${replyEmail}, true, CURRENT_TIMESTAMP AT TIME ZONE 'UTC', 'hard_bounce')
+    `
+    const convo = await makeConversation(subId, { status: 'open' })
+    await sql`
+      INSERT INTO conversation_messages (conversation_id, direction, status, from_email, email_message_id)
+      VALUES (${convo.id}, 'inbound', 'received', ${replyEmail}, ${`<supp-last-${uuidv4()}@example.com>`})
+    `
+
+    const signedAddress = buildSignedReplyAddress({
+      token: convo.reply_token,
+      userId: agent.id,
+      conversationId: convo.id,
+      secret: REPLY_SECRET,
+      contactAddress: CONTACT_ADDRESS,
+    })
+    const agentDomain = agent.email.split('@')[1]!
+
+    const res = await postInbound({
+      recipient: signedAddress,
+      from: `George <${agent.email}>`,
+      sender: agent.email,
+      subject: 'Re: Existing thread',
+      'body-html': '<p>This should not leave the system</p>',
+      'message-headers': headerJson([
+        ['Message-Id', `<staff-suppressed-${uuidv4()}@example.com>`],
+        ['Authentication-Results', `mx.${INBOX_DOMAIN}; dkim=pass header.d=${agentDomain}; spf=pass`],
+      ]),
+    })
+    expect(res.status).toBe('staff')
+
+    const [out] = await sql`
+      SELECT status, to_email, failed_reason
+      FROM conversation_messages
+      WHERE conversation_id = ${convo.id} AND direction = 'outbound'
+      ORDER BY id DESC
+      LIMIT 1
+    `
+    expect(out!.status).toBe('failed')
+    expect(out!.to_email).toBe(replyEmail)
+    expect(out!.failed_reason).toBe('Recipient suppressed')
+
+    const [c] = await sql`SELECT status, needs_review FROM conversations WHERE id = ${convo.id}`
+    expect(c!.status).toBe('open')
+    expect(c!.needs_review).toBe(true)
+  })
+
   // A Google Workspace domain without custom DKIM signs d=*.gappssmtp.com, which
   // never aligns with the From domain — but DMARC still passes (via SPF). Accept it.
   it('treats a signed reply as staff when DMARC passes even though DKIM is misaligned', async () => {
@@ -606,6 +705,32 @@ describe('Shared inbox', async () => {
 
     const [c] = await sql`SELECT subscriber_id FROM conversations WHERE id = ${res.conversation.id}`
     expect(c!.subscriber_id).toBe(subId)
+  })
+
+  it('emails an existing contact by subscriber_id using a non-suppressed primary email', async () => {
+    const suppressedEmail = `inbox-compose-suppressed-${uuidv4().slice(0, 8)}@example.com`
+    const deliverableEmail = `inbox-compose-deliverable-${uuidv4().slice(0, 8)}@example.com`
+    const [sub] = await sql`
+      INSERT INTO subscribers (tracking_id, profile_id, name)
+      VALUES (${uuidv4()}, ${uuidv4()}, 'Test Inbox Suppressed Primary')
+      RETURNING id
+    `
+    createdSubscriberIds.push(sub!.id)
+    await sql`
+      INSERT INTO contact_methods (subscriber_id, type, value, verified, suppressed_at, suppression_reason, created_at)
+      VALUES (${sub!.id}, 'email', ${suppressedEmail}, true, CURRENT_TIMESTAMP AT TIME ZONE 'UTC', 'hard_bounce', CURRENT_TIMESTAMP AT TIME ZONE 'UTC' - INTERVAL '1 minute')
+    `
+    await sql`
+      INSERT INTO contact_methods (subscriber_id, type, value, verified)
+      VALUES (${sub!.id}, 'email', ${deliverableEmail}, true)
+    `
+
+    const res = await $fetch<{ message: any; queued: boolean }>(
+      '/api/admin/inbox/conversations',
+      { method: 'POST', body: { subscriber_id: sub!.id, subject: 'Checking in', body_html: '<p>Still there?</p>' }, ...agentAuth }
+    )
+    expect(res.queued).toBe(true)
+    expect(res.message.to_email).toBe(deliverableEmail)
   })
 
   // Composing to a known contact's email reuses the existing subscriber (no duplicate).

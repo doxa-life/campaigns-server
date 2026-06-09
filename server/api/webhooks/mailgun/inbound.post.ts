@@ -249,10 +249,11 @@ export default defineEventHandler(async (event) => {
 
     if (outcome === 'staff') {
       // Record the staff reply as outbound and forward it onward to the contact.
-      const contactEmail = conversation.subscriber_id
+      const lastInbound = await messageService.getLastInbound(conversation.id)
+      const primaryContactEmail = conversation.subscriber_id
         ? (await contactMethodService.getPrimaryEmail(conversation.subscriber_id))?.value || null
         : null
-      const lastInbound = await messageService.getLastInbound(conversation.id)
+      const contactEmail = lastInbound?.from_email || primaryContactEmail
       // Snapshot the thread for the quoted history BEFORE claiming the new row, so the
       // forward never quotes the staff's own message back to the contact.
       const priorMessages = await messageService.listForConversation(conversation.id)
@@ -287,7 +288,12 @@ export default defineEventHandler(async (event) => {
       // claim and the redelivery redoes it — never re-sending an already-sent forward.
       await persistArtifacts(storedMessage.id)
 
-      if (contactEmail) {
+      let forwarded = false
+      if (!contactEmail) {
+        await messageService.markStatus(storedMessage.id, 'failed', { failed_reason: 'No contact email' })
+      } else if (await contactMethodService.isSuppressed(contactEmail)) {
+        await messageService.markStatus(storedMessage.id, 'failed', { failed_reason: 'Recipient suppressed' })
+      } else {
         const fromAddress = buildFromAddress({
           firstName: staffUser!.display_name,
           alias: staffUser!.email_alias,
@@ -328,8 +334,14 @@ export default defineEventHandler(async (event) => {
         if (sent.providerMessageId) {
           await messageService.markStatus(storedMessage.id, 'sent', { provider_message_id: sent.providerMessageId })
         }
+        forwarded = true
       }
-      await conversationService.updateStatus(conversation.id, 'pending')
+      if (forwarded) {
+        await conversationService.updateStatus(conversation.id, 'pending')
+        await conversationService.setNeedsReview(conversation.id, false)
+      } else {
+        await conversationService.setNeedsReview(conversation.id, true)
+      }
       await conversationService.assignIfUnassigned(conversation.id, staffUser!.id)
       await conversationService.touchLastMessage(conversation.id, storedMessage.created_at, 'outbound')
     } else if (outcome === 'contact') {

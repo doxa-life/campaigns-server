@@ -148,27 +148,6 @@ class JobQueueService {
     `
   }
 
-  async markFailed(id: number, errorMessage: string): Promise<void> {
-    await this.sql`
-      UPDATE jobs
-      SET status = 'failed',
-          error_message = ${errorMessage},
-          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ${id}
-    `
-  }
-
-  async retryJob(id: number): Promise<boolean> {
-    const result = await this.sql`
-      UPDATE jobs
-      SET status = 'pending',
-          error_message = NULL,
-          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ${id} AND attempts < max_attempts
-    `
-    return result.count > 0
-  }
-
   /**
    * End a failed attempt in a single statement: re-queue to 'pending' if attempts remain,
    * else mark 'failed'. Atomic so a crash can't strand the job mid-way between the two —

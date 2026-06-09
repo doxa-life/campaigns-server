@@ -76,14 +76,19 @@ class ContactMethodService {
   async getPrimaryEmail(subscriberId: number): Promise<ContactMethod | null> {
     const [verified] = await this.sql`
       SELECT * FROM contact_methods
-      WHERE subscriber_id = ${subscriberId} AND type = 'email' AND verified = true
+      WHERE subscriber_id = ${subscriberId}
+        AND type = 'email'
+        AND verified = true
+        AND suppressed_at IS NULL
       ORDER BY created_at ASC LIMIT 1
     `
     if (verified) return verified as ContactMethod
 
     const [fallback] = await this.sql`
       SELECT * FROM contact_methods
-      WHERE subscriber_id = ${subscriberId} AND type = 'email'
+      WHERE subscriber_id = ${subscriberId}
+        AND type = 'email'
+        AND suppressed_at IS NULL
       ORDER BY created_at ASC LIMIT 1
     `
     return (fallback as ContactMethod) ?? null

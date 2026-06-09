@@ -147,11 +147,15 @@ class MessageService {
     return row?.conversation_id ?? null
   }
 
-  // Most recent inbound message — used to set In-Reply-To / References on outbound replies
+  // Most recent *received* inbound message — used as the reply recipient and to set
+  // In-Reply-To / References on outbound replies. Filtered to status='received' so a held
+  // message can never become the reply target or thread anchor: a held sender reached the
+  // thread with a valid reply token but a From that doesn't belong to the subscriber, so
+  // replying to it would redirect staff mail (and leak the quoted history) to that sender.
   async getLastInbound(conversationId: number): Promise<ConversationMessage | null> {
     const [row] = await this.sql<ConversationMessage[]>`
       SELECT * FROM conversation_messages
-      WHERE conversation_id = ${conversationId} AND direction = 'inbound'
+      WHERE conversation_id = ${conversationId} AND direction = 'inbound' AND status = 'received'
       ORDER BY created_at DESC LIMIT 1
     `
     return row ?? null
