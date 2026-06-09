@@ -134,10 +134,21 @@ export async function deleteFromS3(key: string): Promise<void> {
   }
 }
 
+export interface SignedUrlOptions {
+  /** Content-Disposition S3 should return (e.g. `attachment; filename="x"`) — forces a download. */
+  responseContentDisposition?: string
+  /** Content-Type S3 should return (e.g. `application/octet-stream`) — overrides the stored type so it isn't served inline. */
+  responseContentType?: string
+}
+
 /**
  * Generate a signed URL for accessing a file in private bucket
  */
-export async function generateSignedUrl(key: string, expiresIn: number = SIGNED_URL_EXPIRATION): Promise<string> {
+export async function generateSignedUrl(
+  key: string,
+  expiresIn: number = SIGNED_URL_EXPIRATION,
+  options: SignedUrlOptions = {}
+): Promise<string> {
   try {
     const client = getS3Client()
     const settings = getS3Settings()
@@ -145,6 +156,8 @@ export async function generateSignedUrl(key: string, expiresIn: number = SIGNED_
     const command = new GetObjectCommand({
       Bucket: settings.bucketName,
       Key: key,
+      ResponseContentDisposition: options.responseContentDisposition,
+      ResponseContentType: options.responseContentType,
     })
 
     const url = await getSignedUrl(client, command, { expiresIn })
