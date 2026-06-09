@@ -7,15 +7,25 @@ export default defineEventHandler(async (event) => {
 
   const [totalRows, unsubscribedRows, languageRows, timeLocalRows, timeUtcRows, durationRows] = await Promise.all([
     sql`
-      SELECT COUNT(DISTINCT subscriber_id) as count
-      FROM campaign_subscriptions
+      SELECT COUNT(DISTINCT cs.subscriber_id) as count
+      FROM campaign_subscriptions cs
+      JOIN contact_methods cm
+        ON cm.subscriber_id = cs.subscriber_id
+       AND cm.type = 'email'
+       AND cm.verified = true
     `,
     sql`
       SELECT COUNT(*) as count FROM (
-        SELECT subscriber_id
-        FROM campaign_subscriptions
-        GROUP BY subscriber_id
-        HAVING COUNT(*) FILTER (WHERE status = 'unsubscribed') = COUNT(*)
+        SELECT cs.subscriber_id
+        FROM campaign_subscriptions cs
+        WHERE EXISTS (
+          SELECT 1 FROM contact_methods cm
+          WHERE cm.subscriber_id = cs.subscriber_id
+            AND cm.type = 'email'
+            AND cm.verified = true
+        )
+        GROUP BY cs.subscriber_id
+        HAVING COUNT(*) FILTER (WHERE cs.status = 'unsubscribed') = COUNT(*)
       ) fully_unsubscribed
     `,
     sql`
@@ -76,7 +86,7 @@ export default defineEventHandler(async (event) => {
   }
 
   return {
-    totalSubscriptions: Number(totalRows[0]?.count ?? 0),
+    totalSubscribers: Number(totalRows[0]?.count ?? 0),
     totalUnsubscribes: Number(unsubscribedRows[0]?.count ?? 0),
     byLanguage: languageRows.map((row: any) => ({
       language: row.language as string,
