@@ -47,7 +47,8 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
           timestamp,
           people_group_id: peopleGroupId?.value,
           track_event: shouldTrack ? 'prayer_auto_tracked' : undefined,
-          language: locale.value
+          language: locale.value,
+          url: route.fullPath
         }
       })
     } catch (err: any) {
@@ -80,7 +81,8 @@ export function usePrayerSession(slug: string, contentDate: ComputedRef<string> 
           timestamp,
           people_group_id: peopleGroupId?.value,
           track_event: 'prayer_logged',
-          language: locale.value
+          language: locale.value,
+          url: route.fullPath
         }
       })
 

@@ -595,6 +595,9 @@ paths:
                 language:
                   type: string
                   description: Locale code for the forwarded analytics event
+                url:
+                  type: string
+                  description: Page path where the prayer occurred; forwarded as the analytics event URL
       responses:
         '200':
           description: Successfully recorded prayer session
