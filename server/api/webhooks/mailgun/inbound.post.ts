@@ -41,6 +41,26 @@ export default defineEventHandler(async (event) => {
     return typeof v === 'string' ? v : null
   }
 
+  // Persist a message's attachments + raw MIME to S3. On failure, RELEASE the message row
+  // (delete it) before retrying, so the redelivery re-inserts and re-runs persistence
+  // instead of dedup-skipping it — otherwise a storage hiccup mid-receive would lose the
+  // attachment + raw MIME for good. Call this BEFORE any outbound send so a release can
+  // never leave an already-sent forward to be re-sent.
+  const persistArtifacts = async (msgId: number): Promise<void> => {
+    if (process.env.VITEST) return
+    try {
+      await persistAttachments(form, msgId)
+      const rawMime = field('body-mime')
+      if (rawMime) {
+        const upload = await uploadToS3(Buffer.from(rawMime, 'utf-8'), `raw-${msgId}.eml`, 'message/rfc822')
+        await sql`UPDATE conversation_messages SET raw_s3_key = ${upload.key} WHERE id = ${msgId}`
+      }
+    } catch (s3err: any) {
+      await messageService.deleteById(msgId)
+      throw new TransientError(s3err?.message || 'Attachment persistence failed')
+    }
+  }
+
   // --- 1. Verify Mailgun webhook signature (skipped in tests unless explicitly exercised) ---
   const enforceSignature = !process.env.VITEST || field('x-test-verify-sig') === '1'
   const sigToken = field('token') || ''
@@ -246,6 +266,9 @@ export default defineEventHandler(async (event) => {
       })
       if (!claimed) return { status: 'duplicate', conversation_id: conversation.id }
       storedMessage = claimed
+      // Persist attachments/raw MIME BEFORE forwarding, so a storage failure releases the
+      // claim and the redelivery redoes it — never re-sending an already-sent forward.
+      await persistArtifacts(storedMessage.id)
 
       if (contactEmail) {
         const fromAddress = buildFromAddress({
@@ -313,6 +336,7 @@ export default defineEventHandler(async (event) => {
       })
       if (!claimed) return { status: 'duplicate', conversation_id: conversation.id }
       storedMessage = claimed
+      await persistArtifacts(storedMessage.id)
       // Contact replied → the ball is back with the team. Flip pending
       // ("waiting on the contact") or closed ("done") back to open so it
       // surfaces as needing attention. Leave spam alone.
@@ -349,23 +373,9 @@ export default defineEventHandler(async (event) => {
       })
       if (!claimed) return { status: 'duplicate', conversation_id: conversation.id }
       storedMessage = claimed
+      await persistArtifacts(storedMessage.id)
       await conversationService.setNeedsReview(conversation.id, true)
       await conversationService.touchLastMessage(conversation.id, storedMessage.created_at, 'inbound')
-    }
-
-    // --- 7. Attachments + raw MIME → S3 (skipped in tests) ---
-    if (!process.env.VITEST) {
-      try {
-        await persistAttachments(form, storedMessage.id)
-        const rawMime = field('body-mime')
-        if (rawMime) {
-          const upload = await uploadToS3(Buffer.from(rawMime, 'utf-8'), `raw-${storedMessage.id}.eml`, 'message/rfc822')
-          await sql`UPDATE conversation_messages SET raw_s3_key = ${upload.key} WHERE id = ${storedMessage.id}`
-        }
-      } catch (s3err: any) {
-        // Attachment/raw persistence failure is transient — force a retry so nothing is lost.
-        throw new TransientError(s3err?.message || 'Attachment persistence failed')
-      }
     }
 
     logCreate('conversations', String(conversation.id), undefined, {
