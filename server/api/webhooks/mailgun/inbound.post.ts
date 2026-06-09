@@ -169,7 +169,19 @@ export default defineEventHandler(async (event) => {
       if (!conversation && (inReplyTo || references)) {
         const ids = [inReplyTo, ...(references ? references.split(/\s+/) : [])].filter(Boolean) as string[]
         const convoId = await messageService.findConversationByMessageIds(ids)
-        if (convoId) conversation = await conversationService.getById(convoId)
+        if (convoId) {
+          const candidate = await conversationService.getById(convoId)
+          // In-Reply-To/References are attacker-controlled, so only thread into an existing
+          // conversation when the From actually belongs to that thread's subscriber. Otherwise
+          // anyone who learns a message-id could graft forged mail onto a victim's thread; such
+          // mail instead falls through to a fresh conversation (and is held if the sender is unknown).
+          if (candidate?.subscriber_id) {
+            const cm = await contactMethodService.getByValue('email', fromEmail)
+            if (cm && cm.subscriber_id === candidate.subscriber_id) {
+              conversation = candidate
+            }
+          }
+        }
       }
       if (!conversation && !parsedRecipient.token) {
         const contactBase = (config.inboxContactAddress || 'contact@doxa.life').split('@')[0]!.toLowerCase()

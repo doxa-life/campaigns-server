@@ -276,6 +276,60 @@ describe('Shared inbox', async () => {
     expect(c!.needs_review).toBe(true)
   })
 
+  // 5b. Forged In-Reply-To must not graft onto a victim's conversation (header threading
+  // is honored only when the From belongs to that thread's subscriber).
+  it('does not thread forged In-Reply-To mail onto a victim conversation', async () => {
+    const ownerEmail = `inbox-victim-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(ownerEmail)
+    const victimConvo = await makeConversation(subId, { status: 'open' })
+    const knownMsgId = `<thread-${uuidv4()}@${INBOX_DOMAIN}>`
+    await sql`
+      INSERT INTO conversation_messages (conversation_id, direction, status, email_message_id, to_email)
+      VALUES (${victimConvo.id}, 'outbound', 'sent', ${knownMsgId}, ${ownerEmail})
+    `
+    const res = await postInbound({
+      recipient: CONTACT_ADDRESS, // bare contact address, no token
+      from: `Attacker <attacker-${uuidv4().slice(0, 6)}@evil.com>`,
+      sender: 'attacker@evil.com',
+      subject: 'Re: your thread',
+      'body-html': '<p>graft</p>',
+      'message-headers': headerJson([
+        ['Message-Id', `<forge-${uuidv4()}@evil.com>`],
+        ['In-Reply-To', knownMsgId],
+      ]),
+    })
+    expect(res.conversation_id).not.toBe(victimConvo.id)
+    const [{ subscriber_id }] = await sql`SELECT subscriber_id FROM conversations WHERE id = ${res.conversation_id}`
+    createdSubscriberIds.push(subscriber_id)
+    const victimMsgs = await sql`SELECT * FROM conversation_messages WHERE conversation_id = ${victimConvo.id}`
+    expect(victimMsgs.length).toBe(1) // only the seeded outbound — nothing grafted
+  })
+
+  // 5c. A real contact's header-referenced reply (no token) threads when the From matches.
+  it('threads a header-referenced reply when the From matches the subscriber', async () => {
+    const ownerEmail = `inbox-thread-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(ownerEmail)
+    const convo = await makeConversation(subId, { status: 'pending' })
+    const knownMsgId = `<thread-ok-${uuidv4()}@${INBOX_DOMAIN}>`
+    await sql`
+      INSERT INTO conversation_messages (conversation_id, direction, status, email_message_id, to_email)
+      VALUES (${convo.id}, 'outbound', 'sent', ${knownMsgId}, ${ownerEmail})
+    `
+    const res = await postInbound({
+      recipient: CONTACT_ADDRESS, // no token — resolved via the In-Reply-To header
+      from: `Owner <${ownerEmail}>`,
+      sender: ownerEmail,
+      subject: 'Re: thread',
+      'body-html': '<p>my reply</p>',
+      'message-headers': headerJson([
+        ['Message-Id', `<reply-${uuidv4()}@example.com>`],
+        ['In-Reply-To', knownMsgId],
+      ]),
+    })
+    expect(res.status).toBe('contact')
+    expect(res.conversation_id).toBe(convo.id)
+  })
+
   // 6. verified semantics on authenticated vs unauthenticated inbound
   it('verifies the contact method on authenticated inbound only', async () => {
     const emailAuthed = `inbox-verify-${uuidv4().slice(0, 8)}@example.com`
