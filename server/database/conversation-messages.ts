@@ -190,8 +190,8 @@ class MessageService {
     return row ?? null
   }
 
-  async deleteDraft(id: number): Promise<boolean> {
-    const result = await this.sql`DELETE FROM conversation_messages WHERE id = ${id} AND status = 'draft'`
+  async deleteDraft(id: number, conversationId: number): Promise<boolean> {
+    const result = await this.sql`DELETE FROM conversation_messages WHERE id = ${id} AND conversation_id = ${conversationId} AND status = 'draft'`
     return result.count > 0
   }
 
