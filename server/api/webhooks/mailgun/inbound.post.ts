@@ -452,19 +452,17 @@ export default defineEventHandler(async (event) => {
 
     return { status: outcome, conversation_id: conversation.id, message_id: storedMessage.id }
   } catch (error: any) {
-    // Lost a unique-key race (a concurrent delivery already persisted this message).
-    // Treat as a duplicate (200) rather than a retryable 5xx so the provider stops resending.
-    if (error?.code === '23505') {
-      return { status: 'duplicate' }
-    }
     // This token was marked "seen" during signature validation. Since we're about to
-    // return a retryable 5xx, release it so Mailgun's retry (which resends the same
+    // return a retryable 5xx, release it so the provider's retry (which resends the same
     // token) isn't rejected as a replay and the message isn't lost.
     if (sigToken) releaseSeenToken(sigToken)
     if (error instanceof TransientError) {
       throw createError({ statusCode: 503, statusMessage: 'Temporary failure, please retry' })
     }
-    // Unknown errors are treated as transient too, so Mailgun retries rather than dropping mail.
+    // The message dedupe race is handled by createIfNew's ON CONFLICT DO NOTHING (it returns
+    // null, never raises 23505), so any unique violation reaching here is from an unrelated
+    // constraint — retry it (treated as transient) rather than report 200 "handled", which
+    // would silently drop a message that wasn't persisted. Unknown errors are transient too.
     console.error('[InboundWebhook] Persistence error:', error?.message || error)
     throw createError({ statusCode: 503, statusMessage: 'Temporary failure, please retry' })
   }
