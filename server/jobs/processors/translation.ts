@@ -1,7 +1,7 @@
 import type { Job, TranslationBatchPayload } from '../../database/job-queue'
 import type { ProcessorResult } from './index'
 import { libraryContentService } from '../../database/library-content'
-import { batchTranslateTiptapContents, isDeepLConfigured, translateVerseNodes, type TiptapNode, type VerseWarning } from '../../utils/deepl'
+import { batchTranslateTiptapContents, isDeepLConfigured, reconcileVersesFromSource, translateVerseNodes, type TiptapNode, type VerseWarning } from '../../utils/deepl'
 
 /**
  * Check if a verse node has actual text content (not empty).
@@ -47,20 +47,6 @@ async function preserveOrFetchVerses(
   }
 }
 
-/**
- * Walk two trees in parallel and replace verse nodes in `target` with those from `source`.
- */
-function graftVerseNodes(target: TiptapNode, source: TiptapNode): void {
-  if (!target.content || !source.content) return
-  for (let i = 0; i < target.content.length && i < source.content.length; i++) {
-    if (target.content[i]!.type === 'verse' && source.content[i]!.type === 'verse') {
-      target.content[i] = source.content[i]!
-    } else {
-      graftVerseNodes(target.content[i]!, source.content[i]!)
-    }
-  }
-}
-
 export async function processBatchTranslation(job: Job): Promise<ProcessorResult> {
   const payload = job.payload as TranslationBatchPayload
 
@@ -100,12 +86,15 @@ export async function processBatchTranslation(job: Job): Promise<ProcessorResult
     for (const existing of existingWithContent) {
       const source = sourceByDay.get(existing.day_number)
       if (!source?.content_json) continue
-      // Clone the source (English) doc so translateVerseNodes reads English references
-      const doc: TiptapNode = JSON.parse(JSON.stringify(source.content_json))
-      await translateVerseNodes(doc, payload.target_language, verseWarnings)
-      // Graft the translated verse nodes into the existing target doc
-      const targetDoc: TiptapNode = JSON.parse(JSON.stringify(existing.content_json))
-      graftVerseNodes(targetDoc, doc)
+      // Re-fetch verses from the English source and keep the translation
+      // structurally in sync (verses added/removed in the source propagate),
+      // preserving the translated prose.
+      const targetDoc = await reconcileVersesFromSource(
+        source.content_json as TiptapNode,
+        existing.content_json as TiptapNode,
+        payload.target_language,
+        verseWarnings
+      )
       await libraryContentService.bulkUpsertContent(payload.library_id, [{
         day_number: existing.day_number,
         language_code: payload.target_language,

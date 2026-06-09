@@ -389,6 +389,60 @@ export async function translateVerseNodes(node: TiptapNode, targetLanguage: stri
 }
 
 /**
+ * Walk two Tiptap trees in parallel and replace verse nodes in `target`
+ * with those from `source`, matching by index position. Assumes the two
+ * trees are structurally parallel.
+ */
+export function graftVerseNodes(target: TiptapNode, source: TiptapNode): void {
+  if (!target.content || !source.content) return
+  for (let i = 0; i < target.content.length && i < source.content.length; i++) {
+    if (target.content[i]!.type === 'verse' && source.content[i]!.type === 'verse') {
+      target.content[i] = source.content[i]!
+    } else {
+      graftVerseNodes(target.content[i]!, source.content[i]!)
+    }
+  }
+}
+
+/**
+ * Re-fetch verses for an existing translation while keeping it structurally
+ * in sync with the source. When only verses changed between source and target
+ * — i.e. the non-verse prose text sequence is identical — the target is rebuilt
+ * from the source structure: verses removed from the source disappear, verses
+ * added to the source appear, the translation's prose is re-injected, and verse
+ * text is fetched in the target language.
+ *
+ * If the prose structure also diverged (the number of text nodes differs), the
+ * prose mapping is ambiguous, so it falls back to grafting verse nodes by
+ * position into the existing target, leaving its structure untouched.
+ */
+export async function reconcileVersesFromSource(
+  sourceDoc: TiptapNode,
+  existingTargetDoc: TiptapNode,
+  targetLanguage: string,
+  warnings: VerseWarning[]
+): Promise<TiptapNode> {
+  const skipNodes = new Set(['verse'])
+  const sourceTexts = extractTexts(sourceDoc, [], skipNodes)
+  const targetTexts = extractTexts(existingTargetDoc, [], skipNodes)
+
+  if (sourceTexts.length === targetTexts.length) {
+    const merged: TiptapNode = JSON.parse(JSON.stringify(sourceDoc))
+    sourceTexts.forEach((entry, i) => {
+      setTextAtPath(merged, entry.path, targetTexts[i]!.text)
+    })
+    await translateVerseNodes(merged, targetLanguage, warnings)
+    return merged
+  }
+
+  const sourceClone: TiptapNode = JSON.parse(JSON.stringify(sourceDoc))
+  await translateVerseNodes(sourceClone, targetLanguage, warnings)
+  const targetClone: TiptapNode = JSON.parse(JSON.stringify(existingTargetDoc))
+  graftVerseNodes(targetClone, sourceClone)
+  return targetClone
+}
+
+/**
  * Check if DeepL API is configured
  */
 export function isDeepLConfigured(): boolean {

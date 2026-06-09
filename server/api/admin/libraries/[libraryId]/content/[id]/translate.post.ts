@@ -1,17 +1,6 @@
 import { libraryContentService } from '#server/database/library-content'
-import { translateTiptapContent, translateVerseNodes, isDeepLConfigured, type TiptapNode } from '#server/utils/deepl'
+import { translateTiptapContent, reconcileVersesFromSource, isDeepLConfigured, type TiptapNode, type VerseWarning } from '#server/utils/deepl'
 import { getErrorMessage, getIntParam } from '#server/utils/api-helpers'
-
-function graftVerseNodes(target: TiptapNode, source: TiptapNode): void {
-  if (!target.content || !source.content) return
-  for (let i = 0; i < target.content.length && i < source.content.length; i++) {
-    if (target.content[i]!.type === 'verse' && source.content[i]!.type === 'verse') {
-      target.content[i] = source.content[i]!
-    } else {
-      graftVerseNodes(target.content[i]!, source.content[i]!)
-    }
-  }
-}
 
 /**
  * Translate library content to one or more target languages
@@ -123,14 +112,16 @@ export default defineEventHandler(async (event) => {
 
       if (existingContent && !overwrite) {
         if (retranslateVerses && existingContent.content_json) {
-          // Verse-only update: use English source references, graft into existing target
-          const sourceDoc: TiptapNode = JSON.parse(JSON.stringify(sourceContent.content_json))
-          const verseWarnings: { reference: string; language: string; reason: string }[] = []
-          await translateVerseNodes(sourceDoc, targetLanguage, verseWarnings)
-
-          // Graft translated verse nodes into existing target
-          const targetDoc: TiptapNode = JSON.parse(JSON.stringify(existingContent.content_json))
-          graftVerseNodes(targetDoc, sourceDoc)
+          // Verse-only update: re-fetch verses from the English source and keep
+          // the translation structurally in sync (verses added/removed in the
+          // source propagate), preserving the translated prose.
+          const verseWarnings: VerseWarning[] = []
+          const targetDoc = await reconcileVersesFromSource(
+            sourceContent.content_json as TiptapNode,
+            existingContent.content_json as TiptapNode,
+            targetLanguage,
+            verseWarnings
+          )
 
           const updated = await libraryContentService.updateLibraryContent(existingContent.id, {
             content_json: targetDoc
