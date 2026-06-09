@@ -179,8 +179,8 @@
             <div class="flex items-center gap-3">
               <UIcon name="i-lucide-user-plus" class="text-[var(--ui-primary)] text-2xl" />
               <div>
-                <p class="text-sm text-[var(--ui-text-dimmed)]">Total Subscriptions</p>
-                <p class="text-2xl font-bold">{{ subscribersData.totalSubscriptions }}</p>
+                <p class="text-sm text-[var(--ui-text-dimmed)]">Total Subscribers</p>
+                <p class="text-2xl font-bold">{{ subscribersData.totalSubscribers }}</p>
               </div>
             </div>
           </UCard>
