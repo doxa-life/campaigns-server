@@ -726,8 +726,8 @@ paths:
         single subscription, which must belong to this profile.
 
 
-        Passing `people_group_id` or `people_group_slug` alongside
-        `subscription_id` moves that subscription to a different people group.
+        Passing `people_group_slug` alongside `subscription_id` moves that
+        subscription to a different people group.
         If the subscriber already has a subscription for the target group using
         the same delivery method, the two are merged (the incoming schedule is
         applied to the existing row and the moved-from row is deleted) to avoid
@@ -779,9 +779,6 @@ paths:
                 subscription_id:
                   type: integer
                   description: Id of the subscription to update (required for any subscription-level change)
-                people_group_id:
-                  type: integer
-                  description: Move the subscription to this people group (id). Requires subscription_id.
                 people_group_slug:
                   type: string
                   description: Move the subscription to this people group (slug; resolved server-side). Requires subscription_id.

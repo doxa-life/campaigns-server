@@ -122,39 +122,6 @@ describe('PUT /api/profile/[id] — change subscribed people group', async () =>
     expect(error.statusCode).toBe(403)
   })
 
-  it('moves the subscription via an explicit people_group_id', async () => {
-    const groupA = await createTestPeopleGroup(sql)
-    const groupB = await createTestPeopleGroup(sql)
-    const subscriber = await createTestSubscriber(sql)
-    const sub = await createTestPeopleGroupSubscription(sql, groupA.id, subscriber.id, {
-      delivery_method: 'app'
-    })
-
-    const res = await $fetch(`/api/profile/${subscriber.profile_id}`, {
-      method: 'PUT',
-      body: { subscription_id: sub.id, people_group_id: groupB.id }
-    })
-
-    expect(res.currentSubscription.id).toBe(sub.id)
-    const [moved] = await sql`SELECT * FROM campaign_subscriptions WHERE id = ${sub.id}`
-    expect(moved.people_group_id).toBe(groupB.id)
-  })
-
-  it('returns 404 for an unknown people_group_id', async () => {
-    const group = await createTestPeopleGroup(sql)
-    const subscriber = await createTestSubscriber(sql)
-    const sub = await createTestPeopleGroupSubscription(sql, group.id, subscriber.id, {
-      delivery_method: 'app'
-    })
-
-    const error = await $fetch(`/api/profile/${subscriber.profile_id}`, {
-      method: 'PUT',
-      body: { subscription_id: sub.id, people_group_id: 999999999 }
-    }).catch(e => e)
-
-    expect(error.statusCode).toBe(404)
-  })
-
   it('merges an email subscription into the target group\'s existing email row', async () => {
     const groupA = await createTestPeopleGroup(sql)
     const groupB = await createTestPeopleGroup(sql)

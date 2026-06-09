@@ -202,22 +202,10 @@ export default defineEventHandler(async (event) => {
     if (body.timezone !== undefined) subscriptionUpdates.timezone = body.timezone
     if (body.prayer_duration !== undefined) subscriptionUpdates.prayer_duration = body.prayer_duration
 
-    // Move the subscription to a different people group when requested. Accept
-    // an explicit id or a slug (mirroring the consent fields above). Either way
-    // the target must resolve to a real people group — validate here so a bad id
-    // fails with a clean 404 rather than surfacing later as a foreign-key 500.
+    // Move the subscription to the people group identified by slug. The slug
+    // must resolve to a real people group, else 404.
     let targetPeopleGroupId: number | undefined
-    if (body.people_group_id !== undefined) {
-      const id = Number(body.people_group_id)
-      const pg = Number.isInteger(id) ? await peopleGroupService.getPeopleGroupById(id) : null
-      if (!pg) {
-        throw createError({
-          statusCode: 404,
-          statusMessage: 'People group not found'
-        })
-      }
-      targetPeopleGroupId = pg.id
-    } else if (body.people_group_slug) {
+    if (body.people_group_slug) {
       const pg = await peopleGroupService.getPeopleGroupBySlug(body.people_group_slug)
       if (!pg) {
         throw createError({
