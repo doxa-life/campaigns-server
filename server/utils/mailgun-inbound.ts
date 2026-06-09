@@ -122,6 +122,31 @@ export function isAutoResponderOrBounce(headers: InboundHeaders, fromEmail: stri
   return false
 }
 
+/**
+ * Detect a vacation / out-of-office auto-reply specifically — a strict subset of
+ * isAutoResponderOrBounce that EXCLUDES bounces and bulk/list mail. Used to auto-close
+ * the conversation so an OOO reply doesn't re-open it or ping staff. Bounces are
+ * deliberately not matched (they signal a delivery failure worth surfacing, and normally
+ * arrive via the delivery webhook → suppression, not the inbound route).
+ */
+export function isVacationAutoReply(headers: InboundHeaders, fromEmail: string | null): boolean {
+  // System / bounce senders are never treated as a vacation reply.
+  const local = (fromEmail || '').split('@')[0]?.toLowerCase() || ''
+  if (['mailer-daemon', 'no-reply', 'noreply', 'postmaster'].includes(local)) return false
+
+  // RFC 3834: vacation responders mark themselves `auto-replied`.
+  // Bounces / DSNs use `auto-generated`, which we deliberately do NOT match.
+  const autoSubmitted = (headers.get('auto-submitted') || '').toLowerCase()
+  if (autoSubmitted === 'auto-replied') return true
+
+  // Non-standard but common auto-reply markers.
+  const precedence = (headers.get('precedence') || '').toLowerCase()
+  if (precedence === 'auto_reply') return true
+  if (headers.get('x-autoreply') || headers.get('x-autorespond')) return true
+
+  return false
+}
+
 export function parseSpamScore(headers: InboundHeaders, fields: Record<string, any>): number | null {
   const raw = headers.get('x-mailgun-sscore') || fields['X-Mailgun-Sscore'] || fields['spam-score']
   if (raw === undefined || raw === null || raw === '') return null

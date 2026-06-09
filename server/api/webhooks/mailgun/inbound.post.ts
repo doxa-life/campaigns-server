@@ -17,6 +17,7 @@ import {
   extractEmailAddress,
   extractDisplayName,
   isAutoResponderOrBounce,
+  isVacationAutoReply,
 } from '../../../utils/mailgun-inbound'
 import { parseInboxRecipient, buildContactReplyAddress, buildFromAddress } from '../../../utils/inbox-addressing'
 import { resolveSignedStaffSender } from '../../../utils/inbox-reply-auth'
@@ -240,6 +241,10 @@ export default defineEventHandler(async (event) => {
       outcome = 'held'
     }
 
+    // A vacation / out-of-office auto-reply from the contact shouldn't re-open the thread or
+    // ping staff — flag it so the contact branch closes it out instead. Bounces are excluded.
+    const isVacationReply = outcome === 'contact' && isVacationAutoReply(headers, fromEmail)
+
     let storedMessage: ConversationMessage
 
     if (outcome === 'staff') {
@@ -351,8 +356,11 @@ export default defineEventHandler(async (event) => {
       await persistArtifacts(storedMessage.id)
       // Contact replied → the ball is back with the team. Flip pending
       // ("waiting on the contact") or closed ("done") back to open so it
-      // surfaces as needing attention. Leave spam alone.
-      if (conversation.status === 'pending' || conversation.status === 'closed') {
+      // surfaces as needing attention. Leave spam alone. A vacation / out-of-office
+      // auto-reply is the exception: close it instead of re-opening or notifying.
+      if (isVacationReply) {
+        await conversationService.updateStatus(conversation.id, 'closed')
+      } else if (conversation.status === 'pending' || conversation.status === 'closed') {
         await conversationService.updateStatus(conversation.id, 'open')
       }
       await conversationService.touchLastMessage(conversation.id, storedMessage.created_at, 'inbound')
@@ -391,7 +399,7 @@ export default defineEventHandler(async (event) => {
     }
 
     logCreate('conversations', String(conversation.id), undefined, {
-      message: `Inbound email (${outcome})`,
+      message: `Inbound email (${outcome}${isVacationReply ? ', auto-reply → closed' : ''})`,
       direction: outcome === 'staff' ? 'outbound' : 'inbound',
       authenticated: auth.authenticated,
     })
@@ -408,10 +416,13 @@ export default defineEventHandler(async (event) => {
           await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'held_sender', to: fromEmail }, refOpts)
         }
       } else if (outcome === 'contact') {
-        if (conversation.assigned_user_id) {
-          await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'assignee', conversation_id: conversation.id, message_id: storedMessage.id }, refOpts)
-        } else {
-          await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'new_conversation', conversation_id: conversation.id, message_id: storedMessage.id }, refOpts)
+        // A vacation / out-of-office auto-reply was auto-closed above — don't notify staff about it.
+        if (!isVacationReply) {
+          if (conversation.assigned_user_id) {
+            await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'assignee', conversation_id: conversation.id, message_id: storedMessage.id }, refOpts)
+          } else {
+            await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'new_conversation', conversation_id: conversation.id, message_id: storedMessage.id }, refOpts)
+          }
         }
         // Auto-ack only for brand-new cold conversations (not ongoing replies), and only when
         // the inbound authenticated — a forged From must not trigger an ack to the victim.

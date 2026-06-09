@@ -330,6 +330,33 @@ describe('Shared inbox', async () => {
     expect(res.conversation_id).toBe(convo.id)
   })
 
+  // 5d. A vacation / out-of-office auto-reply auto-closes the thread and doesn't notify staff.
+  it('auto-closes a vacation auto-reply and skips staff notification', async () => {
+    const email = `inbox-ooo-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(email)
+    const convo = await makeConversation(subId, { status: 'pending' })
+    const res = await postInbound({
+      recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
+      from: `Owner <${email}>`,
+      sender: email,
+      subject: 'Out of office',
+      'body-html': '<p>I am away until Monday.</p>',
+      'message-headers': headerJson([
+        ['Message-Id', `<ooo-${uuidv4()}@example.com>`],
+        ['Auto-Submitted', 'auto-replied'],
+      ]),
+    })
+    expect(res.status).toBe('contact')
+    const [c] = await sql`SELECT status FROM conversations WHERE id = ${convo.id}`
+    expect(c!.status).toBe('closed') // closed, not re-opened
+    const msgs = await sql`SELECT * FROM conversation_messages WHERE conversation_id = ${convo.id} AND status = 'received'`
+    expect(msgs.length).toBe(1) // message still stored
+    const jobs = await sql`SELECT payload FROM jobs WHERE type = 'inbox_email' AND reference_id = ${convo.id}`
+    const kinds = jobs.map((j: any) => j.payload.kind)
+    expect(kinds).not.toContain('assignee')
+    expect(kinds).not.toContain('new_conversation')
+  })
+
   // 6. verified semantics on authenticated vs unauthenticated inbound
   it('verifies the contact method on authenticated inbound only', async () => {
     const emailAuthed = `inbox-verify-${uuidv4().slice(0, 8)}@example.com`
