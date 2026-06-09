@@ -170,6 +170,24 @@ class JobQueueService {
   }
 
   /**
+   * End a failed attempt in a single statement: re-queue to 'pending' if attempts remain,
+   * else mark 'failed'. Atomic so a crash can't strand the job mid-way between the two —
+   * which the reaper (it only requeues 'processing') would never recover, silently dropping
+   * the recipient. Returns whether the job was re-queued for another attempt.
+   */
+  async failOrRetry(id: number, errorMessage: string): Promise<{ requeued: boolean }> {
+    const [row] = await this.sql<{ status: JobStatus }[]>`
+      UPDATE jobs
+      SET status = CASE WHEN attempts < max_attempts THEN 'pending' ELSE 'failed' END,
+          error_message = CASE WHEN attempts < max_attempts THEN NULL ELSE ${errorMessage} END,
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${id}
+      RETURNING status
+    `
+    return { requeued: row?.status === 'pending' }
+  }
+
+  /**
    * Recover jobs stranded in 'processing' by an instance that crashed or was
    * redeployed mid-batch. claimJobs only ever selects 'pending', so without this
    * sweep a stranded row is never re-claimed and its parent (e.g. a marketing
