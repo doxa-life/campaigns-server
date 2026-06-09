@@ -390,15 +390,20 @@ export default defineEventHandler(async (event) => {
       const refOpts = { referenceType: 'conversation', referenceId: conversation.id }
       if (outcome === 'held') {
         await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'new_conversation', conversation_id: conversation.id, message_id: storedMessage.id, held: true }, refOpts)
-        await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'held_sender', to: fromEmail }, refOpts)
+        // Courtesy-reply to the sender only when the inbound actually authenticated (a forged
+        // From must not trigger backscatter) and isn't itself an auto-responder/bounce (no loop).
+        if (auth.authenticated && !isAutoResponderOrBounce(headers, fromEmail)) {
+          await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'held_sender', to: fromEmail }, refOpts)
+        }
       } else if (outcome === 'contact') {
         if (conversation.assigned_user_id) {
           await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'assignee', conversation_id: conversation.id, message_id: storedMessage.id }, refOpts)
         } else {
           await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'new_conversation', conversation_id: conversation.id, message_id: storedMessage.id }, refOpts)
         }
-        // Auto-ack only for brand-new cold conversations (not for ongoing replies)
-        if (isNewConversation && !isAutoResponderOrBounce(headers, fromEmail)) {
+        // Auto-ack only for brand-new cold conversations (not ongoing replies), and only when
+        // the inbound authenticated — a forged From must not trigger an ack to the victim.
+        if (isNewConversation && auth.authenticated && !isAutoResponderOrBounce(headers, fromEmail)) {
           await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'auto_ack', conversation_id: conversation.id, to: fromEmail, name: fromName, language: 'en' }, refOpts)
         }
       }

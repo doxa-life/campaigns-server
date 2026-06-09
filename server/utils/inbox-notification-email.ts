@@ -163,6 +163,7 @@ export async function notifyHeldSender(toEmail: string, cfgOverride?: { appName?
     subject: 'We received your message',
     html,
     text: 'Thanks for your message. A member of our team will review it shortly.',
+    autoReply: true,
   })
   return result.success
 }

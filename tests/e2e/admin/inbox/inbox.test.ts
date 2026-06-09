@@ -433,6 +433,8 @@ describe('Shared inbox', async () => {
 
   // Regression: the auto-ack + staff notification are durable queued jobs, not
   // fire-and-forget — so a transient send failure is retried, not silently lost.
+  // The auto-ack only fires for an *authenticated* inbound (a forged From must not
+  // trigger an ack to the victim), so this cold conversation passes DKIM/DMARC.
   it('enqueues durable auto-ack and notification jobs for a new cold conversation', async () => {
     const email = `inbox-ack-${uuidv4().slice(0, 8)}@example.com`
     const res = await postInbound({
@@ -443,7 +445,10 @@ describe('Shared inbox', async () => {
       'body-html': '<p>Can you help?</p>',
       'stripped-html': '<p>Can you help?</p>',
       'body-plain': 'Can you help?',
-      'message-headers': headerJson([['Message-Id', `<ack-${uuidv4()}@example.com>`]]),
+      'message-headers': headerJson([
+        ['Message-Id', `<ack-${uuidv4()}@example.com>`],
+        ['Authentication-Results', `mx.${INBOX_DOMAIN}; dkim=pass header.d=example.com`],
+      ]),
     })
     expect(res.status).toBe('contact')
     const convoId = res.conversation_id

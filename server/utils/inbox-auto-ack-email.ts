@@ -45,6 +45,7 @@ export async function sendInboxAutoAck(opts: {
     html,
     text,
     replyTo,
+    autoReply: true,
   })
   return result.success
 }
