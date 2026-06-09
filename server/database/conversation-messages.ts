@@ -195,6 +195,20 @@ class MessageService {
     return result.count > 0
   }
 
+  // Atomically claim a queued message for sending (queued → sent), returning the row only
+  // to the winner. The 'sent' status doubles as the per-message send claim — mirroring the
+  // marketing claim — so a requeued or concurrent job can't re-send it. A confirmed send
+  // failure releases it back to 'queued' for retry (see the outbound-email processor).
+  async claimForSend(id: number): Promise<ConversationMessage | null> {
+    const [row] = await this.sql<ConversationMessage[]>`
+      UPDATE conversation_messages
+      SET status = 'sent', updated_at = NOW()
+      WHERE id = ${id} AND status = 'queued'
+      RETURNING *
+    `
+    return row ?? null
+  }
+
   // Mark an outbound message sent and store the provider's message-id, also as
   // email_message_id (when unset) so the contact's reply threads back to this message.
   async markSent(id: number, providerMessageId?: string): Promise<ConversationMessage | null> {

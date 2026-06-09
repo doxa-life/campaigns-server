@@ -109,6 +109,11 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
   // survive wrapping. Locale here only sets the lang attribute.
   html = renderInboxMessageEmail({ bodyHtml: html, subject: message.subject || conversation.subject || undefined })
 
+  // Atomically claim the message (queued → sent) right before sending, so a requeued or
+  // concurrent job can't re-send it; a confirmed failure releases it back to 'queued' below.
+  const claimed = await messageService.claimForSend(message.id)
+  if (!claimed) return { success: true, data: { skipped: 'not_queued' } }
+
   const result = await inboxEmailService.send({
     from: fromAddress,
     to: contact.value,
@@ -126,13 +131,15 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
     return { success: true }
   }
 
-  // Leave the message 'queued' so a job retry re-attempts the send; only mark it
-  // permanently failed once the job has exhausted its retries. job.attempts is the
-  // pre-increment count for this run, and retryJob stops once attempts+1 reaches
-  // max_attempts — so this run is the last when attempts >= max_attempts - 1.
+  // The claim above set the message 'sent'; release it back to 'queued' so a job retry
+  // re-claims and re-attempts, or mark it permanently failed once retries are exhausted.
+  // job.attempts is the pre-increment count for this run, and retryJob stops once
+  // attempts+1 reaches max_attempts — so this run is the last when attempts >= max_attempts - 1.
   const isLastAttempt = job.attempts >= job.max_attempts - 1
   if (isLastAttempt) {
     await messageService.markStatus(message.id, 'failed', { failed_reason: result.error || 'Send failed' })
+  } else {
+    await messageService.markStatus(message.id, 'queued')
   }
   throw new Error(result.error || 'Send failed')
 }
