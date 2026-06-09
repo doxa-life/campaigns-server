@@ -176,6 +176,27 @@
       <div v-else-if="subscribersData" class="space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <UCard>
+            <div class="flex items-center gap-3">
+              <UIcon name="i-lucide-user-plus" class="text-[var(--ui-primary)] text-2xl" />
+              <div>
+                <p class="text-sm text-[var(--ui-text-dimmed)]">Total Subscriptions</p>
+                <p class="text-2xl font-bold">{{ subscribersData.totalSubscriptions }}</p>
+              </div>
+            </div>
+          </UCard>
+          <UCard>
+            <div class="flex items-center gap-3">
+              <UIcon name="i-lucide-user-minus" class="text-[var(--ui-primary)] text-2xl" />
+              <div>
+                <p class="text-sm text-[var(--ui-text-dimmed)]">Total Unsubscribes</p>
+                <p class="text-2xl font-bold">{{ subscribersData.totalUnsubscribes }}</p>
+              </div>
+            </div>
+          </UCard>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <UCard>
             <template #header>
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
