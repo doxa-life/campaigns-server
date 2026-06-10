@@ -121,8 +121,6 @@ describe('PUT /api/profile/[id] — change subscribed people group', async () =>
 
     expect(error.statusCode).toBe(403)
   })
-<<<<<<< HEAD
-=======
 
   it('merges an email subscription into the target group\'s existing email row', async () => {
     const groupA = await createTestPeopleGroup(sql)
@@ -163,5 +161,4 @@ describe('PUT /api/profile/[id] — change subscribed people group', async () =>
     `
     expect(count).toBe(1)
   })
->>>>>>> master
 })
