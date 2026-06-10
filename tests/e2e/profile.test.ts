@@ -121,4 +121,47 @@ describe('PUT /api/profile/[id] — change subscribed people group', async () =>
 
     expect(error.statusCode).toBe(403)
   })
+<<<<<<< HEAD
+=======
+
+  it('merges an email subscription into the target group\'s existing email row', async () => {
+    const groupA = await createTestPeopleGroup(sql)
+    const groupB = await createTestPeopleGroup(sql)
+    const subscriber = await createTestSubscriber(sql)
+    const subA = await createTestPeopleGroupSubscription(sql, groupA.id, subscriber.id, {
+      delivery_method: 'email',
+      frequency: 'daily'
+    })
+    const subB = await createTestPeopleGroupSubscription(sql, groupB.id, subscriber.id, {
+      delivery_method: 'email',
+      frequency: 'daily'
+    })
+
+    // Moving A into B where B already has an email row must merge (not create a
+    // duplicate email subscription that would double up reminders).
+    const res = await $fetch(`/api/profile/${subscriber.profile_id}`, {
+      method: 'PUT',
+      body: {
+        subscription_id: subA.id,
+        people_group_slug: groupB.slug,
+        frequency: 'weekly',
+        days_of_week: [2, 4]
+      }
+    })
+
+    expect(res.currentSubscription.id).toBe(subB.id)
+    expect(res.currentSubscription.frequency).toBe('weekly')
+
+    const [gone] = await sql`SELECT * FROM campaign_subscriptions WHERE id = ${subA.id}`
+    expect(gone).toBeUndefined()
+
+    const [{ count }] = await sql`
+      SELECT COUNT(*)::int AS count FROM campaign_subscriptions
+      WHERE subscriber_id = ${subscriber.id}
+        AND people_group_id = ${groupB.id}
+        AND delivery_method = 'email'
+    `
+    expect(count).toBe(1)
+  })
+>>>>>>> master
 })

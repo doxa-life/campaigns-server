@@ -36,6 +36,14 @@
         <div class="subscriber-name">{{ subscriber.name }} <span v-if="subscriber.preferred_language" class="language-flag">{{ getLanguageFlag(subscriber.preferred_language) }}</span></div>
         <div class="subscriber-contact">
           {{ subscriber.primary_email || subscriber.primary_phone || 'No contact' }}
+          <UBadge
+            v-if="subscriber.email_suppression"
+            label="Not receiving"
+            color="error"
+            variant="subtle"
+            size="xs"
+            icon="i-lucide-mail-x"
+          />
         </div>
         <div class="subscriber-meta">
           <UBadge
@@ -147,6 +155,18 @@
                       variant="subtle"
                       size="xs"
                     />
+                    <UTooltip
+                      v-if="emailSuppression"
+                      :text="`${suppressionReasonText(emailSuppression.reason)} · since ${formatDate(emailSuppression.last_seen_at)}`"
+                    >
+                      <UBadge
+                        label="Not receiving email"
+                        color="error"
+                        variant="solid"
+                        size="xs"
+                        icon="i-lucide-mail-x"
+                      />
+                    </UTooltip>
                   </span>
                 </template>
                 <UInput
@@ -551,6 +571,13 @@
                     · {{ activity.metadata.peopleGroupName }}
                   </template>
                 </div>
+                <div
+                  v-if="activity.metadata?.badge === 'Email Suppressed' || activity.metadata?.badge === 'Email Restored'"
+                  class="email-details"
+                >
+                  <template v-if="activity.metadata.reason">{{ suppressionReasonText(activity.metadata.reason) }}</template>
+                  <template v-if="activity.metadata.email"><template v-if="activity.metadata.reason"> · </template>{{ activity.metadata.email }}</template>
+                </div>
                 <div v-if="activity.metadata?.message" class="activity-detail">
                   {{ activity.metadata.message }}
                   <NuxtLink v-if="activity.metadata.link_url" :to="activity.metadata.link_url" class="activity-link">
@@ -666,11 +693,17 @@ definePageMeta({
   middleware: 'auth'
 })
 
+interface EmailSuppression {
+  reason: 'hard_bounce' | 'complaint'
+  last_seen_at: string
+}
+
 interface Contact {
   id: number
   type: 'email' | 'phone'
   value: string
   verified: boolean
+  suppression?: EmailSuppression | null
 }
 
 interface Subscription {
@@ -708,6 +741,7 @@ interface GeneralSubscriber {
   contacts: Contact[]
   primary_email: string | null
   primary_phone: string | null
+  email_suppression?: EmailSuppression | null
   role?: string | null
   country?: string | null
   sources: string[]
@@ -887,6 +921,12 @@ const emailVerified = computed(() => {
   const emailContact = contacts.find(c => c.type === 'email' && c.value === subscriberForm.value.email)
   return emailContact?.verified ?? false
 })
+const emailSuppression = computed<EmailSuppression | null>(() => {
+  const contacts = selectedSubscriber.value?.contacts
+  if (!contacts) return null
+  const emailContact = contacts.find(c => c.type === 'email' && c.value === subscriberForm.value.email)
+  return emailContact?.suppression ?? null
+})
 const activeSubscriptionCount = computed(() => {
   return selectedSubscriber.value?.subscriptions.filter(s => s.status === 'active').length ?? 0
 })
@@ -929,6 +969,9 @@ interface ActivityLogEntry {
     link_text?: string
     link_url?: string
     form_values?: Record<string, any>
+    reason?: string
+    email?: string
+    detail?: string
   }
 }
 const activityLog = ref<ActivityLogEntry[]>([])
@@ -1589,6 +1632,7 @@ function formatEventType(eventType: string): string {
     'PRAYER': 'Prayed',
     'EMAIL': 'Email Sent',
     'FOLLOWUP_RESPONSE': 'Check-in Response',
+    'MARKETING_EMAIL_SENT': 'Marketing email',
     'Linked': 'Linked',
     'Unlinked': 'Unlinked'
   }
@@ -1602,11 +1646,14 @@ function getEventColor(eventType: string): 'success' | 'warning' | 'error' | 'ne
     'DELETE': 'error',
     'PRAYER': 'primary',
     'EMAIL': 'neutral',
+    'MARKETING_EMAIL_SENT': 'neutral',
     'FOLLOWUP_RESPONSE': 'primary',
     'Survey Response': 'primary',
     'Linked': 'success',
     'Unlinked': 'error',
-    'Unsubscribed': 'warning'
+    'Unsubscribed': 'warning',
+    'Email Suppressed': 'error',
+    'Email Restored': 'success'
   }
   return colors[eventType] || 'neutral'
 }
@@ -1616,13 +1663,24 @@ function getEventIcon(eventType: string): string | undefined {
     'UPDATE': 'i-lucide-pencil',
     'PRAYER': 'i-lucide-hand-helping',
     'EMAIL': 'i-lucide-mail',
+    'MARKETING_EMAIL_SENT': 'i-lucide-send',
     'FOLLOWUP_RESPONSE': 'i-lucide-message-circle',
     'Survey Response': 'i-lucide-clipboard-list',
     'Linked': 'i-lucide-link',
     'Unlinked': 'i-lucide-link-2-off',
-    'Unsubscribed': 'i-lucide-mail-x'
+    'Unsubscribed': 'i-lucide-mail-x',
+    'Email Suppressed': 'i-lucide-mail-x',
+    'Email Restored': 'i-lucide-mail-check'
   }
   return icons[eventType]
+}
+
+function suppressionReasonText(reason: string): string {
+  const reasons: Record<string, string> = {
+    'hard_bounce': 'Hard bounce',
+    'complaint': 'Spam complaint'
+  }
+  return reasons[reason] || reason
 }
 
 function formatFieldName(field: string): string {

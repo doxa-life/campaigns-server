@@ -1,4 +1,4 @@
-import type { Fragment } from 'postgres'
+import type { Fragment, Sql, TransactionSql } from 'postgres'
 import { getSql } from './db'
 import { buildSet, buildWhere } from './sql-helpers'
 import { roleService } from './roles'
@@ -183,6 +183,30 @@ class MarketingEmailService {
       ${whereClause}
       ORDER BY me.updated_at DESC
     `
+  }
+
+  /**
+   * Atomically claim a draft for sending. Flips draft -> queued and stamps the
+   * recipient count in a single conditional UPDATE, so two concurrent send requests
+   * (double-click, client retry, second tab) can never both proceed: the first
+   * matches the row, the second sees status already 'queued' and matches nothing.
+   * Returns true only for the request that won the claim. Pass a transaction `tx`
+   * so the claim and the job enqueue commit (or roll back) together.
+   */
+  async claimDraftForSend(id: number, recipientCount: number, sentBy: string, tx?: Sql | TransactionSql<{}>): Promise<boolean> {
+    const db = tx ?? this.sql
+    const rows = await db`
+      UPDATE marketing_emails
+      SET status = 'queued',
+          sent_by = ${sentBy},
+          recipient_count = ${recipientCount},
+          sent_count = 0,
+          failed_count = 0,
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${id} AND status = 'draft'
+      RETURNING id
+    `
+    return rows.length > 0
   }
 
   async updateStatus(id: number, status: MarketingEmail['status'], sentBy?: string): Promise<void> {

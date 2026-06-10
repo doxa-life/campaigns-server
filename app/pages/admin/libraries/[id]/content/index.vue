@@ -8,6 +8,14 @@
       </div>
       <div class="header-actions">
         <UButton
+          v-if="schedule?.todayDayInLibrary"
+          @click="jumpToToday"
+          variant="outline"
+          icon="i-lucide-calendar-check"
+        >
+          Jump to Today
+        </UButton>
+        <UButton
           @click="openTranslateAllModal"
           variant="outline"
           icon="i-lucide-languages"
@@ -59,14 +67,16 @@
         <div class="days-grid">
           <UButton
             v-for="day in displayDays"
+            :id="`day-cell-${day}`"
             :key="day"
             @click="selectDay(day)"
-            :variant="getDayVariant(day)"
-            :color="getDayColor(day)"
+            :variant="day === todayDay ? 'solid' : getDayVariant(day)"
+            :color="day === todayDay ? 'primary' : getDayColor(day)"
             :title="getDayTooltip(day)"
-            class="aspect-square p-0! justify-center"
+            :class="['flex-col items-center gap-0.5 py-1.5 justify-center min-h-[60px]', day === todayDay ? 'ring-2 ring-primary ring-offset-1' : '']"
           >
-            {{ day }}
+            <span class="text-sm font-medium leading-none">{{ day }}</span>
+            <span v-if="formatDayDate(day)" class="text-[10px] leading-none opacity-70">{{ formatDayDate(day) }}</span>
           </UButton>
         </div>
 
@@ -145,7 +155,18 @@ interface LibraryContent {
   content_json: any
 }
 
+interface LibrarySchedule {
+  scheduled: boolean
+  globalStartDate: string | null
+  repeating: boolean
+  actualDays: number
+  startOffsetDay: number | null
+  todayDayInLibrary: number | null
+  cycleStartDate: string | null
+}
+
 const library = ref<Library | null>(null)
+const schedule = ref<LibrarySchedule | null>(null)
 const loading = ref(true)
 const error = ref('')
 const selectedLanguage = ref('all')
@@ -187,6 +208,37 @@ const displayDays = computed(() => {
   return days
 })
 
+const todayDay = computed(() => schedule.value?.todayDayInLibrary ?? null)
+
+function pageForDay(day: number): number {
+  return Math.ceil(day / daysPerPage)
+}
+
+// Build a Date from a YYYY-MM-DD string in local time to avoid UTC off-by-one.
+function parseLocalDate(iso: string): Date {
+  const [y, m, d] = iso.split('-').map(Number)
+  return new Date(y!, m! - 1, d!)
+}
+
+// Calendar date this day's content plays, derived from the library's schedule.
+// Only shown for days that actually carry content (1..actualDays).
+function formatDayDate(day: number): string {
+  const cycleStart = schedule.value?.cycleStartDate
+  if (!cycleStart) return ''
+  if (schedule.value!.actualDays > 0 && day > schedule.value!.actualDays) return ''
+  const date = parseLocalDate(cycleStart)
+  date.setDate(date.getDate() + (day - 1))
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
+async function jumpToToday() {
+  const day = todayDay.value
+  if (!day) return
+  currentPage.value = pageForDay(day)
+  await nextTick()
+  document.getElementById(`day-cell-${day}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
 async function loadLibrary() {
   try {
     const response = await $fetch<{ library: Library }>(`/api/admin/libraries/${libraryId.value}`)
@@ -198,6 +250,15 @@ async function loadLibrary() {
   } catch (err) {
     console.error('Failed to load library:', err)
     error.value = 'Failed to load library'
+  }
+}
+
+async function loadSchedule() {
+  try {
+    const response = await $fetch<{ schedule: LibrarySchedule }>(`/api/admin/libraries/${libraryId.value}/schedule`)
+    schedule.value = response.schedule
+  } catch (err) {
+    console.error('Failed to load library schedule:', err)
   }
 }
 
@@ -267,14 +328,16 @@ function getDayColor(day: number): 'success' | 'warning' | 'neutral' {
 }
 
 function getDayTooltip(day: number): string {
+  const dateStr = formatDayDate(day)
+  const datePart = dateStr ? ` (${dateStr}${day === todayDay.value ? ', Today' : ''})` : ''
   const content = dayContentMap.value.get(day)
 
   if (!content || content.length === 0) {
-    return `Day ${day}: No content`
+    return `Day ${day}${datePart}: No content`
   }
 
   const languages = content.map(c => getLanguageName(c.language_code)).join(', ')
-  return `Day ${day}: ${languages}`
+  return `Day ${day}${datePart}: ${languages}`
 }
 
 async function selectDay(day: number) {
@@ -357,7 +420,11 @@ function handleProgressCancelled() {
 
 onMounted(async () => {
   await loadLibrary()
-  await loadContent()
+  await Promise.all([loadContent(), loadSchedule()])
+  // Open on today's page so the active day is immediately visible.
+  if (todayDay.value) {
+    currentPage.value = pageForDay(todayDay.value)
+  }
 })
 
 watch(selectedLanguage, () => {

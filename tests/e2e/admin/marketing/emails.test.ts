@@ -127,9 +127,14 @@ describe('Marketing Emails API', async () => {
       expect(error.statusCode).toBe(401)
     })
 
-    it('returns 403 for non-superadmin users', async () => {
-      const error = await $fetch('/api/admin/marketing/audience/doxa', adminAuth).catch((e) => e)
+    it('returns 403 for users with no role', async () => {
+      const error = await $fetch('/api/admin/marketing/audience/doxa', noRoleAuth).catch((e) => e)
       expect(error.statusCode).toBe(403)
+    })
+
+    it('returns a count for admin users', async () => {
+      const response = await $fetch('/api/admin/marketing/audience/doxa', adminAuth)
+      expect(response.audience_type).toBe('doxa')
     })
   })
 

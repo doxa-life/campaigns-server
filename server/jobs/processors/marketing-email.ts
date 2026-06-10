@@ -4,6 +4,7 @@ import { marketingEmailService } from '../../database/marketing-emails'
 import { marketingSenderService } from '../../database/marketing-senders'
 import { subscriberService } from '../../database/subscribers'
 import { contactMethodService } from '../../database/contact-methods'
+import { marketingEmailSentService } from '../../database/marketing-email-sent'
 import { renderMarketingEmailHtml, renderMarketingEmailFromHtml, tiptapToText } from '../../utils/marketing-email-template'
 import { getMarketingTemplate } from '../../utils/marketing-templates'
 import { buildMarketingFrom, sendMarketingEmail } from '../../utils/marketing-email-sender'
@@ -21,6 +22,13 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
   const liveStatus = await marketingEmailService.getStatus(payload.marketing_email_id)
   if (liveStatus === 'cancelled') {
     return { success: true, data: { skipped: 'cancelled' } }
+  }
+
+  // Safety net for addresses suppressed (hard bounce / complaint) after this job
+  // was enqueued. Selection-time filtering already excludes most; skip here without
+  // counting it as a failure.
+  if (await contactMethodService.isSuppressed(payload.recipient_email)) {
+    return { success: true, data: { skipped: 'suppressed' } }
   }
 
   let cached = emailCache.get(payload.marketing_email_id)
@@ -52,13 +60,30 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
     setTimeout(() => emailCache.delete(payload.marketing_email_id), 5 * 60 * 1000)
   }
 
+  // Safety net for consent revoked after this job was enqueued: if the recipient
+  // unsubscribed (or otherwise opted out of this audience) while the campaign was
+  // draining, drop the send instead of mailing them — mirrors the suppression net
+  // above. Skipped for 'pick' (testing override that deliberately bypasses consent)
+  // and 'admins' (internal recipients, contact_method_id 0 / no consent row).
+  const audienceType = cached.email.audience_type
+  if (audienceType !== 'pick' && audienceType !== 'admins') {
+    const stillConsented = await contactMethodService.stillConsentsToAudience(
+      payload.contact_method_id,
+      audienceType,
+      cached.email.people_group_id
+    )
+    if (!stillConsented) {
+      return { success: true, data: { skipped: 'unsubscribed' } }
+    }
+  }
+
   let subscriber = await subscriberService.getSubscriberByContactMethodId(payload.contact_method_id)
   // The admins test audience has no contact_method (id 0); resolve by recipient
   // email instead so a test send still gets a working personalized link when
   // the recipient is also a subscriber.
   if (!subscriber && payload.recipient_email) {
     const contact = await contactMethodService.getByValue('email', payload.recipient_email)
-    if (contact) subscriber = await subscriberService.getSubscriberById(contact.subscriber_id)
+    if (contact?.subscriber_id) subscriber = await subscriberService.getSubscriberById(contact.subscriber_id)
   }
   const profileId = subscriber?.profile_id || 'unknown'
   const subscriberLanguage = subscriber?.preferred_language || 'en'
@@ -108,6 +133,23 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
     text = cached.text
   }
 
+  // Record this send as a per-recipient claim before handing it to the email provider:
+  // one deterministic-id activity_logs row that both prevents a re-send and logs the send
+  // to the contact's timeline. If the instance crashes after the provider accepts but
+  // before the job is marked done, the claim stands, so the stale-job reaper's requeue
+  // skips instead of re-sending. Released below only on a returned failure, so genuine
+  // retries can re-send.
+  const claimed = await marketingEmailSentService.claim({
+    marketingEmailId: payload.marketing_email_id,
+    contactMethodId: payload.contact_method_id,
+    recipientEmail: payload.recipient_email,
+    subscriberId: subscriber?.id ?? null,
+    subject
+  })
+  if (!claimed) {
+    return { success: true, data: { skipped: 'already_sent' } }
+  }
+
   const sent = await sendMarketingEmail({
     from: cached.from,
     replyTo: cached.replyTo,
@@ -123,6 +165,10 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
     console.log(`  Sent marketing email to ${payload.recipient_email}`)
     return { success: true }
   } else {
+    // Returned failure (provider rejection or aborted/timed-out request): release the
+    // claim so the queue's retry can re-attempt. A crash/throw instead leaves it in
+    // place, which is what keeps the reaper's requeue from re-sending.
+    await marketingEmailSentService.release(payload.marketing_email_id, payload.recipient_email)
     await marketingEmailService.incrementFailedCount(payload.marketing_email_id)
     throw new Error('Email send failed')
   }

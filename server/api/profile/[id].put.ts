@@ -85,7 +85,9 @@ export default defineEventHandler(async (event) => {
     if (newEmail !== oldEmail) {
       // Check if new email already exists for another subscriber
       const existingContact = await contactMethodService.getByValue('email', newEmail)
-      if (existingContact && existingContact.subscriber_id !== subscriber.id) {
+      // A registry-only row (subscriber_id null, e.g. a previously-bounced address)
+      // isn't owned by anyone — it gets claimed below, not blocked here.
+      if (existingContact && existingContact.subscriber_id != null && existingContact.subscriber_id !== subscriber.id) {
         throw createError({
           statusCode: 400,
           statusMessage: 'This email is already in use by another subscriber'
@@ -202,10 +204,10 @@ export default defineEventHandler(async (event) => {
     if (body.timezone !== undefined) subscriptionUpdates.timezone = body.timezone
     if (body.prayer_duration !== undefined) subscriptionUpdates.prayer_duration = body.prayer_duration
 
-    // Move the subscription to a different people group when requested. Accept
-    // an explicit id or a slug (mirroring the consent fields above).
-    let targetPeopleGroupId: number | undefined = body.people_group_id
-    if (targetPeopleGroupId === undefined && body.people_group_slug) {
+    // Move the subscription to the people group identified by slug. The slug
+    // must resolve to a real people group, else 404.
+    let targetPeopleGroupId: number | undefined
+    if (body.people_group_slug) {
       const pg = await peopleGroupService.getPeopleGroupBySlug(body.people_group_slug)
       if (!pg) {
         throw createError({
@@ -216,20 +218,24 @@ export default defineEventHandler(async (event) => {
       targetPeopleGroupId = pg.id
     }
 
-    // The row the updates apply to. When moving an app subscription into a group
-    // the subscriber already has an app row for, repointing would violate the
-    // `(subscriber_id, people_group_id) WHERE delivery_method = 'app'` unique
-    // index — so merge into that existing row and drop the one moved from.
+    // The row the updates apply to. Moving into a group the subscriber already
+    // receives via the same delivery method would duplicate delivery — and for
+    // 'app' it violates the `(subscriber_id, people_group_id) WHERE
+    // delivery_method = 'app'` unique index. When such a row exists we merge into
+    // it (applying the incoming schedule) and drop the one moved from. Match on
+    // the *effective* method, since this same request may also change delivery_method.
     let targetSubscriptionId = body.subscription_id
     if (targetPeopleGroupId !== undefined && targetPeopleGroupId !== subscription.people_group_id) {
       const existing = await peopleGroupSubscriptionService.getAllBySubscriberAndPeopleGroup(
         subscriber.id,
         targetPeopleGroupId
       )
-      const conflict = subscription.delivery_method === 'app'
-        ? existing.find(s => s.delivery_method === 'app')
-        : undefined
+      const effectiveMethod = subscriptionUpdates.delivery_method ?? subscription.delivery_method
+      const conflict = existing.find(s => s.id !== subscription.id && s.delivery_method === effectiveMethod)
       if (conflict) {
+        // Hard-delete (not soft-unsubscribe) the moved-from row: it is fully
+        // superseded by the survivor, and a lingering duplicate would re-conflict
+        // on the next move. Linked send/followup history cascades away with it.
         targetSubscriptionId = conflict.id
         await peopleGroupSubscriptionService.deleteSubscription(subscription.id)
       } else {
@@ -237,6 +243,10 @@ export default defineEventHandler(async (event) => {
         subscriptionUpdates.people_group_id = targetPeopleGroupId
       }
     }
+
+    // People-group email consent is opt-in only: it is set explicitly via the
+    // consent_people_group_* fields, never inferred from which people group a
+    // subscription points at.
 
     if (Object.keys(subscriptionUpdates).length > 0) {
       updatedSubscription = await peopleGroupSubscriptionService.updateSubscription(

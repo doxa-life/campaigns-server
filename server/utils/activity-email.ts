@@ -82,7 +82,7 @@ function buildStatRows(stats: ActivityStats, previousStats: ActivityStats | null
       change: previousStats ? formatChange(stats.totalPrayerTime, previousStats.totalPrayerTime) : null
     },
     {
-      label: 'Survey fill outs',
+      label: 'Total surveys filled out',
       value: String(stats.surveyFillOuts),
       change: previousStats?.surveyFillOuts != null ? formatChange(stats.surveyFillOuts, previousStats.surveyFillOuts) : null
     },
