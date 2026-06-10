@@ -920,6 +920,85 @@ paths:
         '404':
           description: Subscriber, subscription, or people group not found
 
+  /api/collect/app:
+    post:
+      tags:
+        - Analytics
+      summary: Mobile-app analytics relay
+      description: >
+        First-party analytics relay for the mobile app. The app POSTs usage
+        events here and the server forwards them to the analytics backend
+        server-side (keeping the analytics API key off the client). Mirrors the
+        browser relay (`/api/collect`) but authenticates with the bundled app
+        secret (`X-App-Secret`) instead of a same-origin check, since a native
+        app sends no matching Origin. Identity travels as the device's
+        `anonymous_hash` (the `tracking_id` returned by anon-signup). A raw email
+        is never accepted; any `user_hash` must arrive pre-hashed. All events are
+        recorded fire-and-forget and the endpoint returns immediately.
+      operationId: collectAppEvent
+      security:
+        - appSecret: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - event_type
+              properties:
+                event_type:
+                  type: string
+                  enum: [app_open, language_switched]
+                  description: Allowlisted app event type
+                anonymous_hash:
+                  type: string
+                  maxLength: 128
+                  description: Device identity — the tracking_id returned by anon-signup
+                user_hash:
+                  type: string
+                  maxLength: 128
+                  description: Optional pre-hashed user identity (sha256 of lowercased email)
+                language:
+                  type: string
+                  maxLength: 32
+                  example: en
+                value:
+                  type: number
+                  nullable: true
+                  description: Optional numeric value for the event
+                url:
+                  type: string
+                  maxLength: 2048
+                screen_size:
+                  type: string
+                  maxLength: 32
+                  example: "390x844"
+                metadata:
+                  type: object
+                  additionalProperties: true
+                  description: >
+                    Optional event metadata (max 8KB; PII keys are stripped
+                    server-side). For app_open, e.g. platform, app_version,
+                    people_group_slug.
+      responses:
+        '202':
+          description: Event accepted for recording
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+        '400':
+          description: Invalid body, invalid JSON, or unsupported event_type
+        '403':
+          description: Missing or invalid app secret
+        '413':
+          description: Metadata payload too large
+
 components:
   securitySchemes:
     apiKey:
