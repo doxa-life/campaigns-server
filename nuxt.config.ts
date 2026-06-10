@@ -4,6 +4,11 @@ import { generateI18nLocales } from './config/languages'
 
 const appTitle = process.env.APP_TITLE || 'Base'
 
+// Set APP_ENV=staging on staging/local deployments. They pair with the
+// *staging* flavor of the mobile app, which installs side by side under its
+// own application id (see the app's android/app/build.gradle.kts).
+const isStaging = process.env.APP_ENV === 'staging'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
@@ -172,7 +177,11 @@ export default defineNuxtConfig({
     // When a "Pray on the app" smart link isn't intercepted by an installed app, this
     // route redirects to the right store, carrying the people group slug as the Play
     // install referrer. appleId is the numeric App Store id (empty until the app is live).
-    mobileAppAndroidPackage: process.env.MOBILE_APP_ANDROID_PACKAGE || 'app.prayer.doxa',
+    // Staging/local servers default to the staging flavor's application id so Play
+    // redirects land testers on the staging app rather than production.
+    mobileAppAndroidPackage:
+      process.env.MOBILE_APP_ANDROID_PACKAGE ||
+      (isStaging ? 'app.prayer.doxa.staging' : 'app.prayer.doxa'),
     mobileAppAppleId: process.env.MOBILE_APP_APPLE_ID || '',
     mobileAppScheme: process.env.MOBILE_APP_SCHEME || 'doxa',
 
