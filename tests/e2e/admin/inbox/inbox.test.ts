@@ -31,6 +31,21 @@ describe('Shared inbox', async () => {
     return $fetch('/api/webhooks/mailgun/inbound', { method: 'POST', body: form(fields) })
   }
 
+  // Drive the outbound-email processor (the plugin's poller is off under VITEST) and read
+  // back the emails inboxEmailService recorded instead of sending. Clear first so each test
+  // asserts only on the sends from its own drain.
+  async function clearRecordedEmails(): Promise<void> {
+    await $fetch('/api/test/recorded-emails', { method: 'DELETE' })
+  }
+  async function drainOutbound(conversationId: number): Promise<{ processed: number; emails: any[] }> {
+    return $fetch('/api/test/process-jobs', { method: 'POST', body: { conversation_id: conversationId } })
+  }
+  async function composeReply(conversationId: number, html: string, text = 'reply'): Promise<void> {
+    await $fetch(`/api/admin/inbox/conversations/${conversationId}/messages`, {
+      method: 'POST', body: { body_html: html, body_text: text }, ...agentAuth,
+    })
+  }
+
   async function makeSubscriber(email: string, opts: { verified?: boolean } = {}) {
     const [sub] = await sql`
       INSERT INTO subscribers (tracking_id, profile_id, name)
@@ -189,6 +204,105 @@ describe('Shared inbox', async () => {
     expect(c!.assigned_user_id).toBe(agent.id)
   })
 
+  it('staff reply-by-email targets the address that last wrote in', async () => {
+    const primaryEmail = `inbox-primary-${uuidv4().slice(0, 8)}@example.com`
+    const replyEmail = `inbox-reply-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(primaryEmail, { verified: true })
+    await sql`
+      INSERT INTO contact_methods (subscriber_id, type, value, verified)
+      VALUES (${subId}, 'email', ${replyEmail}, true)
+    `
+    const convo = await makeConversation(subId, { status: 'open' })
+    await sql`
+      INSERT INTO conversation_messages (conversation_id, direction, status, from_email, email_message_id)
+      VALUES (${convo.id}, 'inbound', 'received', ${replyEmail}, ${`<last-${uuidv4()}@example.com>`})
+    `
+
+    const signedAddress = buildSignedReplyAddress({
+      token: convo.reply_token,
+      userId: agent.id,
+      conversationId: convo.id,
+      secret: REPLY_SECRET,
+      contactAddress: CONTACT_ADDRESS,
+    })
+    const agentDomain = agent.email.split('@')[1]!
+
+    const res = await postInbound({
+      recipient: signedAddress,
+      from: `George <${agent.email}>`,
+      sender: agent.email,
+      subject: 'Re: Existing thread',
+      'body-html': '<p>Replying to the active address</p>',
+      'message-headers': headerJson([
+        ['Message-Id', `<staff-last-address-${uuidv4()}@example.com>`],
+        ['Authentication-Results', `mx.${INBOX_DOMAIN}; dkim=pass header.d=${agentDomain}; spf=pass`],
+      ]),
+    })
+    expect(res.status).toBe('staff')
+
+    const [out] = await sql`
+      SELECT status, to_email
+      FROM conversation_messages
+      WHERE conversation_id = ${convo.id} AND direction = 'outbound'
+      ORDER BY id DESC
+      LIMIT 1
+    `
+    expect(out!.status).toBe('sent')
+    expect(out!.to_email).toBe(replyEmail)
+  })
+
+  it('staff reply-by-email does not send to a suppressed contact address', async () => {
+    const primaryEmail = `inbox-supp-primary-${uuidv4().slice(0, 8)}@example.com`
+    const replyEmail = `inbox-supp-reply-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(primaryEmail, { verified: true })
+    await sql`
+      INSERT INTO contact_methods (subscriber_id, type, value, verified, suppressed_at, suppression_reason)
+      VALUES (${subId}, 'email', ${replyEmail}, true, CURRENT_TIMESTAMP AT TIME ZONE 'UTC', 'hard_bounce')
+    `
+    const convo = await makeConversation(subId, { status: 'open' })
+    await sql`
+      INSERT INTO conversation_messages (conversation_id, direction, status, from_email, email_message_id)
+      VALUES (${convo.id}, 'inbound', 'received', ${replyEmail}, ${`<supp-last-${uuidv4()}@example.com>`})
+    `
+
+    const signedAddress = buildSignedReplyAddress({
+      token: convo.reply_token,
+      userId: agent.id,
+      conversationId: convo.id,
+      secret: REPLY_SECRET,
+      contactAddress: CONTACT_ADDRESS,
+    })
+    const agentDomain = agent.email.split('@')[1]!
+
+    const res = await postInbound({
+      recipient: signedAddress,
+      from: `George <${agent.email}>`,
+      sender: agent.email,
+      subject: 'Re: Existing thread',
+      'body-html': '<p>This should not leave the system</p>',
+      'message-headers': headerJson([
+        ['Message-Id', `<staff-suppressed-${uuidv4()}@example.com>`],
+        ['Authentication-Results', `mx.${INBOX_DOMAIN}; dkim=pass header.d=${agentDomain}; spf=pass`],
+      ]),
+    })
+    expect(res.status).toBe('staff')
+
+    const [out] = await sql`
+      SELECT status, to_email, failed_reason
+      FROM conversation_messages
+      WHERE conversation_id = ${convo.id} AND direction = 'outbound'
+      ORDER BY id DESC
+      LIMIT 1
+    `
+    expect(out!.status).toBe('failed')
+    expect(out!.to_email).toBe(replyEmail)
+    expect(out!.failed_reason).toBe('Recipient suppressed')
+
+    const [c] = await sql`SELECT status, needs_review FROM conversations WHERE id = ${convo.id}`
+    expect(c!.status).toBe('open')
+    expect(c!.needs_review).toBe(true)
+  })
+
   // A Google Workspace domain without custom DKIM signs d=*.gappssmtp.com, which
   // never aligns with the From domain — but DMARC still passes (via SPF). Accept it.
   it('treats a signed reply as staff when DMARC passes even though DKIM is misaligned', async () => {
@@ -274,6 +388,87 @@ describe('Shared inbox', async () => {
     expect(held.length).toBe(1)
     const [c] = await sql`SELECT needs_review FROM conversations WHERE id = ${convo.id}`
     expect(c!.needs_review).toBe(true)
+  })
+
+  // 5b. Forged In-Reply-To must not graft onto a victim's conversation (header threading
+  // is honored only when the From belongs to that thread's subscriber).
+  it('does not thread forged In-Reply-To mail onto a victim conversation', async () => {
+    const ownerEmail = `inbox-victim-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(ownerEmail)
+    const victimConvo = await makeConversation(subId, { status: 'open' })
+    const knownMsgId = `<thread-${uuidv4()}@${INBOX_DOMAIN}>`
+    await sql`
+      INSERT INTO conversation_messages (conversation_id, direction, status, email_message_id, to_email)
+      VALUES (${victimConvo.id}, 'outbound', 'sent', ${knownMsgId}, ${ownerEmail})
+    `
+    const res = await postInbound({
+      recipient: CONTACT_ADDRESS, // bare contact address, no token
+      from: `Attacker <attacker-${uuidv4().slice(0, 6)}@evil.com>`,
+      sender: 'attacker@evil.com',
+      subject: 'Re: your thread',
+      'body-html': '<p>graft</p>',
+      'message-headers': headerJson([
+        ['Message-Id', `<forge-${uuidv4()}@evil.com>`],
+        ['In-Reply-To', knownMsgId],
+      ]),
+    })
+    expect(res.conversation_id).not.toBe(victimConvo.id)
+    const [{ subscriber_id }] = await sql`SELECT subscriber_id FROM conversations WHERE id = ${res.conversation_id}`
+    createdSubscriberIds.push(subscriber_id)
+    const victimMsgs = await sql`SELECT * FROM conversation_messages WHERE conversation_id = ${victimConvo.id}`
+    expect(victimMsgs.length).toBe(1) // only the seeded outbound — nothing grafted
+  })
+
+  // 5c. A real contact's header-referenced reply (no token) threads when the From matches.
+  it('threads a header-referenced reply when the From matches the subscriber', async () => {
+    const ownerEmail = `inbox-thread-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(ownerEmail)
+    const convo = await makeConversation(subId, { status: 'pending' })
+    const knownMsgId = `<thread-ok-${uuidv4()}@${INBOX_DOMAIN}>`
+    await sql`
+      INSERT INTO conversation_messages (conversation_id, direction, status, email_message_id, to_email)
+      VALUES (${convo.id}, 'outbound', 'sent', ${knownMsgId}, ${ownerEmail})
+    `
+    const res = await postInbound({
+      recipient: CONTACT_ADDRESS, // no token — resolved via the In-Reply-To header
+      from: `Owner <${ownerEmail}>`,
+      sender: ownerEmail,
+      subject: 'Re: thread',
+      'body-html': '<p>my reply</p>',
+      'message-headers': headerJson([
+        ['Message-Id', `<reply-${uuidv4()}@example.com>`],
+        ['In-Reply-To', knownMsgId],
+      ]),
+    })
+    expect(res.status).toBe('contact')
+    expect(res.conversation_id).toBe(convo.id)
+  })
+
+  // 5d. A vacation / out-of-office auto-reply auto-closes the thread and doesn't notify staff.
+  it('auto-closes a vacation auto-reply and skips staff notification', async () => {
+    const email = `inbox-ooo-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(email)
+    const convo = await makeConversation(subId, { status: 'pending' })
+    const res = await postInbound({
+      recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
+      from: `Owner <${email}>`,
+      sender: email,
+      subject: 'Out of office',
+      'body-html': '<p>I am away until Monday.</p>',
+      'message-headers': headerJson([
+        ['Message-Id', `<ooo-${uuidv4()}@example.com>`],
+        ['Auto-Submitted', 'auto-replied'],
+      ]),
+    })
+    expect(res.status).toBe('contact')
+    const [c] = await sql`SELECT status FROM conversations WHERE id = ${convo.id}`
+    expect(c!.status).toBe('closed') // closed, not re-opened
+    const msgs = await sql`SELECT * FROM conversation_messages WHERE conversation_id = ${convo.id} AND status = 'received'`
+    expect(msgs.length).toBe(1) // message still stored
+    const jobs = await sql`SELECT payload FROM jobs WHERE type = 'inbox_email' AND reference_id = ${convo.id}`
+    const kinds = jobs.map((j: any) => j.payload.kind)
+    expect(kinds).not.toContain('assignee')
+    expect(kinds).not.toContain('new_conversation')
   })
 
   // 6. verified semantics on authenticated vs unauthenticated inbound
@@ -433,6 +628,8 @@ describe('Shared inbox', async () => {
 
   // Regression: the auto-ack + staff notification are durable queued jobs, not
   // fire-and-forget — so a transient send failure is retried, not silently lost.
+  // The auto-ack only fires for an *authenticated* inbound (a forged From must not
+  // trigger an ack to the victim), so this cold conversation passes DKIM/DMARC.
   it('enqueues durable auto-ack and notification jobs for a new cold conversation', async () => {
     const email = `inbox-ack-${uuidv4().slice(0, 8)}@example.com`
     const res = await postInbound({
@@ -443,7 +640,10 @@ describe('Shared inbox', async () => {
       'body-html': '<p>Can you help?</p>',
       'stripped-html': '<p>Can you help?</p>',
       'body-plain': 'Can you help?',
-      'message-headers': headerJson([['Message-Id', `<ack-${uuidv4()}@example.com>`]]),
+      'message-headers': headerJson([
+        ['Message-Id', `<ack-${uuidv4()}@example.com>`],
+        ['Authentication-Results', `mx.${INBOX_DOMAIN}; dkim=pass header.d=example.com`],
+      ]),
     })
     expect(res.status).toBe('contact')
     const convoId = res.conversation_id
@@ -522,6 +722,32 @@ describe('Shared inbox', async () => {
     expect(c!.subscriber_id).toBe(subId)
   })
 
+  it('emails an existing contact by subscriber_id using a non-suppressed primary email', async () => {
+    const suppressedEmail = `inbox-compose-suppressed-${uuidv4().slice(0, 8)}@example.com`
+    const deliverableEmail = `inbox-compose-deliverable-${uuidv4().slice(0, 8)}@example.com`
+    const [sub] = await sql`
+      INSERT INTO subscribers (tracking_id, profile_id, name)
+      VALUES (${uuidv4()}, ${uuidv4()}, 'Test Inbox Suppressed Primary')
+      RETURNING id
+    `
+    createdSubscriberIds.push(sub!.id)
+    await sql`
+      INSERT INTO contact_methods (subscriber_id, type, value, verified, suppressed_at, suppression_reason, created_at)
+      VALUES (${sub!.id}, 'email', ${suppressedEmail}, true, CURRENT_TIMESTAMP AT TIME ZONE 'UTC', 'hard_bounce', CURRENT_TIMESTAMP AT TIME ZONE 'UTC' - INTERVAL '1 minute')
+    `
+    await sql`
+      INSERT INTO contact_methods (subscriber_id, type, value, verified)
+      VALUES (${sub!.id}, 'email', ${deliverableEmail}, true)
+    `
+
+    const res = await $fetch<{ message: any; queued: boolean }>(
+      '/api/admin/inbox/conversations',
+      { method: 'POST', body: { subscriber_id: sub!.id, subject: 'Checking in', body_html: '<p>Still there?</p>' }, ...agentAuth }
+    )
+    expect(res.queued).toBe(true)
+    expect(res.message.to_email).toBe(deliverableEmail)
+  })
+
   // Composing to a known contact's email reuses the existing subscriber (no duplicate).
   it('reuses an existing subscriber when composing to a known email', async () => {
     const email = `inbox-compose-dedupe-${uuidv4().slice(0, 8)}@example.com`
@@ -591,5 +817,140 @@ describe('Shared inbox', async () => {
       status = err?.statusCode || err?.response?.status || 0
     }
     expect(status).toBe(403)
+  })
+
+  // 12. Outbound processor — recipient resolution, suppression, sanitization, claim.
+  // Driven through the VITEST-only job runner so the real processor logic is exercised.
+
+  it('never sends a staff reply to a held (wrong-From) sender — received-only recipient', async () => {
+    const contactEmail = `inbox-sec-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(contactEmail)
+    const convo = await makeConversation(subId, { status: 'open' })
+    // Genuine contact message (status='received')
+    await postInbound({
+      recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
+      from: `Real <${contactEmail}>`, sender: contactEmail,
+      'body-html': '<p>hi team</p>',
+      'message-headers': headerJson([['Message-Id', `<recv-${uuidv4()}@example.com>`]]),
+    })
+    // Attacker who learned the token but a wrong From → held, becomes the latest inbound
+    const attackerEmail = `attacker-${uuidv4().slice(0, 6)}@evil.com`
+    const held = await postInbound({
+      recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
+      from: `Attacker <${attackerEmail}>`, sender: attackerEmail,
+      'body-html': '<p>redirect to me</p>',
+      'message-headers': headerJson([['Message-Id', `<held-${uuidv4()}@evil.com>`]]),
+    })
+    expect(held.status).toBe('held')
+    // Staff replies in-app (this path never sets message.to_email)
+    await composeReply(convo.id, '<p>Our private reply NEEDLE-SEC</p>', 'reply')
+    await clearRecordedEmails()
+    const { emails } = await drainOutbound(convo.id)
+    const reply = emails.find(e => typeof e.html === 'string' && e.html.includes('NEEDLE-SEC'))
+    expect(reply).toBeTruthy()
+    expect(reply.to).toBe(contactEmail) // the real contact, never the held attacker
+    expect(emails.some(e => e.to === attackerEmail)).toBe(false)
+  })
+
+  it('replies to the address the contact wrote from, not the verified primary', async () => {
+    const wroteFrom = `inbox-wrote-${uuidv4().slice(0, 8)}@example.com` // unverified, older → not primary
+    const subId = await makeSubscriber(wroteFrom)
+    const primary = `inbox-prim-${uuidv4().slice(0, 8)}@example.com`
+    await sql`INSERT INTO contact_methods (subscriber_id, type, value, verified) VALUES (${subId}, 'email', ${primary}, true)`
+    const convo = await makeConversation(subId, { status: 'open' })
+    await postInbound({
+      recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
+      from: `Contact <${wroteFrom}>`, sender: wroteFrom,
+      'body-html': '<p>writing from here</p>',
+      'message-headers': headerJson([['Message-Id', `<wrote-${uuidv4()}@example.com>`]]),
+    })
+    await composeReply(convo.id, '<p>Reply NEEDLE-WROTE</p>', 'reply')
+    await clearRecordedEmails()
+    const { emails } = await drainOutbound(convo.id)
+    const reply = emails.find(e => typeof e.html === 'string' && e.html.includes('NEEDLE-WROTE'))
+    expect(reply).toBeTruthy()
+    expect(reply.to).toBe(wroteFrom) // the address that wrote in, not getPrimaryEmail's verified pick
+  })
+
+  it('skips sending a reply to a suppressed recipient', async () => {
+    const email = `inbox-supp-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(email)
+    await sql`UPDATE contact_methods SET suppressed_at = NOW() WHERE LOWER(value) = LOWER(${email})`
+    const convo = await makeConversation(subId, { status: 'open' })
+    await postInbound({
+      recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
+      from: `Contact <${email}>`, sender: email,
+      'body-html': '<p>hi</p>',
+      'message-headers': headerJson([['Message-Id', `<supp-${uuidv4()}@example.com>`]]),
+    })
+    await composeReply(convo.id, '<p>Should not send NEEDLE-SUPP</p>', 'reply')
+    await clearRecordedEmails()
+    const { emails } = await drainOutbound(convo.id)
+    expect(emails.some(e => typeof e.html === 'string' && e.html.includes('NEEDLE-SUPP'))).toBe(false)
+    const [msg] = await sql`SELECT status FROM conversation_messages WHERE conversation_id = ${convo.id} AND direction = 'outbound'`
+    expect(msg!.status).toBe('failed')
+  })
+
+  it('sanitizes the staff body before sending', async () => {
+    const email = `inbox-san-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(email)
+    const convo = await makeConversation(subId, { status: 'open' })
+    await postInbound({
+      recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
+      from: `Contact <${email}>`, sender: email,
+      'body-html': '<p>hi</p>',
+      'message-headers': headerJson([['Message-Id', `<san-${uuidv4()}@example.com>`]]),
+    })
+    await composeReply(convo.id, '<p>Hello NEEDLE-SAN</p><script>alert(1)</script>', 'reply')
+    await clearRecordedEmails()
+    const { emails } = await drainOutbound(convo.id)
+    const reply = emails.find(e => typeof e.html === 'string' && e.html.includes('NEEDLE-SAN'))
+    expect(reply).toBeTruthy()
+    expect(reply.html).not.toContain('<script')
+  })
+
+  it('does not re-send when a completed outbound job is requeued (claim guard)', async () => {
+    const email = `inbox-claim-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(email)
+    const convo = await makeConversation(subId, { status: 'open' })
+    await postInbound({
+      recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
+      from: `Contact <${email}>`, sender: email,
+      'body-html': '<p>hi</p>',
+      'message-headers': headerJson([['Message-Id', `<claim-${uuidv4()}@example.com>`]]),
+    })
+    await composeReply(convo.id, '<p>Once only NEEDLE-CLAIM</p>', 'reply')
+    await clearRecordedEmails()
+    const first = await drainOutbound(convo.id)
+    expect(first.emails.filter(e => typeof e.html === 'string' && e.html.includes('NEEDLE-CLAIM'))).toHaveLength(1)
+    // Simulate a stale-job-reaper requeue: job back to 'pending' while the message is 'sent'.
+    await sql`UPDATE jobs SET status = 'pending' WHERE type = 'outbound_email' AND reference_id = ${convo.id}`
+    await clearRecordedEmails()
+    const second = await drainOutbound(convo.id)
+    expect(second.emails.filter(e => typeof e.html === 'string' && e.html.includes('NEEDLE-CLAIM'))).toHaveLength(0)
+  })
+
+  it('fails an outbound reply only on the final attempt, not one early', async () => {
+    // The 'failsend' tag makes the test transport simulate a provider failure every attempt.
+    const email = `inbox-retry-${uuidv4().slice(0, 8)}+failsend@example.com`
+    const subId = await makeSubscriber(email)
+    const convo = await makeConversation(subId, { status: 'open' })
+    await postInbound({
+      recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
+      from: `Contact <${email}>`, sender: email,
+      'body-html': '<p>hi</p>',
+      'message-headers': headerJson([['Message-Id', `<retry-${uuidv4()}@example.com>`]]),
+    })
+    await composeReply(convo.id, '<p>keeps failing</p>', 'reply')
+    const status = async () => (await sql`
+      SELECT status FROM conversation_messages WHERE conversation_id = ${convo.id} AND direction = 'outbound'
+    `)[0]!.status
+    // max_attempts defaults to 3; the send fails on every attempt.
+    await drainOutbound(convo.id) // attempt 1
+    expect(await status()).toBe('queued')
+    await drainOutbound(convo.id) // attempt 2 — the off-by-one previously failed it here
+    expect(await status()).toBe('queued')
+    await drainOutbound(convo.id) // attempt 3 — retries exhausted
+    expect(await status()).toBe('failed')
   })
 })

@@ -83,11 +83,7 @@ async function processJobQueue(): Promise<boolean> {
       }
     } catch (error: any) {
       console.error(`Translation job ${job.id} failed:`, error.message || error)
-      const canRetry = job.attempts < job.max_attempts
-      await jobQueueService.markFailed(job.id, error.message || 'Unknown error')
-      if (canRetry) {
-        await jobQueueService.retryJob(job.id)
-      }
+      await jobQueueService.failOrRetry(job.id, error.message || 'Unknown error')
     }
     return true
   }
@@ -117,12 +113,7 @@ async function processJobQueue(): Promise<boolean> {
         marketingEmailIds.add(job.reference_id)
       }
     } catch (error: any) {
-      const canRetry = job.attempts < job.max_attempts
-      await jobQueueService.markFailed(job.id, error.message || 'Unknown error')
-
-      if (canRetry) {
-        await jobQueueService.retryJob(job.id)
-      }
+      await jobQueueService.failOrRetry(job.id, error.message || 'Unknown error')
 
       if (job.type === 'marketing_email' && job.reference_id) {
         marketingEmailIds.add(job.reference_id)
@@ -137,10 +128,15 @@ async function processJobQueue(): Promise<boolean> {
     // (or already finalized) into sent/failed.
     const email = await marketingEmailService.getById(emailId)
     if (!email || (email.status !== 'queued' && email.status !== 'sending')) continue
-    const stats = await jobQueueService.getJobStats('marketing_email', emailId)
-    const finalStatus = stats.failed > 0 && stats.completed === 0 ? 'failed' : 'sent'
+    // Overwrite the live +1 counters with drift-free totals derived from job terminal
+    // states (a recipient that failed then succeeded on retry would otherwise be counted
+    // in both sent and failed). `sent` excludes skipped recipients (suppressed /
+    // unsubscribed / already-sent), so a campaign where everyone was skipped reports 'failed'.
+    const counts = await jobQueueService.getMarketingSendCounts(emailId)
+    await marketingEmailService.updateStats(emailId, email.recipient_count, counts.sent, counts.failed)
+    const finalStatus = counts.sent > 0 ? 'sent' : 'failed'
     await marketingEmailService.updateStatus(emailId, finalStatus)
-    console.log(`  Marketing email ${emailId} complete: ${stats.completed} sent, ${stats.failed} failed`)
+    console.log(`  Marketing email ${emailId} complete: ${counts.sent} sent, ${counts.failed} failed, ${counts.skipped} skipped`)
   }
 
   console.log('Job processing complete')

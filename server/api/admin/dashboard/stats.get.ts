@@ -64,8 +64,7 @@ export default defineEventHandler(async (event) => {
     sql`
       SELECT COUNT(DISTINCT cs.subscriber_id) as count
       FROM campaign_subscriptions cs
-      JOIN people_groups pg ON pg.id = cs.people_group_id
-      WHERE cs.status = 'active' AND pg.status != 'archived'
+      WHERE cs.status = 'active'
     `.then(rows => rows[0]),
   ])
 

@@ -25,7 +25,16 @@ export default defineEventHandler(async (event) => {
     const withUrls = await Promise.all(attachments.map(async (att) => {
       let url: string | null = null
       if (!process.env.VITEST) {
-        try { url = await generateSignedUrl(att.s3_key) } catch { url = null }
+        // Force a download with a neutral type: the stored ContentType is the sender's
+        // untrusted value, so without this S3 would serve an evil.svg/evil.html inline
+        // and it would execute in the staff browser. Sanitize the filename for the header.
+        const safeName = (att.filename || 'attachment').replace(/[\r\n"\\]/g, '_').slice(0, 200)
+        try {
+          url = await generateSignedUrl(att.s3_key, undefined, {
+            responseContentDisposition: `attachment; filename="${safeName}"`,
+            responseContentType: 'application/octet-stream',
+          })
+        } catch { url = null }
       }
       return { ...att, url }
     }))

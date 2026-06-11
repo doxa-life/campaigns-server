@@ -1,3 +1,4 @@
+import type { Sql, TransactionSql } from 'postgres'
 import { getSql } from './db'
 
 export type JobType = 'marketing_email' | 'translation_batch' | 'import' | 'outbound_email' | 'inbox_email'
@@ -147,25 +148,22 @@ class JobQueueService {
     `
   }
 
-  async markFailed(id: number, errorMessage: string): Promise<void> {
-    await this.sql`
+  /**
+   * End a failed attempt in a single statement: re-queue to 'pending' if attempts remain,
+   * else mark 'failed'. Atomic so a crash can't strand the job mid-way between the two —
+   * which the reaper (it only requeues 'processing') would never recover, silently dropping
+   * the recipient. Returns whether the job was re-queued for another attempt.
+   */
+  async failOrRetry(id: number, errorMessage: string): Promise<{ requeued: boolean }> {
+    const [row] = await this.sql<{ status: JobStatus }[]>`
       UPDATE jobs
-      SET status = 'failed',
-          error_message = ${errorMessage},
+      SET status = CASE WHEN attempts < max_attempts THEN 'pending' ELSE 'failed' END,
+          error_message = CASE WHEN attempts < max_attempts THEN NULL ELSE ${errorMessage} END,
           updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE id = ${id}
+      RETURNING status
     `
-  }
-
-  async retryJob(id: number): Promise<boolean> {
-    const result = await this.sql`
-      UPDATE jobs
-      SET status = 'pending',
-          error_message = NULL,
-          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ${id} AND attempts < max_attempts
-    `
-    return result.count > 0
+    return { requeued: row?.status === 'pending' }
   }
 
   /**
@@ -232,6 +230,28 @@ class JobQueueService {
     }
   }
 
+  /**
+   * Drift-free send tally for a marketing email, derived from job terminal states so a
+   * recipient that failed then succeeded on retry isn't double-counted. A completed job
+   * is a real send unless its result carries a `skipped` reason (suppressed /
+   * unsubscribed / already-sent); `failed` counts only permanently-failed recipients.
+   */
+  async getMarketingSendCounts(marketingEmailId: number): Promise<{ sent: number; skipped: number; failed: number }> {
+    const [row] = await this.sql`
+      SELECT
+        COUNT(*) FILTER (WHERE status = 'completed' AND (result->>'skipped') IS NULL) AS sent,
+        COUNT(*) FILTER (WHERE status = 'completed' AND (result->>'skipped') IS NOT NULL) AS skipped,
+        COUNT(*) FILTER (WHERE status = 'failed') AS failed
+      FROM jobs
+      WHERE reference_type = 'marketing_email' AND reference_id = ${marketingEmailId}
+    `
+    return {
+      sent: Number(row?.sent ?? 0),
+      skipped: Number(row?.skipped ?? 0),
+      failed: Number(row?.failed ?? 0)
+    }
+  }
+
   async getJobsByReference(referenceType: string, referenceId: number): Promise<Job[]> {
     return await this.sql`
       SELECT * FROM jobs
@@ -271,10 +291,12 @@ class JobQueueService {
 
   async createMarketingEmailJobs(
     marketingEmailId: number,
-    recipients: Array<{ id: number; value: string }>
+    recipients: Array<{ id: number; value: string }>,
+    tx?: Sql | TransactionSql<{}>
   ): Promise<number> {
     if (recipients.length === 0) return 0
 
+    const db = tx ?? this.sql
     let count = 0
     for (const recipient of recipients) {
       const payload: MarketingEmailPayload = {
@@ -282,11 +304,22 @@ class JobQueueService {
         contact_method_id: recipient.id,
         recipient_email: recipient.value
       }
-      await this.createJob('marketing_email', payload, {
-        referenceType: 'marketing_email',
-        referenceId: marketingEmailId
-      })
-      count++
+      // ON CONFLICT DO NOTHING backstops the atomic draft claim in send.post.ts: even
+      // if the same recipient appears twice (e.g. duplicate addresses in a hand-picked
+      // list) or a second send slips through, the partial unique index
+      // uq_jobs_marketing_recipient guarantees one job per recipient per campaign.
+      const inserted = await db`
+        INSERT INTO jobs (type, reference_type, reference_id, payload, priority, scheduled_at, max_attempts)
+        VALUES (
+          'marketing_email', 'marketing_email', ${marketingEmailId},
+          ${db.json(payload as Record<string, any>)}, 0,
+          CURRENT_TIMESTAMP AT TIME ZONE 'UTC', 3
+        )
+        ON CONFLICT (reference_id, (lower(payload->>'recipient_email'))) WHERE type = 'marketing_email'
+        DO NOTHING
+        RETURNING id
+      `
+      if (inserted.length > 0) count++
     }
     return count
   }

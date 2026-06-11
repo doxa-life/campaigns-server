@@ -6,17 +6,17 @@
       "namePopulation": "Les {name} comptent environ {population} personnes.",
       "peopleDescWithAltNames": "Ils sont {peopleDesc} et peuvent également être connus sous le nom de {altNames}.",
       "peopleDesc": "Ils sont {peopleDesc}.",
-      "indigenousClusterBloc": "Ils sont un peuple Autochtone, dans le groupe de peuples {cluster} du bloc d'affinité {bloc}.",
-      "diasporaClusterBloc": "Ils sont un peuple de la Diaspora, dans le groupe de peuples {cluster} du bloc d'affinité {bloc}.",
-      "indigenousBloc": "Ils sont un peuple Autochtone, dans le bloc d'affinité {bloc}.",
-      "diasporaBloc": "Ils sont un peuple de la Diaspora, dans le bloc d'affinité {bloc}.",
-      "indigenousOnly": "Ils sont un peuple Autochtone.",
-      "diasporaOnly": "Ils sont un peuple de la Diaspora.",
+      "indigenousClusterBloc": "Ils sont un peuple autochtone, dans le groupe de peuples {cluster} du bloc d'affinité {bloc}.",
+      "diasporaClusterBloc": "Ils sont un peuple de la diaspora, dans le groupe de peuples {cluster} du bloc d'affinité {bloc}.",
+      "indigenousBloc": "Ils sont un peuple autochtone, dans le bloc d'affinité {bloc}.",
+      "diasporaBloc": "Ils sont un peuple de la diaspora, dans le bloc d'affinité {bloc}.",
+      "indigenousOnly": "Ils sont un peuple autochtone.",
+      "diasporaOnly": "Ils sont un peuple de la diaspora.",
       "blocOnly": "Ils font partie du bloc d'affinité {bloc}.",
       "religion": "Leur religion principale est {religion}.",
       "language": "Ils parlent principalement {language}.",
-      "andUnreached": "et Non-atteints",
-      "butUnreached": "mais Non-atteints"
+      "andUnreached": "et non atteints",
+      "butUnreached": "mais non atteints"
     },
     "categories": {
       "engagement": "Statut",
@@ -29,23 +29,23 @@
       "religion": "Religion",
       "rop": "Classification des peuples (ROP)",
       "resources": "Ressources disponibles",
-      "workers": "Engagement Criteria",
+      "workers": "Critères d'engagement",
       "wagf": "WAGF/Doxa",
       "media": "Médias"
     },
     "fields": {
-      "name": "Nom du groupe ethnique",
+      "name": "Nom du peuple",
       "imb_display_name": "Nom d'affichage",
       "imb_alternate_name": "Nom alternatif",
       "imb_people_name": "Nom du peuple (ROP3)",
-      "descriptions": "Description du groupe ethnique",
+      "descriptions": "Description du peuple",
       "imb_people_description": "Description (API)",
       "imb_location_description": "Description de la localisation",
       "joshua_project_id": "Joshua Project ID",
       "doxa_masteruid": "UID maître Doxa",
       "doxa_wagf_uid": "UID WAGF",
       "imb_uid": "UID IMB",
-      "imb_pgid": "ID du groupe ethnique (PGID)",
+      "imb_pgid": "ID du peuple (PGID)",
       "imb_peid": "PEID IMB",
       "country_code": "Pays",
       "region": "Région",
@@ -58,7 +58,7 @@
       "evangelical_pct": "% évangélique",
       "imb_evangelical_level": "Niveau évangélique",
       "engagement_status": "Statut d'engagement",
-      "believers_count": "Believers Count",
+      "believers_count": "Nombre de croyants",
       "imb_congregation_existing": "Assemblée existante",
       "imb_church_planting": "Statut d'implantation d'églises",
       "imb_gsec": "GSEC",
@@ -92,9 +92,9 @@
       "imb_picture_credit_html": "Crédit photo",
       "imb_has_photo": "A une photo",
       "imb_people_search_text": "Texte de recherche du peuple",
-      "workers_long_term": "Long-Term Presence",
-      "work_in_local_language": "Operating in Local Language",
-      "disciple_and_church_multiplication": "Disciple & Church Multiplication"
+      "workers_long_term": "Présence à long terme",
+      "work_in_local_language": "Travail dans la langue locale",
+      "disciple_and_church_multiplication": "Multiplication des disciples et des églises"
     },
     "options": {
       "regions": {
@@ -160,7 +160,7 @@
       },
       "engagementStatus": {
         "engaged": "Engagé",
-        "unengaged": "Non-engagé"
+        "unengaged": "Non engagé"
       },
       "yesNo": {
         "no": "Non",
@@ -182,18 +182,18 @@
         "6": "10 % ou plus d'évangéliques"
       },
       "strategicPriorityIndex": {
-        "0": "Non-engagé et non-atteint",
-        "1": "Engagé mais non-atteint",
-        "2": "Plus considéré comme non-atteint"
+        "0": "Non engagé et non atteint",
+        "1": "Engagé mais non atteint",
+        "2": "Plus considéré comme non atteint"
       },
       "lostnessPriorityIndex": {
-        "0": "Groupe ethnique frontière non-atteint",
-        "1": "Groupe ethnique pionnier non-atteint",
-        "2": "Groupe ethnique en expansion non-atteint",
-        "3": "Groupe ethnique minimalement atteint",
-        "4": "Groupe ethnique marginalement atteint",
-        "5": "Groupe ethnique modérément atteint",
-        "6": "Groupe ethnique significativement atteint"
+        "0": "Peuple frontière non atteint",
+        "1": "Peuple pionnier non atteint",
+        "2": "Peuple en expansion non atteint",
+        "3": "Peuple minimalement atteint",
+        "4": "Peuple marginalement atteint",
+        "5": "Peuple modérément atteint",
+        "6": "Peuple significativement atteint"
       },
       "affinityCode": {
         "AG800": "Peuples américains",

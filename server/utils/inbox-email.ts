@@ -31,6 +31,9 @@ export interface InboxEmailOptions {
   inReplyTo?: string
   references?: string
   attachments?: InboxEmailAttachment[]
+  // RFC 3834: mark this as an automated reply (Auto-Submitted: auto-replied + Precedence: bulk)
+  // so other mail servers don't bounce or auto-reply back. Set on the auto-ack / held-sender notices.
+  autoReply?: boolean
 }
 
 export interface InboxEmailResult {
@@ -66,6 +69,10 @@ class InboxEmailService {
   async send(options: InboxEmailOptions): Promise<InboxEmailResult> {
     // Short-circuit in tests: record the payload, return a synthetic message id.
     if (process.env.VITEST) {
+      // Test hook: a recipient tagged 'failsend' simulates a provider failure, so tests can
+      // exercise the retry / fail-on-final-attempt paths (the real provider isn't called).
+      const to = Array.isArray(options.to) ? options.to.join(',') : options.to
+      if (to.includes('failsend')) return { success: false, error: 'Simulated send failure' }
       const providerMessageId = `<test-${Date.now()}-${Math.random().toString(36).slice(2)}@inbox.test>`
       recordedEmails.push({ ...options, providerMessageId })
       return { success: true, providerMessageId }
@@ -106,6 +113,7 @@ class InboxEmailService {
       replyTo: options.replyTo,
       inReplyTo: options.inReplyTo,
       references: options.references,
+      headers: options.autoReply ? { 'Auto-Submitted': 'auto-replied', 'Precedence': 'bulk' } : undefined,
       attachments: (options.attachments || []).map(a => ({
         filename: a.filename,
         content: a.data,
@@ -133,6 +141,10 @@ class InboxEmailService {
     if (options.replyTo) form.append('h:Reply-To', options.replyTo)
     if (options.inReplyTo) form.append('h:In-Reply-To', options.inReplyTo)
     if (options.references) form.append('h:References', options.references)
+    if (options.autoReply) {
+      form.append('h:Auto-Submitted', 'auto-replied')
+      form.append('h:Precedence', 'bulk')
+    }
 
     for (const att of options.attachments || []) {
       // Buffer is a valid BlobPart at runtime; cast to satisfy the DOM lib's ArrayBuffer typing.

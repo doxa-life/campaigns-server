@@ -1632,6 +1632,7 @@ function formatEventType(eventType: string): string {
     'PRAYER': 'Prayed',
     'EMAIL': 'Email Sent',
     'FOLLOWUP_RESPONSE': 'Check-in Response',
+    'MARKETING_EMAIL_SENT': 'Marketing email',
     'Linked': 'Linked',
     'Unlinked': 'Unlinked'
   }
@@ -1645,6 +1646,7 @@ function getEventColor(eventType: string): 'success' | 'warning' | 'error' | 'ne
     'DELETE': 'error',
     'PRAYER': 'primary',
     'EMAIL': 'neutral',
+    'MARKETING_EMAIL_SENT': 'neutral',
     'FOLLOWUP_RESPONSE': 'primary',
     'Survey Response': 'primary',
     'Linked': 'success',
@@ -1661,6 +1663,7 @@ function getEventIcon(eventType: string): string | undefined {
     'UPDATE': 'i-lucide-pencil',
     'PRAYER': 'i-lucide-hand-helping',
     'EMAIL': 'i-lucide-mail',
+    'MARKETING_EMAIL_SENT': 'i-lucide-send',
     'FOLLOWUP_RESPONSE': 'i-lucide-message-circle',
     'Survey Response': 'i-lucide-clipboard-list',
     'Linked': 'i-lucide-link',

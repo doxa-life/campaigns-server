@@ -1,8 +1,20 @@
 import { uploadPublicImage } from '#server/utils/app/public-image-storage'
+import { roleService } from '#server/database/roles'
 
 export default defineEventHandler(async (event) => {
-  // Require authentication
-  requireAuth(event)
+  // Authenticated staff only, and only those who can author in one of the rich-text editors
+  // that use this endpoint (library content or marketing emails) — otherwise a role-less user
+  // could push images into the public bucket. (requireAuth is synchronous; awaited for convention.)
+  const user = await requireAuth(event)
+  const canAuthor = (await Promise.all([
+    roleService.userHasPermission(user.userId, 'content.create'),
+    roleService.userHasPermission(user.userId, 'content.edit'),
+    roleService.userHasPermission(user.userId, 'marketing.send'),
+    roleService.userHasPermission(user.userId, 'marketing.view'),
+  ])).some(Boolean)
+  if (!canAuthor) {
+    throw createError({ statusCode: 403, statusMessage: 'Insufficient permissions' })
+  }
 
   try {
     // Get the form data

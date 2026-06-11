@@ -76,14 +76,19 @@ class ContactMethodService {
   async getPrimaryEmail(subscriberId: number): Promise<ContactMethod | null> {
     const [verified] = await this.sql`
       SELECT * FROM contact_methods
-      WHERE subscriber_id = ${subscriberId} AND type = 'email' AND verified = true
+      WHERE subscriber_id = ${subscriberId}
+        AND type = 'email'
+        AND verified = true
+        AND suppressed_at IS NULL
       ORDER BY created_at ASC LIMIT 1
     `
     if (verified) return verified as ContactMethod
 
     const [fallback] = await this.sql`
       SELECT * FROM contact_methods
-      WHERE subscriber_id = ${subscriberId} AND type = 'email'
+      WHERE subscriber_id = ${subscriberId}
+        AND type = 'email'
+        AND suppressed_at IS NULL
       ORDER BY created_at ASC LIMIT 1
     `
     return (fallback as ContactMethod) ?? null
@@ -314,7 +319,7 @@ class ContactMethodService {
   async getContactsWithDoxaConsent(): Promise<ContactMethod[]> {
     return await this.sql`
       SELECT * FROM contact_methods
-      WHERE consent_doxa_general = true AND verified = true
+      WHERE consent_doxa_general = true AND verified = true AND type = 'email'
       AND suppressed_at IS NULL
       ORDER BY created_at DESC
     `
@@ -324,7 +329,8 @@ class ContactMethodService {
   async getContactsWithDoxaConsentAndActiveSubscription(): Promise<ContactMethod[]> {
     return await this.sql`
       SELECT cm.* FROM contact_methods cm
-      WHERE cm.consent_doxa_general = true AND cm.verified = true
+      WHERE cm.type = 'email'
+      AND cm.consent_doxa_general = true AND cm.verified = true
       AND cm.suppressed_at IS NULL
       AND EXISTS (
         SELECT 1 FROM campaign_subscriptions cs
@@ -433,10 +439,44 @@ class ContactMethodService {
   async getContactsConsentedToPeopleGroup(peopleGroupId: number): Promise<ContactMethod[]> {
     return await this.sql`
       SELECT * FROM contact_methods
-      WHERE ${peopleGroupId} = ANY(consented_people_group_ids) AND verified = true
+      WHERE ${peopleGroupId} = ANY(consented_people_group_ids) AND verified = true AND type = 'email'
       AND suppressed_at IS NULL
       ORDER BY created_at DESC
     `
+  }
+
+  /**
+   * Re-check at send time whether a single contact still consents to this email's
+   * audience. Mirrors the consent predicate of the matching audience-selection query
+   * above, so a recipient who unsubscribed after the campaign was queued (but before
+   * their job drained) is dropped instead of mailed — the CAN-SPAM/GDPR/CASL safety
+   * net, paired with the suppression re-check in the processor. Callers must skip this
+   * for 'pick' (testing override that bypasses consent) and 'admins' (internal
+   * recipients with no contact-method consent row, id 0).
+   */
+  async stillConsentsToAudience(
+    contactMethodId: number,
+    audienceType: string,
+    peopleGroupId?: number | null
+  ): Promise<boolean> {
+    const [row] = await this.sql`
+      SELECT type, consent_doxa_general, consent_product_emails, consented_people_group_ids
+      FROM contact_methods
+      WHERE id = ${contactMethodId}
+    `
+    if (!row) return false
+    if (row.type !== 'email') return false
+    switch (audienceType) {
+      case 'people_group':
+        return peopleGroupId != null && (row.consented_people_group_ids ?? []).includes(peopleGroupId)
+      case 'active_pg':
+        return row.consent_product_emails === true
+      case 'doxa':
+      case 'doxa_active_pg':
+        return row.consent_doxa_general === true
+      default:
+        return true
+    }
   }
 }
 

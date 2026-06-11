@@ -87,6 +87,7 @@ export default defineEventHandler(async (event) => {
         value: typeof duration === 'number' ? duration : null,
         anonymousHash: trackingId || null,
         language: typeof body.language === 'string' ? body.language.slice(0, 32) : null,
+        url: typeof body.url === 'string' ? body.url.slice(0, 2048) : null,
         metadata: {
           people_group_slug: slug,
           content_date: dateParam,

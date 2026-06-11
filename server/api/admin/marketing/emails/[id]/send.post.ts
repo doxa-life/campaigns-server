@@ -2,6 +2,7 @@ import { marketingEmailService } from '#server/database/marketing-emails'
 import { marketingSenderService } from '#server/database/marketing-senders'
 import { jobQueueService } from '#server/database/job-queue'
 import { contactMethodService } from '#server/database/contact-methods'
+import { getSql } from '#server/database/db'
 import { handleApiError } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
@@ -98,19 +99,35 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const sql = getSql()
+  let claimed = false
+  let queuedCount = 0
+
   try {
-    await marketingEmailService.updateStatus(id, 'queued', user.userId)
-    await marketingEmailService.updateStats(id, recipients.length, 0, 0)
-
-    const queuedCount = await jobQueueService.createMarketingEmailJobs(id, recipients)
-
-    return {
-      success: true,
-      message: `Email queued for ${queuedCount} recipients`,
-      recipient_count: queuedCount
-    }
+    // Claim + enqueue atomically. The conditional draft->queued update and the job
+    // inserts commit together: a crash mid-enqueue rolls the whole thing back (no
+    // orphan jobs, no email wedged in 'queued'), and a concurrent duplicate send
+    // loses the claim — its UPDATE matches no row — so the audience is never enqueued
+    // twice. The unique index on jobs is a final backstop inside createMarketingEmailJobs.
+    await sql.begin(async (tx) => {
+      claimed = await marketingEmailService.claimDraftForSend(id, recipients.length, user.userId, tx)
+      if (!claimed) return
+      queuedCount = await jobQueueService.createMarketingEmailJobs(id, recipients, tx)
+    })
   } catch (error) {
-    await marketingEmailService.updateStatus(id, 'draft')
     handleApiError(error, 'Failed to queue email')
+  }
+
+  if (!claimed) {
+    throw createError({
+      statusCode: 409,
+      statusMessage: 'This email is already being sent'
+    })
+  }
+
+  return {
+    success: true,
+    message: `Email queued for ${queuedCount} recipients`,
+    recipient_count: queuedCount
   }
 })

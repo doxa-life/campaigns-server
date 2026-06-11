@@ -5,7 +5,44 @@ export default defineEventHandler(async (event) => {
 
   const sql = getSql()
 
-  const [languageRows, timeLocalRows, timeUtcRows, durationRows] = await Promise.all([
+  const [totalRows, unsubscribedRows, inactiveRows, languageRows, timeLocalRows, timeUtcRows, durationRows] = await Promise.all([
+    sql`
+      SELECT COUNT(DISTINCT cs.subscriber_id) as count
+      FROM campaign_subscriptions cs
+      JOIN contact_methods cm
+        ON cm.subscriber_id = cs.subscriber_id
+       AND cm.type = 'email'
+       AND cm.verified = true
+    `,
+    sql`
+      SELECT COUNT(*) as count FROM (
+        SELECT cs.subscriber_id
+        FROM campaign_subscriptions cs
+        WHERE EXISTS (
+          SELECT 1 FROM contact_methods cm
+          WHERE cm.subscriber_id = cs.subscriber_id
+            AND cm.type = 'email'
+            AND cm.verified = true
+        )
+        GROUP BY cs.subscriber_id
+        HAVING COUNT(*) FILTER (WHERE cs.status = 'unsubscribed') = COUNT(*)
+      ) fully_unsubscribed
+    `,
+    sql`
+      SELECT COUNT(*) as count FROM (
+        SELECT cs.subscriber_id
+        FROM campaign_subscriptions cs
+        WHERE EXISTS (
+          SELECT 1 FROM contact_methods cm
+          WHERE cm.subscriber_id = cs.subscriber_id
+            AND cm.type = 'email'
+            AND cm.verified = true
+        )
+        GROUP BY cs.subscriber_id
+        HAVING COUNT(*) FILTER (WHERE cs.status = 'active') = 0
+           AND COUNT(*) FILTER (WHERE cs.status = 'inactive') > 0
+      ) lapsed
+    `,
     sql`
       SELECT COALESCE(s.preferred_language, 'en') as language, COUNT(DISTINCT cs.subscriber_id) as count
       FROM campaign_subscriptions cs
@@ -64,6 +101,9 @@ export default defineEventHandler(async (event) => {
   }
 
   return {
+    totalSubscribers: Number(totalRows[0]?.count ?? 0),
+    totalInactive: Number(inactiveRows[0]?.count ?? 0),
+    totalUnsubscribes: Number(unsubscribedRows[0]?.count ?? 0),
     byLanguage: languageRows.map((row: any) => ({
       language: row.language as string,
       count: Number(row.count),
