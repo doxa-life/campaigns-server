@@ -86,7 +86,10 @@ watch(() => props.open, async (open) => {
     language.value = res.language || 'en'
     removed.value = res.removed || []
   } catch (e: any) {
-    const msg = e?.statusCode === 503 ? t('inbox.ai.notConfigured') : t('inbox.toasts.error')
+    // 503 = AI not configured; 502 = Anthropic temporarily unreachable (retryable).
+    const msg = e?.statusCode === 503 ? t('inbox.ai.notConfigured')
+      : e?.statusCode === 502 ? t('inbox.ai.unavailable')
+        : t('inbox.toasts.error')
     toast.add({ title: msg, color: 'error' })
     isOpen.value = false
   } finally {

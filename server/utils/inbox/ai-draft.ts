@@ -1,5 +1,5 @@
 import type Anthropic from '@anthropic-ai/sdk'
-import { getAnthropicClient, temperatureFor } from '#server/utils/anthropic'
+import { getAnthropicClient, temperatureFor, toAnthropicHttpError } from '#server/utils/anthropic'
 import { conversationService } from '#server/database/conversations'
 import { messageService, type ConversationMessage } from '#server/database/conversation-messages'
 import { getStaticPack, getKnowledgeBlock, formatContactRecord } from './ai-draft-grounding'
@@ -144,15 +144,20 @@ export async function generateInboxDraft(conversationId: number): Promise<InboxD
   // so the cap needs generous headroom — a truncated forced-tool response yields
   // partial JSON, not an error.
   const model = config.inboxAiModel || 'claude-sonnet-4-6'
-  const response = await client.messages.create({
-    model,
-    max_tokens: 8192,
-    ...temperatureFor(model, 0.4),
-    system,
-    messages: [{ role: 'user', content: userContent }],
-    tools: [DRAFT_TOOL],
-    tool_choice: { type: 'tool', name: 'submit_draft' },
-  })
+  let response: Anthropic.Message
+  try {
+    response = await client.messages.create({
+      model,
+      max_tokens: 8192,
+      ...temperatureFor(model, 0.4),
+      system,
+      messages: [{ role: 'user', content: userContent }],
+      tools: [DRAFT_TOOL],
+      tool_choice: { type: 'tool', name: 'submit_draft' },
+    })
+  } catch (error) {
+    throw toAnthropicHttpError(error, 'AI draft call failed')
+  }
 
   if (response.stop_reason === 'max_tokens') {
     throw new Error('AI draft was cut off before completion — try again')

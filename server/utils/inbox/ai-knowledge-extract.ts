@@ -1,4 +1,5 @@
-import { getAnthropicClient, temperatureFor } from '#server/utils/anthropic'
+import type Anthropic from '@anthropic-ai/sdk'
+import { getAnthropicClient, temperatureFor, toAnthropicHttpError } from '#server/utils/anthropic'
 import { conversationService } from '#server/database/conversations'
 import { messageService, type ConversationMessage } from '#server/database/conversation-messages'
 
@@ -73,15 +74,20 @@ export async function extractKnowledgeEntry(conversationId: number): Promise<Kno
     .join('\n\n')
 
   const model = config.inboxAiModel || 'claude-sonnet-4-6'
-  const response = await client.messages.create({
-    model,
-    max_tokens: 2048,
-    ...temperatureFor(model, 0),
-    system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: `SUBJECT: ${conversation.subject || '(none)'}\n\nTHREAD:\n${thread}` }],
-    tools: [KNOWLEDGE_TOOL],
-    tool_choice: { type: 'tool', name: 'submit_knowledge_entry' },
-  })
+  let response: Anthropic.Message
+  try {
+    response = await client.messages.create({
+      model,
+      max_tokens: 2048,
+      ...temperatureFor(model, 0),
+      system: SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: `SUBJECT: ${conversation.subject || '(none)'}\n\nTHREAD:\n${thread}` }],
+      tools: [KNOWLEDGE_TOOL],
+      tool_choice: { type: 'tool', name: 'submit_knowledge_entry' },
+    })
+  } catch (error) {
+    throw toAnthropicHttpError(error, 'AI knowledge-extract call failed')
+  }
 
   if (response.stop_reason === 'max_tokens') {
     throw new Error('AI entry was cut off before completion — try again')
