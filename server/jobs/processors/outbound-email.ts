@@ -10,6 +10,7 @@ import { buildContactReplyAddress, buildFromAddress } from '../../utils/inbox-ad
 import { getInlineImageObject } from '../../utils/app/inbox-inline-images'
 import { renderInboxMessageEmail } from '../../utils/inbox-email-layout'
 import { buildQuotedHtml, buildQuotedText } from '../../utils/inbox-quote'
+import { sanitizeEmailHtml } from '../../utils/inbox-sanitize-html'
 
 /**
  * Sends a queued outbound inbox message. The generic queue only tracks *job* status;
@@ -34,12 +35,6 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
     return { success: false, data: { error: 'Conversation or subscriber missing' } }
   }
 
-  const contact = await contactMethodService.getPrimaryEmail(conversation.subscriber_id)
-  if (!contact?.value) {
-    await messageService.markStatus(message.id, 'failed', { failed_reason: 'No contact email' })
-    return { success: false, data: { error: 'No contact email' } }
-  }
-
   const sender = message.sender_user_id ? await userService.getUserById(message.sender_user_id) : null
   // Honor the From identity chosen at compose time (stored on the message's from_email):
   // the general contact address, or the sender's personal alias. Falls back to the
@@ -62,12 +57,34 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
 
   const lastInbound = await messageService.getLastInbound(conversation.id)
 
+  // Reply to the address the contact actually used — the explicitly composed to_email, else
+  // the address that last wrote in — falling back to the subscriber's primary email (which may
+  // differ from the one that wrote in, and which getPrimaryEmail doesn't filter for suppression).
+  // getLastInbound is received-only, so a held/wrong-From sender who knew the reply token can't
+  // become the reply target.
+  const recipientEmail = message.to_email
+    || lastInbound?.from_email
+    || (await contactMethodService.getPrimaryEmail(conversation.subscriber_id))?.value
+    || null
+  if (!recipientEmail) {
+    await messageService.markStatus(message.id, 'failed', { failed_reason: 'No contact email' })
+    return { success: false, data: { error: 'No contact email' } }
+  }
+  // Never (re)send to a suppressed address — hard bounce / complaint.
+  if (await contactMethodService.isSuppressed(recipientEmail)) {
+    await messageService.markStatus(message.id, 'failed', { failed_reason: 'Recipient suppressed' })
+    return { success: true, data: { skipped: 'suppressed' } }
+  }
+
   // Build a quoted history of the prior thread so the recipient's email has context
   // (the in-app thread shows messages individually, so we quote only on the sent copy).
   const prior = (await messageService.listForConversation(conversation.id)).filter(m => m.id !== message.id)
   const quotedHtml = buildQuotedHtml(prior)
   const quotedText = buildQuotedText(prior)
-  let html = (message.body_html || '') + quotedHtml
+  // Sanitize the staff-composed body (which already includes the raw-appended signature and
+  // any canned-response HTML) before it leaves the system — this is the one outbound sink
+  // that carries staff content out from the brand domain. Quoted history is already sanitized.
+  let html = sanitizeEmailHtml(message.body_html || '') + quotedHtml
   const text = (message.body_text || '') + quotedText
 
   // Re-attach any files linked to this outbound message
@@ -76,17 +93,21 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
     const rows = await conversationAttachmentService.listForMessage(message.id)
     for (const row of rows) {
       try {
-        const url = await generateSignedUrl(row.s3_key)
-        const res = await fetch(url)
-        if (res.ok) {
-          attachments.push({
-            filename: row.filename || 'attachment',
-            contentType: row.content_type || 'application/octet-stream',
-            data: Buffer.from(await res.arrayBuffer()),
-          })
-        }
+        const res = await fetch(await generateSignedUrl(row.s3_key))
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        attachments.push({
+          filename: row.filename || 'attachment',
+          contentType: row.content_type || 'application/octet-stream',
+          data: Buffer.from(await res.arrayBuffer()),
+        })
       } catch (err: any) {
-        console.error('[OutboundEmail] Attachment fetch failed:', err?.message || err)
+        // Never send a reply with a missing attachment — the thread would falsely read "sent".
+        // Fail/retry the job; mark the message failed only once retries are exhausted.
+        const isLastAttempt = job.attempts >= job.max_attempts
+        if (isLastAttempt) {
+          await messageService.markStatus(message.id, 'failed', { failed_reason: 'Attachment fetch failed' })
+        }
+        throw new Error(`Attachment fetch failed for message ${message.id}: ${err?.message || err}`)
       }
     }
 
@@ -109,9 +130,16 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
   // survive wrapping. Locale here only sets the lang attribute.
   html = renderInboxMessageEmail({ bodyHtml: html, subject: message.subject || conversation.subject || undefined })
 
+  // Atomically claim the message (queued → sent) right before sending, so a requeued or
+  // concurrent job can't re-send it; a *confirmed* failure releases it back to 'queued' below.
+  // At-most-once: a crash mid-send leaves it 'sent' and the requeued job skips it (the
+  // status check above), so the reply can be lost — but is never double-sent.
+  const claimed = await messageService.claimForSend(message.id)
+  if (!claimed) return { success: true, data: { skipped: 'not_queued' } }
+
   const result = await inboxEmailService.send({
     from: fromAddress,
-    to: contact.value,
+    to: recipientEmail,
     subject: message.subject || conversation.subject || 'Re:',
     html,
     text: text || undefined,
@@ -126,13 +154,16 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
     return { success: true }
   }
 
-  // Leave the message 'queued' so a job retry re-attempts the send; only mark it
-  // permanently failed once the job has exhausted its retries. job.attempts is the
-  // pre-increment count for this run, and retryJob stops once attempts+1 reaches
-  // max_attempts — so this run is the last when attempts >= max_attempts - 1.
-  const isLastAttempt = job.attempts >= job.max_attempts - 1
+  // The claim above set the message 'sent'. On a returned failure, release it back to
+  // 'queued' so a job retry re-claims and re-sends, or mark it permanently failed on the
+  // final attempt. attempts is the post-claim count (claimJobs increments it), so this run
+  // is the last when attempts >= max_attempts — the same point at which failOrRetry stops
+  // requeuing the job, so the message and the job fail together (not one attempt early).
+  const isLastAttempt = job.attempts >= job.max_attempts
   if (isLastAttempt) {
     await messageService.markStatus(message.id, 'failed', { failed_reason: result.error || 'Send failed' })
+  } else {
+    await messageService.markStatus(message.id, 'queued')
   }
   throw new Error(result.error || 'Send failed')
 }

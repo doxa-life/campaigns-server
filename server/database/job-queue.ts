@@ -148,25 +148,22 @@ class JobQueueService {
     `
   }
 
-  async markFailed(id: number, errorMessage: string): Promise<void> {
-    await this.sql`
+  /**
+   * End a failed attempt in a single statement: re-queue to 'pending' if attempts remain,
+   * else mark 'failed'. Atomic so a crash can't strand the job mid-way between the two —
+   * which the reaper (it only requeues 'processing') would never recover, silently dropping
+   * the recipient. Returns whether the job was re-queued for another attempt.
+   */
+  async failOrRetry(id: number, errorMessage: string): Promise<{ requeued: boolean }> {
+    const [row] = await this.sql<{ status: JobStatus }[]>`
       UPDATE jobs
-      SET status = 'failed',
-          error_message = ${errorMessage},
+      SET status = CASE WHEN attempts < max_attempts THEN 'pending' ELSE 'failed' END,
+          error_message = CASE WHEN attempts < max_attempts THEN NULL ELSE ${errorMessage} END,
           updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE id = ${id}
+      RETURNING status
     `
-  }
-
-  async retryJob(id: number): Promise<boolean> {
-    const result = await this.sql`
-      UPDATE jobs
-      SET status = 'pending',
-          error_message = NULL,
-          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE id = ${id} AND attempts < max_attempts
-    `
-    return result.count > 0
+    return { requeued: row?.status === 'pending' }
   }
 
   /**

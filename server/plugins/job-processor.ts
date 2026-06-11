@@ -83,11 +83,7 @@ async function processJobQueue(): Promise<boolean> {
       }
     } catch (error: any) {
       console.error(`Translation job ${job.id} failed:`, error.message || error)
-      const canRetry = job.attempts < job.max_attempts
-      await jobQueueService.markFailed(job.id, error.message || 'Unknown error')
-      if (canRetry) {
-        await jobQueueService.retryJob(job.id)
-      }
+      await jobQueueService.failOrRetry(job.id, error.message || 'Unknown error')
     }
     return true
   }
@@ -117,12 +113,7 @@ async function processJobQueue(): Promise<boolean> {
         marketingEmailIds.add(job.reference_id)
       }
     } catch (error: any) {
-      const canRetry = job.attempts < job.max_attempts
-      await jobQueueService.markFailed(job.id, error.message || 'Unknown error')
-
-      if (canRetry) {
-        await jobQueueService.retryJob(job.id)
-      }
+      await jobQueueService.failOrRetry(job.id, error.message || 'Unknown error')
 
       if (job.type === 'marketing_email' && job.reference_id) {
         marketingEmailIds.add(job.reference_id)

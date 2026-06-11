@@ -8,7 +8,7 @@ import { marketingEmailSentService } from '../../database/marketing-email-sent'
 import { renderMarketingEmailHtml, renderMarketingEmailFromHtml, tiptapToText } from '../../utils/marketing-email-template'
 import { getMarketingTemplate } from '../../utils/marketing-templates'
 import { buildMarketingFrom, sendMarketingEmail } from '../../utils/marketing-email-sender'
-import { localePath } from '../../utils/translations'
+import { localePath, t } from '../../utils/translations'
 
 const emailCache = new Map<number, { email: any; text: string; from?: string; replyTo?: string }>()
 
@@ -132,6 +132,10 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
     subject = cached.email.subject
     text = cached.text
   }
+
+  // Mirror the HTML footer's opt-out in the plain-text part so text-only clients (and the
+  // spam filters that compare the two parts) also see the unsubscribe link.
+  text = `${text}\n\n${t('email.common.unsubscribe', subscriberLanguage)}: ${unsubscribeUrl}`
 
   // Record this send as a per-recipient claim before handing it to the email provider:
   // one deterministic-id activity_logs row that both prevents a re-send and logs the send

@@ -1,5 +1,6 @@
+import { createHash } from 'crypto'
 import { conversationService, type Conversation } from '../../../database/conversations'
-import { messageService } from '../../../database/conversation-messages'
+import { messageService, type ConversationMessage } from '../../../database/conversation-messages'
 import { conversationAttachmentService } from '../../../database/conversation-attachments'
 import { spamSenderService } from '../../../database/spam-senders'
 import { subscriberService } from '../../../database/subscribers'
@@ -16,6 +17,7 @@ import {
   extractEmailAddress,
   extractDisplayName,
   isAutoResponderOrBounce,
+  isVacationAutoReply,
 } from '../../../utils/mailgun-inbound'
 import { parseInboxRecipient, buildContactReplyAddress, buildFromAddress } from '../../../utils/inbox-addressing'
 import { resolveSignedStaffSender } from '../../../utils/inbox-reply-auth'
@@ -38,6 +40,26 @@ export default defineEventHandler(async (event) => {
   const field = (name: string): string | null => {
     const v = form.get(name)
     return typeof v === 'string' ? v : null
+  }
+
+  // Persist a message's attachments + raw MIME to S3. On failure, RELEASE the message row
+  // (delete it) before retrying, so the redelivery re-inserts and re-runs persistence
+  // instead of dedup-skipping it — otherwise a storage hiccup mid-receive would lose the
+  // attachment + raw MIME for good. Call this BEFORE any outbound send so a release can
+  // never leave an already-sent forward to be re-sent.
+  const persistArtifacts = async (msgId: number): Promise<void> => {
+    if (process.env.VITEST) return
+    try {
+      await persistAttachments(form, msgId)
+      const rawMime = field('body-mime')
+      if (rawMime) {
+        const upload = await uploadToS3(Buffer.from(rawMime, 'utf-8'), `raw-${msgId}.eml`, 'message/rfc822')
+        await sql`UPDATE conversation_messages SET raw_s3_key = ${upload.key} WHERE id = ${msgId}`
+      }
+    } catch (s3err: any) {
+      await messageService.deleteById(msgId)
+      throw new TransientError(s3err?.message || 'Attachment persistence failed')
+    }
   }
 
   // --- 1. Verify Mailgun webhook signature (skipped in tests unless explicitly exercised) ---
@@ -78,12 +100,20 @@ export default defineEventHandler(async (event) => {
   const inboxDomain = (config.inboxDomain || 'doxa.life').toLowerCase()
   const domainMatches = parsedRecipient?.domain === inboxDomain
 
-  // --- 2. Idempotency by Message-Id ---
-  if (messageId) {
-    const existing = await messageService.findByEmailMessageId(messageId)
-    if (existing) {
-      return { status: 'duplicate', message_id: existing.id }
-    }
+  // --- 2. Idempotency ---
+  // Prefer the real Message-Id; synthesize a stable key from the envelope when the mail
+  // has none, so a redelivery of a header-less message dedupes instead of duplicating
+  // (a NULL email_message_id never conflicts, so otherwise every retry would re-insert).
+  const dedupeKey = messageId || synthesizeMessageId({
+    from: fromEmail,
+    recipient,
+    subject,
+    date: headers.get('date') || '',
+    body: bodyText || bodyHtml || '',
+  })
+  const existing = await messageService.findByEmailMessageId(dedupeKey)
+  if (existing) {
+    return { status: 'duplicate', message_id: existing.id }
   }
 
   // Everything below must be durable before we 200. Transient DB/S3 errors → retryable 5xx.
@@ -106,7 +136,7 @@ export default defineEventHandler(async (event) => {
             subject: subject || null,
             status: 'spam',
           })
-      await messageService.create({
+      const spamMsg = await messageService.createIfNew({
         conversation_id: convo.id,
         direction: 'inbound',
         status: 'received',
@@ -117,13 +147,14 @@ export default defineEventHandler(async (event) => {
         body_html: bodyHtml,
         body_stripped_html: bodyStrippedHtml,
         body_text: bodyText,
-        email_message_id: messageId,
+        email_message_id: dedupeKey,
         in_reply_to: inReplyTo,
         email_references: references,
         spam_score: spamScore,
         authenticated: auth.authenticated,
         auth_result: auth.authResult,
       })
+      if (!spamMsg) return { status: 'duplicate', conversation_id: convo.id }
       await conversationService.closeForSubscriberAsSpam(subscriber.id)
       return { status: 'spam', conversation_id: convo.id }
     }
@@ -139,7 +170,19 @@ export default defineEventHandler(async (event) => {
       if (!conversation && (inReplyTo || references)) {
         const ids = [inReplyTo, ...(references ? references.split(/\s+/) : [])].filter(Boolean) as string[]
         const convoId = await messageService.findConversationByMessageIds(ids)
-        if (convoId) conversation = await conversationService.getById(convoId)
+        if (convoId) {
+          const candidate = await conversationService.getById(convoId)
+          // In-Reply-To/References are attacker-controlled, so only thread into an existing
+          // conversation when the From actually belongs to that thread's subscriber. Otherwise
+          // anyone who learns a message-id could graft forged mail onto a victim's thread; such
+          // mail instead falls through to a fresh conversation (and is held if the sender is unknown).
+          if (candidate?.subscriber_id) {
+            const cm = await contactMethodService.getByValue('email', fromEmail)
+            if (cm && cm.subscriber_id === candidate.subscriber_id) {
+              conversation = candidate
+            }
+          }
+        }
       }
       if (!conversation && !parsedRecipient.token) {
         const contactBase = (config.inboxContactAddress || 'contact@doxa.life').split('@')[0]!.toLowerCase()
@@ -198,17 +241,62 @@ export default defineEventHandler(async (event) => {
       outcome = 'held'
     }
 
-    let storedMessage
+    // A vacation / out-of-office auto-reply from the contact shouldn't re-open the thread or
+    // ping staff — flag it so the contact branch closes it out instead. Bounces are excluded.
+    const isVacationReply = outcome === 'contact' && isVacationAutoReply(headers, fromEmail)
+
+    let storedMessage: ConversationMessage
 
     if (outcome === 'staff') {
       // Record the staff reply as outbound and forward it onward to the contact.
-      const contactEmail = conversation.subscriber_id
+      const lastInbound = await messageService.getLastInbound(conversation.id)
+      const primaryContactEmail = conversation.subscriber_id
         ? (await contactMethodService.getPrimaryEmail(conversation.subscriber_id))?.value || null
         : null
-      const lastInbound = await messageService.getLastInbound(conversation.id)
+      const contactEmail = lastInbound?.from_email || primaryContactEmail
+      // Snapshot the thread for the quoted history BEFORE claiming the new row, so the
+      // forward never quotes the staff's own message back to the contact.
+      const priorMessages = await messageService.listForConversation(conversation.id)
 
-      let providerMessageId: string | undefined
-      if (contactEmail) {
+      // Claim the durable row FIRST — its unique email_message_id is the idempotency
+      // point, so a concurrent or retried delivery can't pass this and forward twice.
+      // The forward is sent only after the claim succeeds; a *confirmed* send failure
+      // releases the claim so the redelivery resends. This is at-most-once: a hard crash
+      // between the insert and the send completing leaves the row reading 'sent' and the
+      // redelivery dedupes (line ~114), so the forward can be lost — but never double-sent.
+      // Deliberate tradeoff vs the old send-then-store ordering, which could double-send.
+      const claimed = await messageService.createIfNew({
+        conversation_id: conversation.id,
+        direction: 'outbound',
+        status: 'sent',
+        sender_user_id: staffUser!.id,
+        from_email: staffUser!.email_alias ? `${staffUser!.email_alias}@${inboxDomain}` : (config.inboxContactAddress || 'contact@doxa.life'),
+        from_name: staffUser!.display_name,
+        to_email: contactEmail,
+        subject,
+        body_html: bodyHtml,
+        body_stripped_html: bodyStrippedHtml,
+        body_text: bodyText,
+        // Holds the inbound Message-Id (or its synthesized stand-in) so a retried
+        // webhook dedupes here. The forward's provider id lands in provider_message_id.
+        email_message_id: dedupeKey,
+        in_reply_to: inReplyTo,
+        email_references: references,
+        authenticated: auth.authenticated,
+        auth_result: auth.authResult,
+      })
+      if (!claimed) return { status: 'duplicate', conversation_id: conversation.id }
+      storedMessage = claimed
+      // Persist attachments/raw MIME BEFORE forwarding, so a storage failure releases the
+      // claim and the redelivery redoes it — never re-sending an already-sent forward.
+      await persistArtifacts(storedMessage.id)
+
+      let forwarded = false
+      if (!contactEmail) {
+        await messageService.markStatus(storedMessage.id, 'failed', { failed_reason: 'No contact email' })
+      } else if (await contactMethodService.isSuppressed(contactEmail)) {
+        await messageService.markStatus(storedMessage.id, 'failed', { failed_reason: 'Recipient suppressed' })
+      } else {
         const fromAddress = buildFromAddress({
           firstName: staffUser!.display_name,
           alias: staffUser!.email_alias,
@@ -225,7 +313,6 @@ export default defineEventHandler(async (event) => {
         // (matters when the original came from a contact form, when the
         // contact sent multiple messages, or when their client doesn't thread).
         // Mirrors what the UI reply path does in the outbound-email job.
-        const priorMessages = await messageService.listForConversation(conversation.id)
         const newHtml = sanitizeEmailHtml(bodyStrippedHtml || bodyHtml)
         const composedHtml = renderInboxMessageEmail({
           bodyHtml: newHtml + buildQuotedHtml(priorMessages),
@@ -242,39 +329,27 @@ export default defineEventHandler(async (event) => {
           inReplyTo: lastInbound?.email_message_id || undefined,
           references: lastInbound?.email_message_id || undefined,
         })
-        providerMessageId = sent.providerMessageId
+        if (!sent.success) {
+          // Confirmed failure (the provider returned an error — not a crash): release the
+          // claim so the redelivery re-sends instead of dedup-skipping a never-sent forward.
+          await messageService.deleteById(storedMessage.id)
+          throw new TransientError(sent.error || 'Staff reply forward failed')
+        }
+        if (sent.providerMessageId) {
+          await messageService.markStatus(storedMessage.id, 'sent', { provider_message_id: sent.providerMessageId })
+        }
+        forwarded = true
       }
-
-      storedMessage = await messageService.create({
-        conversation_id: conversation.id,
-        direction: 'outbound',
-        status: 'sent',
-        sender_user_id: staffUser!.id,
-        from_email: staffUser!.email_alias ? `${staffUser!.email_alias}@${inboxDomain}` : (config.inboxContactAddress || 'contact@doxa.life'),
-        from_name: staffUser!.display_name,
-        to_email: contactEmail,
-        subject,
-        body_html: bodyHtml,
-        body_stripped_html: bodyStrippedHtml,
-        body_text: bodyText,
-        // Keep the inbound Message-Id as the row's email_message_id so a retried
-        // webhook (after a transient failure that occurred *after* the forward)
-        // dedupes here instead of re-sending. The provider's id (used for
-        // threading the contact's reply) lives in provider_message_id below.
-        email_message_id: messageId,
-        in_reply_to: inReplyTo,
-        email_references: references,
-        authenticated: auth.authenticated,
-        auth_result: auth.authResult,
-      })
-      if (providerMessageId) {
-        await messageService.markStatus(storedMessage.id, 'sent', { provider_message_id: providerMessageId })
+      if (forwarded) {
+        await conversationService.updateStatus(conversation.id, 'pending')
+        await conversationService.setNeedsReview(conversation.id, false)
+      } else {
+        await conversationService.setNeedsReview(conversation.id, true)
       }
-      await conversationService.updateStatus(conversation.id, 'pending')
       await conversationService.assignIfUnassigned(conversation.id, staffUser!.id)
       await conversationService.touchLastMessage(conversation.id, storedMessage.created_at, 'outbound')
     } else if (outcome === 'contact') {
-      storedMessage = await messageService.create({
+      const claimed = await messageService.createIfNew({
         conversation_id: conversation.id,
         direction: 'inbound',
         status: 'received',
@@ -285,17 +360,23 @@ export default defineEventHandler(async (event) => {
         body_html: bodyHtml,
         body_stripped_html: bodyStrippedHtml,
         body_text: bodyText,
-        email_message_id: messageId,
+        email_message_id: dedupeKey,
         in_reply_to: inReplyTo,
         email_references: references,
         spam_score: spamScore,
         authenticated: auth.authenticated,
         auth_result: auth.authResult,
       })
+      if (!claimed) return { status: 'duplicate', conversation_id: conversation.id }
+      storedMessage = claimed
+      await persistArtifacts(storedMessage.id)
       // Contact replied → the ball is back with the team. Flip pending
       // ("waiting on the contact") or closed ("done") back to open so it
-      // surfaces as needing attention. Leave spam alone.
-      if (conversation.status === 'pending' || conversation.status === 'closed') {
+      // surfaces as needing attention. Leave spam alone. A vacation / out-of-office
+      // auto-reply is the exception: close it instead of re-opening or notifying.
+      if (isVacationReply) {
+        await conversationService.updateStatus(conversation.id, 'closed')
+      } else if (conversation.status === 'pending' || conversation.status === 'closed') {
         await conversationService.updateStatus(conversation.id, 'open')
       }
       await conversationService.touchLastMessage(conversation.id, storedMessage.created_at, 'inbound')
@@ -307,7 +388,7 @@ export default defineEventHandler(async (event) => {
       }
     } else {
       // held
-      storedMessage = await messageService.create({
+      const claimed = await messageService.createIfNew({
         conversation_id: conversation.id,
         direction: 'inbound',
         status: 'held',
@@ -318,7 +399,7 @@ export default defineEventHandler(async (event) => {
         body_html: bodyHtml,
         body_stripped_html: bodyStrippedHtml,
         body_text: bodyText,
-        email_message_id: messageId,
+        email_message_id: dedupeKey,
         in_reply_to: inReplyTo,
         email_references: references,
         spam_score: spamScore,
@@ -326,27 +407,15 @@ export default defineEventHandler(async (event) => {
         auth_result: auth.authResult,
         hold_reason: staffUser ? 'Unauthenticated staff reply' : 'Unknown sender',
       })
+      if (!claimed) return { status: 'duplicate', conversation_id: conversation.id }
+      storedMessage = claimed
+      await persistArtifacts(storedMessage.id)
       await conversationService.setNeedsReview(conversation.id, true)
       await conversationService.touchLastMessage(conversation.id, storedMessage.created_at, 'inbound')
     }
 
-    // --- 7. Attachments + raw MIME → S3 (skipped in tests) ---
-    if (!process.env.VITEST) {
-      try {
-        await persistAttachments(form, storedMessage.id)
-        const rawMime = field('body-mime')
-        if (rawMime) {
-          const upload = await uploadToS3(Buffer.from(rawMime, 'utf-8'), `raw-${storedMessage.id}.eml`, 'message/rfc822')
-          await sql`UPDATE conversation_messages SET raw_s3_key = ${upload.key} WHERE id = ${storedMessage.id}`
-        }
-      } catch (s3err: any) {
-        // Attachment/raw persistence failure is transient — force a retry so nothing is lost.
-        throw new TransientError(s3err?.message || 'Attachment persistence failed')
-      }
-    }
-
     logCreate('conversations', String(conversation.id), undefined, {
-      message: `Inbound email (${outcome})`,
+      message: `Inbound email (${outcome}${isVacationReply ? ', auto-reply → closed' : ''})`,
       direction: outcome === 'staff' ? 'outbound' : 'inbound',
       authenticated: auth.authenticated,
     })
@@ -357,15 +426,23 @@ export default defineEventHandler(async (event) => {
       const refOpts = { referenceType: 'conversation', referenceId: conversation.id }
       if (outcome === 'held') {
         await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'new_conversation', conversation_id: conversation.id, message_id: storedMessage.id, held: true }, refOpts)
-        await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'held_sender', to: fromEmail }, refOpts)
-      } else if (outcome === 'contact') {
-        if (conversation.assigned_user_id) {
-          await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'assignee', conversation_id: conversation.id, message_id: storedMessage.id }, refOpts)
-        } else {
-          await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'new_conversation', conversation_id: conversation.id, message_id: storedMessage.id }, refOpts)
+        // Courtesy-reply to the sender only when the inbound actually authenticated (a forged
+        // From must not trigger backscatter) and isn't itself an auto-responder/bounce (no loop).
+        if (auth.authenticated && !isAutoResponderOrBounce(headers, fromEmail)) {
+          await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'held_sender', to: fromEmail }, refOpts)
         }
-        // Auto-ack only for brand-new cold conversations (not for ongoing replies)
-        if (isNewConversation && !isAutoResponderOrBounce(headers, fromEmail)) {
+      } else if (outcome === 'contact') {
+        // A vacation / out-of-office auto-reply was auto-closed above — don't notify staff about it.
+        if (!isVacationReply) {
+          if (conversation.assigned_user_id) {
+            await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'assignee', conversation_id: conversation.id, message_id: storedMessage.id }, refOpts)
+          } else {
+            await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'new_conversation', conversation_id: conversation.id, message_id: storedMessage.id }, refOpts)
+          }
+        }
+        // Auto-ack only for brand-new cold conversations (not ongoing replies), and only when
+        // the inbound authenticated — a forged From must not trigger an ack to the victim.
+        if (isNewConversation && auth.authenticated && !isAutoResponderOrBounce(headers, fromEmail)) {
           await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'auto_ack', conversation_id: conversation.id, to: fromEmail, name: fromName, language: 'en' }, refOpts)
         }
       }
@@ -376,17 +453,30 @@ export default defineEventHandler(async (event) => {
     return { status: outcome, conversation_id: conversation.id, message_id: storedMessage.id }
   } catch (error: any) {
     // This token was marked "seen" during signature validation. Since we're about to
-    // return a retryable 5xx, release it so Mailgun's retry (which resends the same
+    // return a retryable 5xx, release it so the provider's retry (which resends the same
     // token) isn't rejected as a replay and the message isn't lost.
     if (sigToken) releaseSeenToken(sigToken)
     if (error instanceof TransientError) {
       throw createError({ statusCode: 503, statusMessage: 'Temporary failure, please retry' })
     }
-    // Unknown errors are treated as transient too, so Mailgun retries rather than dropping mail.
+    // The message dedupe race is handled by createIfNew's ON CONFLICT DO NOTHING (it returns
+    // null, never raises 23505), so any unique violation reaching here is from an unrelated
+    // constraint — retry it (treated as transient) rather than report 200 "handled", which
+    // would silently drop a message that wasn't persisted. Unknown errors are transient too.
     console.error('[InboundWebhook] Persistence error:', error?.message || error)
     throw createError({ statusCode: 503, statusMessage: 'Temporary failure, please retry' })
   }
 })
+
+// Deterministic stand-in Message-Id for inbound mail that arrives without one, so a
+// redelivery of the same message dedupes (same envelope → same key) instead of
+// re-creating the conversation and re-firing acks/notifications.
+function synthesizeMessageId(parts: { from: string; recipient: string; subject: string; date: string; body: string }): string {
+  const hash = createHash('sha256')
+    .update([parts.from, parts.recipient, parts.subject, parts.date, parts.body].join('\n'))
+    .digest('hex')
+  return `<synthesized-${hash}@inbound.local>`
+}
 
 async function persistAttachments(form: FormData, messageId: number): Promise<void> {
   const blocked = /\.(exe|bat|cmd|com|scr|js|jar|vbs|ps1|sh|msi|dll)$/i
