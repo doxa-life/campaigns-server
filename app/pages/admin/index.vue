@@ -402,6 +402,51 @@
       </div>
 
       <div v-else-if="prayerDaily" class="space-y-4">
+        <div v-if="prayerEngagement" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <UCard>
+            <div class="flex items-center gap-3">
+              <UIcon name="i-lucide-calendar-check" class="text-[var(--ui-primary)] text-2xl" />
+              <div>
+                <p class="text-sm text-[var(--ui-text-dimmed)]">Signed Up to Pray Daily</p>
+                <p class="text-2xl font-bold">{{ prayerEngagement.daily.subscribers }}</p>
+                <p class="text-sm text-[var(--ui-text-dimmed)]">
+                  <span class="font-semibold text-[var(--ui-text)]">{{ formatRate(prayerEngagement.daily.show_up_rate) }}</span>
+                  show up daily (last 30 days)
+                </p>
+              </div>
+            </div>
+          </UCard>
+          <UCard>
+            <div class="flex items-center gap-3">
+              <UIcon name="i-lucide-calendar-days" class="text-[var(--ui-primary)] text-2xl" />
+              <div>
+                <p class="text-sm text-[var(--ui-text-dimmed)]">Signed Up to Pray Weekly</p>
+                <p class="text-2xl font-bold">{{ prayerEngagement.weekly.subscribers }}</p>
+                <p class="text-sm text-[var(--ui-text-dimmed)]">
+                  <span class="font-semibold text-[var(--ui-text)]">{{ formatRate(prayerEngagement.weekly.show_up_rate) }}</span>
+                  show up daily (last 30 days)
+                </p>
+              </div>
+            </div>
+          </UCard>
+          <UCard>
+            <template #header>
+              <div class="flex items-center gap-2">
+                <UIcon name="i-lucide-user-check" class="text-[var(--ui-primary)] text-lg" />
+                <span class="font-semibold">Praying: Tracked vs. Anonymous</span>
+                <span class="text-sm text-[var(--ui-text-dimmed)]">(last 30 days)</span>
+              </div>
+            </template>
+            <AdminDashboardBar
+              :active-value="prayerEngagement.praying.tracked"
+              :inactive-value="prayerEngagement.praying.anonymous"
+              active-label="Tracked"
+              inactive-label="Anonymous"
+              active-color="#3b82f6"
+            />
+          </UCard>
+        </div>
+
         <UCard>
           <template #header>
             <div class="flex items-center justify-between">
@@ -568,6 +613,7 @@ const { data: prayerDaily, status: prayerStatus } = useFetch('/api/admin/dashboa
 const { data: subscribersData, status: subscribersStatus } = useFetch('/api/admin/dashboard/subscribers')
 const { data: subscribersDaily } = useFetch<{ date: string; subscribed: number; unsubscribed: number }[]>('/api/admin/dashboard/subscribers-daily')
 const { data: pgSubscribers } = useFetch<{ id: number; name: string; slug: string; subscriber_count: number }[]>('/api/admin/dashboard/people-group-subscribers')
+const { data: prayerEngagement } = useFetch('/api/admin/dashboard/prayer-engagement')
 
 const maxPgSubscribers = computed(() =>
   Math.max(1, ...(pgSubscribers.value?.map(p => p.subscriber_count) ?? [1]))
@@ -609,6 +655,11 @@ function subChurnBarHeight(count: number): string {
   if (count === 0) return '0%'
   const pct = (count / maxSubChurn.value) * 100
   return `${Math.max(pct, 2)}%`
+}
+
+function formatRate(rate: number | null | undefined): string {
+  if (rate == null) return '—'
+  return `${Math.round(rate * 100)}%`
 }
 
 function formatChartDate(dateStr: string): string {
