@@ -12,18 +12,15 @@ interface FrequencyBucket {
  *
  * - daily / weekly: subscribers with at least one active subscription of that
  *   frequency (anyone with a daily subscription counts as daily, so the two
- *   groups are disjoint), each with a show-up rate matching the commitment
- *   cadence:
- *   - daily: the share of subscribers who pray at least 4 of every 7 eligible
- *     days (attendance >= 4/7 over their eligible days in the last 30) —
- *     praying most days counts as praying daily, without demanding a perfect
- *     streak. Eligible days are calendar days.
- *   - weekly: pooled across 7-day blocks ending today over the last 4 weeks,
- *     SUM(blocks with at least one prayer day) / SUM(eligible blocks).
- *   Eligible periods start at the subscriber's earliest qualifying
- *   subscription, so recent signups aren't graded on time before they
- *   committed. "Prayed on a day" means at least one prayer_activity row that
- *   UTC day under the subscriber's tracking_id, for any people group.
+ *   groups are disjoint), with a pooled show-up rate matching the commitment
+ *   cadence: SUM(periods the subscriber showed up) / SUM(eligible periods).
+ *   For the daily group a period is a calendar day over the last 30 days; for
+ *   the weekly group it is a 7-day block ending today over the last 4 weeks,
+ *   showed up meaning at least one prayer day in the block. Eligible periods
+ *   start at the subscriber's earliest qualifying subscription, so recent
+ *   signups aren't graded on time before they committed. "Prayed on a day"
+ *   means at least one prayer_activity row that UTC day under the
+ *   subscriber's tracking_id, for any people group.
  * - praying: unique people (distinct tracking_ids) with prayer_activity in
  *   the window. Every web visitor carries a tracking_id (cookie/localStorage),
  *   so a non-null value alone doesn't identify anyone — "tracked" means the
@@ -93,8 +90,7 @@ export default defineEventHandler(async (event) => {
         bucket,
         COUNT(*)::int AS subscribers,
         COALESCE(SUM(eligible_periods), 0)::int AS eligible_periods,
-        COALESCE(SUM(LEAST(showed_up_periods, eligible_periods)), 0)::int AS showed_up_periods,
-        (COUNT(*) FILTER (WHERE showed_up_periods * 7 >= eligible_periods * 4))::int AS meeting_cadence
+        COALESCE(SUM(LEAST(showed_up_periods, eligible_periods)), 0)::int AS showed_up_periods
       FROM per_sub
       GROUP BY bucket
     `,
@@ -118,16 +114,13 @@ export default defineEventHandler(async (event) => {
 
   for (const row of frequencyRows as any[]) {
     const bucket = row.bucket as 'daily' | 'weekly'
-    const subscribers = Number(row.subscribers)
     const eligiblePeriods = Number(row.eligible_periods)
     const showedUpPeriods = Number(row.showed_up_periods)
     buckets[bucket] = {
-      subscribers,
+      subscribers: Number(row.subscribers),
       eligible_periods: eligiblePeriods,
       showed_up_periods: showedUpPeriods,
-      show_up_rate: bucket === 'daily'
-        ? (subscribers > 0 ? Number(row.meeting_cadence) / subscribers : null)
-        : (eligiblePeriods > 0 ? showedUpPeriods / eligiblePeriods : null)
+      show_up_rate: eligiblePeriods > 0 ? showedUpPeriods / eligiblePeriods : null
     }
   }
 
