@@ -424,7 +424,7 @@
                 <p class="text-2xl font-bold">{{ prayerEngagement.weekly.subscribers }}</p>
                 <p class="text-sm text-[var(--ui-text-dimmed)]">
                   <span class="font-semibold text-[var(--ui-text)]">{{ formatRate(prayerEngagement.weekly.show_up_rate) }}</span>
-                  show up daily (last 30 days)
+                  show up weekly (last 4 weeks)
                 </p>
               </div>
             </div>
@@ -434,7 +434,7 @@
               <div class="flex items-center gap-2">
                 <UIcon name="i-lucide-user-check" class="text-[var(--ui-primary)] text-lg" />
                 <span class="font-semibold">Praying: Tracked vs. Anonymous</span>
-                <span class="text-sm text-[var(--ui-text-dimmed)]">(last 30 days)</span>
+                <span class="text-sm text-[var(--ui-text-dimmed)]">(unique people, last 30 days)</span>
               </div>
             </template>
             <AdminDashboardBar
