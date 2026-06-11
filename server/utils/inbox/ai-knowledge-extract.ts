@@ -1,4 +1,4 @@
-import { getAnthropicClient } from '#server/utils/anthropic'
+import { getAnthropicClient, temperatureFor } from '#server/utils/anthropic'
 import { conversationService } from '#server/database/conversations'
 import { messageService, type ConversationMessage } from '#server/database/conversation-messages'
 
@@ -72,15 +72,23 @@ export async function extractKnowledgeEntry(conversationId: number): Promise<Kno
     .map(m => `${m.direction === 'inbound' ? 'CONTACT' : 'TEAM'}: ${messageText(m)}`)
     .join('\n\n')
 
+  const model = config.inboxAiModel || 'claude-sonnet-4-6'
   const response = await client.messages.create({
-    model: config.inboxAiModel || 'claude-sonnet-4-6',
-    max_tokens: 1024,
-    temperature: 0,
+    model,
+    max_tokens: 2048,
+    ...temperatureFor(model, 0),
     system: SYSTEM_PROMPT,
     messages: [{ role: 'user', content: `SUBJECT: ${conversation.subject || '(none)'}\n\nTHREAD:\n${thread}` }],
     tools: [KNOWLEDGE_TOOL],
     tool_choice: { type: 'tool', name: 'submit_knowledge_entry' },
   })
+
+  if (response.stop_reason === 'max_tokens') {
+    throw new Error('AI entry was cut off before completion — try again')
+  }
+  if (response.stop_reason === 'refusal') {
+    throw new Error('AI declined to extract an entry from this conversation')
+  }
 
   const toolBlock = response.content.find(b => b.type === 'tool_use')
   if (!toolBlock || toolBlock.type !== 'tool_use') {
@@ -88,9 +96,15 @@ export async function extractKnowledgeEntry(conversationId: number): Promise<Kno
   }
   const parsed = toolBlock.input as Partial<KnowledgeExtractResult>
 
+  const question = (parsed.question || '').trim()
+  const answer = (parsed.answer || '').trim()
+  if (!question || !answer) {
+    throw new Error('AI returned an empty knowledge entry — try again')
+  }
+
   return {
-    question: parsed.question || '',
-    answer: parsed.answer || '',
+    question,
+    answer,
     language: parsed.language || 'en',
     removed: parsed.removed ?? [],
   }

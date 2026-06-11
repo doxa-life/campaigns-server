@@ -35,6 +35,7 @@ function htmlToPlainText(html: string): string {
 export interface GroundingSyncResult {
   synced: string[]
   failed: { slug: string; error: string }[]
+  pruned: number
 }
 
 /**
@@ -71,6 +72,10 @@ export async function syncGroundingDocuments(): Promise<GroundingSyncResult> {
     }
   }
 
+  // Snapshots of slugs no longer in the configured list stop grounding drafts. Failed
+  // fetches are unaffected — their slug is still listed, so the old snapshot stays.
+  const pruned = await groundingDocumentService.deleteKeysNotIn('doxa_page', DOXA_PAGE_SLUGS)
+
   resetGroundingCache()
-  return { synced, failed }
+  return { synced, failed, pruned }
 }

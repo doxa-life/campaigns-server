@@ -1,5 +1,5 @@
 import type Anthropic from '@anthropic-ai/sdk'
-import { getAnthropicClient } from '#server/utils/anthropic'
+import { getAnthropicClient, temperatureFor } from '#server/utils/anthropic'
 import { conversationService } from '#server/database/conversations'
 import { messageService, type ConversationMessage } from '#server/database/conversation-messages'
 import { getStaticPack, getKnowledgeBlock, formatContactRecord } from './ai-draft-grounding'
@@ -140,15 +140,26 @@ export async function generateInboxDraft(conversationId: number): Promise<InboxD
     `Draft a reply to the most recent CONTACT message. Call submit_draft with the result.`,
   ].join('\n\n')
 
+  // The tool input carries the reply roughly three times over (html + text + gloss),
+  // so the cap needs generous headroom — a truncated forced-tool response yields
+  // partial JSON, not an error.
+  const model = config.inboxAiModel || 'claude-sonnet-4-6'
   const response = await client.messages.create({
-    model: config.inboxAiModel || 'claude-sonnet-4-6',
-    max_tokens: 2048,
-    temperature: 0.4,
+    model,
+    max_tokens: 8192,
+    ...temperatureFor(model, 0.4),
     system,
     messages: [{ role: 'user', content: userContent }],
     tools: [DRAFT_TOOL],
     tool_choice: { type: 'tool', name: 'submit_draft' },
   })
+
+  if (response.stop_reason === 'max_tokens') {
+    throw new Error('AI draft was cut off before completion — try again')
+  }
+  if (response.stop_reason === 'refusal') {
+    throw new Error('AI declined to draft a reply for this conversation')
+  }
 
   const toolBlock = response.content.find(b => b.type === 'tool_use')
   if (!toolBlock || toolBlock.type !== 'tool_use') {
@@ -156,11 +167,17 @@ export async function generateInboxDraft(conversationId: number): Promise<InboxD
   }
   const parsed = toolBlock.input as Partial<InboxDraftResult>
 
+  const draftHtml = (parsed.draft_html || '').trim()
+  const draftText = (parsed.draft_text || '').trim()
+  if (!draftHtml || !draftText) {
+    throw new Error('AI returned an empty draft — try again')
+  }
+
   return {
     draft_language: parsed.draft_language || 'en',
-    draft_html: parsed.draft_html || '',
-    draft_text: parsed.draft_text || '',
-    english_gloss: parsed.english_gloss || parsed.draft_text || '',
+    draft_html: draftHtml,
+    draft_text: draftText,
+    english_gloss: parsed.english_gloss || draftText,
     sources_used: parsed.sources_used ?? [],
     uncertainty: parsed.uncertainty ?? [],
   }

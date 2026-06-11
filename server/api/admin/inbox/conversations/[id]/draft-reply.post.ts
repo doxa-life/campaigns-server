@@ -49,10 +49,12 @@ export default defineEventHandler(async (event) => {
       model: config.inboxAiModel || 'claude-sonnet-4-6',
     }
 
-    // Regenerate overwrites the existing draft slot; otherwise create a fresh draft.
+    // Regenerate overwrites the existing draft slot — but only when that draft is itself
+    // AI-generated. A human-written draft is never overwritten; a fresh draft is created
+    // alongside it instead.
     if (body.draft_id) {
       const existing = await messageService.getById(body.draft_id)
-      if (existing && existing.status === 'draft' && existing.conversation_id === id) {
+      if (existing && existing.status === 'draft' && existing.conversation_id === id && existing.ai_generated) {
         const updated = await messageService.updateAiDraft(body.draft_id, {
           body_html: draft.draft_html,
           body_text: draft.draft_text,

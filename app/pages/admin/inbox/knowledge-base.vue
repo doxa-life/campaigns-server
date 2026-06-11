@@ -7,7 +7,7 @@
       </div>
       <div class="kb-header-actions">
         <USelect v-model="statusFilter" :items="statusItems" value-key="value" size="sm" class="w-40" @update:model-value="load" />
-        <UButton icon="i-lucide-refresh-cw" variant="outline" color="neutral" size="sm" :loading="refreshing" @click="refreshGrounding">
+        <UButton v-if="canSend" icon="i-lucide-refresh-cw" variant="outline" color="neutral" size="sm" :loading="refreshing" @click="refreshGrounding">
           {{ $t('inbox.kb.refreshGrounding') }}
         </UButton>
       </div>
@@ -24,7 +24,7 @@
           <UTextarea v-model="editAnswer" :rows="5" autoresize class="w-full mb-2" />
           <div class="flex justify-end gap-2">
             <UButton variant="outline" color="neutral" size="xs" @click="cancelEdit">{{ $t('common.cancel') }}</UButton>
-            <UButton size="xs" :loading="savingEdit" @click="saveEdit(entry)">{{ $t('inbox.kb.save') }}</UButton>
+            <UButton size="xs" :loading="savingEdit" :disabled="!canSaveEdit" @click="saveEdit(entry)">{{ $t('inbox.kb.save') }}</UButton>
           </div>
         </template>
         <template v-else>
@@ -36,7 +36,7 @@
             </div>
           </div>
           <p class="kb-a">{{ entry.answer }}</p>
-          <div class="kb-entry-actions">
+          <div v-if="canSend" class="kb-entry-actions">
             <UButton variant="ghost" color="neutral" size="xs" icon="i-lucide-pencil" @click="startEdit(entry)">{{ $t('common.edit') }}</UButton>
             <UButton
               variant="ghost"
@@ -45,12 +45,21 @@
               :icon="entry.status === 'active' ? 'i-lucide-archive' : 'i-lucide-archive-restore'"
               @click="toggleArchive(entry)"
             >{{ entry.status === 'active' ? $t('inbox.kb.archive') : $t('inbox.kb.restore') }}</UButton>
-            <UButton variant="ghost" color="error" size="xs" icon="i-lucide-trash-2" @click="remove(entry)">{{ $t('common.delete') }}</UButton>
+            <UButton variant="ghost" color="error" size="xs" icon="i-lucide-trash-2" @click="askRemove(entry)">{{ $t('common.delete') }}</UButton>
           </div>
         </template>
       </UCard>
     </div>
   </div>
+
+  <ConfirmModal
+    v-model:open="showDeleteModal"
+    :title="$t('inbox.kb.deleteTitle')"
+    :message="$t('inbox.kb.deleteMessage')"
+    :confirm-text="$t('common.delete')"
+    confirm-color="error"
+    @confirm="confirmRemove"
+  />
 </template>
 
 <script setup lang="ts">
@@ -69,6 +78,11 @@ definePageMeta({ layout: 'admin', middleware: 'auth' })
 const { t } = useI18n()
 const toast = useToast()
 
+// Mutations (edit/archive/delete/refresh) require inbox.send; the server enforces it
+// too, this just hides controls a viewer can't use.
+const { canAccess } = useAuthUser()
+const canSend = computed(() => canAccess('inbox.send'))
+
 const entries = ref<KnowledgeEntry[]>([])
 const loading = ref(false)
 const refreshing = ref(false)
@@ -84,6 +98,9 @@ const editingId = ref<number | null>(null)
 const editQuestion = ref('')
 const editAnswer = ref('')
 const savingEdit = ref(false)
+// Entries always carry a non-empty question and answer (the server rejects blanking
+// them too); the save button is disabled until both have content.
+const canSaveEdit = computed(() => !!editQuestion.value.trim() && !!editAnswer.value.trim())
 
 async function load() {
   loading.value = true
@@ -109,6 +126,7 @@ function cancelEdit() {
 }
 
 async function saveEdit(entry: KnowledgeEntry) {
+  if (!canSaveEdit.value || savingEdit.value) return
   savingEdit.value = true
   try {
     await $fetch(`/api/admin/inbox/knowledge-entries/${entry.id}`, {
@@ -136,7 +154,21 @@ async function toggleArchive(entry: KnowledgeEntry) {
   }
 }
 
-async function remove(entry: KnowledgeEntry) {
+// Deletion is permanent (the entry stops grounding future drafts), so it goes
+// through a confirmation modal.
+const showDeleteModal = ref(false)
+const deleteTarget = ref<KnowledgeEntry | null>(null)
+
+function askRemove(entry: KnowledgeEntry) {
+  deleteTarget.value = entry
+  showDeleteModal.value = true
+}
+
+async function confirmRemove() {
+  showDeleteModal.value = false
+  const entry = deleteTarget.value
+  deleteTarget.value = null
+  if (!entry) return
   try {
     await $fetch(`/api/admin/inbox/knowledge-entries/${entry.id}`, { method: 'DELETE' })
     await load()

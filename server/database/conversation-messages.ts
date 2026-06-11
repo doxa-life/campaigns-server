@@ -172,8 +172,9 @@ class MessageService {
     return row ?? null
   }
 
-  // Overwrite an existing draft with a freshly generated AI draft (regenerate reuses
-  // the same row so we don't orphan drafts). Keeps it marked AI-generated.
+  // Overwrite an existing AI draft with a freshly generated one (regenerate reuses the
+  // same row so we don't orphan drafts). Only rows already marked ai_generated qualify —
+  // a human-written draft is never overwritten.
   async updateAiDraft(
     id: number,
     data: { body_html: string; body_text: string; subject?: string | null; from_email?: string | null; ai_metadata: AiDraftMetadata }
@@ -184,10 +185,9 @@ class MessageService {
           body_text = ${data.body_text},
           subject = COALESCE(${data.subject ?? null}, subject),
           from_email = COALESCE(${data.from_email ?? null}, from_email),
-          ai_generated = true,
           ai_metadata = ${this.sql.json(data.ai_metadata as any)},
           updated_at = NOW()
-      WHERE id = ${id} AND status = 'draft'
+      WHERE id = ${id} AND status = 'draft' AND ai_generated = true
       RETURNING *
     `
     return row ?? null

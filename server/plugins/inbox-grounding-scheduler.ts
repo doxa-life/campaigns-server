@@ -23,7 +23,7 @@ async function runSync() {
   if (!await claimSyncLock(dateKey)) return
   try {
     const result = await syncGroundingDocuments()
-    console.log(`✅ Inbox grounding sync: ${result.synced.length} synced, ${result.failed.length} failed`)
+    console.log(`✅ Inbox grounding sync: ${result.synced.length} synced, ${result.failed.length} failed, ${result.pruned} pruned`)
     if (result.failed.length) {
       console.warn('   failed pages:', result.failed.map(f => `${f.slug} (${f.error})`).join(', '))
     }

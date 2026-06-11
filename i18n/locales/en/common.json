@@ -698,7 +698,10 @@
       "gloss": "English translation (for review)",
       "sources": "Sources",
       "uncertainty": "Check these — not found in our material",
-      "notConfigured": "AI drafting is not configured"
+      "notConfigured": "AI drafting is not configured",
+      "replaceTitle": "Replace current reply?",
+      "replaceMessage": "Drafting with AI will replace the text currently in the reply box.",
+      "replaceConfirm": "Replace"
     },
     "kb": {
       "addTitle": "Add to knowledge base",
@@ -720,7 +723,9 @@
       "filterActive": "Active",
       "filterArchived": "Archived",
       "archive": "Archive",
-      "restore": "Restore"
+      "restore": "Restore",
+      "deleteTitle": "Delete knowledge entry",
+      "deleteMessage": "This permanently deletes the entry. It will no longer ground future AI drafts."
     }
   },
   "survey": {
