@@ -115,9 +115,6 @@ export async function generateInboxDraft(conversationId: number): Promise<InboxD
     getKnowledgeBlock(),
   ])
 
-  if (process.env.VITEST) return stubDraft()
-
-  const client = getAnthropicClient()
   const config = useRuntimeConfig()
 
   // System = cacheable prefix. Block 1 (instructions + tone + static pack) and block 2
@@ -139,6 +136,12 @@ export async function generateInboxDraft(conversationId: number): Promise<InboxD
     `CONVERSATION THREAD (oldest first)\n${buildThread(messages)}`,
     `Draft a reply to the most recent CONTACT message. Call submit_draft with the result.`,
   ].join('\n\n')
+
+  // Stub at the network boundary: tests exercise everything above (DB reads, thread
+  // building, prompt assembly) and skip only the API call.
+  if (process.env.VITEST) return stubDraft()
+
+  const client = getAnthropicClient()
 
   // The tool input carries the reply roughly three times over (html + text + gloss),
   // so the cap needs generous headroom — a truncated forced-tool response yields

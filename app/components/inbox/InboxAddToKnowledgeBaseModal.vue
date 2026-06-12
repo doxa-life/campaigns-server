@@ -27,7 +27,7 @@
           </UFormField>
 
           <UFormField :label="$t('inbox.kb.language')">
-            <UInput v-model="language" class="w-40" />
+            <USelect v-model="language" :items="languageItems" value-key="value" class="w-40" />
           </UFormField>
 
           <div class="flex justify-end gap-2 mt-2">
@@ -41,6 +41,8 @@
 </template>
 
 <script setup lang="ts">
+import { LANGUAGES } from '~/utils/languages'
+
 const props = defineProps<{
   open: boolean
   conversationId: number
@@ -67,6 +69,16 @@ const language = ref('en')
 const removed = ref<string[]>([])
 
 const canSave = computed(() => !!question.value.trim() && !!answer.value.trim())
+
+// The AI may label a thread with a language the platform doesn't offer; keep that
+// code selectable rather than mislabeling the entry with a supported language.
+const languageItems = computed(() => {
+  const items = LANGUAGES.map(l => ({ label: `${l.flag} ${l.nativeName}`, value: l.code }))
+  if (language.value && !items.some(i => i.value === language.value)) {
+    items.push({ label: language.value, value: language.value })
+  }
+  return items
+})
 
 // Generate a fresh anonymised suggestion each time the modal opens.
 watch(() => props.open, async (open) => {

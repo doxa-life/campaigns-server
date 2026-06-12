@@ -79,6 +79,9 @@ describe('Inbox AI drafting', async () => {
       method: 'POST', body: { draft_id: first.message.id }, ...agentAuth,
     })
     expect(second.message.id).toBe(first.message.id)
+    expect(second.message.ai_generated).toBe(true)
+    expect(typeof second.message.ai_metadata?.gloss).toBe('string')
+    expect(second.message.from_email).toContain('grace-')
     const drafts = await sql`SELECT id FROM conversation_messages WHERE conversation_id = ${conversationId} AND status = 'draft'`
     expect(drafts.length).toBe(1)
   })
@@ -150,6 +153,73 @@ describe('Inbox AI drafting', async () => {
     const [row] = await sql`SELECT question, status FROM inbox_knowledge_entries WHERE id = ${created.entry.id}`
     expect(row!.question).toBe('How long is an adoption?')
     expect(row!.status).toBe('active')
+  })
+
+  it('refresh snapshots site pages (stubbed) and prunes de-listed ones', async () => {
+    await sql`
+      INSERT INTO grounding_documents (source, doc_key, title, body_text)
+      VALUES ('doxa_page', 'removed-page', 'Old', 'Stale content')
+      ON CONFLICT (source, doc_key) DO UPDATE SET body_text = 'Stale content'
+    `
+    const res = await $fetch<any>('/api/admin/inbox/grounding/refresh', { method: 'POST', ...agentAuth })
+    expect(res.failed.length).toBe(0)
+    expect(res.synced.length).toBeGreaterThan(0)
+    expect(res.pruned).toBeGreaterThanOrEqual(1)
+
+    const stale = await sql`SELECT id FROM grounding_documents WHERE source = 'doxa_page' AND doc_key = 'removed-page'`
+    expect(stale.length).toBe(0)
+    const [faq] = await sql`SELECT body_text FROM grounding_documents WHERE source = 'doxa_page' AND doc_key = 'about/faq'`
+    expect(faq!.body_text).toContain('Stubbed marketing content')
+  })
+
+  it('blocks users without permission on every knowledge-base and grounding endpoint', async () => {
+    const { conversationId } = await makeConversationWithInbound()
+    const created = await $fetch<any>('/api/admin/inbox/knowledge-entries', {
+      method: 'POST', body: { question: 'Perm Q', answer: 'Perm A' }, ...agentAuth,
+    })
+    createdEntryIds.push(created.entry.id)
+
+    const outsider = await createTestUser(sql, { email: `test-outsider-${uuidv4().slice(0, 8)}@example.com` })
+    const outsiderAuth = getAuthHeaders(outsider)
+
+    const calls: [string, string, object?][] = [
+      ['GET', '/api/admin/inbox/knowledge-entries'],
+      ['POST', '/api/admin/inbox/knowledge-entries', { question: 'q', answer: 'a' }],
+      ['PUT', `/api/admin/inbox/knowledge-entries/${created.entry.id}`, { question: 'x' }],
+      ['DELETE', `/api/admin/inbox/knowledge-entries/${created.entry.id}`],
+      ['POST', `/api/admin/inbox/conversations/${conversationId}/knowledge-entry/suggest`, {}],
+      ['POST', '/api/admin/inbox/grounding/refresh'],
+    ]
+    for (const [method, url, body] of calls) {
+      let status = 0
+      try {
+        await $fetch(url, { method: method as any, body, ...outsiderAuth })
+      } catch (e: any) {
+        status = e?.statusCode || e?.response?.status || 0
+      }
+      expect(status, `${method} ${url}`).toBe(403)
+    }
+
+    const [still] = await sql`SELECT id FROM inbox_knowledge_entries WHERE id = ${created.entry.id}`
+    expect(still).toBeTruthy()
+  })
+
+  it('returns 404 for missing resources and 400 for an incomplete create', async () => {
+    const cases: [string, string, object | undefined, number][] = [
+      ['POST', '/api/admin/inbox/conversations/999999/draft-reply', {}, 404],
+      ['PUT', '/api/admin/inbox/knowledge-entries/999999', { question: 'x' }, 404],
+      ['DELETE', '/api/admin/inbox/knowledge-entries/999999', undefined, 404],
+      ['POST', '/api/admin/inbox/knowledge-entries', { question: 'only a question' }, 400],
+    ]
+    for (const [method, url, body, expected] of cases) {
+      let status = 0
+      try {
+        await $fetch(url, { method: method as any, body, ...agentAuth })
+      } catch (e: any) {
+        status = e?.statusCode || e?.response?.status || 0
+      }
+      expect(status, `${method} ${url}`).toBe(expected)
+    }
   })
 
   it('blocks a user without inbox.send from drafting', async () => {

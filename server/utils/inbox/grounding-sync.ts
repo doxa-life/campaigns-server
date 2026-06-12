@@ -38,6 +38,19 @@ export interface GroundingSyncResult {
   pruned: number
 }
 
+// Deterministic offline page source under VITEST (mirroring the model-call stubs in
+// ai-draft.ts / ai-knowledge-extract.ts) so the upsert/prune flow and the refresh
+// endpoint stay testable without HTTP to the marketing site.
+async function fetchPage(base: string, slug: string): Promise<{ title?: string; body_html?: string }> {
+  if (process.env.VITEST) {
+    return { title: `Stub: ${slug}`, body_html: `<p>Stubbed marketing content for ${slug}.</p>` }
+  }
+  return await $fetch<{ title?: string; body_html?: string }>(
+    `${base}/api/pages/${slug}`,
+    { query: { locale: 'en' }, timeout: 10000 }
+  )
+}
+
 /**
  * Pull the configured doxa.life pages and snapshot them into grounding_documents.
  * Resilient: a failed page doesn't abort the run, and the previous snapshot stays
@@ -51,10 +64,7 @@ export async function syncGroundingDocuments(): Promise<GroundingSyncResult> {
 
   for (const slug of DOXA_PAGE_SLUGS) {
     try {
-      const page = await $fetch<{ title?: string; body_html?: string }>(
-        `${base}/api/pages/${slug}`,
-        { query: { locale: 'en' }, timeout: 10000 }
-      )
+      const page = await fetchPage(base, slug)
       const text = htmlToPlainText(page?.body_html || '')
       if (!text) {
         failed.push({ slug, error: 'empty body' })

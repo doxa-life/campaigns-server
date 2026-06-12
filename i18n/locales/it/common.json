@@ -645,7 +645,11 @@
       "markSpam": "Segna come spam",
       "unmarkSpam": "Non è spam",
       "showQuoted": "Mostra testo citato",
-      "hideQuoted": "Nascondi testo citato"
+      "hideQuoted": "Nascondi testo citato",
+      "addKnowledgeBase": "Aggiungi alla base di conoscenza"
+    },
+    "badge": {
+      "aiDraft": "IA"
     },
     "confirm": {
       "closeTitle": "Chiudi conversazione",
@@ -683,6 +687,47 @@
       "greetingNamed": "Ciao {name},",
       "body": "Grazie per aver contattato {appName}. Abbiamo ricevuto il tuo messaggio e un membro del nostro team ti risponderà presto.",
       "signoff": "In Cristo,\nIl team di {appName}"
+    },
+    "ai": {
+      "draft": "Bozza di risposta (IA)",
+      "regenerate": "Rigenera (IA)",
+      "reviewTitle": "Bozza IA — rivedi prima di inviare",
+      "dismiss": "Ignora",
+      "gloss": "Traduzione in inglese (per la revisione)",
+      "sources": "Fonti",
+      "uncertainty": "Verifica questi punti — non trovati nel nostro materiale",
+      "notConfigured": "La generazione di bozze con IA non è configurata",
+      "unavailable": "L'IA è occupata al momento — riprova tra poco",
+      "replaceTitle": "Sostituire la risposta attuale?",
+      "replaceMessage": "La bozza generata con l'IA sostituirà il testo attualmente presente nella casella di risposta.",
+      "replaceConfirm": "Sostituisci"
+    },
+    "kb": {
+      "addTitle": "Aggiungi alla base di conoscenza",
+      "generating": "Analisi della conversazione in corso…",
+      "reviewHint": "Rivedi e modifica questa domanda e risposta anonimizzate prima di salvarle. Serviranno come base per le future bozze generate con l'IA.",
+      "removedTitle": "Informazioni personali rimosse",
+      "question": "Domanda",
+      "answer": "Risposta",
+      "language": "Lingua",
+      "save": "Salva voce",
+      "saved": "Voce aggiunta alla base di conoscenza",
+      "nav": "Base di conoscenza",
+      "pageTitle": "Base di conoscenza della posta in arrivo",
+      "pageSubtitle": "Risposte anonimizzate raccolte da conversazioni reali. Servono come base per le bozze di risposta generate con l'IA.",
+      "empty": "Ancora nessuna voce nella base di conoscenza. Usa \"Aggiungi alla base di conoscenza\" su una conversazione risolta per aggiungerne una.",
+      "refreshGrounding": "Aggiorna i contenuti del sito",
+      "refreshed": "{n} pagine aggiornate",
+      "refreshedPartial": "{n} pagine aggiornate — per {m} l'aggiornamento non è riuscito e il contenuto precedente è stato mantenuto",
+      "filterAll": "Tutte",
+      "filterActive": "Attive",
+      "filterArchived": "Archiviate",
+      "statusActive": "Attiva",
+      "statusArchived": "Archiviata",
+      "archive": "Archivia",
+      "restore": "Ripristina",
+      "deleteTitle": "Elimina voce della base di conoscenza",
+      "deleteMessage": "La voce verrà eliminata definitivamente e non servirà più come base per le future bozze IA."
     }
   },
   "survey": {

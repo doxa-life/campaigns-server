@@ -43,6 +43,15 @@ class GroundingDocumentService {
     `
   }
 
+  // Cross-instance freshness key for the in-process static-pack cache: every sync
+  // rewrites fetched_at, so a change in this value means the snapshots changed.
+  async latestFetchedAt(source: string): Promise<string | null> {
+    const [row] = await this.sql<{ latest: unknown }[]>`
+      SELECT max(fetched_at) AS latest FROM grounding_documents WHERE source = ${source}
+    `
+    return row?.latest == null ? null : String(row.latest)
+  }
+
   // Remove snapshots of a source whose doc_key is no longer in the configured set —
   // without this, pages dropped from the CMS would keep grounding drafts forever.
   async deleteKeysNotIn(source: string, keys: string[]): Promise<number> {

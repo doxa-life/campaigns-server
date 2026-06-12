@@ -64,14 +64,17 @@ export async function extractKnowledgeEntry(conversationId: number): Promise<Kno
 
   const messages = await messageService.listForConversation(conversationId)
 
-  if (process.env.VITEST) return stubEntry()
-
-  const client = getAnthropicClient()
   const config = useRuntimeConfig()
 
   const thread = messages
     .map(m => `${m.direction === 'inbound' ? 'CONTACT' : 'TEAM'}: ${messageText(m)}`)
     .join('\n\n')
+
+  // Stub at the network boundary: tests exercise the DB reads and thread assembly
+  // above and skip only the API call.
+  if (process.env.VITEST) return stubEntry()
+
+  const client = getAnthropicClient()
 
   const model = config.inboxAiModel || 'claude-sonnet-4-6'
   let response: Anthropic.Message

@@ -645,7 +645,11 @@
       "markSpam": "标记为垃圾邮件",
       "unmarkSpam": "不是垃圾邮件",
       "showQuoted": "显示引用内容",
-      "hideQuoted": "隐藏引用内容"
+      "hideQuoted": "隐藏引用内容",
+      "addKnowledgeBase": "添加到知识库"
+    },
+    "badge": {
+      "aiDraft": "AI"
     },
     "confirm": {
       "closeTitle": "关闭会话",
@@ -683,6 +687,47 @@
       "greetingNamed": "您好 {name}，",
       "body": "感谢您联系 {appName}。我们已收到您的消息，我们团队的成员将很快回复您。",
       "signoff": "靠主同行，\n{appName} 团队"
+    },
+    "ai": {
+      "draft": "AI 草拟回复",
+      "regenerate": "AI 重新生成",
+      "reviewTitle": "AI 草稿——发送前请审核",
+      "dismiss": "忽略",
+      "gloss": "英文翻译（供审核）",
+      "sources": "资料来源",
+      "uncertainty": "请核实以下内容——未在我们的资料中找到",
+      "notConfigured": "AI 草拟功能尚未配置",
+      "unavailable": "AI 暂时繁忙——请稍后再试",
+      "replaceTitle": "替换当前回复？",
+      "replaceMessage": "使用 AI 草拟将替换回复框中现有的文本。",
+      "replaceConfirm": "替换"
+    },
+    "kb": {
+      "addTitle": "添加到知识库",
+      "generating": "正在分析会话…",
+      "reviewHint": "保存前请审核并编辑这组已匿名化的问答。它将为今后的 AI 草稿提供参考依据。",
+      "removedTitle": "已移除个人信息",
+      "question": "问题",
+      "answer": "答案",
+      "language": "语言",
+      "save": "保存条目",
+      "saved": "已添加到知识库",
+      "nav": "知识库",
+      "pageTitle": "收件箱知识库",
+      "pageSubtitle": "从真实会话中收集的匿名化答案，用于为 AI 草拟回复提供参考依据。",
+      "empty": "目前还没有知识条目。在已解决的会话中使用“添加到知识库”来收集一条。",
+      "refreshGrounding": "刷新网站内容",
+      "refreshed": "已刷新 {n} 个页面",
+      "refreshedPartial": "已刷新 {n} 个页面——{m} 个失败并保留了原有内容",
+      "filterAll": "全部",
+      "filterActive": "使用中",
+      "filterArchived": "已归档",
+      "statusActive": "使用中",
+      "statusArchived": "已归档",
+      "archive": "归档",
+      "restore": "恢复",
+      "deleteTitle": "删除知识条目",
+      "deleteMessage": "这将永久删除该条目，它将不再作为今后 AI 草稿的参考依据。"
     }
   },
   "survey": {

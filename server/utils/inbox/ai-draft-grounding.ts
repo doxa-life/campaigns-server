@@ -5,10 +5,13 @@ import { groundingDocumentService } from '#server/database/grounding-documents'
 import { subscriberService } from '#server/database/subscribers'
 import { peopleGroupAdoptionService } from '#server/database/people-group-adoptions'
 
-// The static pack rarely changes, so cache it in process memory with a short TTL
-// (picks up edits in dev, cheap in prod). The refresh endpoint can force a rebuild.
+// The static pack rarely changes, so cache it in process memory. groundingKey is the
+// cross-instance invalidation signal: a grounding sync on ANY instance changes
+// max(fetched_at), and the cache-hit path checks it so other instances rebuild on
+// their next draft instead of serving stale snapshots. The TTL covers the
+// filesystem-sourced parts (tone guide, feature docs) in dev.
 const STATIC_PACK_TTL_MS = 10 * 60 * 1000
-let staticPackCache: { text: string; builtAt: number } | null = null
+let staticPackCache: { text: string; builtAt: number; groundingKey: string | null } | null = null
 
 const FEATURE_DOCS_DIR = 'documentation/feature-descriptions'
 const TONE_GUIDE_PATH = 'server/utils/inbox/ai-draft-tone-guide.md'
@@ -58,8 +61,17 @@ export function resetGroundingCache(): void {
  */
 export async function getStaticPack(): Promise<string> {
   if (staticPackCache && Date.now() - staticPackCache.builtAt < STATIC_PACK_TTL_MS) {
-    return staticPackCache.text
+    // Serve the cache only while the DB snapshots are unchanged. If the freshness
+    // check itself fails, serve the cache rather than rebuilding from a flaky DB.
+    const latest = await groundingDocumentService.latestFetchedAt('doxa_page').catch(() => undefined)
+    if (latest === undefined || latest === staticPackCache.groundingKey) {
+      return staticPackCache.text
+    }
   }
+
+  // Read before the snapshots: a sync landing mid-build makes the stored key stale,
+  // which triggers a rebuild on the next draft rather than being missed.
+  const groundingKey = await groundingDocumentService.latestFetchedAt('doxa_page').catch(() => null)
 
   const sections: string[] = []
 
@@ -83,7 +95,7 @@ export async function getStaticPack(): Promise<string> {
   }
 
   const text = sections.join('\n\n---\n\n')
-  staticPackCache = { text, builtAt: Date.now() }
+  staticPackCache = { text, builtAt: Date.now(), groundingKey }
   return text
 }
 
@@ -114,11 +126,12 @@ export async function formatContactRecord(subscriberId: number | null | undefine
   const sub = await subscriberService.getSubscriberWithSubscriptions(subscriberId).catch(() => null)
   if (!sub) return 'No linked contact record found for this conversation.'
 
+  // Data minimization: the contact's email address is deliberately not included —
+  // the email system addresses the reply, so the model has no use for it.
   const lines: string[] = []
   lines.push(`Name: ${sub.name || 'Unknown'}`)
   lines.push(`Preferred language: ${sub.preferred_language || 'en'}`)
   if (sub.country) lines.push(`Country: ${sub.country}`)
-  if (sub.primary_email) lines.push(`Primary email: ${sub.primary_email}`)
   lines.push(`Prayer activity: ${sub.prayer_session_count} sessions, ${sub.total_prayer_minutes} minutes total`)
 
   if (sub.subscriptions?.length) {

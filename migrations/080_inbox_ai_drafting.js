@@ -33,6 +33,9 @@ export default class InboxAiDraftingMigration extends BaseMigration {
       )
     `)
     await this.exec(sql, `CREATE INDEX IF NOT EXISTS idx_inbox_knowledge_status ON inbox_knowledge_entries (status)`)
+    // The conversation FK is ON DELETE SET NULL; without an index every conversation
+    // delete scans this table for referencing rows.
+    await this.exec(sql, `CREATE INDEX IF NOT EXISTS idx_inbox_knowledge_source_conversation ON inbox_knowledge_entries (source_conversation_id)`)
 
     // Cross-app grounding cache — snapshots of doxa.life CMS pages (FAQ, about, etc.)
     // so drafting never depends on the marketing site being reachable at request time.
@@ -56,5 +59,9 @@ export default class InboxAiDraftingMigration extends BaseMigration {
     if (!(await this.columnExists(sql, 'conversation_messages', 'ai_metadata'))) {
       await this.exec(sql, `ALTER TABLE conversation_messages ADD COLUMN ai_metadata JSONB`)
     }
+
+    // Drafting grounds replies in the contact's real adoption status by looking up
+    // groups where they are the primary contact — runs on every draft generation.
+    await this.exec(sql, `CREATE INDEX IF NOT EXISTS idx_groups_primary_subscriber ON groups (primary_subscriber_id)`)
   }
 }

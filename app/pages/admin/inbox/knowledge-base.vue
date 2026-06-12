@@ -13,7 +13,11 @@
       </div>
     </div>
 
-    <UCard v-if="!loading && entries.length === 0" class="kb-empty">
+    <div v-if="loading && entries.length === 0" class="kb-loading">
+      <UIcon name="i-lucide-loader-circle" class="animate-spin" />
+    </div>
+
+    <UCard v-else-if="entries.length === 0" class="kb-empty">
       {{ $t('inbox.kb.empty') }}
     </UCard>
 
@@ -32,7 +36,7 @@
             <span class="kb-q">{{ entry.question }}</span>
             <div class="kb-entry-meta">
               <UBadge size="xs" variant="subtle" color="neutral">{{ entry.language }}</UBadge>
-              <UBadge size="xs" variant="subtle" :color="entry.status === 'active' ? 'success' : 'neutral'">{{ entry.status }}</UBadge>
+              <UBadge size="xs" variant="subtle" :color="entry.status === 'active' ? 'success' : 'neutral'">{{ entry.status === 'active' ? $t('inbox.kb.statusActive') : $t('inbox.kb.statusArchived') }}</UBadge>
             </div>
           </div>
           <p class="kb-a">{{ entry.answer }}</p>
@@ -84,7 +88,9 @@ const { canAccess } = useAuthUser()
 const canSend = computed(() => canAccess('inbox.send'))
 
 const entries = ref<KnowledgeEntry[]>([])
-const loading = ref(false)
+// Starts true so the first paint shows the spinner — the fetch only begins in
+// onMounted, and the empty state must not appear before the server has answered.
+const loading = ref(true)
 const refreshing = ref(false)
 const statusFilter = ref<'all' | 'active' | 'archived'>('all')
 
@@ -180,11 +186,21 @@ async function confirmRemove() {
 async function refreshGrounding() {
   refreshing.value = true
   try {
-    const res = await $fetch<{ synced: string[]; failed: { slug: string }[] }>(
+    const res = await $fetch<{ synced: string[]; failed: { slug: string; error: string }[]; pruned: number }>(
       '/api/admin/inbox/grounding/refresh',
       { method: 'POST' }
     )
-    toast.add({ title: t('inbox.kb.refreshed', { n: res.synced.length }), color: 'success' })
+    // A failed page keeps serving its previous snapshot, so the person refreshing
+    // needs to know which pages are still stale.
+    if (res.failed.length) {
+      toast.add({
+        title: t('inbox.kb.refreshedPartial', { n: res.synced.length, m: res.failed.length }),
+        description: res.failed.map(f => f.slug).join(', '),
+        color: 'warning',
+      })
+    } else {
+      toast.add({ title: t('inbox.kb.refreshed', { n: res.synced.length }), color: 'success' })
+    }
   } catch {
     toast.add({ title: t('inbox.toasts.error'), color: 'error' })
   } finally {
@@ -208,4 +224,5 @@ onMounted(load)
 .kb-a { font-size: 0.875rem; color: var(--ui-text-muted); margin: 0.5rem 0; white-space: pre-wrap; }
 .kb-entry-actions { display: flex; gap: 0.25rem; }
 .kb-empty { text-align: center; color: var(--ui-text-muted); }
+.kb-loading { display: flex; justify-content: center; padding: 2.5rem 0; color: var(--ui-text-muted); font-size: 1.5rem; }
 </style>

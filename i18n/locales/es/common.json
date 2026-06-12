@@ -645,7 +645,11 @@
       "markSpam": "Marcar como spam",
       "unmarkSpam": "No es spam",
       "showQuoted": "Mostrar texto citado",
-      "hideQuoted": "Ocultar texto citado"
+      "hideQuoted": "Ocultar texto citado",
+      "addKnowledgeBase": "Añadir a la base de conocimientos"
+    },
+    "badge": {
+      "aiDraft": "IA"
     },
     "confirm": {
       "closeTitle": "Cerrar conversación",
@@ -683,6 +687,47 @@
       "greetingNamed": "Hola {name}:",
       "body": "Gracias por escribir a {appName}. Hemos recibido tu mensaje y un miembro de nuestro equipo te responderá pronto.",
       "signoff": "En Cristo,\nEl equipo de {appName}"
+    },
+    "ai": {
+      "draft": "Redactar respuesta (IA)",
+      "regenerate": "Regenerar (IA)",
+      "reviewTitle": "Borrador de IA: revísalo antes de enviar",
+      "dismiss": "Descartar",
+      "gloss": "Traducción al inglés (para revisión)",
+      "sources": "Fuentes",
+      "uncertainty": "Verifica estos puntos: no se encontraron en nuestro material",
+      "notConfigured": "La redacción con IA no está configurada",
+      "unavailable": "La IA está ocupada ahora mismo; inténtalo de nuevo en un momento",
+      "replaceTitle": "¿Reemplazar la respuesta actual?",
+      "replaceMessage": "Al redactar con IA se reemplazará el texto que está actualmente en el cuadro de respuesta.",
+      "replaceConfirm": "Reemplazar"
+    },
+    "kb": {
+      "addTitle": "Añadir a la base de conocimientos",
+      "generating": "Revisando la conversación…",
+      "reviewHint": "Revisa y edita esta pregunta y respuesta anonimizadas antes de guardar. Ayudarán a fundamentar futuros borradores de IA.",
+      "removedTitle": "Información personal eliminada",
+      "question": "Pregunta",
+      "answer": "Respuesta",
+      "language": "Idioma",
+      "save": "Guardar entrada",
+      "saved": "Añadida a la base de conocimientos",
+      "nav": "Base de conocimientos",
+      "pageTitle": "Base de conocimientos de la bandeja de entrada",
+      "pageSubtitle": "Respuestas anonimizadas tomadas de conversaciones reales. Se usan para fundamentar los borradores de respuesta de la IA.",
+      "empty": "Aún no hay entradas de conocimiento. Usa \"Añadir a la base de conocimientos\" en una conversación resuelta para capturar una.",
+      "refreshGrounding": "Actualizar contenido del sitio",
+      "refreshed": "Se actualizaron {n} páginas",
+      "refreshedPartial": "Se actualizaron {n} páginas; {m} fallaron y conservaron su contenido anterior",
+      "filterAll": "Todas",
+      "filterActive": "Activas",
+      "filterArchived": "Archivadas",
+      "statusActive": "Activa",
+      "statusArchived": "Archivada",
+      "archive": "Archivar",
+      "restore": "Restaurar",
+      "deleteTitle": "Eliminar entrada de conocimiento",
+      "deleteMessage": "Esto elimina la entrada de forma permanente. Ya no fundamentará futuros borradores de IA."
     }
   },
   "survey": {

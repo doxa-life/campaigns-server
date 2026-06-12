@@ -22,12 +22,16 @@ export default defineEventHandler(async (event) => {
   if (!question || !answer) {
     throw createError({ statusCode: 400, statusMessage: 'Question and answer are required' })
   }
+  const language = (body.language || 'en').trim()
+  if (!language || language.length > 8) {
+    throw createError({ statusCode: 400, statusMessage: 'Language must be 1-8 characters' })
+  }
 
   try {
     const entry = await inboxKnowledgeService.create({
       question,
       answer,
-      language: body.language || 'en',
+      language,
       source_conversation_id: body.source_conversation_id ?? null,
       created_by: auth.userId,
     })
