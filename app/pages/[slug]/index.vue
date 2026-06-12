@@ -464,8 +464,11 @@
         </div>
       </section>
 
-      <!-- Mobile App Links Section (hidden for now) -->
-      <section v-if="false" class="py-12 bg-elevated">
+      <!-- Mobile App Links Section — shown only when the URL carries ?showApp=true.
+           Both badges point at the unprefixed /app/<slug> smart link, which deep-links
+           into the installed app or falls back to the right store (see
+           server/routes/app/[slug].get.ts). -->
+      <section v-if="route.query.showApp === 'true'" class="py-12 bg-elevated">
         <div class="max-w-3xl mx-auto px-4">
           <div class="text-center">
             <h2 class="text-2xl font-bold uppercase tracking-wide text-default mb-3">{{ $t('campaign.mobileApp.title') }}</h2>
@@ -474,13 +477,13 @@
             </p>
 
             <div class="flex gap-4 justify-center flex-wrap">
-              <UButton href="#" size="lg" class="rounded-full px-6" :aria-label="$t('campaign.mobileApp.appStore.ariaLabel')">
+              <UButton :href="`/app/${pg.slug}?store=ios`" external size="lg" class="rounded-full px-6" :aria-label="$t('campaign.mobileApp.appStore.ariaLabel')">
                 <div class="flex flex-col items-start text-left min-w-35">
                   <span class="text-xs opacity-80">{{ $t('campaign.mobileApp.appStore.label') }}</span>
                   <span class="text-lg font-semibold">{{ $t('campaign.mobileApp.appStore.store') }}</span>
                 </div>
               </UButton>
-              <UButton href="#" size="lg" class="rounded-full px-6" :aria-label="$t('campaign.mobileApp.googlePlay.ariaLabel')">
+              <UButton :href="`/app/${pg.slug}?store=android`" external size="lg" class="rounded-full px-6" :aria-label="$t('campaign.mobileApp.googlePlay.ariaLabel')">
                 <div class="flex flex-col items-start text-left min-w-35">
                   <span class="text-xs opacity-80">{{ $t('campaign.mobileApp.googlePlay.label') }}</span>
                   <span class="text-lg font-semibold">{{ $t('campaign.mobileApp.googlePlay.store') }}</span>
