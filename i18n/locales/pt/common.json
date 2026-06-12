@@ -645,7 +645,11 @@
       "markSpam": "Marcar como spam",
       "unmarkSpam": "Não é spam",
       "showQuoted": "Mostrar texto citado",
-      "hideQuoted": "Ocultar texto citado"
+      "hideQuoted": "Ocultar texto citado",
+      "addKnowledgeBase": "Adicionar à base de conhecimento"
+    },
+    "badge": {
+      "aiDraft": "IA"
     },
     "confirm": {
       "closeTitle": "Fechar conversa",
@@ -683,6 +687,47 @@
       "greetingNamed": "Olá {name},",
       "body": "Obrigado por entrar em contato com {appName}. Recebemos sua mensagem e um membro da nossa equipe responderá em breve.",
       "signoff": "Em Cristo,\nA equipe {appName}"
+    },
+    "ai": {
+      "draft": "Redigir resposta (IA)",
+      "regenerate": "Gerar novamente (IA)",
+      "reviewTitle": "Rascunho de IA — revise antes de enviar",
+      "dismiss": "Descartar",
+      "gloss": "Tradução em inglês (para revisão)",
+      "sources": "Fontes",
+      "uncertainty": "Verifique estes pontos — não encontrados em nosso material",
+      "notConfigured": "A redação com IA não está configurada",
+      "unavailable": "A IA está ocupada no momento — tente novamente em instantes",
+      "replaceTitle": "Substituir a resposta atual?",
+      "replaceMessage": "Redigir com IA substituirá o texto que está atualmente na caixa de resposta.",
+      "replaceConfirm": "Substituir"
+    },
+    "kb": {
+      "addTitle": "Adicionar à base de conhecimento",
+      "generating": "Analisando a conversa…",
+      "reviewHint": "Revise e edite esta pergunta e resposta anonimizadas antes de salvar. Elas ajudarão a embasar futuros rascunhos de IA.",
+      "removedTitle": "Informações pessoais removidas",
+      "question": "Pergunta",
+      "answer": "Resposta",
+      "language": "Idioma",
+      "save": "Salvar entrada",
+      "saved": "Adicionado à base de conhecimento",
+      "nav": "Base de conhecimento",
+      "pageTitle": "Base de conhecimento da caixa de entrada",
+      "pageSubtitle": "Respostas anonimizadas extraídas de conversas reais. Usadas para embasar os rascunhos de resposta da IA.",
+      "empty": "Ainda não há entradas de conhecimento. Use \"Adicionar à base de conhecimento\" em uma conversa resolvida para registrar uma.",
+      "refreshGrounding": "Atualizar conteúdo do site",
+      "refreshed": "{n} páginas atualizadas",
+      "refreshedPartial": "{n} páginas atualizadas — {m} falharam e mantiveram o conteúdo anterior",
+      "filterAll": "Todas",
+      "filterActive": "Ativas",
+      "filterArchived": "Arquivadas",
+      "archive": "Arquivar",
+      "restore": "Restaurar",
+      "deleteTitle": "Excluir entrada de conhecimento",
+      "deleteMessage": "Isso exclui a entrada permanentemente. Ela não embasará mais futuros rascunhos de IA.",
+      "statusActive": "Ativa",
+      "statusArchived": "Arquivada"
     }
   },
   "survey": {

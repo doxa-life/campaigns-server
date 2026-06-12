@@ -645,7 +645,11 @@
       "markSpam": "Als Spam markieren",
       "unmarkSpam": "Kein Spam",
       "showQuoted": "Zitierten Text anzeigen",
-      "hideQuoted": "Zitierten Text ausblenden"
+      "hideQuoted": "Zitierten Text ausblenden",
+      "addKnowledgeBase": "Zur Wissensdatenbank hinzufügen"
+    },
+    "badge": {
+      "aiDraft": "KI"
     },
     "confirm": {
       "closeTitle": "Unterhaltung schließen",
@@ -683,6 +687,47 @@
       "greetingNamed": "Hallo {name},",
       "body": "Vielen Dank, dass Sie sich an {appName} gewandt haben. Wir haben Ihre Nachricht erhalten und ein Mitglied unseres Teams wird sich bald bei Ihnen melden.",
       "signoff": "In Christus,\nIhr {appName}-Team"
+    },
+    "ai": {
+      "draft": "Antwort entwerfen (KI)",
+      "regenerate": "Neu generieren (KI)",
+      "reviewTitle": "KI-Entwurf – vor dem Senden prüfen",
+      "dismiss": "Verwerfen",
+      "gloss": "Englische Übersetzung (zur Prüfung)",
+      "sources": "Quellen",
+      "uncertainty": "Bitte prüfen – nicht in unserem Material gefunden",
+      "notConfigured": "Die KI-Entwurfsfunktion ist nicht konfiguriert",
+      "unavailable": "Die KI ist gerade ausgelastet – versuchen Sie es gleich noch einmal",
+      "replaceTitle": "Aktuelle Antwort ersetzen?",
+      "replaceMessage": "Ein KI-Entwurf ersetzt den Text, der sich derzeit im Antwortfeld befindet.",
+      "replaceConfirm": "Ersetzen"
+    },
+    "kb": {
+      "addTitle": "Zur Wissensdatenbank hinzufügen",
+      "generating": "Unterhaltung wird ausgewertet…",
+      "reviewHint": "Prüfen und bearbeiten Sie diese anonymisierte Frage und Antwort vor dem Speichern. Der Eintrag dient zukünftigen KI-Entwürfen als Grundlage.",
+      "removedTitle": "Persönliche Daten entfernt",
+      "question": "Frage",
+      "answer": "Antwort",
+      "language": "Sprache",
+      "save": "Eintrag speichern",
+      "saved": "Zur Wissensdatenbank hinzugefügt",
+      "nav": "Wissensdatenbank",
+      "pageTitle": "Wissensdatenbank des Posteingangs",
+      "pageSubtitle": "Anonymisierte Antworten aus echten Unterhaltungen. Sie dienen als Grundlage für KI-Antwortentwürfe.",
+      "empty": "Noch keine Wissenseinträge. Verwenden Sie „Zur Wissensdatenbank hinzufügen“ bei einer abgeschlossenen Unterhaltung, um einen Eintrag zu erfassen.",
+      "refreshGrounding": "Website-Inhalte aktualisieren",
+      "refreshed": "{n} Seiten aktualisiert",
+      "refreshedPartial": "{n} Seiten aktualisiert – bei {m} ist die Aktualisierung fehlgeschlagen, die alten Inhalte bleiben erhalten",
+      "filterAll": "Alle",
+      "filterActive": "Aktiv",
+      "filterArchived": "Archiviert",
+      "statusActive": "Aktiv",
+      "statusArchived": "Archiviert",
+      "archive": "Archivieren",
+      "restore": "Wiederherstellen",
+      "deleteTitle": "Wissenseintrag löschen",
+      "deleteMessage": "Der Eintrag wird dauerhaft gelöscht. Er dient zukünftigen KI-Entwürfen nicht mehr als Grundlage."
     }
   },
   "survey": {

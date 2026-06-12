@@ -645,7 +645,11 @@
       "markSpam": "Marquer comme spam",
       "unmarkSpam": "Pas un spam",
       "showQuoted": "Afficher le texte cité",
-      "hideQuoted": "Masquer le texte cité"
+      "hideQuoted": "Masquer le texte cité",
+      "addKnowledgeBase": "Ajouter à la base de connaissances"
+    },
+    "badge": {
+      "aiDraft": "IA"
     },
     "confirm": {
       "closeTitle": "Fermer la conversation",
@@ -683,6 +687,47 @@
       "greetingNamed": "Bonjour {name},",
       "body": "Merci d’avoir contacté {appName}. Nous avons bien reçu votre message et un membre de notre équipe vous répondra bientôt.",
       "signoff": "En Christ,\nL’équipe {appName}"
+    },
+    "ai": {
+      "draft": "Rédiger une réponse (IA)",
+      "regenerate": "Régénérer (IA)",
+      "reviewTitle": "Brouillon IA — à relire avant envoi",
+      "dismiss": "Ignorer",
+      "gloss": "Traduction anglaise (pour relecture)",
+      "sources": "Sources",
+      "uncertainty": "À vérifier — introuvables dans nos contenus",
+      "notConfigured": "La rédaction par IA n’est pas configurée",
+      "unavailable": "L’IA est occupée pour le moment — réessayez dans un instant",
+      "replaceTitle": "Remplacer la réponse en cours ?",
+      "replaceMessage": "Rédiger avec l’IA remplacera le texte actuellement saisi dans la zone de réponse.",
+      "replaceConfirm": "Remplacer"
+    },
+    "kb": {
+      "addTitle": "Ajouter à la base de connaissances",
+      "generating": "Examen de la conversation…",
+      "reviewHint": "Relisez et modifiez cette question et cette réponse anonymisées avant de les enregistrer. Elles serviront de base aux futurs brouillons IA.",
+      "removedTitle": "Informations personnelles supprimées",
+      "question": "Question",
+      "answer": "Réponse",
+      "language": "Langue",
+      "save": "Enregistrer l’entrée",
+      "saved": "Ajouté à la base de connaissances",
+      "nav": "Base de connaissances",
+      "pageTitle": "Base de connaissances de la boîte de réception",
+      "pageSubtitle": "Réponses anonymisées issues de conversations réelles. Elles servent de base aux brouillons de réponse IA.",
+      "empty": "Aucune entrée pour le moment. Utilisez « Ajouter à la base de connaissances » sur une conversation résolue pour en créer une.",
+      "refreshGrounding": "Actualiser le contenu du site",
+      "refreshed": "{n} pages actualisées",
+      "refreshedPartial": "{n} pages actualisées — {m} ont échoué et gardent leur ancien contenu",
+      "filterAll": "Toutes",
+      "filterActive": "Actives",
+      "filterArchived": "Archivées",
+      "statusActive": "Active",
+      "statusArchived": "Archivée",
+      "archive": "Archiver",
+      "restore": "Restaurer",
+      "deleteTitle": "Supprimer l’entrée de la base de connaissances",
+      "deleteMessage": "Cette action supprime définitivement l’entrée. Elle ne servira plus de base aux futurs brouillons IA."
     }
   },
   "survey": {

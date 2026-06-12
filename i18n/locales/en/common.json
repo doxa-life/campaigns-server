@@ -647,7 +647,11 @@
       "showQuoted": "Show quoted text",
       "hideQuoted": "Hide quoted text",
       "flagReview": "For review",
-      "unflagReview": "Clear review"
+      "unflagReview": "Clear review",
+      "addKnowledgeBase": "Add to knowledge base"
+    },
+    "badge": {
+      "aiDraft": "AI"
     },
     "confirm": {
       "closeTitle": "Close conversation",
@@ -685,6 +689,47 @@
       "greetingNamed": "Hello {name},",
       "body": "Thanks for reaching out to {appName}. We have received your message and a member of our team will get back to you soon.",
       "signoff": "In Christ,\nThe {appName} Team"
+    },
+    "ai": {
+      "draft": "Draft reply (AI)",
+      "regenerate": "Regenerate (AI)",
+      "reviewTitle": "AI draft — review before sending",
+      "dismiss": "Dismiss",
+      "gloss": "English translation (for review)",
+      "sources": "Sources",
+      "uncertainty": "Check these — not found in our material",
+      "notConfigured": "AI drafting is not configured",
+      "unavailable": "AI is busy right now — try again in a moment",
+      "replaceTitle": "Replace current reply?",
+      "replaceMessage": "Drafting with AI will replace the text currently in the reply box.",
+      "replaceConfirm": "Replace"
+    },
+    "kb": {
+      "addTitle": "Add to knowledge base",
+      "generating": "Reviewing the conversation…",
+      "reviewHint": "Review and edit this anonymised question and answer before saving. It will help ground future AI drafts.",
+      "removedTitle": "Personal information removed",
+      "question": "Question",
+      "answer": "Answer",
+      "language": "Language",
+      "save": "Save entry",
+      "saved": "Added to knowledge base",
+      "nav": "Knowledge base",
+      "pageTitle": "Inbox knowledge base",
+      "pageSubtitle": "Anonymised answers captured from real conversations. Used to ground AI draft replies.",
+      "empty": "No knowledge entries yet. Use \"Add to knowledge base\" on a resolved conversation to capture one.",
+      "refreshGrounding": "Refresh site content",
+      "refreshed": "Refreshed {n} pages",
+      "refreshedPartial": "Refreshed {n} pages — {m} failed and kept their old content",
+      "filterAll": "All",
+      "filterActive": "Active",
+      "filterArchived": "Archived",
+      "statusActive": "Active",
+      "statusArchived": "Archived",
+      "archive": "Archive",
+      "restore": "Restore",
+      "deleteTitle": "Delete knowledge entry",
+      "deleteMessage": "This permanently deletes the entry. It will no longer ground future AI drafts."
     }
   },
   "survey": {

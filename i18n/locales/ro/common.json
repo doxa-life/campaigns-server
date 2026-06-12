@@ -641,7 +641,11 @@
       "markSpam": "Marchează ca spam",
       "unmarkSpam": "Nu este spam",
       "showQuoted": "Arată textul citat",
-      "hideQuoted": "Ascunde textul citat"
+      "hideQuoted": "Ascunde textul citat",
+      "addKnowledgeBase": "Adaugă în baza de cunoștințe"
+    },
+    "badge": {
+      "aiDraft": "IA"
     },
     "confirm": {
       "closeTitle": "Închide conversația",
@@ -679,6 +683,47 @@
       "greetingNamed": "Bună {name},",
       "body": "Îți mulțumim că ai contactat {appName}. Am primit mesajul tău și un membru al echipei noastre îți va răspunde în curând.",
       "signoff": "În Hristos,\nEchipa {appName}"
+    },
+    "ai": {
+      "draft": "Redactează răspuns (IA)",
+      "regenerate": "Regenerează (IA)",
+      "reviewTitle": "Ciornă IA — revizuiește înainte de trimitere",
+      "dismiss": "Renunță",
+      "gloss": "Traducere în engleză (pentru revizuire)",
+      "sources": "Surse",
+      "uncertainty": "Verifică aceste afirmații — nu se regăsesc în materialele noastre",
+      "notConfigured": "Redactarea cu IA nu este configurată",
+      "unavailable": "IA este ocupată momentan — încearcă din nou peste câteva clipe",
+      "replaceTitle": "Înlocuiești răspunsul curent?",
+      "replaceMessage": "Redactarea cu IA va înlocui textul aflat acum în caseta de răspuns.",
+      "replaceConfirm": "Înlocuiește"
+    },
+    "kb": {
+      "addTitle": "Adaugă în baza de cunoștințe",
+      "generating": "Se analizează conversația…",
+      "reviewHint": "Revizuiește și editează întrebarea și răspunsul anonimizate înainte de salvare. Ele vor ajuta la fundamentarea viitoarelor ciorne IA.",
+      "removedTitle": "Informațiile personale au fost eliminate",
+      "question": "Întrebare",
+      "answer": "Răspuns",
+      "language": "Limbă",
+      "save": "Salvează intrarea",
+      "saved": "Adăugat în baza de cunoștințe",
+      "nav": "Bază de cunoștințe",
+      "pageTitle": "Baza de cunoștințe a mesajelor primite",
+      "pageSubtitle": "Răspunsuri anonimizate, preluate din conversații reale. Sunt folosite pentru fundamentarea ciornelor de răspuns IA.",
+      "empty": "Nicio intrare în baza de cunoștințe deocamdată. Folosește „Adaugă în baza de cunoștințe” la o conversație rezolvată pentru a crea una.",
+      "refreshGrounding": "Reîmprospătează conținutul site-ului",
+      "refreshed": "S-au reîmprospătat {n} pagini",
+      "refreshedPartial": "S-au reîmprospătat {n} pagini — {m} au eșuat și și-au păstrat conținutul vechi",
+      "filterAll": "Toate",
+      "filterActive": "Active",
+      "filterArchived": "Arhivate",
+      "statusActive": "Activă",
+      "statusArchived": "Arhivată",
+      "archive": "Arhivează",
+      "restore": "Restaurează",
+      "deleteTitle": "Șterge intrarea din baza de cunoștințe",
+      "deleteMessage": "Această acțiune șterge definitiv intrarea. Nu va mai contribui la fundamentarea viitoarelor ciorne IA."
     }
   },
   "survey": {
