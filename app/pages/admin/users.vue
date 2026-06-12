@@ -28,7 +28,7 @@
               No users found
             </div>
 
-            <UTable v-else :data="users" :columns="userColumns">
+            <UTable v-else :data="users" :columns="userColumns" @select="onUserRowSelect">
               <template #email-cell="{ row }">
                 {{ (row.original as User).email }}
               </template>
@@ -47,12 +47,6 @@
                     {{ formatRoleName(r.name) }}
                   </UBadge>
                   <span v-if="(row.original as User).roles.length === 0" class="text-[var(--ui-text-muted)] text-sm">No roles</span>
-                  <UButton
-                    @click="openRolesModal(row.original as User)"
-                    variant="ghost"
-                    size="xs"
-                    icon="i-lucide-pencil"
-                  />
                 </div>
               </template>
               <template #status-cell="{ row }">
@@ -61,27 +55,36 @@
                 </UBadge>
               </template>
               <template #access-cell="{ row }">
-                <div class="flex gap-2">
-                  <UButton
+                <div class="flex gap-2 flex-wrap">
+                  <UBadge
                     v-if="(row.original as User).hasScopedAccess"
-                    @click="openPeopleGroupModal(row.original as User)"
-                    variant="outline"
-                    size="xs"
+                    color="neutral"
+                    variant="subtle"
+                    size="sm"
                   >
                     People Groups ({{ (row.original as User).peopleGroupCount }})
-                  </UButton>
-                  <UButton
-                    @click="openInboxIdentityModal(row.original as User)"
-                    variant="outline"
-                    size="xs"
+                  </UBadge>
+                  <UBadge
+                    v-if="(row.original as User).email_alias"
+                    color="neutral"
+                    variant="subtle"
+                    size="sm"
                     icon="i-lucide-mail"
                   >
-                    Inbox
-                  </UButton>
+                    {{ (row.original as User).email_alias }}
+                  </UBadge>
                 </div>
               </template>
               <template #created-cell="{ row }">
                 {{ formatDate((row.original as User).created) }}
+              </template>
+              <template #actions-cell="{ row }">
+                <UButton
+                  @click="openUserSlideover(row.original as User)"
+                  variant="ghost"
+                  size="xs"
+                  icon="i-lucide-pencil"
+                />
               </template>
             </UTable>
           </section>
@@ -196,177 +199,183 @@
       </template>
     </UTabs>
 
-    <!-- Manage Roles Modal -->
-    <UModal v-model:open="showRolesModal" title="Manage Roles">
-      <template #body>
-        <p class="mb-4">
-          Assign roles for <strong>{{ selectedUser?.display_name || selectedUser?.email }}</strong>:
-        </p>
-
-        <div class="space-y-2">
-          <label
-            v-for="role in availableRoles"
-            :key="role.name"
-            class="flex items-center gap-3 p-3 border border-[var(--ui-border)] rounded-lg cursor-pointer hover:bg-[var(--ui-bg-elevated)] transition-colors"
-          >
-            <UCheckbox
-              :model-value="editingRoles.includes(role.name)"
-              @update:model-value="toggleEditingRole(role.name)"
+    <!-- User Detail Slideover -->
+    <USlideover
+      v-model:open="slideoverOpen"
+      side="right"
+      :ui="{ content: 'sm:max-w-6xl' }"
+    >
+      <template #header>
+        <DialogTitle as="div" class="slideover-header">
+          <div class="slideover-header-info">
+            <h2>{{ selectedUser?.display_name || selectedUser?.email }}</h2>
+          </div>
+          <div class="slideover-header-actions">
+            <CrmSaveStatus :saving="anySaving" :saved="anySaved" />
+            <UButton size="sm" color="error" variant="outline" @click="showDeleteUserConfirm = true">Delete</UButton>
+          </div>
+          <div class="slideover-close">
+            <UButton
+              icon="i-lucide-x"
+              variant="ghost"
+              color="neutral"
+              size="sm"
+              @click="slideoverOpen = false"
             />
-            <div class="flex flex-col flex-1">
-              <strong>{{ formatRoleName(role.name) }}</strong>
-              <span class="text-sm text-[var(--ui-text-muted)]">{{ role.description }}</span>
-            </div>
-          </label>
-        </div>
+          </div>
+        </DialogTitle>
+        <DialogDescription class="sr-only">User details</DialogDescription>
       </template>
-
-      <template #footer="{ close }">
-        <div class="flex justify-end gap-2">
-          <UButton @click="close" variant="outline">
-            Cancel
-          </UButton>
-          <UButton
-            @click="saveUserRoles"
-            :loading="rolesModalSubmitting"
-          >
-            Save Changes
-          </UButton>
-        </div>
-      </template>
-    </UModal>
-
-    <!-- Manage People Groups Modal -->
-    <UModal v-model:open="showPeopleGroupModal" title="Manage People Group Access">
       <template #body>
-        <p class="mb-4">
-          Select which people groups <strong>{{ selectedUser?.display_name || selectedUser?.email }}</strong> can access:
-        </p>
+        <CrmDetailPanel v-if="selectedUser" :side-tabs="sideTabs">
+          <template #details>
+            <form @submit.prevent>
+              <CrmFormSection title="Account">
+                <UFormField label="Email Address" required>
+                  <UInput
+                    :model-value="formData.email"
+                    @update:model-value="v => { formData.email = v }"
+                    @blur="flushAutoSave"
+                    type="email"
+                    class="w-full"
+                  />
+                </UFormField>
 
-        <div v-if="peopleGroupModalLoading" class="flex items-center justify-center py-8">
-          <UIcon name="i-lucide-loader" class="w-5 h-5 animate-spin" />
-          <span class="ml-2">Loading people groups...</span>
-        </div>
+                <UFormField label="Display Name">
+                  <UInput
+                    :model-value="formData.display_name"
+                    @update:model-value="v => { formData.display_name = v }"
+                    @blur="flushAutoSave"
+                    type="text"
+                    class="w-full"
+                  />
+                </UFormField>
 
-        <UAlert v-else-if="peopleGroupModalError" color="error" :title="peopleGroupModalError" class="mb-4" />
+                <UFormField label="Verified" help="Unverified users cannot log in.">
+                  <USwitch
+                    :model-value="formData.verified"
+                    @update:model-value="v => { formData.verified = v; fieldChanged('verified', 'immediate') }"
+                  />
+                </UFormField>
+              </CrmFormSection>
 
-        <div v-else>
-          <USelectMenu
-            v-model="selectedPeopleGroupIds"
-            :items="peopleGroupSelectItems"
-            multiple
-            virtualize
-            value-key="value"
-            placeholder="Search people groups..."
-            class="w-full"
-          />
-        </div>
+              <CrmFormSection title="Roles">
+                <div class="space-y-2">
+                  <label
+                    v-for="role in availableRoles"
+                    :key="role.name"
+                    class="flex items-center gap-3 p-3 border border-[var(--ui-border)] rounded-lg cursor-pointer hover:bg-[var(--ui-bg-elevated)] transition-colors"
+                  >
+                    <UCheckbox
+                      :model-value="editingRoles.includes(role.name)"
+                      :disabled="rolesSaving"
+                      @update:model-value="toggleEditingRole(role.name)"
+                    />
+                    <div class="flex flex-col flex-1">
+                      <strong>{{ formatRoleName(role.name) }}</strong>
+                      <span class="text-sm text-[var(--ui-text-muted)]">{{ role.description }}</span>
+                    </div>
+                  </label>
+                </div>
+              </CrmFormSection>
 
-        <UAlert v-if="peopleGroupModalSuccess" color="success" title="People group access updated successfully!" class="mt-4" />
+              <CrmFormSection v-if="selectedUser.hasScopedAccess" title="People Group Access">
+                <div v-if="peopleGroupsLoading" class="flex items-center justify-center py-4">
+                  <UIcon name="i-lucide-loader" class="w-5 h-5 animate-spin" />
+                  <span class="ml-2">Loading people groups...</span>
+                </div>
+                <UFormField v-else label="Assigned People Groups" help="This user can only access the people groups selected here.">
+                  <USelectMenu
+                    :model-value="selectedPeopleGroupIds"
+                    @update:model-value="v => { selectedPeopleGroupIds = v; savePeopleGroupAccess() }"
+                    :items="peopleGroupSelectItems"
+                    multiple
+                    virtualize
+                    value-key="value"
+                    placeholder="Search people groups..."
+                    class="w-full"
+                  />
+                </UFormField>
+              </CrmFormSection>
+
+              <CrmFormSection v-if="selectedHasLanguageRole" title="Language Access">
+                <div v-if="languagesLoading" class="flex items-center justify-center py-4">
+                  <UIcon name="i-lucide-loader" class="w-5 h-5 animate-spin" />
+                  <span class="ml-2">Loading languages...</span>
+                </div>
+                <div v-else class="space-y-1">
+                  <label
+                    v-for="lang in allLanguages"
+                    :key="lang.code"
+                    class="flex items-center gap-2 py-1.5 px-2 rounded cursor-pointer hover:bg-[var(--ui-bg-elevated)] transition-colors"
+                  >
+                    <UCheckbox
+                      :model-value="editingLanguages.includes(lang.code)"
+                      :disabled="languagesSaving"
+                      @update:model-value="toggleEditingLanguage(lang.code)"
+                    />
+                    <span class="text-sm">{{ lang.name }}</span>
+                    <span class="text-xs text-[var(--ui-text-muted)]">({{ lang.code }})</span>
+                  </label>
+                </div>
+              </CrmFormSection>
+
+              <CrmFormSection title="Inbox Identity">
+                <UFormField :label="$t('inbox.identity.alias')">
+                  <UInput
+                    v-model="inboxIdentityForm.email_alias"
+                    @blur="saveInboxIdentity"
+                    type="text"
+                    placeholder="george"
+                    class="w-full"
+                  />
+                  <template #hint>
+                    {{ $t('inbox.identity.aliasHint') }}
+                  </template>
+                </UFormField>
+
+                <UFormField :label="$t('inbox.identity.signature')">
+                  <UTextarea
+                    v-model="inboxIdentityForm.email_signature"
+                    @blur="saveInboxIdentity"
+                    :rows="5"
+                    class="w-full"
+                  />
+                </UFormField>
+              </CrmFormSection>
+
+              <CrmFormSection title="Metadata">
+                <div class="info-row">
+                  <span class="label">User ID:</span>
+                  <span class="value monospace">{{ selectedUser.id }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Joined:</span>
+                  <span class="value">{{ formatDate(selectedUser.created) }}</span>
+                </div>
+              </CrmFormSection>
+            </form>
+          </template>
+
+          <template #side-activity>
+            <RecordActivity ref="activityRef" table-name="users" :record-id="selectedUser.id" />
+          </template>
+        </CrmDetailPanel>
       </template>
+    </USlideover>
 
-      <template #footer="{ close }">
-        <div class="flex justify-end gap-2">
-          <UButton @click="close" variant="outline">
-            Cancel
-          </UButton>
-          <UButton
-            @click="savePeopleGroupAccess"
-            :loading="peopleGroupModalSubmitting"
-          >
-            Save Changes
-          </UButton>
-        </div>
-      </template>
-    </UModal>
-
-    <!-- Manage Languages Modal -->
-    <UModal v-model:open="showLanguageModal" title="Manage Language Access">
-      <template #body>
-        <p class="mb-4">
-          Select which languages <strong>{{ selectedUser?.display_name || selectedUser?.email }}</strong> can edit content in:
-        </p>
-
-        <div v-if="languageModalLoading" class="flex items-center justify-center py-8">
-          <UIcon name="i-lucide-loader" class="w-5 h-5 animate-spin" />
-          <span class="ml-2">Loading languages...</span>
-        </div>
-
-        <div v-else class="space-y-1">
-          <label
-            v-for="lang in allLanguages"
-            :key="lang.code"
-            class="flex items-center gap-2 py-1.5 px-2 rounded cursor-pointer hover:bg-[var(--ui-bg-elevated)] transition-colors"
-          >
-            <UCheckbox
-              :model-value="editingLanguages.includes(lang.code)"
-              @update:model-value="toggleEditingLanguage(lang.code)"
-            />
-            <span class="text-sm">{{ lang.name }}</span>
-            <span class="text-xs text-[var(--ui-text-muted)]">({{ lang.code }})</span>
-          </label>
-        </div>
-      </template>
-
-      <template #footer="{ close }">
-        <div class="flex justify-end gap-2">
-          <UButton @click="close" variant="outline">
-            Cancel
-          </UButton>
-          <UButton
-            @click="saveUserLanguages"
-            :loading="languageModalSubmitting"
-          >
-            Save Changes
-          </UButton>
-        </div>
-      </template>
-    </UModal>
-
-    <!-- Manage Inbox Identity Modal -->
-    <UModal v-model:open="showInboxIdentityModal" title="Inbox Identity">
-      <template #body>
-        <p class="mb-4">
-          Configure email identity for <strong>{{ selectedUser?.display_name || selectedUser?.email }}</strong>:
-        </p>
-
-        <form @submit.prevent="saveInboxIdentity" class="space-y-4">
-          <UFormField :label="$t('inbox.identity.alias')">
-            <UInput
-              v-model="inboxIdentityForm.email_alias"
-              type="text"
-              placeholder="george"
-              class="w-full"
-            />
-            <template #hint>
-              {{ $t('inbox.identity.aliasHint') }}
-            </template>
-          </UFormField>
-
-          <UFormField :label="$t('inbox.identity.signature')">
-            <UTextarea
-              v-model="inboxIdentityForm.email_signature"
-              :rows="5"
-              class="w-full"
-            />
-          </UFormField>
-        </form>
-      </template>
-
-      <template #footer="{ close }">
-        <div class="flex justify-end gap-2">
-          <UButton @click="close" variant="outline">
-            Cancel
-          </UButton>
-          <UButton
-            @click="saveInboxIdentity"
-            :loading="inboxIdentitySubmitting"
-          >
-            Save Changes
-          </UButton>
-        </div>
-      </template>
-    </UModal>
+    <!-- Delete User Confirmation Modal -->
+    <ConfirmModal
+      v-model:open="showDeleteUserConfirm"
+      title="Delete User"
+      :message="selectedUser ? `Are you sure you want to delete ${selectedUser.display_name || selectedUser.email}?` : ''"
+      warning="This will remove their access, assignments, and pending invitations they sent. This action cannot be undone."
+      confirm-text="Delete"
+      confirm-color="error"
+      :loading="deletingUser"
+      @confirm="confirmDeleteUser"
+      @cancel="showDeleteUserConfirm = false"
+    />
 
     <!-- Invite User Modal -->
     <UModal v-model:open="showInviteModal" title="Invite User">
@@ -446,7 +455,9 @@
 </template>
 
 <script setup lang="ts">
+import { DialogTitle, DialogDescription } from 'reka-ui'
 import { LANGUAGES } from '~/utils/languages'
+import { ROLES, type RoleName } from '~/utils/role-definitions'
 
 definePageMeta({
   layout: 'admin',
@@ -516,15 +527,6 @@ const roleIcons: Record<string, string> = {
   language_editor: 'i-lucide-languages',
   people_group_editor: 'i-lucide-users',
   inbox_agent: 'i-lucide-inbox'
-}
-
-const roleDisplayNames: Record<string, string> = {
-  admin: 'Admin',
-  progress_admin: 'Progress Admin',
-  content_editor: 'Content Editor',
-  language_editor: 'Language Editor',
-  people_group_editor: 'People Group Editor',
-  inbox_agent: 'Inbox Agent'
 }
 
 const permissionGroupLabels: Record<string, string> = {
@@ -606,20 +608,53 @@ const inviteSubmitting = ref(false)
 const inviteError = ref('')
 const inviteSuccess = ref(false)
 
-// Roles modal state
-const showRolesModal = ref(false)
+// Detail slideover state
+const slideoverOpen = ref(false)
 const selectedUser = ref<User | null>(null)
-const editingRoles = ref<string[]>([])
-const rolesModalSubmitting = ref(false)
+const activityRef = ref<{ refresh: () => void } | null>(null)
 
-// People group modal state
-const showPeopleGroupModal = ref(false)
+const sideTabs = [
+  { label: 'Activity', slot: 'activity', icon: 'i-lucide-activity' }
+]
+
+const selectedHasLanguageRole = computed(() =>
+  selectedUser.value?.roles.some(r => r.name === 'language_editor') ?? false
+)
+
+// Account fields auto-save (text fields save on blur, verified saves immediately)
+const { formData, saving, savedField, fieldChanged, reset: resetAutoSave, flush: flushAutoSave } = useAutoSave(
+  { email: '', display_name: '', verified: false },
+  {
+    saveFn: async (data) => {
+      const targetId = selectedUser.value!.id
+      await $fetch(`/api/admin/users/${targetId}`, {
+        method: 'PUT',
+        body: {
+          email: data.email,
+          display_name: data.display_name,
+          verified: data.verified
+        }
+      })
+    },
+    onSaved: () => {
+      refreshUsers()
+      activityRef.value?.refresh()
+    },
+    onError: (err) => {
+      toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to save', color: 'error' })
+    }
+  }
+)
+
+// Roles state
+const editingRoles = ref<string[]>([])
+const rolesSaving = ref(false)
+
+// People group access state
 const availablePeopleGroups = ref<PeopleGroup[]>([])
 const selectedPeopleGroupIds = ref<number[]>([])
-const peopleGroupModalLoading = ref(false)
-const peopleGroupModalError = ref('')
-const peopleGroupModalSubmitting = ref(false)
-const peopleGroupModalSuccess = ref(false)
+const peopleGroupsLoading = ref(false)
+const peopleGroupsSaving = ref(false)
 
 const peopleGroupSelectItems = computed(() =>
   availablePeopleGroups.value.map(pg => ({
@@ -628,20 +663,38 @@ const peopleGroupSelectItems = computed(() =>
   }))
 )
 
-// Inbox identity modal state
-const showInboxIdentityModal = ref(false)
+// Inbox identity state
 const inboxIdentityForm = ref({ email_alias: '', email_signature: '' })
 const inboxIdentitySubmitting = ref(false)
 
-// Language modal state
-const showLanguageModal = ref(false)
+// Language access state
 const editingLanguages = ref<string[]>([])
-const languageModalLoading = ref(false)
-const languageModalSubmitting = ref(false)
+const languagesLoading = ref(false)
+const languagesSaving = ref(false)
 
 const allLanguages = computed(() =>
   LANGUAGES.map(l => ({ code: l.code, name: l.name }))
 )
+
+// Delete user state
+const showDeleteUserConfirm = ref(false)
+const deletingUser = ref(false)
+
+// Unified save indicator: the header status reflects the account auto-save plus
+// every section that saves on its own (roles, people groups, languages, inbox identity)
+const sectionSavedFlash = ref(false)
+let sectionSavedTimer: ReturnType<typeof setTimeout> | null = null
+
+function flashSectionSaved() {
+  if (sectionSavedTimer) clearTimeout(sectionSavedTimer)
+  sectionSavedFlash.value = true
+  sectionSavedTimer = setTimeout(() => { sectionSavedFlash.value = false }, 1500)
+}
+
+const anySaving = computed(() =>
+  saving.value || rolesSaving.value || peopleGroupsSaving.value || languagesSaving.value || inboxIdentitySubmitting.value
+)
+const anySaved = computed(() => !!savedField.value || sectionSavedFlash.value)
 
 // Confirm modals state
 const showResendConfirm = ref(false)
@@ -661,7 +714,8 @@ const userColumns = [
   { accessorKey: 'roles', header: 'Roles' },
   { accessorKey: 'status', header: 'Status' },
   { accessorKey: 'access', header: 'Access' },
-  { accessorKey: 'created', header: 'Joined' }
+  { accessorKey: 'created', header: 'Joined' },
+  { accessorKey: 'actions', header: '' }
 ]
 
 const invitationColumns = [
@@ -682,7 +736,7 @@ const pendingInvitations = computed(() => {
 })
 
 function formatRoleName(roleName: string): string {
-  return roleDisplayNames[roleName] || roleName
+  return ROLES[roleName as RoleName]?.label || roleName
 }
 
 function getStatusColor(status: string): 'success' | 'warning' | 'error' | 'neutral' {
@@ -717,14 +771,57 @@ async function loadData() {
   }
 }
 
-// Roles modal
-function openRolesModal(user: User) {
+// Detail slideover
+function openUserSlideover(user: User) {
+  flushAutoSave()
   selectedUser.value = user
+  resetAutoSave({
+    email: user.email,
+    display_name: user.display_name || '',
+    verified: user.verified
+  })
   const availableNames = availableRoles.value.map(r => r.name)
   editingRoles.value = user.roles.map(r => r.name).filter(n => availableNames.includes(n))
-  showRolesModal.value = true
+  inboxIdentityForm.value = {
+    email_alias: user.email_alias || '',
+    email_signature: user.email_signature || ''
+  }
+  slideoverOpen.value = true
+  if (user.hasScopedAccess) loadPeopleGroupAccess(user)
+  if (user.roles.some(r => r.name === 'language_editor')) loadUserLanguages(user)
 }
 
+function onUserRowSelect(_e: Event, row: { original: User }) {
+  openUserSlideover(row.original)
+}
+
+watch(slideoverOpen, (open) => {
+  if (!open) flushAutoSave()
+})
+
+// When a role change grants scoped access, the People Group Access section appears
+// and needs its data loaded.
+watch(() => selectedUser.value?.hasScopedAccess, (has, had) => {
+  if (has && !had && slideoverOpen.value && selectedUser.value) {
+    loadPeopleGroupAccess(selectedUser.value)
+  }
+})
+
+// Silently refresh the user list (no loading spinner) and keep the selected user in sync
+async function refreshUsers() {
+  try {
+    const usersResponse = await $fetch<{ users: User[] }>('/api/admin/users')
+    users.value = usersResponse.users
+    if (selectedUser.value) {
+      const updated = users.value.find(u => u.id === selectedUser.value!.id)
+      if (updated) selectedUser.value = updated
+    }
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+// Roles
 function toggleEditingRole(roleName: string) {
   const idx = editingRoles.value.indexOf(roleName)
   if (idx >= 0) {
@@ -732,26 +829,22 @@ function toggleEditingRole(roleName: string) {
   } else {
     editingRoles.value.push(roleName)
   }
+  saveUserRoles()
 }
 
 async function saveUserRoles() {
   if (!selectedUser.value) return
 
-  rolesModalSubmitting.value = true
+  rolesSaving.value = true
   try {
     await $fetch(`/api/admin/users/${selectedUser.value.id}/role`, {
       method: 'PUT',
       body: { roles: editingRoles.value }
     })
 
-    toast.add({
-      title: 'Success',
-      description: 'User roles updated',
-      color: 'success'
-    })
-
-    showRolesModal.value = false
-    await loadData()
+    flashSectionSaved()
+    await refreshUsers()
+    activityRef.value?.refresh()
   } catch (err: any) {
     toast.add({
       title: 'Error',
@@ -759,7 +852,34 @@ async function saveUserRoles() {
       color: 'error'
     })
   } finally {
-    rolesModalSubmitting.value = false
+    rolesSaving.value = false
+  }
+}
+
+// Delete user
+async function confirmDeleteUser() {
+  if (!selectedUser.value) return
+
+  try {
+    deletingUser.value = true
+    await $fetch(`/api/admin/users/${selectedUser.value.id}`, { method: 'DELETE' })
+
+    users.value = users.value.filter(u => u.id !== selectedUser.value!.id)
+    showDeleteUserConfirm.value = false
+    slideoverOpen.value = false
+
+    toast.add({
+      title: 'User deleted',
+      color: 'success'
+    })
+  } catch (err: any) {
+    toast.add({
+      title: 'Error',
+      description: err.data?.statusMessage || 'Failed to delete user',
+      color: 'error'
+    })
+  } finally {
+    deletingUser.value = false
   }
 }
 
@@ -883,13 +1003,9 @@ function cancelRevokeInvitation() {
   revokeInvitationId.value = null
 }
 
-// People group modal
-async function openPeopleGroupModal(user: User) {
-  selectedUser.value = user
-  showPeopleGroupModal.value = true
-  peopleGroupModalError.value = ''
-  peopleGroupModalSuccess.value = false
-  peopleGroupModalLoading.value = true
+// People group access
+async function loadPeopleGroupAccess(user: User) {
+  peopleGroupsLoading.value = true
 
   try {
     const response = await $fetch<{ peopleGroups: PeopleGroup[] }>(`/api/admin/users/${user.id}/people-groups`)
@@ -898,19 +1014,20 @@ async function openPeopleGroupModal(user: User) {
       .filter(pg => pg.hasAccess)
       .map(pg => pg.id)
   } catch (err: any) {
-    peopleGroupModalError.value = err.data?.statusMessage || 'Failed to load people groups'
+    toast.add({
+      title: 'Error',
+      description: err.data?.statusMessage || 'Failed to load people groups',
+      color: 'error'
+    })
   } finally {
-    peopleGroupModalLoading.value = false
+    peopleGroupsLoading.value = false
   }
 }
 
 async function savePeopleGroupAccess() {
   if (!selectedUser.value) return
 
-  peopleGroupModalSubmitting.value = true
-  peopleGroupModalError.value = ''
-  peopleGroupModalSuccess.value = false
-
+  peopleGroupsSaving.value = true
   try {
     await $fetch(`/api/admin/users/${selectedUser.value.id}/people-groups`, {
       method: 'PUT',
@@ -919,29 +1036,22 @@ async function savePeopleGroupAccess() {
       }
     })
 
-    peopleGroupModalSuccess.value = true
-    toast.add({
-      title: 'Success',
-      description: 'People group access updated successfully',
-      color: 'success'
-    })
-
-    setTimeout(() => {
-      showPeopleGroupModal.value = false
-      peopleGroupModalSuccess.value = false
-    }, 1500)
+    flashSectionSaved()
+    refreshUsers()
   } catch (err: any) {
-    peopleGroupModalError.value = err.data?.statusMessage || 'Failed to update people group access'
+    toast.add({
+      title: 'Error',
+      description: err.data?.statusMessage || 'Failed to update people group access',
+      color: 'error'
+    })
   } finally {
-    peopleGroupModalSubmitting.value = false
+    peopleGroupsSaving.value = false
   }
 }
 
-// Language modal
-async function openLanguageModal(user: User) {
-  selectedUser.value = user
-  showLanguageModal.value = true
-  languageModalLoading.value = true
+// Language access
+async function loadUserLanguages(user: User) {
+  languagesLoading.value = true
 
   try {
     const response = await $fetch<{ languages: string[] }>(`/api/admin/users/${user.id}/languages`)
@@ -953,7 +1063,7 @@ async function openLanguageModal(user: User) {
       color: 'error'
     })
   } finally {
-    languageModalLoading.value = false
+    languagesLoading.value = false
   }
 }
 
@@ -964,25 +1074,20 @@ function toggleEditingLanguage(code: string) {
   } else {
     editingLanguages.value.push(code)
   }
+  saveUserLanguages()
 }
 
 async function saveUserLanguages() {
   if (!selectedUser.value) return
 
-  languageModalSubmitting.value = true
+  languagesSaving.value = true
   try {
     await $fetch(`/api/admin/users/${selectedUser.value.id}/languages`, {
       method: 'PUT',
       body: { language_codes: editingLanguages.value }
     })
 
-    toast.add({
-      title: 'Success',
-      description: 'Language access updated',
-      color: 'success'
-    })
-
-    showLanguageModal.value = false
+    flashSectionSaved()
   } catch (err: any) {
     toast.add({
       title: 'Error',
@@ -990,22 +1095,18 @@ async function saveUserLanguages() {
       color: 'error'
     })
   } finally {
-    languageModalSubmitting.value = false
+    languagesSaving.value = false
   }
 }
 
-// Inbox identity modal
-function openInboxIdentityModal(user: User) {
-  selectedUser.value = user
-  inboxIdentityForm.value = {
-    email_alias: user.email_alias || '',
-    email_signature: user.email_signature || ''
-  }
-  showInboxIdentityModal.value = true
-}
-
+// Inbox identity (saved on blur; skipped when nothing changed)
 async function saveInboxIdentity() {
   if (!selectedUser.value) return
+
+  const unchanged =
+    inboxIdentityForm.value.email_alias === (selectedUser.value.email_alias || '') &&
+    inboxIdentityForm.value.email_signature === (selectedUser.value.email_signature || '')
+  if (unchanged) return
 
   inboxIdentitySubmitting.value = true
   try {
@@ -1017,14 +1118,9 @@ async function saveInboxIdentity() {
       }
     })
 
-    toast.add({
-      title: 'Success',
-      description: 'Inbox identity updated',
-      color: 'success'
-    })
-
-    showInboxIdentityModal.value = false
-    await loadData()
+    flashSectionSaved()
+    await refreshUsers()
+    activityRef.value?.refresh()
   } catch (err: any) {
     toast.add({
       title: 'Error',
@@ -1052,3 +1148,74 @@ onMounted(() => {
   loadData()
 })
 </script>
+
+<style scoped>
+.slideover-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.slideover-header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.slideover-header-info h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slideover-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.slideover-close {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .slideover-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    position: relative;
+  }
+
+  .slideover-header-actions {
+    flex-wrap: wrap;
+  }
+
+  /* Keep the close button pinned top-right while everything else stacks. */
+  .slideover-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+
+  .slideover-header-info {
+    padding-right: 2.5rem;
+  }
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--ui-border);
+  font-size: 0.875rem;
+}
+
+.info-row .label { font-weight: 500; }
+.info-row .value { color: var(--ui-text-muted); }
+.monospace { font-family: monospace; }
+</style>

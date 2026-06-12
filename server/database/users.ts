@@ -93,6 +93,20 @@ export class UserService {
     return this.getUserById(id)
   }
 
+  // Update core account fields. Pass undefined to leave a field unchanged.
+  async updateUser(id: string, updates: { email?: string; display_name?: string; verified?: boolean }): Promise<User | null> {
+    if (updates.email !== undefined) {
+      await this.sql`UPDATE users SET email = ${updates.email.trim()}, updated = NOW() WHERE id = ${id}`
+    }
+    if (updates.display_name !== undefined) {
+      await this.sql`UPDATE users SET display_name = ${updates.display_name.trim()}, updated = NOW() WHERE id = ${id}`
+    }
+    if (updates.verified !== undefined) {
+      await this.sql`UPDATE users SET verified = ${updates.verified}, updated = NOW() WHERE id = ${id}`
+    }
+    return this.getUserById(id)
+  }
+
   async getAdminUsers(): Promise<User[]> {
     return await this.sql`
       SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences
@@ -107,6 +121,23 @@ export class UserService {
       SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences, email_alias, email_signature
       FROM users WHERE roles && ${roleNames}::text[]
     ` as any
+  }
+
+  // Delete a user account. Audit-trail columns referencing the user (marketing email
+  // sent_by/updated_by, sender created_by, report reviewed_by) are nulled so they don't
+  // block the delete; rows owned via ON DELETE CASCADE (invitations, API keys,
+  // people-group assignments, languages) are removed by the database. Throws the
+  // foreign-key violation if the user still owns rows that cannot be detached
+  // (e.g. marketing emails they created).
+  async deleteUser(id: string): Promise<boolean> {
+    return await this.sql.begin(async (sql) => {
+      await sql`UPDATE marketing_emails SET updated_by = NULL WHERE updated_by = ${id}`
+      await sql`UPDATE marketing_emails SET sent_by = NULL WHERE sent_by = ${id}`
+      await sql`UPDATE marketing_senders SET created_by = NULL WHERE created_by = ${id}`
+      await sql`UPDATE people_group_reports SET reviewed_by = NULL WHERE reviewed_by = ${id}`
+      const result = await sql`DELETE FROM users WHERE id = ${id}`
+      return result.count > 0
+    })
   }
 
   async verifyUser(id: string): Promise<boolean> {

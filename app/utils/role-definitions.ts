@@ -1,8 +1,9 @@
 export type RoleName = 'admin' | 'progress_admin' | 'content_editor' | 'language_editor' | 'people_group_editor' | 'inbox_agent'
 
-export const ROLES: Record<RoleName, { name: RoleName; description: string; permissions: string[] }> = {
+export const ROLES: Record<RoleName, { name: RoleName; label: string; description: string; permissions: string[] }> = {
   admin: {
     name: 'admin',
+    label: 'Admin',
     description: 'Full system administrator - can see and do everything',
     permissions: [
       'people_groups.view',
@@ -30,6 +31,7 @@ export const ROLES: Record<RoleName, { name: RoleName; description: string; perm
   },
   progress_admin: {
     name: 'progress_admin',
+    label: 'Progress Admin',
     description: 'Manages people groups, groups, and subscribers',
     permissions: [
       'people_groups.view',
@@ -48,6 +50,7 @@ export const ROLES: Record<RoleName, { name: RoleName; description: string; perm
   },
   people_group_editor: {
     name: 'people_group_editor',
+    label: 'People Group Editor',
     description: 'Manages assigned people groups and their content',
     permissions: [
       'people_groups.view_scoped',
@@ -64,6 +67,7 @@ export const ROLES: Record<RoleName, { name: RoleName; description: string; perm
   },
   content_editor: {
     name: 'content_editor',
+    label: 'Content Editor',
     description: 'Manages library content across all languages',
     permissions: [
       'content.view',
@@ -74,6 +78,7 @@ export const ROLES: Record<RoleName, { name: RoleName; description: string; perm
   },
   language_editor: {
     name: 'language_editor',
+    label: 'Language Editor',
     description: 'Manages library content in assigned languages only',
     permissions: [
       'content.view',
@@ -84,6 +89,7 @@ export const ROLES: Record<RoleName, { name: RoleName; description: string; perm
   },
   inbox_agent: {
     name: 'inbox_agent',
+    label: 'Inbox Agent',
     description: 'Handles the shared email inbox — triage and reply to contacts',
     permissions: [
       'inbox.view',

@@ -60,6 +60,7 @@
 import { allFields } from '~/utils/people-group-fields'
 import { getGroupFieldLabel } from '~/utils/group-fields'
 import { getSubscriberFieldLabel } from '~/utils/subscriber-fields'
+import { ROLES, type RoleName } from '~/utils/role-definitions'
 import { LANGUAGES } from '~~/config/languages'
 
 interface Activity {
@@ -74,7 +75,7 @@ interface Activity {
 
 const props = defineProps<{
   tableName: string
-  recordId: number
+  recordId: number | string
 }>()
 
 const { t } = useI18n()
@@ -185,8 +186,16 @@ function formatValue(field: string, value: any): string {
   if (typeof value === 'boolean') {
     return value ? 'Yes' : 'No'
   }
+  if (Array.isArray(value)) {
+    if (value.length === 0) return '(none)'
+    return value.map(v => formatValue(field, v)).join(', ')
+  }
   if (typeof value === 'object') {
     return JSON.stringify(value)
+  }
+
+  if (field === 'roles') {
+    return ROLES[value as RoleName]?.label || String(value)
   }
 
   if (field === 'country') {

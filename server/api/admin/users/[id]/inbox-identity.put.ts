@@ -44,7 +44,18 @@ export default defineEventHandler(async (event) => {
       email_alias: body.email_alias,
       email_signature: body.email_signature,
     })
-    logUpdate('users', userId, event, { message: 'Inbox identity updated' })
+
+    const changes: Record<string, { from: unknown; to: unknown }> = {}
+    if (body.email_alias !== undefined && (updated!.email_alias ?? null) !== (target.email_alias ?? null)) {
+      changes.email_alias = { from: target.email_alias, to: updated!.email_alias }
+    }
+    if (body.email_signature !== undefined && (updated!.email_signature ?? null) !== (target.email_signature ?? null)) {
+      changes.email_signature = { from: target.email_signature, to: updated!.email_signature }
+    }
+    if (Object.keys(changes).length > 0) {
+      logUpdate('users', userId, event, { changes })
+    }
+
     return { user: updated }
   } catch (error: any) {
     if (error?.code === '23505') {
