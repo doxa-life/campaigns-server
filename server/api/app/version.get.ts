@@ -14,22 +14,21 @@ import { setCacheHeaders } from '../../utils/app/cors'
 const DEFAULTS = {
   latest_version: '1.0.0',
   min_supported_version: '1.0.0',
-  ios_app_store_id: '' // numeric App Store ID, e.g. "1234567890"
 }
 
 export default defineEventHandler(async (event) => {
   setCacheHeaders(event)
 
+  const [latest, min] = await Promise.all([
+    appConfigService.getConfig<string>('app_version_latest'),
+    appConfigService.getConfig<string>('app_version_min'),
+  ])
+
   // Staging servers point at the staging flavor's application id (see nuxt.config.ts).
   const config = useRuntimeConfig(event)
 
-  const [latest, min, iosId] = await Promise.all([
-    appConfigService.getConfig<string>('app_version_latest'),
-    appConfigService.getConfig<string>('app_version_min'),
-    appConfigService.getConfig<string>('app_ios_app_store_id')
-  ])
-
-  const iosAppStoreId = iosId ?? DEFAULTS.ios_app_store_id
+  const androidAppStoreId = config.mobileAppAndroidPackage
+  const iosAppStoreId = config.mobileAppAppleId
 
   return {
     latest_version: latest ?? DEFAULTS.latest_version,
@@ -37,6 +36,6 @@ export default defineEventHandler(async (event) => {
     ios_app_store_url: iosAppStoreId
       ? `https://apps.apple.com/app/id${iosAppStoreId}`
       : null,
-    android_play_url: `https://play.google.com/store/apps/details?id=${config.mobileAppAndroidPackage}`
+    android_play_url: `https://play.google.com/store/apps/details?id=${androidAppStoreId}`
   }
 })
