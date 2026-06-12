@@ -229,21 +229,6 @@ export function logEmailChange(
 }
 
 /**
- * Log a registration attempt (for rate limiting by IP)
- */
-export function logRegisterAttempt(
-  ip: string,
-  userAgent?: string,
-  metadata?: any
-): void {
-  logEvent({
-    eventType: 'REGISTER_ATTEMPT',
-    userAgent,
-    metadata: { ...metadata, ip }
-  })
-}
-
-/**
  * Log a password reset request (for rate limiting by email)
  */
 export function logPasswordResetRequest(

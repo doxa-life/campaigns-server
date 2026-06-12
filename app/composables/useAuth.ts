@@ -87,22 +87,6 @@ export const useAuth = () => {
     }
   }
   
-  const register = async (email: string, password: string, display_name: string) => {
-    try {
-      const response = await $fetch('/api/auth/register', {
-        method: 'POST',
-        body: { email, password, display_name }
-      }) as { success: boolean; message?: string; requiresVerification?: boolean }
-      
-      return response
-    } catch (error: any) {
-      return { 
-        success: false, 
-        message: error.data?.message || 'Registration failed' 
-      }
-    }
-  }
-  
   const checkAuth = async () => {
     try {
       const response = await $fetch('/api/auth/me') as { user: any }
@@ -146,7 +130,6 @@ export const useAuth = () => {
     authReady: readonly(authReady),
     login,
     logout,
-    register,
     checkAuth,
     restoreFromCache,
     isLoggedIn,

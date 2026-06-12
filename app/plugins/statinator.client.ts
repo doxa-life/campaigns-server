@@ -44,7 +44,6 @@ function shouldTrackRoute(path: string): boolean {
     '/dashboard',
     '/accept-invitation',
     '/login',
-    '/register',
     '/reset-password'
   ].some(prefix => normalized === prefix || normalized.startsWith(`${prefix}/`))
 }

@@ -3,7 +3,6 @@ definePageMeta({
   layout: 'auth'
 })
 
-const router = useRouter()
 const route = useRoute()
 const { login } = useAuth()
 
@@ -49,15 +48,6 @@ async function handleLogin() {
     error.value = err.data?.message || 'An error occurred during login. Please try again.'
   } finally {
     loading.value = false
-  }
-}
-
-const redirectToRegister = () => {
-  const redirect = route.query.redirect as string
-  if (redirect) {
-    router.push(`/register?redirect=${encodeURIComponent(redirect)}`)
-  } else {
-    router.push('/register')
   }
 }
 
@@ -184,28 +174,6 @@ function switchToReset() {
             :disabled="loading || !state.email || !state.password"
           >
             Sign In
-          </UButton>
-
-          <!-- Divider -->
-          <div class="relative">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-(--ui-border)"></div>
-            </div>
-            <div class="relative flex justify-center text-sm">
-              <span class="px-2 bg-(--ui-bg) text-(--ui-text-muted)">Don't have an account?</span>
-            </div>
-          </div>
-
-          <!-- Register Link -->
-          <UButton
-            color="neutral"
-            variant="outline"
-            size="lg"
-            block
-            @click="redirectToRegister"
-            :disabled="loading"
-          >
-            Create Account
           </UButton>
         </form>
       </UCard>
