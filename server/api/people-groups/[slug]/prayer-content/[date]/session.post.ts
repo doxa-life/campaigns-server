@@ -88,6 +88,8 @@ export default defineEventHandler(async (event) => {
         anonymousHash: trackingId || null,
         language: typeof body.language === 'string' ? body.language.slice(0, 32) : null,
         url: typeof body.url === 'string' ? body.url.slice(0, 2048) : null,
+        targetLatitude: peopleGroup.latitude,
+        targetLongitude: peopleGroup.longitude,
         metadata: {
           people_group_slug: slug,
           content_date: dateParam,

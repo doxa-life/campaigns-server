@@ -14,6 +14,7 @@
  * - Never accepts a raw email from the browser; identity arrives pre-hashed.
  */
 import { trackEventInBackground, trackEventReturningId } from '#server/utils/tracking'
+import { peopleGroupService } from '#server/database/people-groups'
 
 const ALLOWED_EVENT_TYPES = new Set([
   'pageview',
@@ -87,6 +88,29 @@ export default defineEventHandler(async (event) => {
     metadata = null
   }
 
+  // Prayer events carry the prayed-for people group's centroid as
+  // target_latitude/target_longitude. Resolved server-side from the slug —
+  // the relay never trusts client-supplied coordinates. Fail-soft: a missing
+  // group or DB error just means the event goes out without coords.
+  let targetLatitude: number | string | null = null
+  let targetLongitude: number | string | null = null
+  if (eventType === 'prayer_content_viewed') {
+    const slug = typeof metadata?.people_group_slug === 'string'
+      ? metadata.people_group_slug.trim().slice(0, MAX_SHORT)
+      : ''
+    if (slug) {
+      try {
+        const peopleGroup = await peopleGroupService.getPeopleGroupBySlug(slug)
+        if (peopleGroup) {
+          targetLatitude = peopleGroup.latitude
+          targetLongitude = peopleGroup.longitude
+        }
+      } catch {
+        // analytics is non-critical
+      }
+    }
+  }
+
   const input = {
     eventType,
     metadata: metadata ?? null,
@@ -96,7 +120,9 @@ export default defineEventHandler(async (event) => {
     userHash: cap(body.user_hash, MAX_SHORT),
     url: cap(body.url, MAX_STR),
     referrer: cap(body.referrer, MAX_STR),
-    screenSize: cap(body.screen_size, 32)
+    screenSize: cap(body.screen_size, 32),
+    targetLatitude,
+    targetLongitude
     // Intentionally no `email`: server-derived only, never browser-supplied.
   }
 

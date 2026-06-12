@@ -15,6 +15,11 @@ interface TrackEventInput {
   url?: string | null
   referrer?: string | null
   screenSize?: string | null
+  // Location the event is *about* (e.g. the people group prayed for) — distinct
+  // from the visitor's own geo. Accepts strings because the postgres driver
+  // returns DECIMAL columns as strings.
+  targetLatitude?: number | string | null
+  targetLongitude?: number | string | null
 }
 
 const PII_METADATA_KEYS = new Set([
@@ -44,6 +49,14 @@ export function userHashFromEmail(email?: string | null): string | null {
   if (!normalized) return null
 
   return createHash('sha256').update(normalized).digest('hex')
+}
+
+function toFiniteNumber(value: unknown): number | null {
+  // Nullish/empty must not reach Number() — Number(null) and Number('') are 0,
+  // a real coordinate.
+  if (value === null || value === undefined || value === '') return null
+  const n = Number(value)
+  return Number.isFinite(n) ? n : null
 }
 
 function sanitizeMetadata(metadata?: TrackingMetadata | null): TrackingMetadata | null {
@@ -110,6 +123,12 @@ async function sendEvent(event: H3Event | undefined, input: TrackEventInput): Pr
 
   if (!statinatorUrl || !apiKey) return null
 
+  // Pair-or-nothing: a lone coordinate is unplottable, so target_latitude /
+  // target_longitude are sent only when both coerce to finite numbers.
+  const targetLat = toFiniteNumber(input.targetLatitude)
+  const targetLon = toFiniteNumber(input.targetLongitude)
+  const hasTarget = targetLat !== null && targetLon !== null
+
   try {
     const response = await $fetch<{ id: number | string }>(`${statinatorUrl}/api/events`, {
       method: 'POST',
@@ -128,6 +147,8 @@ async function sendEvent(event: H3Event | undefined, input: TrackEventInput): Pr
         metadata: sanitizeMetadata(input.metadata),
         value: input.value ?? null,
         language: input.language ?? null,
+        target_latitude: hasTarget ? targetLat : undefined,
+        target_longitude: hasTarget ? targetLon : undefined,
         anonymous_hash: input.anonymousHash || undefined,
         user_hash: input.userHash || userHashFromEmail(input.email),
         geo: buildGeoFromEvent(event)
