@@ -751,6 +751,142 @@ paths:
                   total:
                     type: integer
 
+  /api/global/groups:
+    get:
+      tags:
+        - Global
+      summary: People-group pool for global.doxa.life
+      description: >
+        Thin list of all active people groups (id, slug, name) for the
+        global.doxa.life prayer app, which runs its own weighted-random
+        selection locally. Authenticated with the shared form API key.
+      operationId: getGlobalGroups
+      security:
+        - FormApiKey: []
+      responses:
+        '200':
+          description: People-group pool
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        slug:
+                          type: string
+                        name:
+                          type: string
+                  total:
+                    type: integer
+        '401':
+          description: Invalid or missing API key
+
+  /api/global/groups/{slug}/content:
+    get:
+      tags:
+        - Global
+      summary: Prayer bundle for one people group
+      description: >
+        Returns a ready-to-render card-stack bundle for one people group:
+        demographics, one random day from the group's day_in_life library, and
+        a few random pieces drawn across the global shared libraries. Content is
+        Tiptap JSON. Falls back to English when a locale row is missing.
+      operationId: getGlobalGroupContent
+      security:
+        - FormApiKey: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: locale
+          in: query
+          required: false
+          schema:
+            type: string
+            default: en
+      responses:
+        '200':
+          description: Prayer bundle
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  demographics:
+                    type: object
+                    properties:
+                      id: { type: integer }
+                      slug: { type: string }
+                      name: { type: string }
+                      image_url: { type: string, nullable: true }
+                      population: { type: integer, nullable: true }
+                      evangelical_pct: { type: number, nullable: true }
+                      far_from_jesus_pct: { type: number, nullable: true }
+                      primary_religion: { type: string, nullable: true }
+                      primary_language: { type: string, nullable: true }
+                      region: { type: string, nullable: true }
+                      country_code: { type: string, nullable: true }
+                      description: { type: string, nullable: true }
+                  day_in_life:
+                    type: object
+                    nullable: true
+                    properties:
+                      day_number: { type: integer }
+                      content_json: { type: object, description: Tiptap document JSON }
+                  pray_more:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        content_json: { type: object, description: Tiptap document JSON }
+        '401':
+          description: Invalid or missing API key
+        '404':
+          description: People group not found
+
+  /api/global/session:
+    post:
+      tags:
+        - Global
+      summary: Record a completed global prayer
+      description: >
+        Records a completed prayer from global.doxa.life into prayer_activity
+        and forwards a prayer_logged event to Statinator tagged source: global.
+      operationId: postGlobalSession
+      security:
+        - FormApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [session_id, people_group_id, duration, timestamp]
+              properties:
+                session_id: { type: string }
+                tracking_id: { type: string, nullable: true }
+                people_group_id: { type: integer }
+                duration: { type: integer, description: Seconds prayed }
+                timestamp: { type: string, format: date-time }
+                language: { type: string, nullable: true }
+      responses:
+        '200':
+          description: Prayer recorded
+        '400':
+          description: Missing required fields
+        '401':
+          description: Invalid or missing API key
+        '404':
+          description: People group not found
+
   /api/profile/{id}:
     put:
       tags:
@@ -932,6 +1068,11 @@ components:
       in: header
       name: x-app-secret
       description: Shared secret bundled into the mobile app (anonymous + news signup)
+    FormApiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Shared form API key (FORM_API_KEY) for trusted sister sites (marketing, global)
 
   schemas:
     ValueLabel:
