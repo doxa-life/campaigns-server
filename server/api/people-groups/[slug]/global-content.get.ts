@@ -1,5 +1,5 @@
 /**
- * GET /api/global/groups/:slug/content?locale=en
+ * GET /api/people-groups/:slug/global-content?locale=en
  *
  * Returns a ready-to-render prayer bundle for one people group, for the
  * global.doxa.life card-stack flow:
