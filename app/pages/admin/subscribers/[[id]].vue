@@ -103,7 +103,7 @@
         @navigate="selectSubscriber($event)"
       />
       <CrmSaveStatus :saving="saving" :saved="!!savedField" />
-      <UButton size="sm" @click="openDeleteModal" color="error" variant="outline">Delete</UButton>
+      <UButton v-if="canAccessUnscoped('subscribers.delete')" size="sm" @click="openDeleteModal" color="error" variant="outline">Delete</UButton>
     </template>
 
     <template #detail>
@@ -768,7 +768,7 @@ const router = useRouter()
 const route = useRoute()
 const toast = useToast()
 const { t } = useI18n()
-const { canAccess, user } = useAuthUser()
+const { canAccess, canAccessUnscoped, user } = useAuthUser()
 
 // Data
 const subscriberGroups = ref<{ group_id: number; name: string }[]>([])
@@ -1530,12 +1530,9 @@ async function confirmDelete() {
   try {
     deleting.value = true
 
-    for (const subscription of subscriberToDelete.value.subscriptions) {
-      await $fetch(`/api/admin/subscriptions/${subscription.id}`, {
-        method: 'DELETE'
-      })
-    }
-
+    // Deleting the contact cascades to its subscriptions, contact methods, and
+    // group links server-side, so this is a single atomic call — no partial
+    // state if it fails partway.
     await $fetch(`/api/admin/subscribers/${subscriberToDelete.value.id}`, {
       method: 'DELETE'
     })

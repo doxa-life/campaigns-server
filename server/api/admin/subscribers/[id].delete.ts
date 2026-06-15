@@ -5,7 +5,7 @@ import { connectionService } from '../../../database/connections'
 import { getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  const user = await requirePermission(event, 'subscribers.delete')
+  const user = await requireUnscopedPermission(event, 'subscribers.delete')
 
   const id = getIntParam(event, 'id')
 

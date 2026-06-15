@@ -96,6 +96,25 @@ export async function requirePermission(event: H3Event, permission: string) {
   return user
 }
 
+/**
+ * Require the full, unscoped permission. A user who only holds the `_scoped`
+ * variant (e.g. a people group editor with `subscribers.delete_scoped`) is
+ * rejected. Use for destructive actions that span beyond a single scoped
+ * resource, where partial scoped authority is not enough.
+ */
+export async function requireUnscopedPermission(event: H3Event, permission: string) {
+  const user = await requirePermission(event, permission)
+
+  if (await roleService.isPermissionScoped(user.userId, permission)) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: `Permission required: ${permission}`
+    })
+  }
+
+  return user
+}
+
 // Generate JWT token
 export function generateToken(payload: JWTPayload): string {
   const config = useRuntimeConfig()
