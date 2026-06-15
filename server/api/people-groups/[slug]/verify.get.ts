@@ -53,14 +53,15 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Activate pending subscriptions and set reminders
+  // Pending prayer subscriptions are activated (and their next reminders set) by
+  // the `contact.verified` hook fired inside verifyByToken above. Here we load
+  // the subscriber and finalize the signup: welcome email, calendar links, and
+  // any cross-flow pending adoptions.
   let subscriber = null
   let latestActive: PeopleGroupSubscription | null = null
   if (result.contactMethod) {
     // A token-verified contact method is always subscriber-linked.
     const subscriberId = result.contactMethod.subscriber_id!
-    await peopleGroupSubscriptionService.activatePendingSubscriptions(subscriberId)
-    await peopleGroupSubscriptionService.setNextRemindersForSubscriber(subscriberId)
     subscriber = await subscriberService.getSubscriberById(subscriberId)
 
     // Log email verification

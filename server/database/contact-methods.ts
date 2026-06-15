@@ -1,5 +1,6 @@
 import { getSql } from './db'
 import { randomUUID } from 'crypto'
+import { doAction } from '../utils/hooks'
 
 // Deliverability suppression reasons. An unsubscribe is NOT here — it's a consent
 // signal (see unsubscribeFromMarketing), not a dead/complaining mailbox.
@@ -170,7 +171,9 @@ class ContactMethodService {
       WHERE id = ${contactMethod.id}
     `
 
-    return { success: true, contactMethod: (await this.getById(contactMethod.id))! }
+    const verified = (await this.getById(contactMethod.id))!
+    await doAction('contact.verified', verified)
+    return { success: true, contactMethod: verified }
   }
 
   async regenerateVerificationToken(contactMethodId: number): Promise<string | null> {
@@ -182,13 +185,16 @@ class ContactMethodService {
   // Mark a contact method verified directly (used when we receive an authenticated email
   // from the address — proves ownership + reachability). No-op if already verified.
   async markVerified(id: number): Promise<void> {
-    await this.sql`
+    const [row] = await this.sql`
       UPDATE contact_methods
       SET verified = true,
           verified_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
           updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE id = ${id} AND verified = false
+      RETURNING *
     `
+    // Only fires on a real transition — the WHERE clause skips already-verified rows.
+    if (row) await doAction('contact.verified', row as ContactMethod)
   }
 
   async hasVerifiedEmail(subscriberId: number): Promise<boolean> {
