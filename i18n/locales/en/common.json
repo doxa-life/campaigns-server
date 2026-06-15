@@ -702,7 +702,19 @@
       "unavailable": "AI is busy right now — try again in a moment",
       "replaceTitle": "Replace current reply?",
       "replaceMessage": "Drafting with AI will replace the text currently in the reply box.",
-      "replaceConfirm": "Replace"
+      "replaceConfirm": "Replace",
+      "directionPlaceholder": "Optional: steer this draft — e.g. \"Ask them to sign up for a people group in their country and link to their country's page.\"",
+      "modalTitle": "Draft reply with AI",
+      "directionLabel": "Steer the draft (optional)",
+      "generate": "Generate",
+      "refine": "Refine",
+      "generatingDraft": "Drafting a reply…",
+      "emptyHint": "Optionally steer the draft above, then click Generate.",
+      "replyLabel": "Reply",
+      "translationLabel": "English translation (for review)",
+      "useResponse": "Use response",
+      "appliedInstructions": "Applied",
+      "removeInstruction": "Remove instruction"
     },
     "kb": {
       "addTitle": "Add to knowledge base",

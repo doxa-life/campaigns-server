@@ -292,8 +292,8 @@
               <UButton icon="i-lucide-paperclip" variant="ghost" color="neutral" size="sm" @click="fileInput?.click()">
                 {{ $t('inbox.compose.attach') }}
               </UButton>
-              <UButton icon="i-lucide-sparkles" variant="ghost" color="info" size="sm" :loading="draftingAi" @click="requestAiDraft">
-                {{ currentDraftIsAi ? $t('inbox.ai.regenerate') : $t('inbox.ai.draft') }}
+              <UButton icon="i-lucide-sparkles" variant="ghost" color="info" size="sm" @click="aiDraftModalOpen = true">
+                {{ $t('inbox.ai.draft') }}
               </UButton>
               <span v-if="pendingFiles.length" class="pending-files">{{ pendingFiles.map(f => f.name).join(', ') }}</span>
               <div class="composer-spacer" />
@@ -343,13 +343,11 @@
     confirm-color="error"
     @confirm="confirmSpam"
   />
-  <ConfirmModal
-    v-model:open="showAiReplaceModal"
-    :title="$t('inbox.ai.replaceTitle')"
-    :message="$t('inbox.ai.replaceMessage')"
-    :confirm-text="$t('inbox.ai.replaceConfirm')"
-    confirm-color="info"
-    @confirm="confirmAiReplace"
+  <InboxAiDraftModal
+    v-if="selected"
+    v-model:open="aiDraftModalOpen"
+    :conversation-id="selected.conversation.id"
+    @use="onUseAiDraft"
   />
   <CannedResponsesManager v-model:open="showCanned" @saved="loadAux" />
   <ComposeEmailModal
@@ -449,9 +447,9 @@ const savingDraft = ref(false)
 const currentDraftId = ref<number | null>(null)
 const expandedQuoted = ref<Set<number>>(new Set())
 
-// AI drafting: review metadata (gloss/sources/uncertainty) for the current AI draft,
-// shown above the composer until the reviewer dismisses it.
-const draftingAi = ref(false)
+// AI drafting: the generate/refine modal, plus review metadata (gloss/sources/
+// uncertainty) for the draft it produced, shown above the composer until dismissed.
+const aiDraftModalOpen = ref(false)
 const aiMeta = ref<AiDraftMetadata | null>(null)
 // The gloss is only useful when the draft is in a language the reviewer might not read —
 // for an English draft it just duplicates the draft, so hide it.
@@ -459,14 +457,6 @@ const showAiGloss = computed(() => {
   const lang = aiMeta.value?.language?.toLowerCase() || ''
   return !!aiMeta.value?.gloss && !lang.startsWith('en')
 })
-// Whether the draft loaded in the composer is an AI-generated one. Only AI drafts are
-// reused as the regenerate slot — a human-written draft is never overwritten.
-const currentDraftIsAi = computed(() => {
-  const d = selected.value?.drafts.find(d => d.id === currentDraftId.value)
-  return !!d?.ai_generated
-})
-// Confirmation before an AI draft replaces non-empty composer content.
-const showAiReplaceModal = ref(false)
 // Knowledge-base capture modal state
 const kbModalOpen = ref(false)
 
@@ -851,50 +841,13 @@ async function sendReply() {
   }
 }
 
-// Entry point for the AI draft button: generating replaces whatever is in the composer,
-// so ask first when there is content to lose.
-function requestAiDraft() {
-  if (replyHtml.value.replace(/<[^>]*>/g, '').trim()) {
-    showAiReplaceModal.value = true
-    return
-  }
-  void draftWithAi()
-}
-
-function confirmAiReplace() {
-  showAiReplaceModal.value = false
-  void draftWithAi()
-}
-
-// Generate an AI draft for the open conversation. Reuses the current draft slot only when
-// it is itself AI-generated (so regenerate doesn't orphan drafts, and a human-written
-// draft is never overwritten), and loads the result into the composer.
-async function draftWithAi() {
-  if (!selected.value) return
-  const conversationId = selected.value.conversation.id
-  const reuseDraftId = currentDraftIsAi.value ? currentDraftId.value! : undefined
-  draftingAi.value = true
-  try {
-    const res = await $fetch<{ message: Message }>(
-      `/api/admin/inbox/conversations/${conversationId}/draft-reply`,
-      { method: 'POST', body: { from_identity: effectiveFromIdentity(), draft_id: reuseDraftId } }
-    )
-    // Generation takes seconds; if another conversation was opened meanwhile, leave its
-    // composer alone. The draft is saved on its own conversation and loads when reopened.
-    if (selected.value?.conversation.id !== conversationId) return
-    replyHtml.value = res.message.body_html || ''
-    currentDraftId.value = res.message.id
-    aiMeta.value = res.message.ai_metadata ?? null
-    await refreshSelected()
-  } catch (e: any) {
-    // 503 = AI not configured; 502 = Anthropic temporarily unreachable (retryable).
-    const msg = e?.statusCode === 503 ? t('inbox.ai.notConfigured')
-      : e?.statusCode === 502 ? t('inbox.ai.unavailable')
-        : t('inbox.toasts.error')
-    toast.add({ title: msg, color: 'error' })
-  } finally {
-    draftingAi.value = false
-  }
+// The AI draft modal hands back the (possibly edited) reply via "Use response".
+// Load it into the composer as a fresh draft and surface its review metadata; the
+// teammate then saves or sends it through the normal compose flow.
+function onUseAiDraft(payload: { html: string; meta: AiDraftMetadata }) {
+  replyHtml.value = payload.html
+  aiMeta.value = payload.meta
+  currentDraftId.value = null
 }
 
 function dismissAiMeta() {

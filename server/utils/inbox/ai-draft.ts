@@ -105,8 +105,19 @@ function stubDraft(): InboxDraftResult {
  * Generate an AI draft reply for a conversation, grounded in the static context pack
  * (cached), the captured knowledge base (cached), and the contact's live record +
  * thread (per request). Returns the structured draft for human review.
+ *
+ * `direction` is an optional free-text steer from the reviewing teammate (e.g. "ask
+ * them to sign up for a people group in their country and link to its page"). It
+ * shapes the draft but never overrides the tone guide or the grounding rules.
+ *
+ * `baseDraft` is an optional current draft to revise rather than start from scratch —
+ * how the modal's "refine" loop carries the teammate's edits into the next pass.
  */
-export async function generateInboxDraft(conversationId: number): Promise<InboxDraftResult> {
+export async function generateInboxDraft(
+  conversationId: number,
+  opts: { direction?: string; baseDraft?: string } = {},
+): Promise<InboxDraftResult> {
+  const { direction, baseDraft } = opts
   const conversation = await conversationService.getById(conversationId)
   if (!conversation) throw new Error('Conversation not found')
 
@@ -136,8 +147,16 @@ export async function generateInboxDraft(conversationId: number): Promise<InboxD
     `CONTACT RECORD\n${contactRecord}`,
     `CONVERSATION SUBJECT: ${conversation.subject || '(none)'}`,
     `CONVERSATION THREAD (oldest first)\n${buildThread(messages)}`,
-    `Draft a reply to the most recent CONTACT message. Call submit_draft with the result.`,
-  ].join('\n\n')
+    baseDraft
+      ? `CURRENT DRAFT (revise this rather than starting over — keep what works, preserve the content the instructions call for, and change only what they ask):\n${baseDraft}`
+      : null,
+    direction
+      ? `INSTRUCTIONS FROM THE REVIEWING TEAMMATE (satisfy ALL of them together — a later instruction adds to the earlier ones and does not cancel them unless it directly contradicts one, in which case the later wins. Still follow the tone guide and ground every fact in the provided material):\n${direction}`
+      : null,
+    baseDraft
+      ? `Revise the current draft for the most recent CONTACT message. Call submit_draft with the result.`
+      : `Draft a reply to the most recent CONTACT message. Call submit_draft with the result.`,
+  ].filter(Boolean).join('\n\n')
 
   // Stub at the network boundary: tests exercise everything above (DB reads, thread
   // building, prompt assembly) and skip only the API call.

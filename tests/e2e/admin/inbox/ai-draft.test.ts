@@ -57,7 +57,7 @@ describe('Inbox AI drafting', async () => {
   it('generates an AI draft saved as an ai_generated draft message', async () => {
     const { conversationId } = await makeConversationWithInbound()
     const res = await $fetch<any>(`/api/admin/inbox/conversations/${conversationId}/draft-reply`, {
-      method: 'POST', body: {}, ...agentAuth,
+      method: 'POST', body: { direction: 'Ask them to sign up for a people group in their country.' }, ...agentAuth,
     })
     expect(res.draft).toBe(true)
     expect(res.message.ai_generated).toBe(true)
@@ -68,6 +68,20 @@ describe('Inbox AI drafting', async () => {
 
     const detail = await $fetch<any>(`/api/admin/inbox/conversations/${conversationId}`, { ...agentAuth })
     expect(detail.drafts.some((d: any) => d.id === res.message.id && d.ai_generated)).toBe(true)
+  })
+
+  it('preview mode returns a draft without persisting a message', async () => {
+    const { conversationId } = await makeConversationWithInbound()
+    const before = await sql`SELECT count(*)::int AS n FROM conversation_messages WHERE conversation_id = ${conversationId} AND status = 'draft'`
+    const res = await $fetch<any>(`/api/admin/inbox/conversations/${conversationId}/draft-reply`, {
+      method: 'POST', body: { preview: true, direction: 'Keep it short.', base_draft: '<p>earlier attempt</p>' }, ...agentAuth,
+    })
+    expect(res.preview).toBe(true)
+    expect(typeof res.draft_html).toBe('string')
+    expect(res.draft_html.length).toBeGreaterThan(0)
+    expect(typeof res.english_gloss).toBe('string')
+    const after = await sql`SELECT count(*)::int AS n FROM conversation_messages WHERE conversation_id = ${conversationId} AND status = 'draft'`
+    expect(after[0]!.n).toBe(before[0]!.n)
   })
 
   it('regenerate reuses the same draft slot (no orphans)', async () => {
