@@ -11,6 +11,7 @@ import { sendWelcomeEmail } from '#server/utils/welcome-email'
 import { isValidTimezone } from '#server/utils/next-reminder-calculator'
 import { handleApiError } from '#server/utils/api-helpers'
 import { trackEventInBackground, userHashFromEmail } from '#server/utils/tracking'
+import { ENABLED_LANGUAGE_CODES } from '../../../../config/languages'
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
@@ -79,7 +80,7 @@ export default defineEventHandler(async (event) => {
   const timezone = body.timezone && isValidTimezone(body.timezone) ? body.timezone : 'UTC'
 
   // Normalize language (default to 'en' if invalid or missing)
-  const language = body.language && ['en', 'es', 'fr'].includes(body.language) ? body.language : 'en'
+  const language = body.language && ENABLED_LANGUAGE_CODES.includes(body.language) ? body.language : 'en'
 
   try {
     // Find or create subscriber

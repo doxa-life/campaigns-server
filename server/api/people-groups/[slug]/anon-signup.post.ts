@@ -12,6 +12,7 @@ import { requireAnonSignupSecret } from '#server/utils/anon-signup-secret'
 import { applyEmailConsents } from '#server/utils/email-consents'
 import { handleApiError } from '#server/utils/api-helpers'
 import { trackEventInBackground, userHashFromEmail } from '#server/utils/tracking'
+import { ENABLED_LANGUAGE_CODES } from '../../../../config/languages'
 
 const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -53,7 +54,7 @@ export default defineEventHandler(async (event) => {
   const prayer_duration = time_preference ? undefined : 5
 
   const timezone = body.timezone && isValidTimezone(body.timezone) ? body.timezone : 'UTC'
-  const language = body.language && ['en', 'es', 'fr'].includes(body.language) ? body.language : 'en'
+  const language = body.language && ENABLED_LANGUAGE_CODES.includes(body.language) ? body.language : 'en'
 
   // Email is optional. When provided, it lets us dedup against an existing
   // (e.g. web) subscriber so the app subscription lands on the same record.

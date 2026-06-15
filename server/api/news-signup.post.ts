@@ -11,6 +11,7 @@ import { requireAppSecretOrFormApiKey } from '#server/utils/anon-signup-secret'
 import { applyEmailConsents } from '#server/utils/email-consents'
 import { handleApiError } from '#server/utils/api-helpers'
 import { trackEventInBackground, userHashFromEmail } from '#server/utils/tracking'
+import { ENABLED_LANGUAGE_CODES } from '../../config/languages'
 import countries from 'i18n-iso-countries'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -35,7 +36,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const name = body.name?.trim() || ''
-  const language = body.language && ['en', 'es', 'fr'].includes(body.language) ? body.language : 'en'
+  const language = body.language && ENABLED_LANGUAGE_CODES.includes(body.language) ? body.language : 'en'
   const rawCountry = body.country?.trim().toUpperCase() || null
   let country: string | null = null
   if (rawCountry) {
