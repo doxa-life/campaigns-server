@@ -287,6 +287,27 @@
                 <UBadge v-for="(s, i) in aiMeta.sources" :key="i" color="neutral" variant="subtle" size="xs">{{ s }}</UBadge>
               </div>
             </div>
+            <!-- Signature notice: the server appends the agent's signature only on a
+                 personal send, so make clear up front whether one will be added. -->
+            <div class="composer-signature">
+              <template v-if="signatureState === 'attach'">
+                <UIcon name="i-lucide-pen-line" class="sig-icon" />
+                <span>{{ $t('inbox.compose.signatureWillAttach') }}</span>
+                <UButton variant="link" color="neutral" size="xs" @click="showSignaturePreview = !showSignaturePreview">
+                  {{ showSignaturePreview ? $t('inbox.compose.signatureHide') : $t('inbox.compose.signaturePreview') }}
+                </UButton>
+              </template>
+              <template v-else-if="signatureState === 'none-personal'">
+                <UIcon name="i-lucide-pen-off" class="sig-icon" />
+                <span class="sig-muted">{{ $t('inbox.compose.signatureNoneSet') }}</span>
+              </template>
+              <template v-else>
+                <UIcon name="i-lucide-pen-off" class="sig-icon" />
+                <span class="sig-muted">{{ $t('inbox.compose.signatureNoneContact') }}</span>
+              </template>
+            </div>
+            <!-- eslint-disable-next-line vue/no-v-html — the agent's own signature HTML -->
+            <div v-if="showSignaturePreview && signatureState === 'attach'" class="signature-preview" v-html="meSignature" />
             <div class="composer-actions">
               <input ref="fileInput" type="file" multiple class="hidden-file" @change="onFilesPicked" />
               <UButton icon="i-lucide-paperclip" variant="ghost" color="neutral" size="sm" @click="fileInput?.click()">
@@ -469,9 +490,21 @@ const users = ref<{ id: string; display_name: string; email: string; email_alias
 const publicConfig = useRuntimeConfig().public as { inboxContactAddress?: string; inboxDomain?: string }
 const contactAddress = publicConfig.inboxContactAddress || 'contact@doxa.life'
 const inboxDomain = publicConfig.inboxDomain || 'doxa.life'
-const fromIdentity = ref<'personal' | 'contact'>('personal')
+const fromIdentity = ref<'personal' | 'contact'>('contact')
 const meAlias = ref<string | null>(null)
+const meSignature = ref<string | null>(null)
 const myAlias = computed(() => meAlias.value || users.value.find(u => String(u.id) === String(user.value?.id))?.email_alias || null)
+const showSignaturePreview = ref(false)
+// The signature is appended by the server only on a personal send, so it attaches exactly
+// when the effective From is the agent's alias and they have a signature set. Surfaced in
+// the composer so the agent knows whether a sign-off will be added before they send.
+const willAttachSignature = computed(() => effectiveFromIdentity() === 'personal' && !!meSignature.value?.trim())
+// Which message the composer shows about the signature: it attaches, it's a personal send
+// but no signature is set, or it's the general contact address (which never signs).
+const signatureState = computed<'attach' | 'none-personal' | 'contact'>(() => {
+  if (willAttachSignature.value) return 'attach'
+  return effectiveFromIdentity() === 'personal' ? 'none-personal' : 'contact'
+})
 const fromOptions = computed(() => {
   const opts: { label: string; value: 'personal' | 'contact' }[] = []
   if (myAlias.value) {
@@ -634,7 +667,7 @@ async function selectConversation(id: number, updateUrl = true) {
     replyHtml.value = ''
     currentDraftId.value = null
     aiMeta.value = null
-    fromIdentity.value = 'personal'
+    fromIdentity.value = defaultFromIdentity(res.messages)
     pendingFiles.value = []
     expandedQuoted.value = new Set()
     if (updateUrl) window.history.replaceState({}, '', `/admin/inbox/${id}`)
@@ -767,6 +800,20 @@ function effectiveFromIdentity(): 'personal' | 'contact' {
   return myAlias.value ? fromIdentity.value : 'contact'
 }
 
+// Default From when opening a conversation: the general contact address, unless this
+// thread was already answered from a personal alias — then stay personal for continuity.
+// A prior reply's from_email is the bare alias address when personal, the contact address
+// when not, so anything else on an outbound (sent) message means personal was used.
+function defaultFromIdentity(messages: Message[]): 'personal' | 'contact' {
+  const personalUsed = messages.some(m =>
+    m.direction === 'outbound'
+    && m.status !== 'draft'
+    && !!m.from_email
+    && m.from_email.toLowerCase() !== contactAddress.toLowerCase(),
+  )
+  return personalUsed ? 'personal' : 'contact'
+}
+
 async function ensureDraft(): Promise<number> {
   const res = await $fetch<{ message: { id: number } }>(
     `/api/admin/inbox/conversations/${selected.value!.conversation.id}/messages`,
@@ -885,11 +932,12 @@ async function loadAux() {
     const [cannedRes, usersRes, meRes] = await Promise.all([
       $fetch<{ cannedResponses: any[] }>('/api/admin/inbox/canned-responses').catch(() => ({ cannedResponses: [] })),
       $fetch<any>('/api/admin/inbox/assignees').catch(() => ({ users: [] })),
-      $fetch<{ email_alias: string | null }>('/api/admin/inbox/me').catch(() => ({ email_alias: null })),
+      $fetch<{ email_alias: string | null; email_signature: string | null }>('/api/admin/inbox/me').catch(() => ({ email_alias: null, email_signature: null })),
     ])
     cannedResponses.value = cannedRes.cannedResponses || []
     users.value = Array.isArray(usersRes) ? usersRes : (usersRes.users || [])
     meAlias.value = meRes.email_alias || null
+    meSignature.value = meRes.email_signature || null
   } catch {
     // non-fatal
   }
@@ -1003,6 +1051,10 @@ a.contact-name:hover { text-decoration: underline; }
 .canned-select { min-width: 200px; }
 .lang-select { width: 150px; }
 .composer-editor { border: 1px solid var(--ui-border); border-radius: 8px; min-height: 120px; margin-bottom: 0.5rem; }
+.composer-signature { display: flex; align-items: center; gap: 0.375rem; margin: 0.5rem 0 0.25rem; font-size: 0.8rem; color: var(--ui-text-toned); }
+.composer-signature .sig-icon { flex-shrink: 0; color: var(--ui-text-dimmed); }
+.composer-signature .sig-muted { color: var(--ui-text-muted); }
+.signature-preview { border: 1px solid var(--ui-border); border-left: 3px solid var(--ui-border-accented); border-radius: 6px; padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; background: var(--ui-bg-elevated); font-size: 0.85rem; color: var(--ui-text-muted); }
 .composer-actions { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 3.5rem; }
 .composer-spacer { flex: 1; }
 .ai-review { border: 1px solid var(--ui-border); border-radius: 0.5rem; padding: 0.625rem 0.75rem; margin-top: 0.5rem; background: var(--ui-bg-elevated); display: flex; flex-direction: column; gap: 0.5rem; }
