@@ -16,8 +16,8 @@
       "namespace": "staging_android_app",
       "package_name": "app.prayer.doxa.staging",
       "sha256_cert_fingerprints": [
-        "REPLACE_WITH_PLAY_APP_SIGNING_SHA256",
-        "REPLACE_WITH_UPLOAD_KEY_SHA256"
+        "75:92:76:4C:A0:73:EF:51:76:86:C1:EF:47:38:A0:12:FA:9A:D9:3C:BA:F2:9B:39:9A:BF:B6:1C:DA:4F:85:A7",
+        "6F:88:F5:8A:1E:CD:6C:A2:BA:1E:F9:60:0B:B9:35:4B:44:72:95:AE:3E:3D:96:EF:8A:74:F4:DD:2A:B1:1F:BF"
       ]
     }
   }
