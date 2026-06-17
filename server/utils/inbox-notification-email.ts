@@ -23,11 +23,11 @@ function getConfig() {
     siteUrl: config.public.siteUrl || 'http://localhost:3000',
     appName: config.appName || 'DOXA Prayer',
     contactAddress: config.inboxContactAddress || 'contact@doxa.life',
-    // Staff notifications send from the app's standard SMTP_FROM address (same as
-    // the legacy templates), not the public contact@ inbox address. SMTP_FROM must
-    // be on the inbox Mailgun domain (doxa.life) so it stays DKIM/DMARC-aligned
-    // through this transport — e.g. campaigns@doxa.life.
-    fromAddress: config.smtpFrom || `campaigns@${config.inboxDomain || 'doxa.life'}`,
+    // Staff notifications send from a dedicated notifications@ address on the inbox
+    // Mailgun domain (doxa.life), not the public contact@ inbox address. Keeping the
+    // local part on the inbox domain means it stays DKIM/DMARC-aligned through this
+    // transport — e.g. notifications@doxa.life.
+    fromAddress: `notifications@${config.inboxDomain || 'doxa.life'}`,
     replySecret: config.inboxReplySecret || config.jwtSecret || '',
   }
 }
