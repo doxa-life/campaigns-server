@@ -67,7 +67,7 @@
     </section>
 
     <!-- Scripture copyright notices -->
-    <section v-if="metadata.copyright_notices !== null && metadata.copyright_notices.length" class="px-8 pb-8">
+    <section v-if="metadata?.copyright_notices?.length" class="px-8 pb-8">
       <div class="max-w-4xl mx-auto border-l-2 border-[var(--ui-border)] pl-3">
         <p v-for="item in metadata.copyright_notices" :key="item.id" class="!text-[10px] italic text-[var(--ui-text-muted)] mt-1">
           {{ item.notice }}
@@ -105,9 +105,9 @@ const props = defineProps<{
   hasContent: boolean
   prayedMarked: boolean
   submitting: boolean
-  metadata: {
+  metadata?: {
     copyright_notices: { id: string; notice: string }[] | null
-  }
+  } | null
 }>()
 
 defineEmits<{
