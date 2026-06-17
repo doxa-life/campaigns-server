@@ -73,7 +73,7 @@ export async function sendFollowupEmail(data: FollowupEmailData): Promise<boolea
   const feedbackHelps = t('email.followup.feedbackHelps', locale)
   const pauseNotice = t('email.followup.pauseNotice', locale)
   const commitmentCheckIn = t('email.followup.commitmentCheckIn', locale, { appName })
-  const managePreferences = t('email.common.managePreferences', locale)
+  const managePrayerTimes = t('email.common.managePrayerTimes', locale)
 
   const buttonStyle = `
     display: block;
@@ -135,11 +135,22 @@ export async function sendFollowupEmail(data: FollowupEmailData): Promise<boolea
         </p>
       </div>
 
-      <div style="text-align: center; margin-top: 20px; padding: 20px; color: #666666; font-size: 12px;">
-        <p style="margin: 0 0 10px;">${commitmentCheckIn}</p>
-        <p style="margin: 0;">
-          <a href="${profileUrl}" style="color: #666666; text-decoration: underline;">${managePreferences}</a>
-        </p>
+      <div style="text-align: center; margin-top: 30px;">
+        <a href="${profileUrl}" style="
+          display: inline-block;
+          background: #ffffff;
+          color: #3B463D;
+          padding: 12px 24px;
+          text-decoration: none;
+          border-radius: 5px;
+          font-weight: 500;
+          font-size: 14px;
+          border: 2px solid #3B463D;
+        ">${managePrayerTimes}</a>
+      </div>
+
+      <div style="text-align: center; margin-top: 16px; padding: 20px; color: #666666; font-size: 12px;">
+        <p style="margin: 0;">${commitmentCheckIn}</p>
       </div>
     </body>
     </html>
@@ -163,8 +174,9 @@ ${feedbackHelps}
 ${pauseNotice}
 
 ---
+${managePrayerTimes}: ${profileUrl}
+
 ${commitmentCheckIn}
-${managePreferences}: ${profileUrl}
   `.trim()
 
   return await sendEmail({

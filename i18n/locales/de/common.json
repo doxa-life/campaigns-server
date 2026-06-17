@@ -270,7 +270,7 @@
       }
     },
     "profile": {
-      "pageTitle": "Einstellungen verwalten",
+      "pageTitle": "Konto und Gebetszeiten verwalten",
       "title": "Erinnerungseinstellungen",
       "greeting": "Hallo {name}, verwalten Sie hier Ihre Gebetserinnerungseinstellungen.",
       "save": "Änderungen speichern",
@@ -300,10 +300,10 @@
       "current": "Aktuell",
       "viewCampaign": "Kampagne ansehen",
       "unsubscribeButton": "Abmelden",
-      "resubscribeButton": "Erneut anmelden",
+      "resubscribeButton": "Erinnerungen neu starten",
       "unsubscribeConfirm": "Sind Sie sicher, dass Sie sich von {campaign} abmelden möchten?",
       "unsubscribeSuccess": "Sie wurden abgemeldet.",
-      "resubscribeSuccess": "Sie wurden wieder angemeldet.",
+      "resubscribeSuccess": "Erinnerungen neu gestartet.",
       "reminders": "Erinnerungen",
       "reminder": "Erinnerung",
       "deleteReminderConfirm": "Sind Sie sicher, dass Sie diese Erinnerung löschen möchten?",
@@ -312,7 +312,27 @@
         "title": "Fehler",
         "notFound": "Abonnement nicht gefunden.",
         "failed": "Speichern fehlgeschlagen. Bitte versuchen Sie es erneut."
-      }
+      },
+      "muted": "Stummgeschaltet",
+      "paused": "Gestoppt",
+      "stopRemindersPageTitle": "Erinnerungen stoppen",
+      "stopRemindersButton": "Erinnerung stoppen",
+      "stopReminderTitle": "Ihre {time}-Erinnerung für {campaign} stoppen",
+      "stopRemindersQuestion": "Was möchten Sie tun?",
+      "alreadyStoppedTitle": "Bereits gestoppt",
+      "alreadyStoppedMessage": "Ihre {time}-Erinnerung ist bereits gestoppt. Sie können sie in Ihren Einstellungen wieder starten.",
+      "alreadyMutedNote": "Die Benachrichtigungen für Ihre {time}-Erinnerung sind bereits stummgeschaltet.",
+      "muteOption": "Die Benachrichtigungen für {time} stoppen",
+      "muteOptionHint": "Beten Sie weiterhin um {time} — wir stoppen nur die E-Mail-Erinnerungen und melden uns gelegentlich.",
+      "stopTimeOption": "Das Beten um {time} stoppen",
+      "stopTimeOptionHint": "Diese Gebetszeit stoppen. Sie können sie jederzeit wieder starten.",
+      "stopAllOption": "Ich bete nicht mehr",
+      "stopAllOptionHint": "Alle Erinnerungen für {campaign} stoppen.",
+      "muteSuccess": "Erinnerungen stummgeschaltet. Danke, dass Sie weiterhin beten!",
+      "notPrayingSuccess": "Diese Gebetszeit wurde gestoppt. Sie können sie jederzeit wieder starten.",
+      "stopAllSuccess": "Alle Erinnerungen für {campaign} wurden gestoppt. Sie können sie jederzeit wieder starten.",
+      "resumeRemindersButton": "Erinnerungen starten",
+      "resumeSuccess": "Erinnerungen gestartet."
     }
   },
   "prayerFuel": {
@@ -442,8 +462,8 @@
     },
     "notPraying": {
       "title": "Wir verstehen",
-      "message": "Ihr Abonnement wurde pausiert. Sie werden vorerst keine Gebetserinnerungen erhalten.",
-      "reactivateNotice": "Wenn Sie in Zukunft wieder beten möchten, können Sie Ihr Abonnement jederzeit in Ihrem Profil reaktivieren.",
+      "message": "Ihr Abonnement wurde gestoppt. Sie werden vorerst keine Gebetserinnerungen erhalten.",
+      "reactivateNotice": "Wenn Sie in Zukunft wieder beten möchten, können Sie dies jederzeit in Ihrem Profil tun.",
       "profileButton": "Mein Profil ansehen",
       "visitButton": "Kampagne besuchen"
     },
@@ -454,7 +474,10 @@
       "hello": "Hallo {name}!",
       "automatedMessage": "Dies ist eine automatische Nachricht von {appName}. Bitte antworten Sie nicht auf diese E-Mail.",
       "managePreferences": "Einstellungen verwalten",
-      "unsubscribe": "Abmelden"
+      "unsubscribe": "Abmelden",
+      "managePrayerTimes": "Gebetszeiten verwalten",
+      "manageAccountAndPrayerTimes": "Konto und Gebetszeiten verwalten",
+      "stopReminders": "Diese Erinnerung stoppen"
     },
     "verification": {
       "subject": "Bestätigen Sie Ihre E-Mail-Adresse",
@@ -502,7 +525,7 @@
       "sometimesWeekly": "Manchmal, aber nicht immer",
       "noLonger": "Nein, ich bete nicht mehr",
       "feedbackHelps": "Ihr Feedback hilft uns zu verstehen, wie wir Ihre Gebetsreise besser unterstützen können.",
-      "pauseNotice": "Wenn wir nichts von Ihnen hören, pausieren wir Ihre Gebetserinnerungen, um Ihren Posteingang nicht zu überfüllen. Sie können sie jederzeit in Ihrem Profil reaktivieren.",
+      "pauseNotice": "Wenn wir nichts von Ihnen hören, stoppen wir Ihre Gebetserinnerungen, um Ihren Posteingang nicht zu überfüllen. Sie können sie jederzeit in Ihrem Profil wieder starten.",
       "commitmentCheckIn": "Dies ist ein Engagement-Check-In von {appName}."
     },
     "marketing": {
@@ -585,7 +608,7 @@
     "eventTitle": "Gebet für die {campaign}",
     "eventDescription": "{duration}-minütige Gebetszeit für die {campaign}"
   },
-  "inbox":   {
+  "inbox": {
     "title": "Posteingang",
     "searchPlaceholder": "Unterhaltungen suchen",
     "empty": "Keine Unterhaltungen",

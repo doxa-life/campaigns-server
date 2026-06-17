@@ -121,7 +121,7 @@ function getResponseMessage(response: string): string {
     case 'sometimes':
       return 'Thank you for your honesty. Consider adjusting your schedule if needed.'
     case 'not_praying':
-      return 'Your subscription has been paused. You can reactivate it anytime.'
+      return 'Your subscription has been stopped. You can start it again anytime.'
     default:
       return 'Response recorded.'
   }

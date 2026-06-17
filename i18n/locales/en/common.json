@@ -270,7 +270,7 @@
       }
     },
     "profile": {
-      "pageTitle": "Manage Preferences",
+      "pageTitle": "Manage Account and Prayer Times",
       "title": "Reminder Settings",
       "greeting": "Hi {name}, manage your prayer reminder preferences below.",
       "save": "Save Changes",
@@ -300,14 +300,34 @@
       "current": "Current",
       "viewCampaign": "View Campaign",
       "unsubscribeButton": "Unsubscribe",
-      "resubscribeButton": "Re-subscribe",
+      "resubscribeButton": "Restart reminders",
       "unsubscribeConfirm": "Are you sure you want to unsubscribe from {campaign}?",
       "unsubscribeSuccess": "You have been unsubscribed.",
-      "resubscribeSuccess": "You have been re-subscribed.",
+      "resubscribeSuccess": "Reminders restarted.",
       "reminders": "reminders",
       "reminder": "Reminder",
       "deleteReminderConfirm": "Are you sure you want to delete this reminder?",
       "deleteReminderSuccess": "Reminder deleted.",
+      "muted": "Muted",
+      "paused": "Stopped",
+      "stopRemindersPageTitle": "Stop Reminders",
+      "stopRemindersButton": "Stop reminder",
+      "stopReminderTitle": "Stop your {time} reminder for {campaign}",
+      "stopRemindersQuestion": "What would you like to do?",
+      "alreadyStoppedTitle": "Already stopped",
+      "alreadyStoppedMessage": "Your {time} reminder is already stopped. You can start it again from your preferences.",
+      "alreadyMutedNote": "Notifications for your {time} reminder are already muted.",
+      "muteOption": "Stop the notifications for {time}",
+      "muteOptionHint": "Keep praying at {time} — we'll just stop the email reminders, and still check in occasionally.",
+      "stopTimeOption": "Stop praying at {time}",
+      "stopTimeOptionHint": "Stop this prayer time. You can start it again anytime.",
+      "stopAllOption": "Not praying any more",
+      "stopAllOptionHint": "Stop all reminders for {campaign}.",
+      "muteSuccess": "Reminders muted. Thank you for continuing to pray!",
+      "notPrayingSuccess": "This prayer time has been stopped. You can start it again anytime.",
+      "stopAllSuccess": "All reminders for {campaign} have been stopped. You can start them again anytime.",
+      "resumeRemindersButton": "Start reminders",
+      "resumeSuccess": "Reminders started.",
       "error": {
         "title": "Error",
         "notFound": "Subscription not found.",
@@ -442,8 +462,8 @@
     },
     "notPraying": {
       "title": "We understand",
-      "message": "Your subscription has been paused. You won't receive prayer reminders for now.",
-      "reactivateNotice": "If you'd like to resume praying in the future, you can reactivate your subscription anytime from your profile.",
+      "message": "Your subscription has been stopped. You won't receive prayer reminders for now.",
+      "reactivateNotice": "If you'd like to start praying again in the future, you can do so anytime from your profile.",
       "profileButton": "View My Profile",
       "visitButton": "Visit Campaign"
     },
@@ -454,7 +474,10 @@
       "hello": "Hello {name}!",
       "automatedMessage": "This is an automated message from {appName}. Please do not reply to this email.",
       "managePreferences": "Manage Preferences",
-      "unsubscribe": "Unsubscribe"
+      "managePrayerTimes": "Manage Prayer Times",
+      "manageAccountAndPrayerTimes": "Manage Account and Prayer Times",
+      "unsubscribe": "Unsubscribe",
+      "stopReminders": "Stop this reminder"
     },
     "verification": {
       "subject": "Confirm your email address",
@@ -502,7 +525,7 @@
       "sometimesWeekly": "Sometimes, but not always",
       "noLonger": "No, no longer praying",
       "feedbackHelps": "Your feedback helps us understand how we can better support your prayer journey.",
-      "pauseNotice": "If we don't hear from you, we'll pause your prayer reminders to avoid filling your inbox. You can always reactivate them from your profile.",
+      "pauseNotice": "If we don't hear from you, we'll stop your prayer reminders to avoid filling your inbox. You can always start them again from your profile.",
       "commitmentCheckIn": "This is a commitment check-in from {appName}."
     },
     "marketing": {

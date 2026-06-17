@@ -270,7 +270,7 @@
       }
     },
     "profile": {
-      "pageTitle": "管理偏好设置",
+      "pageTitle": "管理账户和祷告时间",
       "title": "提醒设置",
       "greeting": "你好{name}，在下方管理您的祷告提醒偏好设置。",
       "save": "保存更改",
@@ -300,10 +300,10 @@
       "current": "当前",
       "viewCampaign": "查看活动",
       "unsubscribeButton": "取消订阅",
-      "resubscribeButton": "重新订阅",
+      "resubscribeButton": "重新开启提醒",
       "unsubscribeConfirm": "您确定要取消订阅{campaign}吗？",
       "unsubscribeSuccess": "您已取消订阅。",
-      "resubscribeSuccess": "您已重新订阅。",
+      "resubscribeSuccess": "提醒已重新开启。",
       "reminders": "提醒",
       "reminder": "提醒",
       "deleteReminderConfirm": "您确定要删除此提醒吗？",
@@ -312,7 +312,27 @@
         "title": "错误",
         "notFound": "未找到订阅。",
         "failed": "保存更改失败。请重试。"
-      }
+      },
+      "muted": "已静音",
+      "paused": "已停止",
+      "stopRemindersPageTitle": "停止提醒",
+      "stopRemindersButton": "停止提醒",
+      "stopReminderTitle": "停止{campaign}的{time}提醒",
+      "stopRemindersQuestion": "您想要怎么做？",
+      "alreadyStoppedTitle": "已停止",
+      "alreadyStoppedMessage": "您的{time}提醒已停止。您可以随时从偏好设置中重新开启。",
+      "alreadyMutedNote": "您的{time}提醒通知已静音。",
+      "muteOption": "停止{time}的通知",
+      "muteOptionHint": "继续在{time}祷告——我们只会停止邮件提醒，并偶尔与您联系。",
+      "stopTimeOption": "停止在{time}祷告",
+      "stopTimeOptionHint": "停止此祷告时间。您可以随时重新开启。",
+      "stopAllOption": "不再祷告",
+      "stopAllOptionHint": "停止{campaign}的所有提醒。",
+      "muteSuccess": "提醒已静音。感谢您继续祷告！",
+      "notPrayingSuccess": "此祷告时间已停止。您可以随时重新开启。",
+      "stopAllSuccess": "{campaign}的所有提醒已停止。您可以随时重新开启。",
+      "resumeRemindersButton": "开启提醒",
+      "resumeSuccess": "提醒已开启。"
     }
   },
   "prayerFuel": {
@@ -442,8 +462,8 @@
     },
     "notPraying": {
       "title": "我们理解",
-      "message": "您的订阅已暂停。您暂时不会收到祷告提醒。",
-      "reactivateNotice": "如果您将来想继续祷告，可以随时从您的个人资料中重新激活订阅。",
+      "message": "您的订阅已停止。您暂时不会收到祷告提醒。",
+      "reactivateNotice": "如果您将来想继续祷告，可以随时从您的个人资料中重新开启。",
       "profileButton": "查看我的个人资料",
       "visitButton": "访问活动"
     },
@@ -454,7 +474,10 @@
       "hello": "你好{name}！",
       "automatedMessage": "这是来自{appName}的自动消息。请勿回复此邮件。",
       "managePreferences": "管理偏好设置",
-      "unsubscribe": "取消订阅"
+      "unsubscribe": "取消订阅",
+      "managePrayerTimes": "管理祷告时间",
+      "manageAccountAndPrayerTimes": "管理账户和祷告时间",
+      "stopReminders": "停止此提醒"
     },
     "verification": {
       "subject": "确认您的电子邮箱地址",
@@ -502,7 +525,7 @@
       "sometimesWeekly": "有时候，但不总是",
       "noLonger": "不，不再祷告了",
       "feedbackHelps": "您的反馈帮助我们了解如何更好地支持您的祷告旅程。",
-      "pauseNotice": "如果我们没有收到您的回复，我们将暂停您的祷告提醒以避免填满您的收件箱。您可以随时从您的个人资料中重新激活它们。",
+      "pauseNotice": "如果我们没有收到您的回复，我们将停止您的祷告提醒以避免填满您的收件箱。您可以随时从您的个人资料中重新开启它们。",
       "commitmentCheckIn": "这是来自{appName}的承诺回访。"
     },
     "marketing": {
@@ -585,7 +608,7 @@
     "eventTitle": "为{campaign}祷告",
     "eventDescription": "为{campaign}进行{duration}分钟的祷告"
   },
-  "inbox":   {
+  "inbox": {
     "title": "收件箱",
     "searchPlaceholder": "搜索会话",
     "empty": "没有会话",

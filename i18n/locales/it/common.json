@@ -270,7 +270,7 @@
       }
     },
     "profile": {
-      "pageTitle": "Gestisci Preferenze",
+      "pageTitle": "Gestisci account e orari di preghiera",
       "title": "Impostazioni Promemoria",
       "greeting": "Ciao {name}, gestisci le tue preferenze per i promemoria di preghiera qui sotto.",
       "save": "Salva Modifiche",
@@ -300,10 +300,10 @@
       "current": "Corrente",
       "viewCampaign": "Visualizza Campagna",
       "unsubscribeButton": "Annulla iscrizione",
-      "resubscribeButton": "Iscriviti di nuovo",
+      "resubscribeButton": "Riattiva promemoria",
       "unsubscribeConfirm": "Sei sicuro di voler annullare l'iscrizione da {campaign}?",
       "unsubscribeSuccess": "La tua iscrizione e stata annullata.",
-      "resubscribeSuccess": "Ti sei reiscritto.",
+      "resubscribeSuccess": "Promemoria riattivati.",
       "reminders": "promemoria",
       "reminder": "Promemoria",
       "deleteReminderConfirm": "Sei sicuro di voler eliminare questo promemoria?",
@@ -312,7 +312,27 @@
         "title": "Errore",
         "notFound": "Iscrizione non trovata.",
         "failed": "Salvataggio delle modifiche fallito. Riprova."
-      }
+      },
+      "muted": "Silenziato",
+      "paused": "Interrotto",
+      "stopRemindersPageTitle": "Interrompi i promemoria",
+      "stopRemindersButton": "Interrompi promemoria",
+      "stopReminderTitle": "Interrompi il promemoria delle {time} per {campaign}",
+      "stopRemindersQuestion": "Cosa vorresti fare?",
+      "alreadyStoppedTitle": "Già interrotto",
+      "alreadyStoppedMessage": "Il tuo promemoria delle {time} è già interrotto. Puoi riattivarlo dalle tue preferenze.",
+      "alreadyMutedNote": "Le notifiche per il tuo promemoria delle {time} sono già silenziate.",
+      "muteOption": "Interrompi le notifiche per le {time}",
+      "muteOptionHint": "Continua a pregare alle {time} — interromperemo solo i promemoria via email e ti ricontatteremo di tanto in tanto.",
+      "stopTimeOption": "Smetti di pregare alle {time}",
+      "stopTimeOptionHint": "Interrompi questo orario di preghiera. Puoi riattivarlo in qualsiasi momento.",
+      "stopAllOption": "Non prego più",
+      "stopAllOptionHint": "Interrompi tutti i promemoria per {campaign}.",
+      "muteSuccess": "Promemoria silenziati. Grazie per continuare a pregare!",
+      "notPrayingSuccess": "Questo orario di preghiera è stato interrotto. Puoi riattivarlo in qualsiasi momento.",
+      "stopAllSuccess": "Tutti i promemoria per {campaign} sono stati interrotti. Puoi riattivarli in qualsiasi momento.",
+      "resumeRemindersButton": "Attiva promemoria",
+      "resumeSuccess": "Promemoria attivati."
     }
   },
   "prayerFuel": {
@@ -442,8 +462,8 @@
     },
     "notPraying": {
       "title": "Capiamo",
-      "message": "La tua iscrizione e stata messa in pausa. Non riceverai promemoria di preghiera per ora.",
-      "reactivateNotice": "Se vorrai riprendere a pregare in futuro, potrai riattivare la tua iscrizione in qualsiasi momento dal tuo profilo.",
+      "message": "La tua iscrizione è stata interrotta. Per ora non riceverai promemoria di preghiera.",
+      "reactivateNotice": "Se vorrai riprendere a pregare in futuro, potrai farlo in qualsiasi momento dal tuo profilo.",
       "profileButton": "Visualizza il Mio Profilo",
       "visitButton": "Visita la Campagna"
     },
@@ -454,7 +474,10 @@
       "hello": "Ciao {name}!",
       "automatedMessage": "Questo e un messaggio automatico da {appName}. Si prega di non rispondere a questa email.",
       "managePreferences": "Gestisci Preferenze",
-      "unsubscribe": "Annulla iscrizione"
+      "unsubscribe": "Annulla iscrizione",
+      "managePrayerTimes": "Gestisci orari di preghiera",
+      "manageAccountAndPrayerTimes": "Gestisci account e orari di preghiera",
+      "stopReminders": "Interrompi questo promemoria"
     },
     "verification": {
       "subject": "Conferma il tuo indirizzo email",
@@ -502,7 +525,7 @@
       "sometimesWeekly": "A volte, ma non sempre",
       "noLonger": "No, non prego piu",
       "feedbackHelps": "Il tuo feedback ci aiuta a capire come possiamo supportare meglio il tuo percorso di preghiera.",
-      "pauseNotice": "Se non riceviamo tue notizie, metteremo in pausa i tuoi promemoria di preghiera per evitare di riempire la tua casella di posta. Puoi sempre riattivarli dal tuo profilo.",
+      "pauseNotice": "Se non riceviamo tue notizie, interromperemo i tuoi promemoria di preghiera per evitare di riempire la tua casella di posta. Puoi sempre riattivarli dal tuo profilo.",
       "commitmentCheckIn": "Questa e una verifica dell'impegno da {appName}."
     },
     "marketing": {
@@ -585,7 +608,7 @@
     "eventTitle": "Preghiera per i {campaign}",
     "eventDescription": "Sessione di preghiera di {duration} minuti per i {campaign}"
   },
-  "inbox":   {
+  "inbox": {
     "title": "Posta in arrivo",
     "searchPlaceholder": "Cerca conversazioni",
     "empty": "Nessuna conversazione",

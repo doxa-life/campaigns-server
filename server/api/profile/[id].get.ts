@@ -66,6 +66,7 @@ export default defineEventHandler(async (event) => {
           timezone: sub.timezone,
           prayer_duration: sub.prayer_duration,
           status: sub.status,
+          reminders_paused: sub.reminders_paused,
           // A calendar event needs a concrete reminder time; no-time signups
           // (reminders handled on-device) have none.
           calendar_urls: sub.status === 'active' && sub.time_preference ? {

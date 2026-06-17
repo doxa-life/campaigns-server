@@ -121,7 +121,7 @@ export async function sendPrayerReminderEmail(data: PrayerReminderEmailData): Pr
   const appName = config.appName || 'Prayer Tools'
   const locale = data.locale || 'en'
 
-  const unsubscribeUrl = `${baseUrl}${localePath('/unsubscribe', locale)}?slug=${data.peopleGroupSlug}&id=${data.profileId}&sid=${data.subscriptionId}`
+  const stopRemindersUrl = `${baseUrl}${localePath('/stop-reminders', locale)}?slug=${data.peopleGroupSlug}&id=${data.profileId}&sid=${data.subscriptionId}`
   const profileUrl = `${baseUrl}${localePath('/subscriber', locale)}?id=${data.profileId}`
   const prayerFuelUrl = `${baseUrl}${localePath(`/${data.peopleGroupSlug}/prayer`, locale)}?uid=${data.trackingId}`
 
@@ -131,8 +131,8 @@ export async function sendPrayerReminderEmail(data: PrayerReminderEmailData): Pr
   const timeForPrayer = t('email.reminder.timeForPrayer', locale, { duration: data.prayerDuration })
   const viewPrayer = t('email.reminder.viewPrayer', locale)
   const automatedReminder = t('email.reminder.automatedReminder', locale, { appName })
-  const managePreferences = t('email.common.managePreferences', locale)
-  const unsubscribe = t('email.common.unsubscribe', locale)
+  const managePrayerTimes = t('email.common.managePrayerTimes', locale)
+  const stopReminders = t('email.common.stopReminders', locale)
 
   // Build content HTML - just a reminder with link to prayer fuel
   const contentHtml = `
@@ -177,12 +177,24 @@ export async function sendPrayerReminderEmail(data: PrayerReminderEmailData): Pr
         ${contentHtml}
       </div>
 
-      <div style="text-align: center; margin-top: 20px; padding: 20px; color: #666666; font-size: 12px;">
+      <div style="text-align: center; margin-top: 30px;">
+        <a href="${profileUrl}" style="
+          display: inline-block;
+          background: #ffffff;
+          color: #3B463D;
+          padding: 12px 24px;
+          text-decoration: none;
+          border-radius: 5px;
+          font-weight: 500;
+          font-size: 14px;
+          border: 2px solid #3B463D;
+        ">${managePrayerTimes}</a>
+      </div>
+
+      <div style="text-align: center; margin-top: 16px; padding: 20px; color: #666666; font-size: 12px;">
         <p style="margin: 0 0 10px;">${automatedReminder}</p>
         <p style="margin: 0;">
-          <a href="${profileUrl}" style="color: #666666; text-decoration: underline;">${managePreferences}</a>
-          &nbsp;|&nbsp;
-          <a href="${unsubscribeUrl}" style="color: #666666; text-decoration: underline;">${unsubscribe}</a>
+          <a href="${stopRemindersUrl}" style="color: #666666; text-decoration: underline;">${stopReminders}</a>
         </p>
       </div>
     </body>
@@ -196,9 +208,10 @@ ${hello}
 
 ${contentText}
 ---
+${managePrayerTimes}: ${profileUrl}
+
 ${automatedReminder}
-${managePreferences}: ${profileUrl}
-${unsubscribe}: ${unsubscribeUrl}
+${stopReminders}: ${stopRemindersUrl}
   `.trim()
 
   return await sendEmail({

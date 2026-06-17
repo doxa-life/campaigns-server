@@ -154,7 +154,7 @@
         <UCard
           v-for="item in allReminders"
           :key="item.reminder.id"
-          :class="{ 'opacity-60': item.reminder.status === 'unsubscribed' }"
+          :class="{ 'opacity-60': item.reminder.status === 'unsubscribed' || item.reminder.status === 'inactive' }"
         >
           <template #header>
             <div class="flex items-center justify-between">
@@ -167,6 +167,21 @@
                 >
                   {{ $t('campaign.profile.unsubscribed') }}
                 </UBadge>
+                <UBadge
+                  v-else-if="item.reminder.status === 'inactive'"
+                  color="warning"
+                  size="xs"
+                >
+                  {{ $t('campaign.profile.paused') }}
+                </UBadge>
+                <UBadge
+                  v-else-if="item.reminder.reminders_paused"
+                  color="neutral"
+                  size="xs"
+                  icon="i-lucide-bell-off"
+                >
+                  {{ $t('campaign.profile.muted') }}
+                </UBadge>
               </div>
               <div class="flex items-center gap-2">
                 <NuxtLink
@@ -176,13 +191,24 @@
                   {{ $t('campaign.profile.viewCampaign') }}
                 </NuxtLink>
                 <UButton
-                  v-if="item.reminder.status === 'active'"
+                  v-if="item.reminder.status === 'active' && item.reminder.reminders_paused"
                   variant="ghost"
-                  color="error"
+                  color="primary"
                   size="xs"
-                  @click="confirmDeleteReminder(item.reminder, item.peopleGroup)"
+                  icon="i-lucide-bell-ring"
+                  @click="resumeMutedReminder(item.reminder, item.peopleGroup)"
                 >
-                  <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
+                  {{ $t('campaign.profile.resumeRemindersButton') }}
+                </UButton>
+                <UButton
+                  v-else-if="item.reminder.status === 'active'"
+                  variant="ghost"
+                  color="neutral"
+                  size="xs"
+                  icon="i-lucide-bell-off"
+                  @click="openStopModal(item.reminder, item.peopleGroup)"
+                >
+                  {{ $t('campaign.profile.stopRemindersButton') }}
                 </UButton>
               </div>
             </div>
@@ -254,7 +280,7 @@
 
             <div class="flex items-center justify-end gap-2 pt-2">
               <UButton
-                v-if="item.reminder.status === 'unsubscribed'"
+                v-if="item.reminder.status === 'unsubscribed' || item.reminder.status === 'inactive'"
                 variant="outline"
                 size="sm"
                 @click="resubscribeReminder(item.reminder, item.peopleGroup)"
@@ -284,6 +310,51 @@
         </UButton>
       </div>
     </div>
+
+    <!-- Stop reminders: mute this time, stop praying at this time, or stop everything -->
+    <UModal v-model:open="stopModalOpen" :title="stopModalTitle">
+      <template #body>
+        <div class="space-y-3">
+          <p class="text-sm text-[var(--ui-text-muted)]">
+            {{ $t('campaign.profile.stopRemindersQuestion') }}
+          </p>
+          <button
+            class="w-full flex items-start gap-3 text-left p-4 rounded-lg border border-[var(--ui-border)] transition-colors hover:bg-[var(--ui-bg-elevated)] hover:border-[var(--ui-primary)] disabled:opacity-50"
+            :disabled="stopProcessing"
+            @click="chooseStop('mute')"
+          >
+            <UIcon name="i-lucide-bell-off" class="w-5 h-5 mt-0.5 shrink-0 text-[var(--ui-text-muted)]" />
+            <div>
+              <div class="font-medium">{{ $t('campaign.profile.muteOption', { time: stopTime }) }}</div>
+              <div class="text-sm text-[var(--ui-text-muted)] mt-1">{{ $t('campaign.profile.muteOptionHint', { time: stopTime }) }}</div>
+            </div>
+          </button>
+          <button
+            class="w-full flex items-start gap-3 text-left p-4 rounded-lg border border-[var(--ui-border)] transition-colors hover:bg-[var(--ui-bg-elevated)] hover:border-[var(--ui-primary)] disabled:opacity-50"
+            :disabled="stopProcessing"
+            @click="chooseStop('not_praying')"
+          >
+            <UIcon name="i-lucide-pause" class="w-5 h-5 mt-0.5 shrink-0 text-[var(--ui-text-muted)]" />
+            <div>
+              <div class="font-medium">{{ $t('campaign.profile.stopTimeOption', { time: stopTime }) }}</div>
+              <div class="text-sm text-[var(--ui-text-muted)] mt-1">{{ $t('campaign.profile.stopTimeOptionHint') }}</div>
+            </div>
+          </button>
+          <button
+            v-if="stopHasMultiple"
+            class="w-full flex items-start gap-3 text-left p-4 rounded-lg border border-[var(--ui-border)] transition-colors hover:bg-[var(--ui-bg-elevated)] hover:border-[var(--ui-primary)] disabled:opacity-50"
+            :disabled="stopProcessing"
+            @click="chooseStopAll"
+          >
+            <UIcon name="i-lucide-circle-slash" class="w-5 h-5 mt-0.5 shrink-0 text-[var(--ui-text-muted)]" />
+            <div>
+              <div class="font-medium">{{ $t('campaign.profile.stopAllOption') }}</div>
+              <div class="text-sm text-[var(--ui-text-muted)] mt-1">{{ $t('campaign.profile.stopAllOptionHint', { campaign: stopTarget?.peopleGroup.title }) }}</div>
+            </div>
+          </button>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -320,6 +391,7 @@ interface ProfileResponse {
       timezone: string
       prayer_duration: number
       status: string
+      reminders_paused: boolean
       calendar_urls: { google: string; ics: string } | null
     }>
   }>
@@ -540,19 +612,107 @@ async function saveReminder(reminder: any, pgGroup: any) {
   }
 }
 
-async function confirmDeleteReminder(reminder: any, pgGroup: any) {
-  if (!confirm(t('campaign.profile.deleteReminderConfirm'))) {
-    return
-  }
+// Stop-reminders flow: a reminder can be muted (keep praying, no daily email) or
+// the prayer paused entirely. The card's "Stop reminders" button opens this modal.
+const stopModalOpen = ref(false)
+const stopTarget = ref<{ reminder: any; peopleGroup: any } | null>(null)
+const stopProcessing = ref(false)
+
+// Format a "HH:MM" preference as a friendly clock time (e.g. "9:00 AM").
+function formatTime(value: string | null): string {
+  if (!value) return ''
+  const [h, m] = value.split(':').map(Number)
+  if (h === undefined || m === undefined) return value
+  const period = h < 12 ? 'AM' : 'PM'
+  const hour = h % 12 === 0 ? 12 : h % 12
+  return `${hour}:${String(m).padStart(2, '0')} ${period}`
+}
+
+const stopTime = computed(() => formatTime(stopTarget.value?.reminder.time_preference ?? null))
+
+const stopModalTitle = computed(() =>
+  stopTarget.value
+    ? t('campaign.profile.stopReminderTitle', { time: stopTime.value, campaign: stopTarget.value.peopleGroup.title })
+    : ''
+)
+
+// Offer "stop everything" only when this people group has more than one active time.
+const stopHasMultiple = computed(() =>
+  (stopTarget.value?.peopleGroup.reminders.filter((r: any) => r.status === 'active').length ?? 0) > 1
+)
+
+function openStopModal(reminder: any, peopleGroup: any) {
+  stopTarget.value = { reminder, peopleGroup }
+  stopModalOpen.value = true
+}
+
+async function chooseStop(action: 'mute' | 'not_praying') {
+  if (!stopTarget.value) return
+  const { reminder, peopleGroup } = stopTarget.value
+  stopProcessing.value = true
 
   try {
-    await $fetch(`/api/people-groups/${pgGroup.slug}/reminder/${reminder.id}`, {
-      method: 'DELETE',
-      query: { id: profileId }
+    await $fetch(`/api/people-groups/${peopleGroup.slug}/reminder/${reminder.id}/stop`, {
+      method: 'POST',
+      body: { profile_id: profileId, action }
     })
 
     toast.add({
-      title: t('campaign.profile.deleteReminderSuccess'),
+      title: action === 'mute'
+        ? t('campaign.profile.muteSuccess')
+        : t('campaign.profile.notPrayingSuccess'),
+      color: 'success'
+    })
+
+    stopModalOpen.value = false
+    await refresh()
+  } catch (err: any) {
+    toast.add({
+      title: err.data?.statusMessage || t('campaign.profile.error.failed'),
+      color: 'error'
+    })
+  } finally {
+    stopProcessing.value = false
+  }
+}
+
+async function chooseStopAll() {
+  if (!stopTarget.value) return
+  const { peopleGroup } = stopTarget.value
+  stopProcessing.value = true
+
+  try {
+    await $fetch(`/api/people-groups/${peopleGroup.slug}/stop-all`, {
+      method: 'POST',
+      body: { profile_id: profileId }
+    })
+
+    toast.add({
+      title: t('campaign.profile.stopAllSuccess', { campaign: peopleGroup.title }),
+      color: 'success'
+    })
+
+    stopModalOpen.value = false
+    await refresh()
+  } catch (err: any) {
+    toast.add({
+      title: err.data?.statusMessage || t('campaign.profile.error.failed'),
+      color: 'error'
+    })
+  } finally {
+    stopProcessing.value = false
+  }
+}
+
+async function resumeMutedReminder(reminder: any, pgGroup: any) {
+  try {
+    await $fetch(`/api/people-groups/${pgGroup.slug}/reminder/${reminder.id}/resume`, {
+      method: 'POST',
+      body: { profile_id: profileId }
+    })
+
+    toast.add({
+      title: t('campaign.profile.resumeSuccess'),
       color: 'success'
     })
 

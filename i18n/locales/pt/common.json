@@ -270,7 +270,7 @@
       }
     },
     "profile": {
-      "pageTitle": "Gerenciar Preferências",
+      "pageTitle": "Gerenciar Conta e Horários de Oração",
       "title": "Configurações de Lembrete",
       "greeting": "Olá {name}, gerencie suas preferências de lembrete de oração abaixo.",
       "save": "Salvar Alterações",
@@ -300,10 +300,10 @@
       "current": "Atual",
       "viewCampaign": "Ver Campanha",
       "unsubscribeButton": "Cancelar Inscrição",
-      "resubscribeButton": "Reinscrever-se",
+      "resubscribeButton": "Reativar lembretes",
       "unsubscribeConfirm": "Tem certeza de que deseja cancelar a inscrição de {campaign}?",
       "unsubscribeSuccess": "Sua inscrição foi cancelada.",
-      "resubscribeSuccess": "Você foi reinscrito.",
+      "resubscribeSuccess": "Lembretes reativados.",
       "reminders": "lembretes",
       "reminder": "Lembrete",
       "deleteReminderConfirm": "Tem certeza de que deseja excluir este lembrete?",
@@ -312,7 +312,27 @@
         "title": "Erro",
         "notFound": "Inscrição não encontrada.",
         "failed": "Falha ao salvar alterações. Por favor, tente novamente."
-      }
+      },
+      "muted": "Silenciado",
+      "paused": "Parado",
+      "stopRemindersPageTitle": "Parar Lembretes",
+      "stopRemindersButton": "Parar lembrete",
+      "stopReminderTitle": "Parar seu lembrete das {time} para {campaign}",
+      "stopRemindersQuestion": "O que você gostaria de fazer?",
+      "alreadyStoppedTitle": "Já parado",
+      "alreadyStoppedMessage": "Seu lembrete das {time} já está parado. Você pode reativá-lo nas suas preferências.",
+      "alreadyMutedNote": "As notificações do seu lembrete das {time} já estão silenciadas.",
+      "muteOption": "Parar as notificações das {time}",
+      "muteOptionHint": "Continue orando às {time} — vamos apenas parar os lembretes por e-mail e, de vez em quando, verificar como você está.",
+      "stopTimeOption": "Parar de orar às {time}",
+      "stopTimeOptionHint": "Pare este horário de oração. Você pode reativá-lo quando quiser.",
+      "stopAllOption": "Não estou mais orando",
+      "stopAllOptionHint": "Parar todos os lembretes de {campaign}.",
+      "muteSuccess": "Lembretes silenciados. Obrigado por continuar orando!",
+      "notPrayingSuccess": "Este horário de oração foi parado. Você pode reativá-lo quando quiser.",
+      "stopAllSuccess": "Todos os lembretes de {campaign} foram parados. Você pode reativá-los quando quiser.",
+      "resumeRemindersButton": "Iniciar lembretes",
+      "resumeSuccess": "Lembretes iniciados."
     }
   },
   "prayerFuel": {
@@ -442,8 +462,8 @@
     },
     "notPraying": {
       "title": "Entendemos",
-      "message": "Sua inscrição foi pausada. Você não receberá lembretes de oração por enquanto.",
-      "reactivateNotice": "Se você quiser retomar a oração no futuro, pode reativar sua inscrição a qualquer momento no seu perfil.",
+      "message": "Sua inscrição foi parada. Você não receberá lembretes de oração por enquanto.",
+      "reactivateNotice": "Se quiser retomar a oração no futuro, você pode fazê-lo a qualquer momento no seu perfil.",
       "profileButton": "Ver Meu Perfil",
       "visitButton": "Visitar Campanha"
     },
@@ -454,7 +474,10 @@
       "hello": "Olá {name}!",
       "automatedMessage": "Esta é uma mensagem automática de {appName}. Por favor, não responda a este e-mail.",
       "managePreferences": "Gerenciar Preferências",
-      "unsubscribe": "Cancelar Inscrição"
+      "unsubscribe": "Cancelar Inscrição",
+      "managePrayerTimes": "Gerenciar Horários de Oração",
+      "manageAccountAndPrayerTimes": "Gerenciar Conta e Horários de Oração",
+      "stopReminders": "Parar este lembrete"
     },
     "verification": {
       "subject": "Confirme seu endereço de e-mail",
@@ -502,7 +525,7 @@
       "sometimesWeekly": "Às vezes, mas nem sempre",
       "noLonger": "Não, não estou mais orando",
       "feedbackHelps": "Seu feedback nos ajuda a entender como podemos apoiar melhor sua jornada de oração.",
-      "pauseNotice": "Se não recebermos resposta, pausaremos seus lembretes de oração para evitar encher sua caixa de entrada. Você sempre pode reativá-los no seu perfil.",
+      "pauseNotice": "Se não recebermos resposta, vamos parar seus lembretes de oração para não encher sua caixa de entrada. Você sempre pode reativá-los no seu perfil.",
       "commitmentCheckIn": "Esta é uma verificação de compromisso de {appName}."
     },
     "marketing": {
@@ -585,7 +608,7 @@
     "eventTitle": "Oração pelos {campaign}",
     "eventDescription": "Sessão de oração de {duration} minutos pelos {campaign}"
   },
-  "inbox":   {
+  "inbox": {
     "title": "Caixa de entrada",
     "searchPlaceholder": "Pesquisar conversas",
     "empty": "Nenhuma conversa",

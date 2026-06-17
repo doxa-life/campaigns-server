@@ -137,6 +137,9 @@ function getEventColor(label: string): 'success' | 'warning' | 'error' | 'neutra
     'Linked': 'success',
     'Unlinked': 'error',
     'Unsubscribed': 'warning',
+    'Muted Reminder': 'neutral',
+    'Started Reminder': 'success',
+    'Stopped Prayer': 'warning',
     'Report Update': 'success'
   }
   return colors[label] || 'neutral'
@@ -150,6 +153,9 @@ function getEventIcon(label: string): string | undefined {
     'Linked': 'i-lucide-link',
     'Unlinked': 'i-lucide-link-2-off',
     'Unsubscribed': 'i-lucide-mail-x',
+    'Muted Reminder': 'i-lucide-bell-off',
+    'Started Reminder': 'i-lucide-bell-ring',
+    'Stopped Prayer': 'i-lucide-circle-stop',
     'Report Update': 'i-lucide-file-check'
   }
   return icons[label]

@@ -270,7 +270,7 @@
       }
     },
     "profile": {
-      "pageTitle": "Gérer les préférences",
+      "pageTitle": "Gérer le compte et les temps de prière",
       "title": "Paramètres de rappel",
       "greeting": "Bonjour {name}, gérez vos préférences de rappels de prière ci-dessous.",
       "save": "Enregistrer les modifications",
@@ -300,10 +300,10 @@
       "current": "Actuel",
       "viewCampaign": "Voir la campagne",
       "unsubscribeButton": "Se désabonner",
-      "resubscribeButton": "Se réabonner",
+      "resubscribeButton": "Relancer les rappels",
       "unsubscribeConfirm": "Êtes-vous sûr de vouloir vous désabonner de {campaign} ?",
       "unsubscribeSuccess": "Vous avez été désabonné.",
-      "resubscribeSuccess": "Vous avez été réabonné.",
+      "resubscribeSuccess": "Rappels relancés.",
       "reminders": "rappels",
       "reminder": "Rappel",
       "deleteReminderConfirm": "Êtes-vous sûr de vouloir supprimer ce rappel ?",
@@ -312,7 +312,27 @@
         "title": "Erreur",
         "notFound": "Abonnement introuvable.",
         "failed": "Échec de l'enregistrement des modifications. Veuillez réessayer."
-      }
+      },
+      "muted": "En sourdine",
+      "paused": "Arrêté",
+      "stopRemindersPageTitle": "Arrêter les rappels",
+      "stopRemindersButton": "Arrêter le rappel",
+      "stopReminderTitle": "Arrêter votre rappel de {time} pour {campaign}",
+      "stopRemindersQuestion": "Que souhaitez-vous faire ?",
+      "alreadyStoppedTitle": "Déjà arrêté",
+      "alreadyStoppedMessage": "Votre rappel de {time} est déjà arrêté. Vous pouvez le réactiver depuis vos préférences.",
+      "alreadyMutedNote": "Les notifications de votre rappel de {time} sont déjà en sourdine.",
+      "muteOption": "Arrêter les notifications de {time}",
+      "muteOptionHint": "Continuez à prier à {time} — nous arrêterons simplement les rappels par e-mail, tout en prenant de vos nouvelles de temps en temps.",
+      "stopTimeOption": "Arrêter de prier à {time}",
+      "stopTimeOptionHint": "Arrêtez ce temps de prière. Vous pouvez le reprendre à tout moment.",
+      "stopAllOption": "Je ne prie plus",
+      "stopAllOptionHint": "Arrêter tous les rappels pour {campaign}.",
+      "muteSuccess": "Rappels mis en sourdine. Merci de continuer à prier !",
+      "notPrayingSuccess": "Ce temps de prière a été arrêté. Vous pouvez le reprendre à tout moment.",
+      "stopAllSuccess": "Tous les rappels pour {campaign} ont été arrêtés. Vous pouvez les reprendre à tout moment.",
+      "resumeRemindersButton": "Démarrer les rappels",
+      "resumeSuccess": "Rappels démarrés."
     }
   },
   "prayerFuel": {
@@ -442,8 +462,8 @@
     },
     "notPraying": {
       "title": "Nous comprenons",
-      "message": "Votre abonnement a été mis en pause. Vous ne recevrez plus de rappels de prière pour le moment.",
-      "reactivateNotice": "Si vous souhaitez reprendre la prière à l'avenir, vous pouvez réactiver votre abonnement à tout moment depuis votre profil.",
+      "message": "Votre abonnement a été arrêté. Vous ne recevrez pas de rappels de prière pour le moment.",
+      "reactivateNotice": "Si vous souhaitez reprendre la prière à l'avenir, vous pouvez le faire à tout moment depuis votre profil.",
       "profileButton": "Voir mon profil",
       "visitButton": "Visiter la campagne"
     },
@@ -454,7 +474,10 @@
       "hello": "Bonjour {name} !",
       "automatedMessage": "Ceci est un message automatique de {appName}. Veuillez ne pas répondre à cet e-mail.",
       "managePreferences": "Gérer les préférences",
-      "unsubscribe": "Se désabonner"
+      "unsubscribe": "Se désabonner",
+      "managePrayerTimes": "Gérer les temps de prière",
+      "manageAccountAndPrayerTimes": "Gérer le compte et les temps de prière",
+      "stopReminders": "Arrêter ce rappel"
     },
     "verification": {
       "subject": "Confirmez votre adresse e-mail",
@@ -502,7 +525,7 @@
       "sometimesWeekly": "Parfois, mais pas toujours",
       "noLonger": "Non, je ne prie plus",
       "feedbackHelps": "Vos commentaires nous aident à comprendre comment nous pouvons mieux soutenir votre parcours de prière.",
-      "pauseNotice": "Si nous n'avons pas de nouvelles de vous, nous mettrons en pause vos rappels de prière pour ne pas encombrer votre boîte de réception. Vous pouvez toujours les réactiver depuis votre profil.",
+      "pauseNotice": "Si nous n'avons pas de vos nouvelles, nous arrêterons vos rappels de prière pour ne pas encombrer votre boîte de réception. Vous pouvez toujours les reprendre depuis votre profil.",
       "commitmentCheckIn": "Ceci est un suivi d'engagement de {appName}."
     },
     "marketing": {
@@ -585,7 +608,7 @@
     "eventTitle": "Prière pour les {campaign}",
     "eventDescription": "Session de prière de {duration} minutes pour les {campaign}"
   },
-  "inbox":   {
+  "inbox": {
     "title": "Boîte de réception",
     "searchPlaceholder": "Rechercher des conversations",
     "empty": "Aucune conversation",

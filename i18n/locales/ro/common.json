@@ -270,7 +270,7 @@
       }
     },
     "profile": {
-      "pageTitle": "Gestionează preferințele",
+      "pageTitle": "Gestionează contul și orele de rugăciune",
       "title": "Setări memento",
       "greeting": "Bună {name}, gestionează preferințele tale de memento de rugăciune mai jos.",
       "save": "Salvează modificările",
@@ -300,10 +300,10 @@
       "current": "Curent",
       "viewCampaign": "Vezi campania",
       "unsubscribeButton": "Dezabonare",
-      "resubscribeButton": "Reabonare",
+      "resubscribeButton": "Repornește memento-urile",
       "unsubscribeConfirm": "Ești sigur că vrei să te dezabonezi de la {campaign}?",
       "unsubscribeSuccess": "Ai fost dezabonat.",
-      "resubscribeSuccess": "Ai fost reabonat.",
+      "resubscribeSuccess": "Memento-uri repornite.",
       "reminders": "memento-uri",
       "reminder": "Memento",
       "deleteReminderConfirm": "Ești sigur că vrei să ștergi acest memento?",
@@ -312,7 +312,27 @@
         "title": "Eroare",
         "notFound": "Abonarea nu a fost găsită.",
         "failed": "Salvarea modificărilor a eșuat. Te rugăm să încerci din nou."
-      }
+      },
+      "muted": "Dezactivat",
+      "paused": "Oprit",
+      "stopRemindersPageTitle": "Oprește memento-urile",
+      "stopRemindersButton": "Oprește memento-ul",
+      "stopReminderTitle": "Oprește memento-ul tău de la ora {time} pentru {campaign}",
+      "stopRemindersQuestion": "Ce ai dori să faci?",
+      "alreadyStoppedTitle": "Deja oprit",
+      "alreadyStoppedMessage": "Memento-ul tău de la ora {time} este deja oprit. Îl poți porni din nou din preferințele tale.",
+      "alreadyMutedNote": "Notificările pentru memento-ul tău de la ora {time} sunt deja dezactivate.",
+      "muteOption": "Oprește notificările pentru ora {time}",
+      "muteOptionHint": "Continuă să te rogi la ora {time} — vom opri doar memento-urile prin email și vom reveni ocazional să vedem ce mai faci.",
+      "stopTimeOption": "Oprește rugăciunea la ora {time}",
+      "stopTimeOptionHint": "Oprește acest timp de rugăciune. Îl poți porni din nou oricând.",
+      "stopAllOption": "Nu mă mai rog",
+      "stopAllOptionHint": "Oprește toate memento-urile pentru {campaign}.",
+      "muteSuccess": "Memento-uri dezactivate. Îți mulțumim că te rogi în continuare!",
+      "notPrayingSuccess": "Acest timp de rugăciune a fost oprit. Îl poți porni din nou oricând.",
+      "stopAllSuccess": "Toate memento-urile pentru {campaign} au fost oprite. Le poți porni din nou oricând.",
+      "resumeRemindersButton": "Pornește memento-urile",
+      "resumeSuccess": "Memento-uri pornite."
     }
   },
   "prayerFuel": {
@@ -442,8 +462,8 @@
     },
     "notPraying": {
       "title": "Înțelegem",
-      "message": "Abonarea ta a fost pusă pe pauză. Nu vei primi memento-uri de rugăciune deocamdată.",
-      "reactivateNotice": "Dacă dorești să reiei rugăciunea în viitor, poți reactiva abonarea oricând din profilul tău.",
+      "message": "Abonarea ta a fost oprită. Nu vei primi memento-uri de rugăciune deocamdată.",
+      "reactivateNotice": "Dacă dorești să reiei rugăciunea în viitor, o poți face oricând din profilul tău.",
       "profileButton": "Vezi profilul meu",
       "visitButton": "Vizitează campania"
     },
@@ -454,7 +474,10 @@
       "hello": "Bună {name}!",
       "automatedMessage": "Acesta este un mesaj automat de la {appName}. Te rugăm să nu răspunzi la acest email.",
       "managePreferences": "Gestionează preferințele",
-      "unsubscribe": "Dezabonare"
+      "unsubscribe": "Dezabonare",
+      "managePrayerTimes": "Gestionează orele de rugăciune",
+      "manageAccountAndPrayerTimes": "Gestionează contul și orele de rugăciune",
+      "stopReminders": "Oprește acest memento"
     },
     "verification": {
       "subject": "Confirmă adresa ta de email",
@@ -498,7 +521,7 @@
       "sometimesWeekly": "Uneori, dar nu întotdeauna",
       "noLonger": "Nu, nu mă mai rog",
       "feedbackHelps": "Feedback-ul tău ne ajută să înțelegem cum te putem sprijini mai bine în călătoria ta de rugăciune.",
-      "pauseNotice": "Dacă nu primim răspuns, vom pune pe pauză memento-urile de rugăciune pentru a nu-ți umple căsuța de email. Le poți reactiva oricând din profilul tău.",
+      "pauseNotice": "Dacă nu primim răspuns, vom opri memento-urile tale de rugăciune pentru a nu-ți umple căsuța de email. Le poți porni din nou oricând din profilul tău.",
       "commitmentCheckIn": "Aceasta este o verificare a angajamentului de la {appName}."
     },
     "marketing": {
@@ -581,7 +604,7 @@
     "eventTitle": "Rugăciune pentru {campaign}",
     "eventDescription": "Sesiune de rugăciune de {duration} minute pentru {campaign}"
   },
-  "inbox":   {
+  "inbox": {
     "title": "Mesaje primite",
     "searchPlaceholder": "Caută conversații",
     "empty": "Nicio conversație",

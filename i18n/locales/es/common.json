@@ -270,7 +270,7 @@
       }
     },
     "profile": {
-      "pageTitle": "Administrar Preferencias",
+      "pageTitle": "Administrar Cuenta y Horarios de Oración",
       "title": "Configuración de Recordatorios",
       "greeting": "Hola {name}, administre sus preferencias de recordatorios de oración a continuación.",
       "save": "Guardar Cambios",
@@ -300,10 +300,10 @@
       "current": "Actual",
       "viewCampaign": "Ver Campaña",
       "unsubscribeButton": "Cancelar Suscripción",
-      "resubscribeButton": "Re-suscribirse",
+      "resubscribeButton": "Reactivar recordatorios",
       "unsubscribeConfirm": "¿Está seguro de que desea cancelar la suscripción a {campaign}?",
       "unsubscribeSuccess": "Ha cancelado la suscripción.",
-      "resubscribeSuccess": "Se ha re-suscrito.",
+      "resubscribeSuccess": "Recordatorios reactivados.",
       "reminders": "recordatorios",
       "reminder": "Recordatorio",
       "deleteReminderConfirm": "¿Está seguro de que desea eliminar este recordatorio?",
@@ -312,7 +312,27 @@
         "title": "Error",
         "notFound": "Suscripción no encontrada.",
         "failed": "Error al guardar los cambios. Por favor intente de nuevo."
-      }
+      },
+      "muted": "Silenciado",
+      "paused": "Detenido",
+      "stopRemindersPageTitle": "Detener Recordatorios",
+      "stopRemindersButton": "Detener recordatorio",
+      "stopReminderTitle": "Detén tu recordatorio de las {time} para los {campaign}",
+      "stopRemindersQuestion": "¿Qué te gustaría hacer?",
+      "alreadyStoppedTitle": "Ya está detenido",
+      "alreadyStoppedMessage": "Tu recordatorio de las {time} ya está detenido. Puedes volver a activarlo desde tus preferencias.",
+      "alreadyMutedNote": "Las notificaciones de tu recordatorio de las {time} ya están silenciadas.",
+      "muteOption": "Detener las notificaciones de las {time}",
+      "muteOptionHint": "Sigue orando a las {time} — solo dejaremos de enviarte los recordatorios por correo, y de vez en cuando te escribiremos.",
+      "stopTimeOption": "Dejar de orar a las {time}",
+      "stopTimeOptionHint": "Detén este horario de oración. Puedes volver a activarlo cuando quieras.",
+      "stopAllOption": "Ya no quiero orar",
+      "stopAllOptionHint": "Detener todos los recordatorios de los {campaign}.",
+      "muteSuccess": "Recordatorios silenciados. ¡Gracias por seguir orando!",
+      "notPrayingSuccess": "Este horario de oración ha sido detenido. Puedes volver a activarlo cuando quieras.",
+      "stopAllSuccess": "Todos los recordatorios de los {campaign} han sido detenidos. Puedes volver a activarlos cuando quieras.",
+      "resumeRemindersButton": "Activar recordatorios",
+      "resumeSuccess": "Recordatorios activados."
     }
   },
   "prayerFuel": {
@@ -442,8 +462,8 @@
     },
     "notPraying": {
       "title": "Entendemos",
-      "message": "Tu suscripción ha sido pausada. No recibirás recordatorios de oración por ahora.",
-      "reactivateNotice": "Si deseas volver a orar en el futuro, puedes reactivar tu suscripción en cualquier momento desde tu perfil.",
+      "message": "Tu suscripción ha sido detenida. No recibirás recordatorios de oración por ahora.",
+      "reactivateNotice": "Si deseas volver a orar en el futuro, puedes hacerlo en cualquier momento desde tu perfil.",
       "profileButton": "Ver mi perfil",
       "visitButton": "Visitar campaña"
     },
@@ -454,7 +474,10 @@
       "hello": "¡Hola {name}!",
       "automatedMessage": "Este es un mensaje automático de {appName}. Por favor no responda a este correo.",
       "managePreferences": "Administrar Preferencias",
-      "unsubscribe": "Cancelar Suscripción"
+      "unsubscribe": "Cancelar Suscripción",
+      "managePrayerTimes": "Administrar Horarios de Oración",
+      "manageAccountAndPrayerTimes": "Administrar Cuenta y Horarios de Oración",
+      "stopReminders": "Detener este recordatorio"
     },
     "verification": {
       "subject": "Confirma tu correo electrónico",
@@ -502,7 +525,7 @@
       "sometimesWeekly": "A veces, pero no siempre",
       "noLonger": "No, ya no estoy orando",
       "feedbackHelps": "Tu respuesta nos ayuda a entender cómo podemos apoyar mejor tu jornada de oración.",
-      "pauseNotice": "Si no tenemos noticias tuyas, pausaremos tus recordatorios de oración para no llenar tu bandeja de entrada. Siempre puedes reactivarlos desde tu perfil.",
+      "pauseNotice": "Si no tenemos noticias tuyas, detendremos tus recordatorios de oración para no llenar tu bandeja de entrada. Siempre puedes volver a activarlos desde tu perfil.",
       "commitmentCheckIn": "Este es un seguimiento de compromiso de {appName}."
     },
     "marketing": {
@@ -585,7 +608,7 @@
     "eventTitle": "Oración por los {campaign}",
     "eventDescription": "Sesión de oración de {duration} minutos por los {campaign}"
   },
-  "inbox":   {
+  "inbox": {
     "title": "Bandeja de entrada",
     "searchPlaceholder": "Buscar conversaciones",
     "empty": "Sin conversaciones",

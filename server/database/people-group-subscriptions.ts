@@ -17,6 +17,10 @@ export interface PeopleGroupSubscription {
   prayer_duration: number
   next_reminder_utc: string | null
   status: 'active' | 'inactive' | 'unsubscribed' | 'pending'
+  // When true the daily reminder email is suppressed while the subscription stays
+  // active: the person is still praying and still receives the monthly follow-up
+  // check-in. Orthogonal to status — mute the emails without ending the commitment.
+  reminders_paused: boolean
   created_at: string
   updated_at: string
 }
@@ -139,6 +143,21 @@ class PeopleGroupSubscriptionService {
       UPDATE campaign_subscriptions
       SET status = 'unsubscribed', updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE subscriber_id = ${subscriberId} AND people_group_id = ${peopleGroupId}
+    `
+    return result.count
+  }
+
+  // "Not praying any more" for a whole people group: pause every still-active prayer
+  // time (status 'inactive', reactivatable). Leaves already-unsubscribed rows alone.
+  async stopPrayerForPeopleGroup(
+    subscriberId: number,
+    peopleGroupId: number
+  ): Promise<number> {
+    const result = await this.sql`
+      UPDATE campaign_subscriptions
+      SET status = 'inactive', updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE subscriber_id = ${subscriberId} AND people_group_id = ${peopleGroupId}
+        AND status = 'active'
     `
     return result.count
   }
@@ -282,10 +301,42 @@ class PeopleGroupSubscriptionService {
     return result.count > 0
   }
 
-  async resubscribe(id: number, status: 'active' | 'pending' = 'active'): Promise<boolean> {
+  // Mute the daily reminder for this prayer time without touching status. The
+  // subscription stays active (still praying, still gets the monthly follow-up);
+  // the reminder scheduler skips it because reminders_paused is true.
+  async muteReminder(id: number): Promise<boolean> {
     const result = await this.sql`
       UPDATE campaign_subscriptions
-      SET status = ${status}, updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      SET reminders_paused = true, claimed_at = NULL,
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${id}
+    `
+    return result.count > 0
+  }
+
+  // Re-enable the daily reminder and recompute the next send so it resumes on
+  // schedule from now rather than firing for a long-past due time.
+  async resumeReminder(id: number): Promise<boolean> {
+    const result = await this.sql`
+      UPDATE campaign_subscriptions
+      SET reminders_paused = false,
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${id}
+    `
+    if (result.count > 0) {
+      await this.setInitialNextReminder(id)
+      return true
+    }
+    return false
+  }
+
+  async resubscribe(id: number, status: 'active' | 'pending' = 'active'): Promise<boolean> {
+    // Reactivating always turns daily reminders back on — clear any lingering mute
+    // so a re-subscribe never lands in a silently muted state.
+    const result = await this.sql`
+      UPDATE campaign_subscriptions
+      SET status = ${status}, reminders_paused = false,
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE id = ${id}
     `
 
@@ -400,6 +451,7 @@ class PeopleGroupSubscriptionService {
         LEFT JOIN contact_methods cm ON cm.subscriber_id = s.id AND cm.type = 'email'
         WHERE cs.next_reminder_utc <= CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
           AND cs.status = 'active'
+          AND cs.reminders_paused = false
           AND cs.delivery_method = 'email'
           AND cm.verified = true
           AND cm.suppressed_at IS NULL
@@ -441,6 +493,7 @@ class PeopleGroupSubscriptionService {
       LEFT JOIN contact_methods cm ON cm.subscriber_id = s.id AND cm.type = 'email'
       WHERE cs.next_reminder_utc <= CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
         AND cs.status = 'active'
+        AND cs.reminders_paused = false
         AND cs.delivery_method = 'email'
         AND cm.verified = true
         AND cm.suppressed_at IS NULL

@@ -36,7 +36,7 @@ export async function sendWelcomeEmail(
   const closing = t('email.welcome.closing', locale)
   const startPraying = t('email.welcome.startPraying', locale)
   const profileInstructions = t('email.welcome.profileInstructions', locale)
-  const managePreferences = t('email.common.managePreferences', locale)
+  const manageAccountAndPrayerTimes = t('email.common.manageAccountAndPrayerTimes', locale)
   const automatedMessage = t('email.common.automatedMessage', locale, { appName })
   const reminderTimeText = reminderTime
     ? t('email.welcome.reminderTimeNote', locale, { time: reminderTime })
@@ -163,7 +163,7 @@ ${reminderTimeText ? `
             display: inline-block;
             text-align: center;
             border: 2px solid #3B463D;
-          ">${managePreferences}</a>
+          ">${manageAccountAndPrayerTimes}</a>
         </div>
 
       </div>
@@ -190,7 +190,7 @@ ${closing}
 ${reminderTimeText ? `\n${reminderTimeText}\n` : ''}${calendarText}
 ${startPraying}: ${peopleGroupUrl}
 
-${managePreferences}: ${profileUrl}
+${manageAccountAndPrayerTimes}: ${profileUrl}
 
 ${automatedMessage}
   `.trim()

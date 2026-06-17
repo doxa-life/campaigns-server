@@ -29,7 +29,7 @@ export function logContactUnsubscribe(
     logCreate('subscribers', String(subscriberId), event, {
       source: 'self_service',
       badge: 'Unsubscribed',
-      message: 'Updates for',
+      message: 'People Group Marketing for',
       link_text: peopleGroup.name,
       link_url: `/admin/people-groups/${peopleGroup.id}`
     })

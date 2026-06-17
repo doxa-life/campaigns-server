@@ -270,7 +270,7 @@
       }
     },
     "profile": {
-      "pageTitle": "إدارة التفضيلات",
+      "pageTitle": "إدارة الحساب وأوقات الصلاة",
       "title": "إعدادات التذكير",
       "greeting": "مرحباً {name}، قم بإدارة تفضيلات تذكيرات الصلاة الخاصة بك أدناه.",
       "save": "حفظ التغييرات",
@@ -300,10 +300,10 @@
       "current": "الحالي",
       "viewCampaign": "عرض الحملة",
       "unsubscribeButton": "إلغاء الاشتراك",
-      "resubscribeButton": "إعادة الاشتراك",
+      "resubscribeButton": "إعادة تشغيل التذكيرات",
       "unsubscribeConfirm": "هل أنت متأكد من رغبتك في إلغاء الاشتراك من {campaign}؟",
       "unsubscribeSuccess": "تم إلغاء اشتراكك.",
-      "resubscribeSuccess": "تم إعادة اشتراكك.",
+      "resubscribeSuccess": "تمت إعادة تشغيل التذكيرات.",
       "reminders": "تذكيرات",
       "reminder": "تذكير",
       "deleteReminderConfirm": "هل أنت متأكد من رغبتك في حذف هذا التذكير؟",
@@ -312,7 +312,27 @@
         "title": "خطأ",
         "notFound": "الاشتراك غير موجود.",
         "failed": "فشل حفظ التغييرات. يرجى المحاولة مرة أخرى."
-      }
+      },
+      "muted": "مكتوم",
+      "paused": "موقوف",
+      "stopRemindersPageTitle": "إيقاف التذكيرات",
+      "stopRemindersButton": "إيقاف التذكير",
+      "stopReminderTitle": "أوقف تذكير الساعة {time} الخاص بـ {campaign}",
+      "stopRemindersQuestion": "ماذا تريد أن تفعل؟",
+      "alreadyStoppedTitle": "موقوف مسبقاً",
+      "alreadyStoppedMessage": "تذكير الساعة {time} موقوف بالفعل. يمكنك تشغيله مجدداً من تفضيلاتك.",
+      "alreadyMutedNote": "إشعارات تذكير الساعة {time} مكتومة بالفعل.",
+      "muteOption": "إيقاف إشعارات الساعة {time}",
+      "muteOptionHint": "تابع الصلاة في الساعة {time} — سنوقف رسائل التذكير فقط، وسنطمئن عليك من حين لآخر.",
+      "stopTimeOption": "إيقاف الصلاة في الساعة {time}",
+      "stopTimeOptionHint": "أوقف وقت الصلاة هذا. يمكنك تشغيله مجدداً في أي وقت.",
+      "stopAllOption": "لم أعد أصلّي",
+      "stopAllOptionHint": "إيقاف جميع تذكيرات {campaign}.",
+      "muteSuccess": "تم كتم التذكيرات. شكراً لمواصلتك الصلاة!",
+      "notPrayingSuccess": "تم إيقاف وقت الصلاة هذا. يمكنك تشغيله مجدداً في أي وقت.",
+      "stopAllSuccess": "تم إيقاف جميع تذكيرات {campaign}. يمكنك تشغيلها مجدداً في أي وقت.",
+      "resumeRemindersButton": "تشغيل التذكيرات",
+      "resumeSuccess": "تم تشغيل التذكيرات."
     }
   },
   "prayerFuel": {
@@ -442,8 +462,8 @@
     },
     "notPraying": {
       "title": "نحن نتفهم",
-      "message": "تم إيقاف اشتراكك مؤقتاً. لن تتلقى تذكيرات الصلاة في الوقت الحالي.",
-      "reactivateNotice": "إذا كنت ترغب في استئناف الصلاة في المستقبل، يمكنك إعادة تفعيل اشتراكك في أي وقت من ملفك الشخصي.",
+      "message": "تم إيقاف اشتراكك. لن تتلقى تذكيرات الصلاة في الوقت الحالي.",
+      "reactivateNotice": "إذا كنت ترغب في استئناف الصلاة في المستقبل، يمكنك ذلك في أي وقت من ملفك الشخصي.",
       "profileButton": "عرض ملفي الشخصي",
       "visitButton": "زيارة الحملة"
     },
@@ -454,7 +474,10 @@
       "hello": "مرحباً {name}!",
       "automatedMessage": "هذه رسالة آلية من {appName}. يرجى عدم الرد على هذا البريد الإلكتروني.",
       "managePreferences": "إدارة التفضيلات",
-      "unsubscribe": "إلغاء الاشتراك"
+      "unsubscribe": "إلغاء الاشتراك",
+      "managePrayerTimes": "إدارة أوقات الصلاة",
+      "manageAccountAndPrayerTimes": "إدارة الحساب وأوقات الصلاة",
+      "stopReminders": "إيقاف هذا التذكير"
     },
     "verification": {
       "subject": "أكّد عنوان بريدك الإلكتروني",
@@ -502,7 +525,7 @@
       "sometimesWeekly": "أحياناً، لكن ليس دائماً",
       "noLonger": "لا، لم أعد أصلي",
       "feedbackHelps": "ملاحظاتك تساعدنا على فهم كيف يمكننا دعم رحلة صلاتك بشكل أفضل.",
-      "pauseNotice": "إذا لم نسمع منك، سنوقف تذكيرات الصلاة مؤقتاً لتجنب ملء صندوق بريدك. يمكنك دائماً إعادة تفعيلها من ملفك الشخصي.",
+      "pauseNotice": "إذا لم نسمع منك، سنوقف تذكيرات الصلاة لتجنب ملء صندوق بريدك. يمكنك دائماً إعادة تشغيلها من ملفك الشخصي.",
       "commitmentCheckIn": "هذه متابعة للالتزام من {appName}."
     },
     "marketing": {
@@ -585,7 +608,7 @@
     "eventTitle": "صلاة من أجل {campaign}",
     "eventDescription": "جلسة صلاة مدتها {duration} دقيقة من أجل {campaign}"
   },
-  "inbox":   {
+  "inbox": {
     "title": "صندوق الوارد",
     "searchPlaceholder": "البحث في المحادثات",
     "empty": "لا توجد محادثات",
