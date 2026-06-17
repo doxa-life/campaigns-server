@@ -530,6 +530,23 @@ paths:
                   hasContent:
                     type: boolean
                     description: Whether any content was found for this date
+                  metadata:
+                    type: object
+                    description: Additional metadata derived from the content
+                    properties:
+                      copyright_notices:
+                        type: array
+                        nullable: true
+                        description: Scripture copyright/attribution notices for the Bible translations referenced in the content
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: Translation identifier (e.g. ESV, NIV)
+                            notice:
+                              type: string
+                              description: Copyright notice text to display
         '400':
           description: Invalid people group slug or date format
         '404':

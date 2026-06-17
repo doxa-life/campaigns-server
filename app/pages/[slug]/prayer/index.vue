@@ -40,6 +40,7 @@
           :has-content="data.hasContent"
           :prayed-marked="prayedMarked"
           :submitting="submitting"
+          :metadata="data.metadata"
           @pray="markAsPrayed"
         />
 
@@ -93,6 +94,9 @@ interface PrayerContentResponse {
   content: PrayerContentItem[]
   hasContent: boolean
   globalStartDate: string | null
+  metadata: {
+    copyright_notices: { id: string; notice: string }[] | null
+  }
 }
 
 definePageMeta({

@@ -37,6 +37,7 @@
         :has-content="data.hasContent"
         :prayed-marked="false"
         :submitting="false"
+        :metadata="data.metadata"
       />
     </div>
   </div>
@@ -95,6 +96,9 @@ interface PrayerContentResponse {
   content: ContentItem[]
   hasContent: boolean
   globalStartDate: string | null
+  metadata: {
+    copyright_notices: { id: string; notice: string }[] | null
+  }
 }
 
 const { data, pending, error: fetchError, refresh } = await useFetch<PrayerContentResponse>(

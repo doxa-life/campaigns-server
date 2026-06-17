@@ -47,6 +47,7 @@
         :has-content="data.hasContent"
         :prayed-marked="prayedMarked"
         :submitting="submitting"
+        :metadata="data.metadata"
         @pray="markAsPrayed"
       />
 
