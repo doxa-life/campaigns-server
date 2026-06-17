@@ -14,7 +14,7 @@ When someone signs up for prayer reminders, they commit to praying on a schedule
 
 ### Timing
 
-- **First check-in**: Sent 1 month after signup (or after their last prayer session)
+- **First check-in**: Sent 1 month after their last activity — their most recent prayer session, or their signup if never visited the people group prayer page.
 - **Follow-up check-ins**: Sent every 3 months after that
 
 The system tracks prayer activity automatically. If someone clicks through from a reminder email and logs a prayer session, that resets their check-in timer.
