@@ -134,12 +134,18 @@ export default defineEventHandler(async (event) => {
       peopleGroup.id
     )
 
-    const MAX_SUBSCRIPTIONS_PER_PEOPLE_GROUP = 5
-
-    const activeCount = existingSubscriptions.filter(s => s.status === 'active' || s.status === 'pending').length
-    if (activeCount >= MAX_SUBSCRIPTIONS_PER_PEOPLE_GROUP) {
-      // At limit - send welcome email to prevent email enumeration
-      if (body.delivery_method === 'email' && body.email) {
+    // Same-group re-signups that don't create a new subscription (already at the
+    // per-group limit, or a duplicate schedule) still need a follow-up email. An
+    // unverified address gets its verification link (re)sent — this is the retry
+    // path for a confirmation email that didn't arrive or went to spam — while a
+    // verified address gets the welcome.
+    const sendRetryEmail = async () => {
+      if (body.delivery_method !== 'email' || !body.email) return
+      const emailContact = await contactMethodService.getByValue('email', body.email)
+      if (emailContact && !emailContact.verified) {
+        const { token } = await contactMethodService.generateVerificationToken(emailContact.id)
+        await sendSignupVerificationEmail(body.email, token, slug, body.name, language)
+      } else {
         await sendWelcomeEmail(
           body.email,
           body.name,
@@ -151,6 +157,15 @@ export default defineEventHandler(async (event) => {
           body.reminder_time
         )
       }
+    }
+
+    const MAX_SUBSCRIPTIONS_PER_PEOPLE_GROUP = 5
+
+    const activeCount = existingSubscriptions.filter(s => s.status === 'active' || s.status === 'pending').length
+    if (activeCount >= MAX_SUBSCRIPTIONS_PER_PEOPLE_GROUP) {
+      // At limit - send the follow-up email so the response can't be used to
+      // enumerate addresses (unverified gets the verification link, verified the welcome).
+      await sendRetryEmail()
       // Return same response as new signup for privacy
       return {
         message: 'Please check your email to complete your signup'
@@ -165,19 +180,10 @@ export default defineEventHandler(async (event) => {
     )
 
     if (duplicate) {
-      // Duplicate schedule - send welcome email to prevent email enumeration
-      if (body.delivery_method === 'email' && body.email) {
-        await sendWelcomeEmail(
-          body.email,
-          body.name,
-          peopleGroup.name,
-          slug,
-          subscriber.profile_id,
-          language,
-          subscriber.tracking_id,
-          body.reminder_time
-        )
-      }
+      // Duplicate schedule - re-sending the same signup. An unverified address
+      // gets its verification link resent (retry); a verified one gets the
+      // welcome. Constant response keeps the endpoint non-enumerable.
+      await sendRetryEmail()
       // Return same response as new signup for privacy
       return {
         message: 'Please check your email to complete your signup'
@@ -208,8 +214,8 @@ export default defineEventHandler(async (event) => {
         await peopleGroupSubscriptionService.resubscribe(unsubscribedMatch.id, resubscribeStatus)
 
         if (emailContact && !emailContact.verified) {
-          const token = await contactMethodService.generateVerificationToken(emailContact.id)
-          await sendSignupVerificationEmail(body.email, token, slug, peopleGroup.name, body.name, language)
+          const { token } = await contactMethodService.generateVerificationToken(emailContact.id)
+          await sendSignupVerificationEmail(body.email, token, slug, body.name, language)
         } else if (emailContact?.verified) {
           await sendWelcomeEmail(body.email, body.name, peopleGroup.name, slug, subscriber.profile_id, language, subscriber.tracking_id, body.reminder_time, {
             subscriptionId: unsubscribedMatch.id,
@@ -337,9 +343,17 @@ export default defineEventHandler(async (event) => {
           prayerDuration: body.prayer_duration
         })
       } else if (emailContact) {
-        // Email not verified - send verification email
-        const token = await contactMethodService.generateVerificationToken(emailContact.id)
-        await sendSignupVerificationEmail(body.email, token, slug, peopleGroup.name, body.name, language)
+        // Email not verified - ensure a valid verification link exists, then only
+        // send it when this is the first outstanding link for the address, or the
+        // subscriber was already pending on this group (a retry). For an additional
+        // brand-new group while a valid link is still out, suppress the email: that
+        // link is already in their inbox and verifying it activates every pending
+        // subscription at once.
+        const { token, isNew: isNewToken } = await contactMethodService.generateVerificationToken(emailContact.id)
+        const alreadyPendingThisGroup = existingSubscriptions.some(s => s.status === 'pending')
+        if (isNewToken || alreadyPendingThisGroup) {
+          await sendSignupVerificationEmail(body.email, token, slug, body.name, language)
+        }
       }
 
       // Always return same response for email signups

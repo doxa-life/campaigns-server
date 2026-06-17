@@ -457,9 +457,9 @@
       "unsubscribe": "Annulla iscrizione"
     },
     "verification": {
-      "subject": "Verifica la tua email per {campaign}",
+      "subject": "Conferma il tuo indirizzo email",
       "header": "Verifica la Tua Email",
-      "thankYou": "Grazie per esserti iscritto ai promemoria di preghiera per {campaign}.",
+      "thankYou": "Grazie per esserti iscritto per pregare per un gruppo etnico.",
       "pleaseVerify": "Verifica il tuo indirizzo email cliccando il pulsante qui sotto:",
       "verifyButton": "Verifica Email",
       "linkInstructions": "Se il pulsante non funziona, puoi anche copiare e incollare questo link nel tuo browser:",

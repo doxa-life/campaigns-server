@@ -128,17 +128,41 @@ class ContactMethodService {
     return result.count > 0
   }
 
-  async generateVerificationToken(contactMethodId: number): Promise<string> {
-    const token = randomUUID()
+  /**
+   * Ensure the contact method has a usable verification token and return it.
+   *
+   * One email address has a single shared token, and a subscriber may sign up to
+   * several people groups before verifying. Minting a fresh token on every signup
+   * would invalidate the links already mailed for earlier signups, so an existing
+   * unexpired token is reused — every verification email ever sent during the
+   * unverified window keeps working. A new token is minted only when none exists or
+   * the current one has expired. The CASE update is atomic so two concurrent signups
+   * can't race into two different tokens.
+   *
+   * `isNew` tells the caller whether this call minted the token (it is the first
+   * outstanding verification link for the address), so it can suppress duplicate
+   * verification emails for follow-on signups.
+   */
+  async generateVerificationToken(contactMethodId: number): Promise<{ token: string; isNew: boolean }> {
+    const newToken = randomUUID()
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
 
-    await this.sql`
+    const [row] = await this.sql`
       UPDATE contact_methods
-      SET verification_token = ${token}, verification_token_expires_at = ${expiresAt},
+      SET verification_token = CASE
+            WHEN verification_token IS NOT NULL
+                 AND verification_token_expires_at > (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+              THEN verification_token ELSE ${newToken} END,
+          verification_token_expires_at = CASE
+            WHEN verification_token IS NOT NULL
+                 AND verification_token_expires_at > (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+              THEN verification_token_expires_at ELSE ${expiresAt} END,
           updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE id = ${contactMethodId}
+      RETURNING verification_token
     `
-    return token
+    const token = (row?.verification_token as string) ?? newToken
+    return { token, isNew: token === newToken }
   }
 
   async getByVerificationToken(token: string): Promise<ContactMethod | null> {
@@ -179,7 +203,8 @@ class ContactMethodService {
   async regenerateVerificationToken(contactMethodId: number): Promise<string | null> {
     const contactMethod = await this.getById(contactMethodId)
     if (!contactMethod || contactMethod.verified) return null
-    return this.generateVerificationToken(contactMethodId)
+    const { token } = await this.generateVerificationToken(contactMethodId)
+    return token
   }
 
   // Mark a contact method verified directly (used when we receive an authenticated email

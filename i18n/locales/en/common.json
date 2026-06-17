@@ -457,9 +457,9 @@
       "unsubscribe": "Unsubscribe"
     },
     "verification": {
-      "subject": "Verify your email for {campaign}",
+      "subject": "Confirm your email address",
       "header": "Verify Your Email",
-      "thankYou": "Thank you for signing up for prayer reminders for {campaign}.",
+      "thankYou": "Thank you for signing up to pray for a people group.",
       "pleaseVerify": "Please verify your email address by clicking the button below:",
       "verifyButton": "Verify Email",
       "linkInstructions": "If the button doesn't work, you can also copy and paste this link into your browser:",

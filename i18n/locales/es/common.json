@@ -457,9 +457,9 @@
       "unsubscribe": "Cancelar Suscripción"
     },
     "verification": {
-      "subject": "Verifica tu correo para {campaign}",
+      "subject": "Confirma tu correo electrónico",
       "header": "Verifica Tu Correo",
-      "thankYou": "Gracias por inscribirte para recibir recordatorios de oración para {campaign}.",
+      "thankYou": "Gracias por inscribirte para orar por un grupo étnico.",
       "pleaseVerify": "Por favor verifica tu dirección de correo haciendo clic en el botón de abajo:",
       "verifyButton": "Verificar Correo",
       "linkInstructions": "Si el botón no funciona, también puedes copiar y pegar este enlace en tu navegador:",

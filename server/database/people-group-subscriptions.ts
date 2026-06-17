@@ -491,13 +491,23 @@ class PeopleGroupSubscriptionService {
     await this.updateNextReminderUtc(subscriptionId, nextUtc)
   }
 
-  async activatePendingSubscriptions(subscriberId: number): Promise<number> {
-    const result = await this.sql`
-      UPDATE campaign_subscriptions
+  // Promote a subscriber's pending subscriptions to active (done once, when their
+  // email is verified) and return the rows that flipped, joined to their people
+  // group's name and slug so the caller can send a welcome email per group.
+  async activatePendingSubscriptions(
+    subscriberId: number
+  ): Promise<Array<PeopleGroupSubscription & { people_group_name: string; people_group_slug: string }>> {
+    const rows = await this.sql`
+      UPDATE campaign_subscriptions cs
       SET status = 'active', updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
-      WHERE subscriber_id = ${subscriberId} AND status = 'pending'
+      FROM people_groups pg
+      WHERE cs.people_group_id = pg.id
+        AND cs.subscriber_id = ${subscriberId}
+        AND cs.status = 'pending'
+      RETURNING cs.*, pg.name AS people_group_name, pg.slug AS people_group_slug
     `
-    return result.count
+    for (const row of rows) parseDaysOfWeek(row)
+    return rows as any
   }
 
   async setNextRemindersForSubscriber(subscriberId: number): Promise<void> {

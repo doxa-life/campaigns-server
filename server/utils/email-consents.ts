@@ -31,8 +31,12 @@ export async function applyEmailConsents(input: {
   // dedup/identity and a "verify your email" message would be unsolicited.
   const consentRequested = input.consentDoxaGeneral || input.consentPeopleGroupUpdates
   if (!emailContact.verified && consentRequested) {
-    const token = await contactMethodService.generateVerificationToken(emailContact.id)
-    sendContactVerificationEmail(input.email, token, input.name, input.language)
-      .catch(err => console.error('Failed to send verification email:', err))
+    // Reuse a still-valid link; only mail when it's the first one outstanding for
+    // the address, so signing up across flows doesn't stack up verification emails.
+    const { token, isNew } = await contactMethodService.generateVerificationToken(emailContact.id)
+    if (isNew) {
+      sendContactVerificationEmail(input.email, token, input.name, input.language)
+        .catch(err => console.error('Failed to send verification email:', err))
+    }
   }
 }

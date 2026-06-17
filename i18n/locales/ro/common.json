@@ -457,9 +457,9 @@
       "unsubscribe": "Dezabonare"
     },
     "verification": {
-      "subject": "Verifică emailul pentru {campaign}",
+      "subject": "Confirmă adresa ta de email",
       "header": "Verifică-ți emailul",
-      "thankYou": "Mulțumim că te-ai înscris pentru memento-uri de rugăciune pentru {campaign}.",
+      "thankYou": "Mulțumim că te-ai înscris pentru a te ruga pentru un grup etnic.",
       "pleaseVerify": "Te rugăm să verifici adresa de email făcând click pe butonul de mai jos:",
       "verifyButton": "Verifică emailul",
       "linkInstructions": "Dacă butonul nu funcționează, poți copia și lipi acest link în browser:",

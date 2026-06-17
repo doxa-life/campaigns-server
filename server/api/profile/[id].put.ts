@@ -105,19 +105,18 @@ export default defineEventHandler(async (event) => {
 
       emailChanged = true
 
-      // Send verification email - need a people group for context
+      // Send verification email - the verification link is routed per people group,
+      // so we need one of the subscriber's subscriptions to build the link.
       if (newEmailContact) {
-        // Get subscriber's first subscription to use for verification email context
         const subscriptions = await peopleGroupSubscriptionService.getSubscriberSubscriptions(subscriber.id)
         if (subscriptions.length > 0) {
           const peopleGroup = await peopleGroupService.getPeopleGroupById(subscriptions[0]!.people_group_id)
           if (peopleGroup && newEmailContact) {
-            const verificationToken = await contactMethodService.generateVerificationToken(newEmailContact.id)
+            const { token } = await contactMethodService.generateVerificationToken(newEmailContact.id)
             await sendSignupVerificationEmail(
               newEmail,
-              verificationToken,
+              token,
               peopleGroup.slug!,
-              peopleGroup.name,
               body.name?.trim() || subscriber.name
             )
           }

@@ -66,9 +66,12 @@ export default defineEventHandler(async (event) => {
         await contactMethodService.updateDoxaConsent(emailContact.id, true)
 
         if (!emailContact.verified) {
-          const token = await contactMethodService.generateVerificationToken(emailContact.id)
-          sendContactVerificationEmail(email, token, name || email, language)
-            .catch(err => console.error('Failed to send contact verification email:', err))
+          // Reuse a still-valid link; only mail when it's the first one outstanding.
+          const { token, isNew: isNewToken } = await contactMethodService.generateVerificationToken(emailContact.id)
+          if (isNewToken) {
+            sendContactVerificationEmail(email, token, name || email, language)
+              .catch(err => console.error('Failed to send contact verification email:', err))
+          }
         }
       }
     }

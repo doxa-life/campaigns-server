@@ -4,20 +4,21 @@ export async function sendSignupVerificationEmail(
   to: string,
   verificationToken: string,
   peopleGroupSlug: string,
-  peopleGroupName: string,
   subscriberName: string,
   locale: string = 'en'
 ): Promise<boolean> {
   const config = useRuntimeConfig()
   const baseUrl = config.public.siteUrl || 'http://localhost:3000'
   const appName = config.appName || 'Prayer Tools'
+  // The link is routed per people group, but the copy is generic: one verification
+  // covers every people group the subscriber has signed up to pray for.
   const verificationUrl = `${baseUrl}${localePath(`/${peopleGroupSlug}/verify`, locale)}?token=${verificationToken}`
 
-  const subject = t('email.verification.subject', locale, { campaign: peopleGroupName })
+  const subject = t('email.verification.subject', locale)
   const header = t('email.verification.header', locale)
   const hello = t('email.common.hello', locale, { name: subscriberName })
   const helloHtml = t('email.common.hello', locale, { name: escapeHtml(subscriberName) })
-  const thankYou = t('email.verification.thankYou', locale, { campaign: peopleGroupName })
+  const thankYou = t('email.verification.thankYou', locale)
   const pleaseVerify = t('email.verification.pleaseVerify', locale)
   const verifyButton = t('email.verification.verifyButton', locale)
   const linkInstructions = t('email.verification.linkInstructions', locale)
@@ -38,7 +39,6 @@ export async function sendSignupVerificationEmail(
       <img src="${baseUrl}/images/template-header-doxa.jpeg" alt="Doxa" style="width: 100%; display: block; border-radius: 10px 10px 0 0;" />
       <div style="background: #3B463D; color: #ffffff; padding: 30px; text-align: center;">
         <h1 style="margin: 0; font-size: 28px; font-weight: 500;">${header}</h1>
-        <p style="margin: 10px 0 0; font-size: 16px; opacity: 0.8;">${peopleGroupName}</p>
       </div>
 
       <div style="background: #ffffff; border: 2px solid #3B463D; border-top: none; padding: 40px 30px; border-radius: 0 0 10px 10px;">
@@ -90,7 +90,7 @@ export async function sendSignupVerificationEmail(
   `
 
   const text = `
-${header} - ${peopleGroupName}
+${header}
 
 ${hello}
 

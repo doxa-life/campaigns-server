@@ -162,14 +162,19 @@ export default defineEventHandler(async (event) => {
         }
       })
 
-      const token = await contactMethodService.generateVerificationToken(emailContact.id)
-      sendAdoptionVerificationEmail(
-        email,
-        token,
-        peopleGroup.name,
-        fullName,
-        language
-      ).catch(err => console.error('Failed to send adoption verification email:', err))
+      // Reuse an existing valid link and only mail when this is the first one
+      // outstanding for the address; verifying any link activates every pending
+      // adoption, so a follow-on adoption needs no second email.
+      const { token, isNew: isNewToken } = await contactMethodService.generateVerificationToken(emailContact.id)
+      if (isNewToken) {
+        sendAdoptionVerificationEmail(
+          email,
+          token,
+          peopleGroup.name,
+          fullName,
+          language
+        ).catch(err => console.error('Failed to send adoption verification email:', err))
+      }
 
       return { success: true, needs_verification: true }
     }

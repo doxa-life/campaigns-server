@@ -457,9 +457,9 @@
       "unsubscribe": "Abmelden"
     },
     "verification": {
-      "subject": "Bestätigen Sie Ihre E-Mail für {campaign}",
+      "subject": "Bestätigen Sie Ihre E-Mail-Adresse",
       "header": "Bestätigen Sie Ihre E-Mail",
-      "thankYou": "Vielen Dank für Ihre Anmeldung zu Gebetserinnerungen für {campaign}.",
+      "thankYou": "Vielen Dank, dass Sie sich angemeldet haben, um für eine Volksgruppe zu beten.",
       "pleaseVerify": "Bitte bestätigen Sie Ihre E-Mail-Adresse, indem Sie auf die Schaltfläche unten klicken:",
       "verifyButton": "E-Mail bestätigen",
       "linkInstructions": "Wenn die Schaltfläche nicht funktioniert, können Sie auch diesen Link kopieren und in Ihren Browser einfügen:",

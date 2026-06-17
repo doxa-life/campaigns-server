@@ -6,7 +6,6 @@ import { peopleGroupService } from '#server/database/people-groups'
 import { contactMethodService } from '#server/database/contact-methods'
 import { peopleGroupSubscriptionService, type PeopleGroupSubscription } from '#server/database/people-group-subscriptions'
 import { subscriberService } from '#server/database/subscribers'
-import { sendWelcomeEmail } from '#server/utils/welcome-email'
 import { pendingAdoptionService } from '#server/database/pending-adoptions'
 import { peopleGroupAdoptionService } from '#server/database/people-group-adoptions'
 import { sendAdoptionWelcomeEmail } from '#server/utils/adoption-welcome-email'
@@ -79,26 +78,8 @@ export default defineEventHandler(async (event) => {
     )
     latestActive = subscriptions.filter(s => s.status === 'active').pop() ?? null
 
-    // Send welcome email (only if this was a new verification, not already verified)
-    if (!result.alreadyVerified && subscriber) {
-      sendWelcomeEmail(
-        result.contactMethod.value,
-        subscriber.name,
-        peopleGroup.name,
-        slug,
-        subscriber.profile_id,
-        subscriber.preferred_language || 'en',
-        subscriber.tracking_id,
-        latestActive?.time_preference ?? undefined,
-        latestActive ? {
-          subscriptionId: latestActive.id,
-          frequency: latestActive.frequency,
-          daysOfWeek: latestActive.days_of_week.length > 0 ? latestActive.days_of_week : undefined,
-          timezone: latestActive.timezone,
-          prayerDuration: latestActive.prayer_duration
-        } : undefined
-      ).catch(err => console.error('Failed to send welcome email:', err))
-    }
+    // Welcome emails for the newly-activated prayer subscriptions are sent by the
+    // `contact.verified` hook (one per group), so they're not sent here.
 
     // Cross-flow: activate any pending adoptions for this contact method
     const pendingAdoptions = await pendingAdoptionService.getByContactMethodId(result.contactMethod.id)

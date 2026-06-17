@@ -457,9 +457,9 @@
       "unsubscribe": "取消订阅"
     },
     "verification": {
-      "subject": "验证您的{campaign}邮箱",
+      "subject": "确认您的电子邮箱地址",
       "header": "验证您的邮箱",
-      "thankYou": "感谢您注册{campaign}的祷告提醒。",
+      "thankYou": "感谢您注册为一个族群祷告。",
       "pleaseVerify": "请点击下方按钮验证您的邮箱地址：",
       "verifyButton": "验证邮箱",
       "linkInstructions": "如果按钮无法使用，您也可以复制并粘贴此链接到浏览器：",
