@@ -15,6 +15,7 @@ export interface Conversation {
   assigned_user_id: string | null
   reply_token: string
   needs_review: boolean
+  tags: string[]
   last_message_at: string | null
   last_message_direction: MessageDirection | null
   created_at: string
@@ -36,6 +37,7 @@ export interface ConversationListFilters {
   unassigned?: boolean
   mine?: string
   held?: boolean
+  tag?: string
   search?: string
   limit?: number
   offset?: number
@@ -124,6 +126,7 @@ class ConversationService {
     if (filters.unassigned) conditions.push(this.sql`c.assigned_user_id IS NULL`)
     if (filters.mine) conditions.push(this.sql`c.assigned_user_id = ${filters.mine}`)
     if (filters.assignedUserId) conditions.push(this.sql`c.assigned_user_id = ${filters.assignedUserId}`)
+    if (filters.tag) conditions.push(this.sql`c.tags @> ${this.sql.json([filters.tag])}`)
 
     if (filters.search) {
       const term = `%${filters.search}%`
@@ -285,6 +288,26 @@ class ConversationService {
 
   async setNeedsReview(id: number, value: boolean): Promise<void> {
     await this.sql`UPDATE conversations SET needs_review = ${value}, updated_at = NOW() WHERE id = ${id}`
+  }
+
+  // Replace a conversation's tag set with the given slugs (already validated/sanitised by the caller).
+  async setTags(id: number, slugs: string[]): Promise<void> {
+    await this.sql`UPDATE conversations SET tags = ${this.sql.json(slugs)}, updated_at = NOW() WHERE id = ${id}`
+  }
+
+  // Per-tag count of non-spam conversations, for the rail's clickable tag list. Each
+  // tag acts as a cross-status folder, so spam is the only status excluded (it's noise).
+  async tagCounts(): Promise<Record<string, number>> {
+    const rows = await this.sql<{ slug: string; count: number }[]>`
+      SELECT t.tag AS slug, COUNT(*)::int AS count
+      FROM conversations c
+      CROSS JOIN LATERAL jsonb_array_elements_text(c.tags) AS t(tag)
+      WHERE c.status <> 'spam'
+      GROUP BY t.tag
+    `
+    const out: Record<string, number> = {}
+    for (const r of rows) out[r.slug] = Number(r.count)
+    return out
   }
 
   async setSubject(id: number, subject: string): Promise<void> {

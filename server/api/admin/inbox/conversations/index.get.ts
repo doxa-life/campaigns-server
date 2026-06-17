@@ -12,10 +12,11 @@ export default defineEventHandler(async (event) => {
   const unassigned = query.unassigned === 'true' || query.unassigned === '1'
   const mine = query.mine as string | undefined
   const assignedUserId = query.assigned_user_id as string | undefined
+  const tag = query.tag as string | undefined
   const limit = query.limit ? parseInt(query.limit as string) : 100
   const offset = query.offset ? parseInt(query.offset as string) : 0
 
-  const filters = { status, channel, search, held, unassigned, mine, assignedUserId, limit, offset }
+  const filters = { status, channel, search, held, unassigned, mine, assignedUserId, tag, limit, offset }
 
   try {
     const [conversations, total] = await Promise.all([

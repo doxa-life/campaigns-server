@@ -953,4 +953,107 @@ describe('Shared inbox', async () => {
     await drainOutbound(convo.id) // attempt 3 — retries exhausted
     expect(await status()).toBe('failed')
   })
+
+  // --- Tags: palette CRUD + per-conversation assignment + filtering ---
+  describe('tags', () => {
+    const createdTagSlugs: string[] = []
+
+    async function createTag(name: string, color = 'info') {
+      const res = await $fetch<{ tag: { slug: string; name: string; color: string } }>(
+        '/api/admin/inbox/tags', { method: 'POST', body: { name, color }, ...agentAuth },
+      )
+      createdTagSlugs.push(res.tag.slug)
+      return res.tag
+    }
+
+    afterAll(async () => {
+      for (const slug of createdTagSlugs) {
+        await $fetch(`/api/admin/inbox/tags/${slug}`, { method: 'DELETE', ...agentAuth }).catch(() => {})
+      }
+    })
+
+    it('creates a tag and is idempotent by slug', async () => {
+      const name = `Bug Report ${uuidv4().slice(0, 6)}`
+      const tag = await createTag(name, 'error')
+      expect(tag.slug).toBeTruthy()
+      expect(tag.color).toBe('error')
+
+      // Re-posting the same name returns the existing tag rather than duplicating.
+      const again = await $fetch<{ tag: { slug: string } }>(
+        '/api/admin/inbox/tags', { method: 'POST', body: { name, color: 'info' }, ...agentAuth },
+      )
+      expect(again.tag.slug).toBe(tag.slug)
+      const list = await $fetch<{ tags: { slug: string }[] }>('/api/admin/inbox/tags', { ...agentAuth })
+      expect(list.tags.filter(t => t.slug === tag.slug).length).toBe(1)
+    })
+
+    it('assigns tags to a conversation and drops unknown slugs', async () => {
+      const subId = await makeSubscriber(`inbox-tag-assign-${uuidv4().slice(0, 8)}@example.com`)
+      const convo = await makeConversation(subId, { status: 'open' })
+      const tag = await createTag(`People Group Updates ${uuidv4().slice(0, 6)}`, 'info')
+
+      const res = await $fetch<{ conversation: { tags: string[] } }>(
+        `/api/admin/inbox/conversations/${convo.id}/tags`,
+        { method: 'PUT', body: { tags: [tag.slug, 'does-not-exist'] }, ...agentAuth },
+      )
+      expect(res.conversation.tags).toEqual([tag.slug])
+
+      const [row] = await sql`SELECT tags FROM conversations WHERE id = ${convo.id}`
+      expect(row!.tags).toEqual([tag.slug])
+    })
+
+    it('filters the conversation list by tag', async () => {
+      const tag = await createTag(`Filter ${uuidv4().slice(0, 6)}`, 'warning')
+      const convoA = await makeConversation(await makeSubscriber(`inbox-tag-fa-${uuidv4().slice(0, 8)}@example.com`), { status: 'open' })
+      const convoB = await makeConversation(await makeSubscriber(`inbox-tag-fb-${uuidv4().slice(0, 8)}@example.com`), { status: 'open' })
+      await $fetch(`/api/admin/inbox/conversations/${convoA.id}/tags`, { method: 'PUT', body: { tags: [tag.slug] }, ...agentAuth })
+
+      const res = await $fetch<{ conversations: { id: number }[] }>(
+        '/api/admin/inbox/conversations', { params: { tag: tag.slug }, ...agentAuth },
+      )
+      const ids = res.conversations.map(c => c.id)
+      expect(ids).toContain(convoA.id)
+      expect(ids).not.toContain(convoB.id)
+    })
+
+    it('counts conversations per tag, excluding spam', async () => {
+      const tag = await createTag(`Counted ${uuidv4().slice(0, 6)}`, 'success')
+      const c1 = await makeConversation(await makeSubscriber(`inbox-tagc1-${uuidv4().slice(0, 8)}@example.com`), { status: 'open' })
+      const c2 = await makeConversation(await makeSubscriber(`inbox-tagc2-${uuidv4().slice(0, 8)}@example.com`), { status: 'spam' })
+      await $fetch(`/api/admin/inbox/conversations/${c1.id}/tags`, { method: 'PUT', body: { tags: [tag.slug] }, ...agentAuth })
+      await $fetch(`/api/admin/inbox/conversations/${c2.id}/tags`, { method: 'PUT', body: { tags: [tag.slug] }, ...agentAuth })
+
+      const res = await $fetch<{ counts: Record<string, number> }>('/api/admin/inbox/conversations/tag-counts', { ...agentAuth })
+      expect(res.counts[tag.slug]).toBe(1) // the spam conversation is excluded
+    })
+
+    it('deletes a tag and strips it from conversations', async () => {
+      const subId = await makeSubscriber(`inbox-tagdel-${uuidv4().slice(0, 8)}@example.com`)
+      const convo = await makeConversation(subId, { status: 'open' })
+      const created = await $fetch<{ tag: { slug: string } }>(
+        '/api/admin/inbox/tags', { method: 'POST', body: { name: `Temp ${uuidv4().slice(0, 6)}`, color: 'neutral' }, ...agentAuth },
+      )
+      const slug = created.tag.slug
+      await $fetch(`/api/admin/inbox/conversations/${convo.id}/tags`, { method: 'PUT', body: { tags: [slug] }, ...agentAuth })
+
+      await $fetch(`/api/admin/inbox/tags/${slug}`, { method: 'DELETE', ...agentAuth })
+
+      const list = await $fetch<{ tags: { slug: string }[] }>('/api/admin/inbox/tags', { ...agentAuth })
+      expect(list.tags.some(t => t.slug === slug)).toBe(false)
+      const [row] = await sql`SELECT tags FROM conversations WHERE id = ${convo.id}`
+      expect(row!.tags).toEqual([])
+    })
+
+    it('rejects tag mutations for users without inbox.view', async () => {
+      const noRole = await createTestUser(sql, { email: `test-notag-${uuidv4().slice(0, 8)}@example.com` })
+      const noRoleAuth = getAuthHeaders(noRole)
+      let status = 0
+      try {
+        await $fetch('/api/admin/inbox/tags', { method: 'POST', body: { name: 'x' }, ...noRoleAuth })
+      } catch (err: any) {
+        status = err?.statusCode || err?.response?.status || 0
+      }
+      expect(status).toBe(403)
+    })
+  })
 })

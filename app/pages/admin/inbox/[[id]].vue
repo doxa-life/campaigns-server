@@ -55,14 +55,32 @@
           :key="v.key"
           block
           :icon="v.icon"
-          :color="view === v.key ? 'primary' : 'neutral'"
-          :variant="view === v.key ? 'soft' : 'ghost'"
+          :color="isScopeActive(v.key) ? 'primary' : 'neutral'"
+          :variant="isScopeActive(v.key) ? 'soft' : 'ghost'"
           class="rail-item"
           @click="setView(v.key)"
         >
           <span class="rail-label">{{ v.label }}</span>
-          <UBadge v-if="counts[v.key]" :color="view === v.key ? 'primary' : 'neutral'" variant="subtle" size="xs">{{ counts[v.key] }}</UBadge>
+          <UBadge v-if="counts[v.key]" :color="isScopeActive(v.key) ? 'primary' : 'neutral'" variant="subtle" size="xs">{{ counts[v.key] }}</UBadge>
         </UButton>
+
+        <template v-if="tagPalette.length">
+          <div class="rail-divider" />
+          <div class="rail-section-label">{{ $t('inbox.tags.title') }}</div>
+          <UButton
+            v-for="tag in tagPalette"
+            :key="tag.slug"
+            block
+            :color="tagFilter === tag.slug ? 'primary' : 'neutral'"
+            :variant="tagFilter === tag.slug ? 'soft' : 'ghost'"
+            class="rail-item"
+            @click="selectTag(tag.slug)"
+          >
+            <span class="rail-tag-dot" :class="tagDotClass(tag.color)" />
+            <span class="rail-label">{{ tag.name }}</span>
+            <UBadge v-if="tagCounts[tag.slug]" :color="tagFilter === tag.slug ? 'primary' : 'neutral'" variant="subtle" size="xs">{{ tagCounts[tag.slug] }}</UBadge>
+          </UButton>
+        </template>
       </nav>
     </template>
 
@@ -115,6 +133,13 @@
             <UBadge :color="statusColor(c.status)" variant="subtle" size="xs">{{ $t('inbox.status.' + c.status) }}</UBadge>
             <UBadge v-if="c.needs_review" color="warning" variant="subtle" size="xs">{{ $t('inbox.needsReview') }}</UBadge>
             <UBadge v-if="c.assignee_name" color="neutral" variant="outline" size="xs">{{ c.assignee_name }}</UBadge>
+            <UBadge
+              v-for="slug in c.tags"
+              :key="slug"
+              :color="tagBadgeColor(slug)"
+              variant="subtle"
+              size="xs"
+            >{{ tagDef(slug)?.name || slug }}</UBadge>
           </div>
         </div>
       </CrmListItem>
@@ -132,6 +157,14 @@
           <span v-else-if="selected.conversation.subscriber_name" class="contact-name">{{ selected.conversation.subscriber_name }}</span>
           <span v-if="selected.conversation.subscriber_email" class="contact-email">{{ selected.conversation.subscriber_email }}</span>
         </div>
+        <InboxTagPicker
+          :conversation-id="selected.conversation.id"
+          :model-value="selected.conversation.tags"
+          :palette="tagPalette"
+          class="detail-tags"
+          @update:model-value="onTagsUpdated"
+          @palette-changed="onPaletteChanged"
+        />
       </div>
     </template>
 
@@ -396,6 +429,11 @@ const toast = useToast()
 const route = useRoute()
 const { user, canAccess } = useAuthUser()
 
+interface InboxTag {
+  slug: string
+  name: string
+  color: string
+}
 interface ConversationListItem {
   id: number
   subject: string | null
@@ -404,6 +442,7 @@ interface ConversationListItem {
   assignee_name: string | null
   subscriber_name: string | null
   subscriber_email: string | null
+  tags: string[]
   last_message_at: string | null
   last_message_snippet: string | null
 }
@@ -436,6 +475,7 @@ interface ConversationDetail {
   status: string
   assigned_user_id: string | null
   needs_review: boolean
+  tags: string[]
   subscriber_id: number | null
   subscriber_name: string | null
   subscriber_email: string | null
@@ -458,6 +498,11 @@ const search = ref('')
 const view = ref<'all' | 'unassigned' | 'mine' | 'held'>('all')
 const statusFilter = ref<'all' | 'open' | 'pending' | 'closed' | 'spam'>('open')
 const counts = ref<{ all: number; unassigned: number; mine: number; held: number; open: number; pending: number }>({ all: 0, unassigned: 0, mine: 0, held: 0, open: 0, pending: 0 })
+// Tags: the shared palette (name + colour), per-tag conversation counts for the rail,
+// and the currently selected tag filter (acts as a cross-status folder, like Held).
+const tagPalette = ref<InboxTag[]>([])
+const tagCounts = ref<Record<string, number>>({})
+const tagFilter = ref<string | null>(null)
 
 const selected = ref<SelectedConversation | null>(null)
 const slideoverOpen = ref(false)
@@ -566,6 +611,34 @@ function statusColor(status: string): any {
   return { open: 'success', pending: 'warning', closed: 'neutral', spam: 'error' }[status] || 'neutral'
 }
 
+function tagDef(slug: string): InboxTag | undefined {
+  return tagPalette.value.find(t => t.slug === slug)
+}
+// UBadge's `color` is a strict union; tags carry it as a plain string.
+function tagBadgeColor(slug: string): any {
+  return tagDef(slug)?.color || 'neutral'
+}
+
+// Static class strings so Tailwind keeps them — mirrors the picker's swatch colours.
+const TAG_DOT_CLASS: Record<string, string> = {
+  neutral: 'bg-neutral-500',
+  primary: 'bg-primary-500',
+  secondary: 'bg-secondary-500',
+  info: 'bg-info-500',
+  success: 'bg-success-500',
+  warning: 'bg-warning-500',
+  error: 'bg-error-500',
+}
+function tagDotClass(color: string): string {
+  return TAG_DOT_CLASS[color] || TAG_DOT_CLASS.neutral!
+}
+
+// A scope rail (all/unassigned/mine/held) reads as active only when no tag folder is
+// selected — picking a tag makes the tag the active folder instead.
+function isScopeActive(key: 'all' | 'unassigned' | 'mine' | 'held'): boolean {
+  return view.value === key && !tagFilter.value
+}
+
 function formatTime(ts: string | null): string {
   if (!ts) return ''
   const d = new Date(ts)
@@ -600,6 +673,8 @@ function buildParams() {
   if (view.value === 'unassigned') params.unassigned = 'true'
   else if (view.value === 'mine' && user.value?.id) params.mine = String(user.value.id)
   else if (view.value === 'held') params.held = 'true'
+  // Tag filter combines with the scope/status via AND.
+  if (tagFilter.value) params.tag = tagFilter.value
   // Status (independent of view)
   if (statusFilter.value !== 'all') params.status = statusFilter.value
   return params
@@ -644,6 +719,8 @@ function onSearch(val: string) {
 
 function setView(key: 'all' | 'unassigned' | 'mine' | 'held') {
   view.value = key
+  // Switching to a scope folder leaves any active tag folder.
+  tagFilter.value = null
   // The Held queue spans every status, so jump to the All tab to show the whole review backlog.
   if (key === 'held' && statusFilter.value !== 'all') {
     statusFilter.value = 'all'
@@ -651,6 +728,54 @@ function setView(key: 'all' | 'unassigned' | 'mine' | 'held') {
   loadConversations()
   // Reload counts so the per-status (open / pending) badges reflect the new scope.
   loadCounts()
+}
+
+// Toggle a tag folder. Selecting one resets scope + status to All so the list shows
+// every conversation with that tag, matching the rail count.
+function selectTag(slug: string) {
+  if (tagFilter.value === slug) {
+    tagFilter.value = null
+  } else {
+    tagFilter.value = slug
+    view.value = 'all'
+    statusFilter.value = 'all'
+  }
+  loadConversations()
+  loadCounts()
+}
+
+async function loadTags() {
+  try {
+    const res = await $fetch<{ tags: InboxTag[] }>('/api/admin/inbox/tags')
+    tagPalette.value = res.tags || []
+  } catch {
+    // non-fatal
+  }
+}
+
+async function loadTagCounts() {
+  try {
+    const res = await $fetch<{ counts: Record<string, number> }>('/api/admin/inbox/conversations/tag-counts')
+    tagCounts.value = res.counts || {}
+  } catch {
+    // non-fatal
+  }
+}
+
+// Tags changed on the open conversation: update it in place, then refresh the list
+// chips and rail counts.
+function onTagsUpdated(slugs: string[]) {
+  if (selected.value) selected.value.conversation.tags = slugs
+  loadConversations()
+  loadTagCounts()
+}
+
+// A tag was created or deleted in the palette: reload the shared palette + counts. A
+// deletion may have stripped the tag from conversations, so refresh the list too.
+function onPaletteChanged() {
+  loadTags()
+  loadTagCounts()
+  loadConversations()
 }
 
 function setStatus(key: 'all' | 'open' | 'pending' | 'closed' | 'spam') {
@@ -946,7 +1071,7 @@ async function loadAux() {
 }
 
 onMounted(async () => {
-  await Promise.all([loadConversations(), loadCounts(), loadAux()])
+  await Promise.all([loadConversations(), loadCounts(), loadAux(), loadTags(), loadTagCounts()])
   const routeId = route.params.id
   if (routeId) {
     await selectConversation(Number(Array.isArray(routeId) ? routeId[0] : routeId), false)
@@ -989,6 +1114,20 @@ onMounted(async () => {
   background: var(--ui-border);
   margin: 0.35rem 0.25rem;
 }
+.rail-section-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ui-text-muted);
+  padding: 0.25rem 0.5rem 0.1rem;
+}
+.rail-tag-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
 .status-strip {
   display: flex;
   flex-wrap: wrap;
@@ -1028,6 +1167,7 @@ onMounted(async () => {
 .detail-contact .contact-name { color: var(--ui-text); font-weight: 500; text-decoration: none; }
 a.contact-name:hover { text-decoration: underline; }
 .detail-contact .contact-email { color: var(--ui-text-muted); }
+.detail-tags { margin-top: 0.4rem; }
 
 .thread { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
 .msg { border: 1px solid var(--ui-border); border-radius: 8px; padding: 0.75rem 1rem; }

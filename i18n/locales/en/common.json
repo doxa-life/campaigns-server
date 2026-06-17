@@ -624,6 +624,15 @@
     "assign": "Assign",
     "unassign": "Unassign",
     "spamScore": "Spam score",
+    "tags": {
+      "title": "Tags",
+      "add": "Add tag",
+      "edit": "Tags",
+      "create": "Create tag",
+      "delete": "Delete",
+      "none": "No tags yet",
+      "newPlaceholder": "New tag name"
+    },
     "filters": {
       "all": "All",
       "unassigned": "Unassigned",
