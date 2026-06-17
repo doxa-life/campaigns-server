@@ -670,6 +670,8 @@ async function selectConversation(id: number, updateUrl = true) {
     fromIdentity.value = defaultFromIdentity(res.messages)
     pendingFiles.value = []
     expandedQuoted.value = new Set()
+    const latestDraft = res.drafts[res.drafts.length - 1]
+    if (latestDraft) loadDraft(latestDraft)
     if (updateUrl) window.history.replaceState({}, '', `/admin/inbox/${id}`)
   } catch {
     toast.add({ title: t('inbox.toasts.error'), color: 'error' })
