@@ -1,15 +1,14 @@
 import type { Sql, Fragment } from 'postgres'
 
 /**
- * Frequency-weighted daily prayer minutes for a campaign_subscriptions row.
+ * Frequency-weighted average daily prayer minutes for a campaign_subscriptions row.
  *
  * `prayer_duration` is a per-occurrence figure. To express it as average minutes
- * committed PER DAY — so daily and weekly commitments are comparable and the
- * 1440 (= minutes in a day) full-coverage threshold stays meaningful — weekly
- * commitments are scaled by how many days a week they actually run:
- * `duration * days_of_week / 7`. Daily (and any non-weekly) commitments run
- * every day, so they keep their full duration. A weekly row with no days
- * contributes 0 (it never sends).
+ * committed PER DAY — so daily and weekly commitments are comparable when summed
+ * into the `committed_duration` reporting stat — weekly commitments are scaled by
+ * how many days a week they actually run: `duration * days_of_week / 7`. Daily
+ * (and any non-weekly) commitments run every day, so they keep their full
+ * duration. A weekly row with no days contributes 0 (it never sends).
  *
  * The day count uses regexp_count over the TEXT column rather than casting it to
  * json: `days_of_week::json` on a single malformed value would throw and take

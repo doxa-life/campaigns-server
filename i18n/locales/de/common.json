@@ -39,7 +39,7 @@
       },
       "prayerStatus": {
         "title": "Gebetsstatus",
-        "description": "Personen beten 10 Minuten täglich für diese Volksgruppe."
+        "description": "Personen beten täglich für diese Volksgruppe."
       }
     },
     "header": {
@@ -495,7 +495,7 @@
       "header": "Willkommen bei Doxa!",
       "doxaMeaning": "Im Griechischen bedeutet Doxa ‚Herrlichkeit’, und genau das bieten wir an, wenn wir uns im Gebet für die Millionen von Menschen vereinen, die mit wenig oder gar keinem Zeugnis des Evangeliums leben. Gemeinsam bringen wir Gott durch treues, erwartungsvolles Gebet die Ehre.",
       "reminderExplanation": "Im Rahmen dieser Gebetskampagne werden Sie bald Erinnerungs-E-Mails mit Links zu täglichen Gebetsinhalten erhalten. Jeder Link enthält angeleitete Gebetsimpulse und weitere Materialien, die Ihnen helfen, strategisch und treu für die von Ihnen gewählte nicht-engagierte Volksgruppe zu beten.",
-      "sharedGoal": "Durch diese Bewegung ist unser gemeinsames Ziel, eine tägliche 24-Stunden-Gebetsabdeckung für jede der über 2.000 nicht-engagierten Volksgruppen zu erreichen, Männer und Frauen auszusenden, die diese Volksgruppen bis zum Jahr 2033 mit dem Evangelium erreichen, und nachhaltige Spenden zur Unterstützung dieses Vorhabens.",
+      "sharedGoal": "Durch diese Bewegung ist unser gemeinsames Ziel, dass über 100 Menschen täglich für jede der über 2.000 nicht-engagierten Volksgruppen beten, Männer und Frauen auszusenden, die diese Volksgruppen bis zum Jahr 2033 mit dem Evangelium erreichen, und nachhaltige Spenden zur Unterstützung dieses Vorhabens.",
       "closing": "Wir sind zutiefst dankbar, uns mit der gesamten Kirche zusammenzuschließen, um das ganze Evangelium in die ganze Welt zu tragen.",
       "reminderTimeNote": "Ihre tägliche Erinnerung ist auf {time} eingestellt.",
       "startPraying": "Mit dem Beten beginnen",

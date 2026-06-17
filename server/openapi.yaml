@@ -1281,12 +1281,11 @@ components:
           type: integer
           description: Number of people groups with at least one person praying (tracked prayer activity in the last 7 days)
           example: 234
-        total_with_full_prayer:
+        total_with_100_committed:
           type: integer
           description: >
-            Number of people groups whose frequency-weighted daily committed
-            minutes sum to 1440+ (full 24-hour daily coverage). Weekly
-            commitments count as days-per-week ÷ 7 of their duration.
+            Number of people groups with 100 or more active prayer commitments
+            (100+ people praying daily) — complete daily prayer coverage.
           example: 45
         total_with_prayer_committed:
           type: integer

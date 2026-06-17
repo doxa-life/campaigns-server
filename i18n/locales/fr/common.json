@@ -39,7 +39,7 @@
       },
       "prayerStatus": {
         "title": "État de la prière",
-        "description": "personnes priant 10 minutes par jour pour ce peuple."
+        "description": "personnes priant chaque jour pour ce peuple."
       }
     },
     "header": {
@@ -495,7 +495,7 @@
       "header": "Bienvenue sur Doxa !",
       "doxaMeaning": "En grec, doxa signifie « gloire », et c'est exactement ce que nous offrons en nous unissant dans la prière pour les millions de personnes qui vivent avec peu ou pas de témoignage de l'Évangile. Ensemble, nous rendons gloire à Dieu par une prière fidèle et pleine d'espérance.",
       "reminderExplanation": "Dans le cadre de cette campagne de prière, vous commencerez bientôt à recevoir des e-mails de rappel avec des liens vers du contenu de prière quotidien. Chaque lien comprendra des guides de prière et d'autres ressources pour vous aider à prier de manière stratégique et fidèle pour le peuple non atteint que vous avez choisi.",
-      "sharedGoal": "À travers ce mouvement, notre objectif commun est de voir une couverture de prière 24h/24 pour chacun des plus de 2 000 peuples non atteints, des hommes et des femmes envoyés pour apporter l'Évangile à ces groupes d'ici 2033, et un soutien financier durable pour cet effort.",
+      "sharedGoal": "À travers ce mouvement, notre objectif commun est de voir plus de 100 personnes priant chaque jour pour chacun des plus de 2 000 peuples non atteints, des hommes et des femmes envoyés pour apporter l'Évangile à ces groupes d'ici 2033, et un soutien financier durable pour cet effort.",
       "closing": "Nous sommes profondément reconnaissants de nous joindre à toute l'Église dans notre quête d'apporter tout l'Évangile au monde entier.",
       "reminderTimeNote": "Votre rappel quotidien est programmé à {time}.",
       "startPraying": "Commencer à prier",

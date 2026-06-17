@@ -13,7 +13,7 @@ Each email contains a table of 8 metrics with their current values and how they'
 - **Prayer time committed** — total prayer time pledged by active subscribers
 - **Prayer time recorded** — total actual prayer time logged
 - **People groups with prayer** — how many people groups have active subscriptions
-- **People groups with 144 subscribers** — groups that have reached the 144-subscriber threshold
+- **People groups with 100+ people praying** — groups where 100 or more people have committed to pray daily
 - **People groups adopted** — how many groups have been adopted
 - **People groups engaged** — groups marked as having active engagement
 

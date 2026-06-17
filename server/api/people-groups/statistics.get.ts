@@ -39,7 +39,7 @@ export default defineEventHandler(async (event) => {
     total_unengaged: Number(result.total_unengaged),
     total_population: Number(result.total_population),
     unengaged_population: Number(result.unengaged_population),
-    total_with_full_prayer: commitmentStats.people_groups_with_full_commitment,
+    total_with_100_committed: commitmentStats.people_groups_with_100_committed,
     total_with_prayer_committed: commitmentStats.people_groups_with_commitment,
     total_adopted: Number(adoptedResult.count),
     people_committed: commitmentStats.people_committed,

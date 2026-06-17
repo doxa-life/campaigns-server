@@ -39,7 +39,7 @@
       },
       "prayerStatus": {
         "title": "Prayer Status",
-        "description": "people praying 10 minutes a day for this people group."
+        "description": "people praying daily for this people group."
       }
     },
     "header": {
@@ -495,7 +495,7 @@
       "header": "Welcome to Doxa!",
       "doxaMeaning": "In Greek, doxa means \"glory,\" and that is exactly what we are offering as we join in prayer on behalf of the millions of people who live with little to no gospel witness. Together, we are bringing glory to God through faithful, expectant prayer.",
       "reminderExplanation": "As part of this prayer campaign, you will soon begin receiving reminder emails with links to daily prayer content. Each link will include guided prayer prompts and other materials to help you pray strategically and faithfully for your chosen unengaged people group.",
-      "sharedGoal": "Through this movement, our shared goal is to see daily 24-hour prayer coverage for each of the over 2,000 unengaged people groups, men and women sent to engage these people groups with the gospel by the year 2033, and sustained giving to support this effort.",
+      "sharedGoal": "Through this movement, our shared goal is to see 100+ people praying daily for each of the over 2,000 unengaged people groups, men and women sent to engage these people groups with the gospel by the year 2033, and sustained giving to support this effort.",
       "closing": "We are deeply grateful to join with the whole Church as we seek to take the whole gospel to the whole world.",
       "reminderTimeNote": "Your daily reminder is set for {time}.",
       "startPraying": "Start Praying",

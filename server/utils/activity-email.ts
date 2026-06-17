@@ -17,6 +17,7 @@ function formatDuration(minutes: number): string {
 }
 
 function formatChange(current: number, previous: number): number | null {
+  if (typeof previous !== 'number' || !Number.isFinite(previous)) return null
   return current - previous
 }
 
@@ -92,9 +93,9 @@ function buildStatRows(stats: ActivityStats, previousStats: ActivityStats | null
       change: previousStats ? formatChange(stats.groupsWithPrayer, previousStats.groupsWithPrayer) : null
     },
     {
-      label: 'People groups with 144 subscribers',
-      value: String(stats.groupsWith144),
-      change: previousStats ? formatChange(stats.groupsWith144, previousStats.groupsWith144) : null
+      label: 'People groups with 100+ people praying',
+      value: String(stats.groupsWith100),
+      change: previousStats ? formatChange(stats.groupsWith100, previousStats.groupsWith100) : null
     },
     {
       label: 'People groups adopted',

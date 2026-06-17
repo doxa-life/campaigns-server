@@ -582,9 +582,9 @@ onMounted(() => {
 // Live people_committed count (prefers uncached stats endpoint, falls back to detail response)
 const peopleCommitted = computed(() => liveStats.value?.people_committed ?? pg.value?.people_committed ?? 0)
 
-// Dynamic prayer goal - starts at 144, then increases to 1000 once reached
+// Dynamic prayer goal - starts at 100, then increases to 1000 once reached
 const PRAYER_GOAL = computed(() => {
-  return peopleCommitted.value >= 144 ? 1000 : 144
+  return peopleCommitted.value >= 100 ? 1000 : 100
 })
 
 // Set people group title when loaded

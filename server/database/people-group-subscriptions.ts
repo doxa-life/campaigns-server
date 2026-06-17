@@ -605,7 +605,7 @@ class PeopleGroupSubscriptionService {
     return statsMap
   }
 
-  async getGlobalCommitmentStats(): Promise<{ people_committed: number; committed_duration: number; people_groups_with_commitment: number; people_groups_with_full_commitment: number }> {
+  async getGlobalCommitmentStats(): Promise<{ people_committed: number; committed_duration: number; people_groups_with_commitment: number; people_groups_with_100_committed: number }> {
     const [totals] = await this.sql`
       SELECT
         COUNT(*) as people_committed,
@@ -615,21 +615,21 @@ class PeopleGroupSubscriptionService {
       JOIN people_groups pg ON pg.id = cs.people_group_id
       WHERE cs.status = 'active' AND pg.status != 'archived'
     `
-    const [fullCoverage] = await this.sql`
+    const [committed100] = await this.sql`
       SELECT COUNT(*) as count FROM (
         SELECT cs.people_group_id
         FROM campaign_subscriptions cs
         JOIN people_groups pg ON pg.id = cs.people_group_id
         WHERE cs.status = 'active' AND pg.status != 'archived'
         GROUP BY cs.people_group_id
-        HAVING SUM(${committedDailyMinutes(this.sql)}) >= 1440
+        HAVING COUNT(*) >= 100
       ) g
     `
     return {
       people_committed: totals?.people_committed,
       committed_duration: totals?.committed_duration,
       people_groups_with_commitment: Number(totals?.people_groups_with_commitment ?? 0),
-      people_groups_with_full_commitment: Number(fullCoverage?.count ?? 0)
+      people_groups_with_100_committed: Number(committed100?.count ?? 0)
     }
   }
 

@@ -39,7 +39,7 @@
       },
       "prayerStatus": {
         "title": "Estado de Oración",
-        "description": "personas orando 10 minutos al día por este grupo étnico."
+        "description": "personas orando a diario por este grupo étnico."
       }
     },
     "header": {
@@ -495,7 +495,7 @@
       "header": "¡Bienvenido a Doxa!",
       "doxaMeaning": "En griego, doxa significa «gloria», y eso es exactamente lo que estamos ofreciendo al unirnos en oración por los millones de personas que viven con poco o ningún testimonio del Evangelio. Juntos, estamos dando gloria a Dios a través de una oración fiel y expectante.",
       "reminderExplanation": "Como parte de esta campaña de oración, pronto comenzarás a recibir correos electrónicos de recordatorio con enlaces a contenido de oración diario. Cada enlace incluirá guías de oración y otros materiales para ayudarte a orar de manera estratégica y fiel por el grupo étnico no comprometido que has elegido.",
-      "sharedGoal": "A través de este movimiento, nuestro objetivo compartido es ver cobertura de oración de 24 horas para cada uno de los más de 2,000 grupos étnicos no comprometidos, hombres y mujeres enviados para comprometer a estos grupos étnicos con el Evangelio para el año 2033, y ofrendas sostenidas para apoyar este esfuerzo.",
+      "sharedGoal": "A través de este movimiento, nuestro objetivo compartido es ver más de 100 personas orando diariamente por cada uno de los más de 2,000 grupos étnicos no comprometidos, hombres y mujeres enviados para comprometer a estos grupos étnicos con el Evangelio para el año 2033, y ofrendas sostenidas para apoyar este esfuerzo.",
       "closing": "Estamos profundamente agradecidos de unirnos con toda la Iglesia mientras buscamos llevar todo el Evangelio a todo el mundo.",
       "reminderTimeNote": "Tu recordatorio diario está programado para las {time}.",
       "startPraying": "Comenzar a Orar",

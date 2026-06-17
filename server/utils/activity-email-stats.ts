@@ -8,7 +8,7 @@ export interface ActivityStats {
   prayerCommitted: number
   surveyFillOuts: number
   groupsWithPrayer: number
-  groupsWith144: number
+  groupsWith100: number
   groupsAdopted: number
   groupsEngaged: number
 }
@@ -26,7 +26,7 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
     prayerCommittedRow,
     surveyFillOutsRow,
     groupsWithPrayerRow,
-    groupsWith144Row,
+    groupsWith100Row,
     groupsAdoptedRow,
     groupsEngagedRow
   ] = await Promise.all([
@@ -57,7 +57,7 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
     `.then(rows => rows[0]),
     sql`SELECT COUNT(*) as count FROM survey_responses`.then(rows => rows[0]),
     sql`SELECT COUNT(DISTINCT people_group_id) as count FROM campaign_subscriptions WHERE status = 'active'`.then(rows => rows[0]),
-    sql`SELECT COUNT(*) as count FROM (SELECT people_group_id FROM campaign_subscriptions WHERE status = 'active' GROUP BY people_group_id HAVING COUNT(*) >= 144) sub`.then(rows => rows[0]),
+    sql`SELECT COUNT(*) as count FROM (SELECT people_group_id FROM campaign_subscriptions WHERE status = 'active' GROUP BY people_group_id HAVING COUNT(*) >= 100) sub`.then(rows => rows[0]),
     sql`SELECT COUNT(*) as count FROM people_group_adoptions WHERE status = 'active'`.then(rows => rows[0]),
     sql`SELECT COUNT(*) as count FROM people_groups WHERE engagement_status = 'engaged'`.then(rows => rows[0])
   ])
@@ -69,7 +69,7 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
     prayerCommitted: Math.round(Number(prayerCommittedRow?.total ?? 0)),
     surveyFillOuts: Number(surveyFillOutsRow?.count ?? 0),
     groupsWithPrayer: Number(groupsWithPrayerRow?.count ?? 0),
-    groupsWith144: Number(groupsWith144Row?.count ?? 0),
+    groupsWith100: Number(groupsWith100Row?.count ?? 0),
     groupsAdopted: Number(groupsAdoptedRow?.count ?? 0),
     groupsEngaged: Number(groupsEngagedRow?.count ?? 0)
   }
