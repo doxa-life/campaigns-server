@@ -5,6 +5,7 @@
 import { peopleGroupService } from '#server/database/people-groups'
 import { prayerContentService } from '#server/database/prayer-content'
 import { appConfigService } from '#server/database/app-config'
+import { extractTranslations, getCopyrightNotices } from '#server/utils/bible-attribution'
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
@@ -90,6 +91,14 @@ export default defineEventHandler(async (event) => {
     availableLanguages,
     content: parsedContent,
     hasContent: parsedContent.length > 0,
-    globalStartDate
+    globalStartDate,
+    metadata: {
+      copyright_notices: copyrightNotices(parsedContent)
+    }
   }
 })
+
+function copyrightNotices(content: any): { id: string; notice: string }[] {
+  const translations = extractTranslations(content)
+  return getCopyrightNotices(translations)
+}
