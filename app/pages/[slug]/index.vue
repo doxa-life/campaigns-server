@@ -344,25 +344,6 @@
                   </div>
                 </div>
 
-                <!-- Duration as slider-style pills -->
-                <div>
-                  <label class="text-sm font-medium mb-3 block">{{ $t('campaign.signup.form.duration.label') }}</label>
-                  <div class="flex rounded-full border border-default p-1 bg-default">
-                    <button
-                      v-for="dur in [5, 10, 15, 30, 60]"
-                      :key="dur"
-                      type="button"
-                      @click="signupForm.prayer_duration = dur"
-                      class="flex-1 py-2 px-3 rounded-full text-sm font-medium transition-all"
-                      :class="signupForm.prayer_duration === dur
-                        ? 'bg-(--ui-text) text-(--ui-bg)'
-                        : 'hover:bg-elevated'"
-                    >
-                      {{ dur < 60 ? `${dur}m` : '1h' }}
-                    </button>
-                  </div>
-                </div>
-
                 <!-- Time picker -->
                 <div>
                   <label class="text-sm font-medium mb-3 block">{{ $t('campaign.signup.form.reminderTime.label') }}</label>
@@ -647,7 +628,7 @@ const signupForm = ref({
   frequency: 'daily',
   days_of_week: [] as number[],
   reminder_time: '09:00',
-  prayer_duration: 10,
+  prayer_duration: 5,
   consent_people_group_updates: false,
   consent_doxa_general: false
 })
@@ -679,7 +660,7 @@ function resetForm() {
     frequency: 'daily',
     days_of_week: [],
     reminder_time: '09:00',
-    prayer_duration: 10,
+    prayer_duration: 5,
     consent_people_group_updates: false,
     consent_doxa_general: false
   }
