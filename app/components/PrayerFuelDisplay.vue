@@ -67,9 +67,9 @@
     </section>
 
     <!-- Scripture copyright notices -->
-    <section v-if="copyrightNotices.length" class="px-8 pb-8">
+    <section v-if="metadata.copyright_notices !== null && metadata.copyright_notices.length" class="px-8 pb-8">
       <div class="max-w-4xl mx-auto border-l-2 border-[var(--ui-border)] pl-3">
-        <p v-for="item in copyrightNotices" :key="item.id" class="!text-[10px] italic text-[var(--ui-text-muted)] mt-1">
+        <p v-for="item in metadata.copyright_notices" :key="item.id" class="!text-[10px] italic text-[var(--ui-text-muted)] mt-1">
           {{ item.notice }}
         </p>
       </div>
@@ -78,7 +78,6 @@
 </template>
 
 <script setup lang="ts">
-import { extractTranslations, getCopyrightNotices } from '~/utils/bible-attribution'
 
 interface PeopleGroupData {
   name: string
@@ -106,6 +105,9 @@ const props = defineProps<{
   hasContent: boolean
   prayedMarked: boolean
   submitting: boolean
+  metadata: {
+    copyright_notices: { id: string; notice: string }[] | null
+  }
 }>()
 
 defineEmits<{
@@ -114,11 +116,6 @@ defineEmits<{
 
 const mainContent = computed(() => props.content.filter(item => item.id !== -1))
 const meetThePeople = computed(() => props.content.find(item => item.id === -1))
-
-const copyrightNotices = computed(() => {
-  const translations = extractTranslations(props.content)
-  return getCopyrightNotices(translations)
-})
 </script>
 
 <style scoped>
