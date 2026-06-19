@@ -1,7 +1,7 @@
 import { conversationService } from '#server/database/conversations'
 import { messageService, type AiDraftMetadata } from '#server/database/conversation-messages'
 import { userService } from '#server/database/users'
-import { isAnthropicConfigured } from '#server/utils/anthropic'
+import { isAnthropicConfigured, getAiModel } from '#server/utils/anthropic'
 import { generateInboxDraft } from '#server/utils/inbox/ai-draft'
 import { getIntParam, handleApiError } from '#server/utils/api-helpers'
 
@@ -79,7 +79,7 @@ export default defineEventHandler(async (event) => {
       language: draft.draft_language,
       sources: draft.sources_used,
       uncertainty: draft.uncertainty,
-      model: config.inboxAiModel || 'claude-sonnet-4-6',
+      model: await getAiModel(),
     }
 
     // Regenerate overwrites the existing draft slot — but only when that draft is itself
