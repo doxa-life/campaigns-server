@@ -718,7 +718,7 @@ type NotificationPrefs = {
   contact_us: boolean
 }
 const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
-  stats: { daily: true, weekly: true, monthly: true, yearly: true },
+  stats: { daily: false, weekly: false, monthly: false, yearly: false },
   adoption: false,
   contact_us: false
 }
@@ -880,13 +880,14 @@ function openUserSlideover(user: User) {
     email_alias: user.email_alias || '',
     email_signature: user.email_signature || ''
   }
-  notificationsForm.value = user.notification_preferences
-    ? {
-        stats: { ...(user.notification_preferences.stats ?? DEFAULT_NOTIFICATION_PREFS.stats) },
-        adoption: user.notification_preferences.adoption,
-        contact_us: user.notification_preferences.contact_us
-      }
-    : structuredClone(DEFAULT_NOTIFICATION_PREFS)
+  // Merge stored prefs over the defaults so unset/older keys fall back (mirrors the
+  // server-side resolveNotificationPreferences — defaults are code-owned, not in the DB).
+  const np = user.notification_preferences
+  notificationsForm.value = {
+    stats: { ...DEFAULT_NOTIFICATION_PREFS.stats, ...(np?.stats ?? {}) },
+    adoption: typeof np?.adoption === 'boolean' ? np.adoption : DEFAULT_NOTIFICATION_PREFS.adoption,
+    contact_us: typeof np?.contact_us === 'boolean' ? np.contact_us : DEFAULT_NOTIFICATION_PREFS.contact_us
+  }
   slideoverOpen.value = true
   if (user.hasScopedAccess) loadPeopleGroupAccess(user)
   if (user.roles.some(r => r.name === 'language_editor')) loadUserLanguages(user)

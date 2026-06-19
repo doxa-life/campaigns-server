@@ -3,6 +3,7 @@
  * Used by the admin profile page to opt in/out of scheduled activity summary emails.
  */
 import { getSql } from '#server/database/db'
+import { resolveNotificationPreferences } from '#server/database/users'
 import { handleApiError } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
@@ -26,15 +27,10 @@ export default defineEventHandler(async (event) => {
 
     const sql = getSql()
 
-    // Read current prefs and merge the partial stats update into notification_preferences.stats.
+    // Resolve current prefs against code defaults, then merge the partial stats update.
     const [current] = await sql`SELECT notification_preferences FROM users WHERE id = ${user.userId}`
-    const np = (typeof current?.notification_preferences === 'object' && current.notification_preferences)
-      ? current.notification_preferences
-      : { stats: { daily: true, weekly: true, monthly: true, yearly: true }, adoption: false, contact_us: false }
-    const currentStats = (typeof np.stats === 'object' && np.stats)
-      ? np.stats
-      : { daily: true, weekly: true, monthly: true, yearly: true }
-    const merged = { ...np, stats: { ...currentStats, ...preferences } }
+    const resolved = resolveNotificationPreferences(current?.notification_preferences)
+    const merged = { ...resolved, stats: { ...resolved.stats, ...preferences } }
 
     await sql`
       UPDATE users
