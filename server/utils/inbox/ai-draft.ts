@@ -1,5 +1,5 @@
 import type Anthropic from '@anthropic-ai/sdk'
-import { getAnthropicClient, temperatureFor, toAnthropicHttpError } from '#server/utils/anthropic'
+import { getAnthropicClient, getAiModel, temperatureFor, toAnthropicHttpError } from '#server/utils/anthropic'
 import { conversationService } from '#server/database/conversations'
 import { messageService, type ConversationMessage } from '#server/database/conversation-messages'
 import { getStaticPack, getKnowledgeBlock, formatContactRecord } from './ai-draft-grounding'
@@ -128,8 +128,6 @@ export async function generateInboxDraft(
     getKnowledgeBlock(),
   ])
 
-  const config = useRuntimeConfig()
-
   // System = cacheable prefix. Block 1 (instructions + tone + static pack) and block 2
   // (knowledge base) get cache_control so repeated drafts in a burst reuse them cheaply.
   const system: Anthropic.TextBlockParam[] = [
@@ -167,7 +165,7 @@ export async function generateInboxDraft(
   // The tool input carries the reply roughly three times over (html + text + gloss),
   // so the cap needs generous headroom — a truncated forced-tool response yields
   // partial JSON, not an error.
-  const model = config.inboxAiModel || 'claude-sonnet-4-6'
+  const model = await getAiModel()
   let response: Anthropic.Message
   try {
     response = await client.messages.create({

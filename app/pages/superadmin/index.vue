@@ -289,6 +289,41 @@
             />
           </div>
         </div>
+
+        <!-- Settings Tab -->
+        <div v-if="item.value === 'settings'" class="py-6">
+          <h2 class="text-xl font-semibold mb-2">AI Model</h2>
+          <p class="text-[var(--ui-text-muted)] mb-6">
+            The Claude model used for every AI feature — inbox draft replies, knowledge capture, and report parsing.
+            Enter any current Anthropic model id (e.g. <code>claude-sonnet-4-6</code>); a newly released model can be adopted here without a code change.
+          </p>
+
+          <div class="max-w-md">
+            <label class="block text-sm font-medium mb-1">Model id</label>
+            <UInput
+              v-model="aiModel"
+              placeholder="claude-sonnet-4-6"
+              class="w-full"
+            />
+
+            <UButton
+              @click="saveAiModel"
+              :loading="isSavingAiModel"
+              :disabled="!aiModel.trim()"
+              variant="outline"
+              class="mt-4"
+            >
+              {{ isSavingAiModel ? 'Saving...' : 'Save Model' }}
+            </UButton>
+
+            <UAlert
+              v-if="aiModelMessage"
+              :color="aiModelMessage.type === 'success' ? 'success' : 'error'"
+              :title="aiModelMessage.text"
+              class="mt-4"
+            />
+          </div>
+        </div>
       </template>
     </UTabs>
 
@@ -424,6 +459,7 @@ const tabs = [
   { label: 'People Groups', value: 'people-groups' },
   { label: 'Libraries', value: 'libraries' },
   { label: 'Prayer Counts', value: 'prayer-counts' },
+  { label: 'Settings', value: 'settings' },
 ]
 
 const activeTab = ref('backups')
@@ -433,6 +469,44 @@ const lastBackup = ref<{ filename: string; size: number; location: string } | nu
 
 const isUpdatingPrayerCounts = ref(false)
 const prayerCountsMessage = ref<{ text: string; type: 'success' | 'error' } | null>(null)
+
+// AI model setting
+const aiModel = ref('')
+const isSavingAiModel = ref(false)
+const aiModelMessage = ref<{ text: string; type: 'success' | 'error' } | null>(null)
+
+async function loadAiModel() {
+  try {
+    const data = await $fetch<{ ai_model: string }>('/api/admin/superadmin/ai-model')
+    aiModel.value = data.ai_model || ''
+  } catch (error) {
+    console.error('Failed to load AI model:', error)
+  }
+}
+
+async function saveAiModel() {
+  const value = aiModel.value.trim()
+  if (!value) return
+
+  isSavingAiModel.value = true
+  aiModelMessage.value = null
+
+  try {
+    const data = await $fetch<{ ai_model: string }>('/api/admin/superadmin/ai-model', {
+      method: 'PUT',
+      body: { ai_model: value }
+    })
+    aiModel.value = data.ai_model
+    aiModelMessage.value = { text: 'AI model saved.', type: 'success' }
+  } catch (error: any) {
+    console.error('Failed to save AI model:', error)
+    aiModelMessage.value = { text: error.data?.message || 'Failed to save AI model.', type: 'error' }
+  } finally {
+    isSavingAiModel.value = false
+  }
+}
+
+loadAiModel()
 
 // Translation state
 const selectedTranslateField = ref<string | undefined>(undefined)

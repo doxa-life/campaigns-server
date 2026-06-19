@@ -1,8 +1,24 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { appConfigService } from '../database/app-config'
+
+/** app_config key holding the Claude model used for every AI call. */
+export const AI_MODEL_CONFIG_KEY = 'ai_model'
 
 export function isAnthropicConfigured(): boolean {
   const config = useRuntimeConfig()
   return !!config.anthropicApiKey
+}
+
+/**
+ * The Claude model used for all AI calls (report parsing and inbox alike). The
+ * superadmin-managed app_config value wins; with none set it falls back to the
+ * INBOX_AI_MODEL env var, then a safe default. A single source so changing the
+ * model is one setting, not a code edit per call site.
+ */
+export async function getAiModel(): Promise<string> {
+  const stored = await appConfigService.getConfig<string>(AI_MODEL_CONFIG_KEY)
+  if (stored) return stored
+  return useRuntimeConfig().inboxAiModel || 'claude-sonnet-4-6'
 }
 
 export function getAnthropicClient(): Anthropic {

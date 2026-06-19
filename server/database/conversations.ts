@@ -120,6 +120,22 @@ class ConversationService {
     return row ?? null
   }
 
+  // Most recent message-less conversation for a subscriber, created within the window.
+  // A message-less conversation only exists because a prior inbound failed after the
+  // conversation row was created; reusing it lets a provider's retries converge on one
+  // conversation instead of spawning a fresh empty shell each time.
+  async getRecentEmptyForSubscriber(subscriberId: number, withinHours = 24): Promise<Conversation | null> {
+    const [row] = await this.sql<Conversation[]>`
+      SELECT c.* FROM conversations c
+      WHERE c.subscriber_id = ${subscriberId}
+        AND c.created_at > NOW() - (${withinHours} * INTERVAL '1 hour')
+        AND NOT EXISTS (SELECT 1 FROM conversation_messages m WHERE m.conversation_id = c.id)
+      ORDER BY c.created_at DESC
+      LIMIT 1
+    `
+    return row ?? null
+  }
+
   private buildConditions(filters: ConversationListFilters): Fragment[] {
     const conditions: Fragment[] = []
 
