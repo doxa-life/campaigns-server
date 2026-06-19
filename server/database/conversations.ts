@@ -15,6 +15,7 @@ export interface Conversation {
   assigned_user_id: string | null
   reply_token: string
   needs_review: boolean
+  source: string | null
   tags: string[]
   last_message_at: string | null
   last_message_direction: MessageDirection | null
@@ -59,10 +60,11 @@ class ConversationService {
     status?: ConversationStatus
     assigned_user_id?: string | null
     needs_review?: boolean
+    source?: string | null
   }): Promise<Conversation> {
     const [row] = await this.sql<Conversation[]>`
       INSERT INTO conversations (
-        subscriber_id, channel, subject, status, assigned_user_id, reply_token, needs_review
+        subscriber_id, channel, subject, status, assigned_user_id, reply_token, needs_review, source
       ) VALUES (
         ${data.subscriber_id},
         ${data.channel || 'email'},
@@ -70,7 +72,8 @@ class ConversationService {
         ${data.status || 'open'},
         ${data.assigned_user_id ?? null},
         ${generateReplyToken()},
-        ${data.needs_review ?? false}
+        ${data.needs_review ?? false},
+        ${data.source ?? null}
       )
       RETURNING *
     `

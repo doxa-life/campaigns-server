@@ -618,6 +618,12 @@
     "internalNotes": "Notas internas",
     "activity": "Actividad",
     "needsReview": "Requiere revisión",
+    "noMessage": "Sin mensaje",
+    "source": {
+      "contact_form": "Formulario de contacto",
+      "inbound_email": "Correo electrónico",
+      "staff": "Equipo"
+    },
     "unassigned": "Sin asignar",
     "assignedTo": "Asignada a {name}",
     "assignToMe": "Asignármela",

@@ -88,6 +88,15 @@ export default defineEventHandler(async (event) => {
       subject,
       status: 'pending',
       assigned_user_id: auth.userId,
+      source: 'staff',
+    })
+    // Log creation before the message is queued, so the conversation keeps a full origin
+    // trail (source + the address it was sent to) even if a later step fails.
+    logCreate('conversations', String(conversation.id), event, {
+      message: 'New email queued',
+      source: 'staff',
+      received_on: recipientEmail,
+      direction: 'outbound',
     })
 
     // Personal signature only when sending as the agent's own alias.
@@ -111,8 +120,6 @@ export default defineEventHandler(async (event) => {
       referenceType: 'conversation',
       referenceId: conversation.id,
     })
-
-    logCreate('conversations', String(conversation.id), event, { message: 'New email queued', direction: 'outbound' })
 
     return { conversation, message, queued: true }
   } catch (error) {

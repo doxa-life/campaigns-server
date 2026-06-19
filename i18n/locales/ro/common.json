@@ -614,6 +614,12 @@
     "internalNotes": "Note interne",
     "activity": "Activitate",
     "needsReview": "Necesită revizuire",
+    "noMessage": "Niciun mesaj",
+    "source": {
+      "contact_form": "Formular de contact",
+      "inbound_email": "E-mail",
+      "staff": "Echipă"
+    },
     "unassigned": "Neatribuită",
     "assignedTo": "Atribuită lui {name}",
     "assignToMe": "Atribuie-mi",

@@ -204,6 +204,17 @@ export default defineEventHandler(async (event) => {
         subject: subject || null,
         status: 'open',
         assigned_user_id: aliasUser?.id ?? null,
+        source: 'inbound_email',
+      })
+      // Log creation here, before the message is stored, so the conversation keeps a full
+      // origin trail (source + the address it arrived on) even if the message step fails or
+      // dedups away — leaving a message-less conversation that stays visible as a signal
+      // to investigate rather than a silent, dateless mystery.
+      logCreate('conversations', String(conversation.id), undefined, {
+        message: 'Inbound conversation created',
+        source: 'inbound_email',
+        received_on: recipient,
+        direction: 'inbound',
       })
     }
 

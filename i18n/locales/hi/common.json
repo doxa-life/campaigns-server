@@ -618,6 +618,12 @@
     "internalNotes": "आंतरिक नोट्स",
     "activity": "गतिविधि",
     "needsReview": "समीक्षा आवश्यक",
+    "noMessage": "कोई संदेश नहीं",
+    "source": {
+      "contact_form": "संपर्क फ़ॉर्म",
+      "inbound_email": "ईमेल",
+      "staff": "स्टाफ़"
+    },
     "unassigned": "अनिर्धारित",
     "assignedTo": "{name} को सौंपी गई",
     "assignToMe": "मुझे सौंपें",
