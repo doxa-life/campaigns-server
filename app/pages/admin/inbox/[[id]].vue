@@ -240,7 +240,7 @@
               </div>
               <div class="msg-body" v-html="sanitizeMessageHtml(messageDisplayHtml(m))" />
               <UButton
-                v-if="m.direction === 'inbound' && m.body_stripped_html && m.body_html && m.body_html !== m.body_stripped_html"
+                v-if="hasQuotedContent(m)"
                 variant="link"
                 size="xs"
                 color="neutral"
@@ -672,6 +672,26 @@ function messageDisplayHtml(m: Message): string {
     return m.body_html || m.body_stripped_html || (m.body_text || '').replace(/\n/g, '<br>')
   }
   return m.body_html || (m.body_text || '').replace(/\n/g, '<br>')
+}
+
+// Visible text of an HTML body, with tags and whitespace collapsed away, so two
+// bodies can be compared by what a reader sees rather than by their raw markup.
+function visibleText(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+// Whether the full body holds quoted history beyond the stripped body. Mailgun's
+// stripped-html differs from body-html in markup and whitespace even when nothing
+// was quoted, so compare visible text: only offer the toggle when expanding would
+// actually reveal more for the reader.
+function hasQuotedContent(m: Message): boolean {
+  if (m.direction !== 'inbound' || !m.body_stripped_html || !m.body_html) return false
+  return visibleText(m.body_html).length > visibleText(m.body_stripped_html).length
 }
 
 function toggleQuoted(id: number) {

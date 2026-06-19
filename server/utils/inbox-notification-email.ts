@@ -1,6 +1,7 @@
 import { notificationRecipientService } from '../database/notification-recipients'
 import { userService } from '../database/users'
 import { roleService } from '../database/roles'
+import { conversationAttachmentService, type ConversationAttachment } from '../database/conversation-attachments'
 import type { Conversation } from '../database/conversations'
 import type { ConversationMessage } from '../database/conversation-messages'
 import { inboxEmailService } from './inbox-email'
@@ -52,6 +53,10 @@ async function replyToFor(recipientEmail: string, conversation: Conversation, cf
   return buildContactReplyAddress(conversation.reply_token, cfg.contactAddress)
 }
 
+function attachmentLabel(a: ConversationAttachment): string {
+  return a.filename?.trim() || 'attachment'
+}
+
 function renderNotification(opts: {
   appName: string
   contactName: string
@@ -59,23 +64,34 @@ function renderNotification(opts: {
   bodyHtml: string
   conversationUrl: string
   held: boolean
+  attachments: ConversationAttachment[]
 }): { html: string; text: string } {
   const heading = opts.held ? 'A message needs review' : 'New inbox message'
   const note = opts.held
     ? '<p style="color:#a15c00;">This message could not be matched to a sender automatically. Please log in to review and decide what should happen.</p>'
     : ''
 
+  const attachmentsHtml = opts.attachments.length
+    ? `<p style="margin:16px 0 4px;"><strong>Attachments (${opts.attachments.length}):</strong></p>
+      <ul style="margin:0; padding-left:20px; color:#333;">${opts.attachments.map(a => `<li>📎 ${escapeHtml(attachmentLabel(a))}</li>`).join('')}</ul>`
+    : ''
+
   const contentHtml = `
       ${note}
       <p style="margin:4px 0;"><strong>From:</strong> ${escapeHtml(opts.contactName)} &lt;${escapeHtml(opts.contactEmail)}&gt;</p>
       <div style="border:1px solid #eee; border-radius:6px; padding:16px; margin:16px 0;">${sanitizeEmailHtml(opts.bodyHtml)}</div>
+      ${attachmentsHtml}
       <p style="font-size:14px; color:#666;">Reply directly to this email to respond from your Doxa address, or <a href="${opts.conversationUrl}" style="color:#3B463D;">open the conversation</a>.</p>
   `
   const html = renderAdminNotificationEmail({ heading, contentHtml, appName: opts.appName })
+  const attachmentsText = opts.attachments.length
+    ? `\nAttachments (${opts.attachments.length}): ${opts.attachments.map(attachmentLabel).join(', ')}`
+    : ''
   const text = [
     heading,
     opts.held ? '\nThis message could not be matched to a sender automatically. Log in to review.' : '',
     `\nFrom: ${opts.contactName} <${opts.contactEmail}>`,
+    attachmentsText,
     `\nOpen the conversation: ${opts.conversationUrl}`,
   ].join('\n')
   return { html, text }
@@ -90,6 +106,7 @@ export async function notifyNewConversation(conversation: Conversation, message:
   const conversationUrl = `${cfg.siteUrl}/admin/inbox/${conversation.id}`
   const contactName = message.from_name || message.from_email || 'Contact'
   const contactEmail = message.from_email || ''
+  const attachments = await conversationAttachmentService.listForMessage(message.id)
 
   const results = await Promise.allSettled(recipients.map(async (r) => {
     const replyTo = await replyToFor(r.email, conversation, cfg)
@@ -100,6 +117,7 @@ export async function notifyNewConversation(conversation: Conversation, message:
       bodyHtml: message.body_stripped_html || message.body_html || '',
       conversationUrl,
       held: !!opts.held,
+      attachments,
     })
     return inboxEmailService.send({
       from: `"${cfg.appName}" <${cfg.fromAddress}>`,
@@ -125,6 +143,7 @@ export async function notifyAssignee(conversation: Conversation, message: Conver
 
   const replyTo = await replyToFor(assignee.email, conversation, cfg)
   const conversationUrl = `${cfg.siteUrl}/admin/inbox/${conversation.id}`
+  const attachments = await conversationAttachmentService.listForMessage(message.id)
   const { html, text } = renderNotification({
     appName: cfg.appName,
     contactName: message.from_name || message.from_email || 'Contact',
@@ -132,6 +151,7 @@ export async function notifyAssignee(conversation: Conversation, message: Conver
     bodyHtml: message.body_stripped_html || message.body_html || '',
     conversationUrl,
     held: false,
+    attachments,
   })
 
   const result = await inboxEmailService.send({
