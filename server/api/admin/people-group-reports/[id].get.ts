@@ -12,7 +12,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Report not found' })
   }
 
-  const peopleGroup = await peopleGroupService.getPeopleGroupById(report.people_group_id)
+  const peopleGroup = report.people_group_id
+    ? await peopleGroupService.getPeopleGroupById(report.people_group_id)
+    : null
 
   return {
     report,

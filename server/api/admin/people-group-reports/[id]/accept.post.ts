@@ -17,6 +17,9 @@ export default defineEventHandler(async (event) => {
   if (report.status !== 'pending') {
     throw createError({ statusCode: 400, statusMessage: 'Only pending reports can be accepted' })
   }
+  if (!report.people_group_id) {
+    throw createError({ statusCode: 400, statusMessage: 'Link this report to a people group before accepting.' })
+  }
 
   const peopleGroup = await peopleGroupService.getPeopleGroupById(report.people_group_id)
   if (!peopleGroup) {
