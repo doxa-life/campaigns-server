@@ -375,11 +375,12 @@
           </div>
         </template>
 
-        <template #side-notes>
-          <RecordComments record-type="conversation" :record-id="selected.conversation.id" />
-        </template>
         <template #side-activity>
-          <RecordActivity table-name="conversations" :record-id="selected.conversation.id" />
+          <InboxActivityFeed
+            record-type="conversation"
+            table-name="conversations"
+            :record-id="selected.conversation.id"
+          />
         </template>
       </CrmDetailPanel>
     </template>
@@ -597,8 +598,7 @@ const statusOptions = computed(() => [
 ])
 
 const sideTabs = computed(() => [
-  { label: t('inbox.internalNotes'), slot: 'notes', icon: 'i-lucide-sticky-note' },
-  { label: t('inbox.activity'), slot: 'activity', icon: 'i-lucide-history' },
+  { label: t('inbox.notesActivity'), slot: 'activity', icon: 'i-lucide-history' },
 ])
 
 // Language picker for the canned-response inserter: choose which translation to insert.
