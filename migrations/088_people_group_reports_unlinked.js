@@ -5,7 +5,7 @@ class BaseMigration {
 }
 
 export default class PeopleGroupReportsUnlinkedMigration extends BaseMigration {
-  id = 87
+  id = 88
   name = 'Allow people_group_reports for groups not yet in the system'
 
   async up(sql) {
