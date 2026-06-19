@@ -62,6 +62,14 @@ export function parseInboxRecipient(address: string): ParsedRecipient | null {
   return { localPart: local, domain, base, token, exp, sig }
 }
 
+/** Mailgun's VERP return-path local part (`bounce+<verp>@domain`). Reserved — never a human mailbox. */
+export const BOUNCE_LOCAL_PART = 'bounce'
+
+/** True when the recipient is the VERP bounce/return-path address, not a real inbox mailbox. */
+export function isBounceRecipient(parsed: ParsedRecipient | null): boolean {
+  return parsed?.base === BOUNCE_LOCAL_PART
+}
+
 /** The plain reply address a contact uses. */
 export function buildContactReplyAddress(token: string, contactAddress: string): string {
   const parts = getLocalAndDomain(contactAddress)

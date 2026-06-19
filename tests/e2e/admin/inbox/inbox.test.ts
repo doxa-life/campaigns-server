@@ -471,6 +471,59 @@ describe('Shared inbox', async () => {
     expect(kinds).not.toContain('new_conversation')
   })
 
+  // 5e. Mail to the VERP bounce/return-path is machine-to-machine — dropped, never a conversation.
+  // (Out-of-office auto-replies follow RFC 3834 to the Return-Path, which is this address.)
+  it('drops mail addressed to the VERP bounce/return-path', async () => {
+    const verpRecipient = `bounce+431d88.59575eb-pastor=ketteringag.com@${INBOX_DOMAIN}`
+    const messageId = `<ooo-bounce-${uuidv4()}@ketteringag.com>`
+    const res = await postInbound({
+      recipient: verpRecipient,
+      from: `Ryan <pastorryan-${uuidv4().slice(0, 6)}@ketteringag.com>`,
+      sender: 'pastorryan@ketteringag.com',
+      subject: 'Out of Office Re: Prayer Reminder',
+      'body-html': '<p>I will be out of office until June 22nd.</p>',
+      'message-headers': headerJson([
+        ['Message-Id', messageId],
+        ['Auto-Submitted', 'auto-replied'],
+      ]),
+    })
+    expect(res.status).toBe('ignored')
+    expect(res.reason).toBe('bounce_address')
+    expect(res.conversation_id).toBeUndefined()
+    // Nothing persisted — no message row (and therefore no conversation).
+    const msgs = await sql`SELECT * FROM conversation_messages WHERE email_message_id = ${messageId}`
+    expect(msgs.length).toBe(0)
+  })
+
+  // 5f. An out-of-office auto-reply that lands as `held` (unknown sender on a token) is
+  // closed quietly — not flagged for review and no staff notification.
+  it('auto-closes a held auto-reply without flagging or notifying', async () => {
+    const ownerEmail = `inbox-held-ooo-${uuidv4().slice(0, 8)}@example.com`
+    const subId = await makeSubscriber(ownerEmail)
+    const convo = await makeConversation(subId, { status: 'open' })
+    const res = await postInbound({
+      recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
+      from: `Stranger <stranger-${uuidv4().slice(0, 6)}@elsewhere.com>`,
+      sender: 'stranger@elsewhere.com',
+      subject: 'Automatic reply: Re: Existing thread',
+      'body-html': '<p>I am away until Monday.</p>',
+      'message-headers': headerJson([
+        ['Message-Id', `<held-ooo-${uuidv4()}@elsewhere.com>`],
+        ['Auto-Submitted', 'auto-replied'],
+      ]),
+    })
+    expect(res.status).toBe('held')
+    const held = await sql`SELECT * FROM conversation_messages WHERE conversation_id = ${convo.id} AND status = 'held'`
+    expect(held.length).toBe(1) // message still stored
+    const [c] = await sql`SELECT status, needs_review FROM conversations WHERE id = ${convo.id}`
+    expect(c!.status).toBe('closed') // closed, not flagged for review
+    expect(c!.needs_review).toBe(false)
+    const jobs = await sql`SELECT payload FROM jobs WHERE type = 'inbox_email' AND reference_id = ${convo.id}`
+    const kinds = jobs.map((j: any) => j.payload.kind)
+    expect(kinds).not.toContain('new_conversation')
+    expect(kinds).not.toContain('held_sender')
+  })
+
   // 6. verified semantics on authenticated vs unauthenticated inbound
   it('verifies the contact method on authenticated inbound only', async () => {
     const emailAuthed = `inbox-verify-${uuidv4().slice(0, 8)}@example.com`

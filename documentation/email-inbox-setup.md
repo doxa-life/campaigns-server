@@ -28,6 +28,7 @@ Contact ──email──▶ doxa.life MX ──▶ Mailgun ──route(forward)
 | `contact+<token>@doxa.life` | A contact's replies — `<token>` routes to the conversation |
 | `contact+<token>.<sig>@doxa.life` | Staff **reply-by-email** — `<sig>` cryptographically authenticates the staff sender |
 | `<alias>@doxa.life` (e.g. `george@doxa.life`) | Per-user sending identity; inbound to it opens/continues a conversation for that user |
+| `bounce@doxa.life` / `bounce+<verp>@doxa.life` | Reserved Mailgun VERP **Return-Path**. RFC 3834 auto-replies (out-of-office) come back here; the inbound handler **drops** them — never routed to a conversation. Real bounces/complaints arrive as delivery events, not inbound mail. |
 | *anything else* `@doxa.life` | Catch-all → lands in the shared inbox as an unassigned conversation |
 
 Because of the catch-all, **MX must point the whole domain at Mailgun.**

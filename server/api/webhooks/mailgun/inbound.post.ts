@@ -19,7 +19,7 @@ import {
   isAutoResponderOrBounce,
   isVacationAutoReply,
 } from '../../../utils/mailgun-inbound'
-import { parseInboxRecipient, buildContactReplyAddress, buildFromAddress } from '../../../utils/inbox-addressing'
+import { parseInboxRecipient, isBounceRecipient, buildContactReplyAddress, buildFromAddress } from '../../../utils/inbox-addressing'
 import { resolveSignedStaffSender } from '../../../utils/inbox-reply-auth'
 import { inboxEmailService } from '../../../utils/inbox-email'
 import { jobQueueService, type InboxEmailPayload } from '../../../database/job-queue'
@@ -99,6 +99,15 @@ export default defineEventHandler(async (event) => {
   const parsedRecipient = parseInboxRecipient(recipient)
   const inboxDomain = (config.inboxDomain || 'doxa.life').toLowerCase()
   const domainMatches = parsedRecipient?.domain === inboxDomain
+
+  // Mail to the VERP bounce/return-path (bounce+...@<inboxDomain>) is machine-to-machine,
+  // not human inbox mail. RFC 3834 vacation responders reply to the Return-Path, so they
+  // land here; ingesting them spawns bogus "Unknown sender" conversations that ping staff.
+  // Drop them — real bounces/complaints are handled by the Mailgun delivery webhook +
+  // contact-method suppression list (server/api/webhooks/mailgun/delivery.post.ts).
+  if (domainMatches && isBounceRecipient(parsedRecipient)) {
+    return { status: 'ignored', reason: 'bounce_address' }
+  }
 
   // --- 2. Idempotency ---
   // Prefer the real Message-Id; synthesize a stable key from the envelope when the mail
@@ -259,9 +268,12 @@ export default defineEventHandler(async (event) => {
       outcome = 'held'
     }
 
-    // A vacation / out-of-office auto-reply from the contact shouldn't re-open the thread or
-    // ping staff — flag it so the contact branch closes it out instead. Bounces are excluded.
-    const isVacationReply = outcome === 'contact' && isVacationAutoReply(headers, fromEmail)
+    // A vacation / out-of-office auto-reply shouldn't re-open the thread, flag it for review,
+    // or ping staff. Detect it independently of outcome so a reply that lands as `held`
+    // (responder replied to From instead of the Return-Path) is suppressed too. Bounces are
+    // excluded. `isVacationReply` drives the contact branch's close-instead-of-reopen.
+    const looksAutoReply = isVacationAutoReply(headers, fromEmail)
+    const isVacationReply = outcome === 'contact' && looksAutoReply
 
     let storedMessage: ConversationMessage
 
@@ -428,12 +440,18 @@ export default defineEventHandler(async (event) => {
       if (!claimed) return { status: 'duplicate', conversation_id: conversation.id }
       storedMessage = claimed
       await persistArtifacts(storedMessage.id)
-      await conversationService.setNeedsReview(conversation.id, true)
+      // An out-of-office / auto-reply from an unrecognised sender is noise, not an inquiry —
+      // close it quietly instead of flagging it for review (notifications skipped below).
+      if (looksAutoReply) {
+        await conversationService.updateStatus(conversation.id, 'closed')
+      } else {
+        await conversationService.setNeedsReview(conversation.id, true)
+      }
       await conversationService.touchLastMessage(conversation.id, storedMessage.created_at, 'inbound')
     }
 
     logCreate('conversations', String(conversation.id), undefined, {
-      message: `Inbound email (${outcome}${isVacationReply ? ', auto-reply → closed' : ''})`,
+      message: `Inbound email (${outcome}${looksAutoReply && outcome !== 'staff' ? ', auto-reply → closed' : ''})`,
       direction: outcome === 'staff' ? 'outbound' : 'inbound',
       authenticated: auth.authenticated,
     })
@@ -443,11 +461,14 @@ export default defineEventHandler(async (event) => {
     try {
       const refOpts = { referenceType: 'conversation', referenceId: conversation.id }
       if (outcome === 'held') {
-        await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'new_conversation', conversation_id: conversation.id, message_id: storedMessage.id, held: true }, refOpts)
-        // Courtesy-reply to the sender only when the inbound actually authenticated (a forged
-        // From must not trigger backscatter) and isn't itself an auto-responder/bounce (no loop).
-        if (auth.authenticated && !isAutoResponderOrBounce(headers, fromEmail)) {
-          await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'held_sender', to: fromEmail }, refOpts)
+        // A held auto-reply was auto-closed above — don't flag it to staff or courtesy-reply.
+        if (!looksAutoReply) {
+          await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'new_conversation', conversation_id: conversation.id, message_id: storedMessage.id, held: true }, refOpts)
+          // Courtesy-reply to the sender only when the inbound actually authenticated (a forged
+          // From must not trigger backscatter) and isn't itself an auto-responder/bounce (no loop).
+          if (auth.authenticated && !isAutoResponderOrBounce(headers, fromEmail)) {
+            await jobQueueService.createJob<InboxEmailPayload>('inbox_email', { kind: 'held_sender', to: fromEmail }, refOpts)
+          }
         }
       } else if (outcome === 'contact') {
         // A vacation / out-of-office auto-reply was auto-closed above — don't notify staff about it.
