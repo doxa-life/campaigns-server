@@ -344,6 +344,37 @@
                 </UFormField>
               </CrmFormSection>
 
+              <CrmFormSection title="Email Notifications">
+                <div class="space-y-3">
+                  <div v-for="freq in statsFrequencies" :key="freq.key" class="flex items-center justify-between">
+                    <span :class="{ 'text-[var(--ui-text-muted)]': !selectedUserStatsEligible }">{{ freq.label }}</span>
+                    <USwitch
+                      :model-value="notificationsForm.stats[freq.key]"
+                      :disabled="!selectedUserStatsEligible"
+                      @update:model-value="(val: boolean) => setStat(freq.key, val)"
+                    />
+                  </div>
+                  <p v-if="!selectedUserStatsEligible" class="text-xs text-[var(--ui-text-muted)]">
+                    Only admins and progress admins receive stats summary emails.
+                  </p>
+
+                  <div class="flex items-center justify-between pt-2 border-t border-[var(--ui-border)]">
+                    <span>Adoption notifications</span>
+                    <USwitch
+                      :model-value="notificationsForm.adoption"
+                      @update:model-value="(val: boolean) => saveNotifications({ adoption: val })"
+                    />
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span>Contact-us notifications</span>
+                    <USwitch
+                      :model-value="notificationsForm.contact_us"
+                      @update:model-value="(val: boolean) => saveNotifications({ contact_us: val })"
+                    />
+                  </div>
+                </div>
+              </CrmFormSection>
+
               <CrmFormSection title="Metadata">
                 <div class="info-row">
                   <span class="label">User ID:</span>
@@ -484,6 +515,12 @@ interface User {
   peopleGroupCount: number
   email_alias: string | null
   email_signature: string | null
+  superadmin?: boolean
+  notification_preferences?: {
+    stats: { daily: boolean; weekly: boolean; monthly: boolean; yearly: boolean }
+    adoption: boolean
+    contact_us: boolean
+  } | null
 }
 
 interface PeopleGroup {
@@ -667,6 +704,63 @@ const peopleGroupSelectItems = computed(() =>
 const inboxIdentityForm = ref({ email_alias: '', email_signature: '' })
 const inboxIdentitySubmitting = ref(false)
 
+// Email notifications state
+const statsFrequencies = [
+  { key: 'daily', label: 'Daily summary' },
+  { key: 'weekly', label: 'Weekly summary' },
+  { key: 'monthly', label: 'Monthly summary' },
+  { key: 'yearly', label: 'Yearly summary' }
+] as const
+
+type NotificationPrefs = {
+  stats: { daily: boolean; weekly: boolean; monthly: boolean; yearly: boolean }
+  adoption: boolean
+  contact_us: boolean
+}
+const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+  stats: { daily: false, weekly: false, monthly: false, yearly: false },
+  adoption: false,
+  contact_us: false
+}
+const notificationsForm = ref<NotificationPrefs>(structuredClone(DEFAULT_NOTIFICATION_PREFS))
+const notificationsSaving = ref(false)
+
+// Stats summaries only go to admins, progress admins, and superadmins.
+const selectedUserStatsEligible = computed(() => {
+  const u = selectedUser.value
+  if (!u) return false
+  return !!u.superadmin || u.roles.some(r => r.name === 'admin' || r.name === 'progress_admin')
+})
+
+function setStat(key: 'daily' | 'weekly' | 'monthly' | 'yearly', value: boolean) {
+  saveNotifications({ stats: { ...notificationsForm.value.stats, [key]: value } })
+}
+
+async function saveNotifications(patch: Partial<NotificationPrefs>) {
+  if (!selectedUser.value) return
+  if (patch.stats) notificationsForm.value.stats = patch.stats
+  if (typeof patch.adoption === 'boolean') notificationsForm.value.adoption = patch.adoption
+  if (typeof patch.contact_us === 'boolean') notificationsForm.value.contact_us = patch.contact_us
+  notificationsSaving.value = true
+  try {
+    await $fetch(`/api/admin/users/${selectedUser.value.id}/notifications`, {
+      method: 'PUT',
+      body: patch
+    })
+    flashSectionSaved()
+    await refreshUsers()
+    activityRef.value?.refresh()
+  } catch (err: any) {
+    toast.add({
+      title: 'Error',
+      description: err.data?.statusMessage || 'Failed to update notifications',
+      color: 'error'
+    })
+  } finally {
+    notificationsSaving.value = false
+  }
+}
+
 // Language access state
 const editingLanguages = ref<string[]>([])
 const languagesLoading = ref(false)
@@ -692,7 +786,7 @@ function flashSectionSaved() {
 }
 
 const anySaving = computed(() =>
-  saving.value || rolesSaving.value || peopleGroupsSaving.value || languagesSaving.value || inboxIdentitySubmitting.value
+  saving.value || rolesSaving.value || peopleGroupsSaving.value || languagesSaving.value || inboxIdentitySubmitting.value || notificationsSaving.value
 )
 const anySaved = computed(() => !!savedField.value || sectionSavedFlash.value)
 
@@ -785,6 +879,14 @@ function openUserSlideover(user: User) {
   inboxIdentityForm.value = {
     email_alias: user.email_alias || '',
     email_signature: user.email_signature || ''
+  }
+  // Merge stored prefs over the defaults so unset/older keys fall back (mirrors the
+  // server-side resolveNotificationPreferences — defaults are code-owned, not in the DB).
+  const np = user.notification_preferences
+  notificationsForm.value = {
+    stats: { ...DEFAULT_NOTIFICATION_PREFS.stats, ...(np?.stats ?? {}) },
+    adoption: typeof np?.adoption === 'boolean' ? np.adoption : DEFAULT_NOTIFICATION_PREFS.adoption,
+    contact_us: typeof np?.contact_us === 'boolean' ? np.contact_us : DEFAULT_NOTIFICATION_PREFS.contact_us
   }
   slideoverOpen.value = true
   if (user.hasScopedAccess) loadPeopleGroupAccess(user)

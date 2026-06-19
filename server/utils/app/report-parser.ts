@@ -1,4 +1,4 @@
-import { getAnthropicClient } from '../anthropic'
+import { getAnthropicClient, getAiModel, temperatureFor } from '../anthropic'
 
 export interface ParsedReportResult {
   people_group_name: string | null
@@ -65,11 +65,12 @@ const REPORT_TOOL = {
 
 export async function parseReportText(text: string): Promise<ParsedReportResult> {
   const client = getAnthropicClient()
+  const model = await getAiModel()
 
   const response = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model,
     max_tokens: 1024,
-    temperature: 0,
+    ...temperatureFor(model, 0),
     system: SYSTEM_PROMPT,
     messages: [
       { role: 'user', content: text }

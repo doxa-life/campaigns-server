@@ -165,14 +165,14 @@
                   color="neutral"
                   size="xs"
                 >
-                  {{ $t('campaign.profile.unsubscribed') }}
+                  {{ $t('campaign.profile.stopped') }}
                 </UBadge>
                 <UBadge
                   v-else-if="item.reminder.status === 'inactive'"
                   color="warning"
                   size="xs"
                 >
-                  {{ $t('campaign.profile.paused') }}
+                  {{ $t('campaign.profile.inactive') }}
                 </UBadge>
                 <UBadge
                   v-else-if="item.reminder.reminders_paused"

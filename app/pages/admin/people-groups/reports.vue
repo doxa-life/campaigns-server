@@ -51,6 +51,13 @@
             variant="subtle"
             size="xs"
           />
+          <UBadge
+            v-if="!report.people_group_id"
+            label="Not in system"
+            color="neutral"
+            variant="subtle"
+            size="xs"
+          />
           <span class="reporter">{{ report.reporter_name }}</span>
         </div>
         <div class="report-date">
@@ -64,11 +71,19 @@
       <div class="header-info">
         <h2>{{ selectedReport.people_group_name }}</h2>
         <UButton
+          v-if="selectedReport.people_group_id"
           size="xs"
           variant="outline"
           color="neutral"
           icon="i-lucide-external-link"
           :to="`/admin/people-groups/${selectedReport.people_group_id}`"
+        />
+        <UBadge
+          v-else
+          label="Not in system"
+          color="neutral"
+          variant="subtle"
+          size="xs"
         />
       </div>
     </template>
@@ -88,6 +103,7 @@
             <div class="info-grid">
               <div><span class="info-label">Reporter</span> {{ selectedReport.reporter_name }}</div>
               <div v-if="selectedReport.reporter_email"><span class="info-label">Email</span> {{ selectedReport.reporter_email }}</div>
+              <div v-if="!selectedReport.people_group_id && selectedReport.people_group_uid"><span class="info-label">Reported UID</span> {{ selectedReport.people_group_uid }}</div>
               <div><span class="info-label">Submitted</span> {{ formatDate(selectedReport.created_at) }}</div>
               <div v-if="selectedReport.reviewed_at"><span class="info-label">Reviewed</span> {{ formatDate(selectedReport.reviewed_at) }}</div>
             </div>
@@ -118,11 +134,19 @@
 
           <div v-if="selectedReport.status === 'pending'" class="review-actions">
             <UButton
+              v-if="selectedReport.people_group_id"
               color="success"
               icon="i-lucide-check"
               label="Accept"
               :loading="accepting"
               @click="confirmAccept"
+            />
+            <UButton
+              v-else
+              color="primary"
+              icon="i-lucide-link"
+              label="Link to People Group"
+              @click="openLinkModal"
             />
             <UButton
               color="error"
@@ -171,6 +195,30 @@
     </template>
   </UModal>
 
+  <!-- Link to People Group Modal -->
+  <UModal v-model:open="showLinkModal" title="Link to People Group">
+    <template #body>
+      <div class="flex flex-col gap-4">
+        <p>Select the people group this report is about. Once linked, the report can be accepted to apply its changes.</p>
+        <UFormField label="People Group" required>
+          <USelectMenu
+            v-model="linkPeopleGroupId"
+            :items="peopleGroupOptions"
+            value-key="value"
+            placeholder="Select a people group..."
+            :search-input="{ placeholder: 'Search...' }"
+            virtualize
+            class="w-full"
+          />
+        </UFormField>
+        <div class="flex justify-end gap-2">
+          <UButton variant="outline" @click="showLinkModal = false">Cancel</UButton>
+          <UButton color="primary" :loading="linking" :disabled="!linkPeopleGroupId" @click="linkReport">Link</UButton>
+        </div>
+      </div>
+    </template>
+  </UModal>
+
   <!-- Create Report Modal -->
   <UModal v-model:open="showCreateModal" title="New People Group Report">
     <template #body>
@@ -197,7 +245,16 @@
 
         <USeparator />
 
-        <UFormField label="People Group" required>
+        <div class="people-group-field-header">
+          <span class="field-update-label">People Group</span>
+          <USwitch
+            v-model="newGroupMode"
+            label="Not in our system yet"
+            @update:model-value="onNewGroupModeToggle"
+          />
+        </div>
+
+        <UFormField v-if="!newGroupMode" required>
           <USelectMenu
             v-model="createForm.people_group_id"
             :items="peopleGroupOptions"
@@ -210,6 +267,15 @@
           />
         </UFormField>
 
+        <template v-else>
+          <UFormField label="People Group Name" required>
+            <UInput v-model="createForm.people_group_name" placeholder="Name of the people group" class="w-full" />
+          </UFormField>
+          <UFormField label="Identifier">
+            <UInput v-model="createForm.people_group_uid" placeholder="Master UID / ROP3_PEID, if known" class="w-full" />
+          </UFormField>
+        </template>
+
         <UFormField label="Reporter Name" required>
           <UInput v-model="createForm.reporter_name" placeholder="Your name" class="w-full" />
         </UFormField>
@@ -218,7 +284,7 @@
           <UInput v-model="createForm.reporter_email" type="email" placeholder="Email (optional)" class="w-full" />
         </UFormField>
 
-        <template v-if="createForm.people_group_id">
+        <template v-if="hasGroupContext">
           <USeparator label="Field Updates" />
 
           <div v-for="fieldKey in activeFieldKeys" :key="fieldKey" class="field-update-row">
@@ -233,7 +299,7 @@
                 @click="removeField(fieldKey)"
               />
             </div>
-            <div class="field-update-current">
+            <div v-if="!newGroupMode" class="field-update-current">
               Current: <span>{{ formatCurrentValue(fieldKey) }}</span>
             </div>
 
@@ -300,7 +366,7 @@
           />
         </template>
 
-        <UFormField v-if="createForm.people_group_id" label="Notes">
+        <UFormField v-if="hasGroupContext" label="Notes">
           <UTextarea v-model="createForm.notes" placeholder="Additional context..." :rows="2" class="w-full" />
         </UFormField>
 
@@ -324,7 +390,7 @@ definePageMeta({
 
 interface Report {
   id: number
-  people_group_id: number
+  people_group_id: number | null
   reporter_name: string
   reporter_email: string | null
   suggested_changes: Record<string, any>
@@ -334,6 +400,7 @@ interface Report {
   reviewed_at: string | null
   notes: string | null
   people_group_name: string
+  people_group_uid: string | null
   people_group_slug: string | null
   created_at: string
   updated_at: string
@@ -374,12 +441,21 @@ const accepting = ref(false)
 const denying = ref(false)
 const deleting = ref(false)
 const creating = ref(false)
+const linking = ref(false)
 
 // Modals
 const showAcceptModal = ref(false)
 const showDeleteModal = ref(false)
 const showCreateModal = ref(false)
 const showFieldPicker = ref(false)
+const showLinkModal = ref(false)
+
+// Linking an unlinked report to an existing people group
+const linkPeopleGroupId = ref<number | undefined>(undefined)
+
+// When on, the create form captures a free-text name for a people group not
+// yet in the system instead of selecting an existing one.
+const newGroupMode = ref(false)
 
 // People groups for create form
 const peopleGroups = ref<PeopleGroupSummary[]>([])
@@ -402,6 +478,8 @@ const sideTabs = computed(() => [
 // Create form
 const createForm = ref({
   people_group_id: undefined as number | undefined,
+  people_group_name: '',
+  people_group_uid: '',
   reporter_name: '',
   reporter_email: '',
   suggested_changes: {} as Record<string, any>,
@@ -414,10 +492,21 @@ const activeFieldKeys = computed(() => {
   return [...defaultReportFieldKeys, ...extraFieldKeys.value]
 })
 
+// True once enough is known to show field updates and notes: either an existing
+// group is selected, or a free-text name has been entered for a new group.
+const hasGroupContext = computed(() => {
+  return !!createForm.value.people_group_id ||
+    (newGroupMode.value && !!createForm.value.people_group_name.trim())
+})
+
 const canSubmit = computed(() => {
-  return createForm.value.people_group_id &&
+  const hasGroup = newGroupMode.value
+    ? !!createForm.value.people_group_name.trim()
+    : !!createForm.value.people_group_id
+  const hasChange = Object.keys(createForm.value.suggested_changes).some(k => createForm.value.suggested_changes[k] !== '' && createForm.value.suggested_changes[k] != null)
+  return hasGroup &&
     createForm.value.reporter_name.trim() &&
-    Object.keys(createForm.value.suggested_changes).some(k => createForm.value.suggested_changes[k] !== '' && createForm.value.suggested_changes[k] != null)
+    (hasChange || !!createForm.value.notes.trim())
 })
 
 // Filter
@@ -660,6 +749,8 @@ async function deleteReport() {
 function openCreateModal() {
   createForm.value = {
     people_group_id: undefined,
+    people_group_name: '',
+    people_group_uid: '',
     reporter_name: user.value?.display_name || '',
     reporter_email: user.value?.email || '',
     suggested_changes: {},
@@ -667,10 +758,57 @@ function openCreateModal() {
   }
   extraFieldKeys.value = []
   createPeopleGroup.value = null
+  newGroupMode.value = false
   showFieldPicker.value = false
   aiInputText.value = ''
   aiOriginalText.value = ''
   showCreateModal.value = true
+}
+
+// Switching between selecting an existing group and naming a new one clears the
+// other mode's input so only one association is ever submitted.
+function onNewGroupModeToggle(isNew: boolean) {
+  if (isNew) {
+    createForm.value.people_group_id = undefined
+    createPeopleGroup.value = null
+  } else {
+    createForm.value.people_group_name = ''
+    createForm.value.people_group_uid = ''
+  }
+}
+
+function openLinkModal() {
+  linkPeopleGroupId.value = undefined
+  showLinkModal.value = true
+}
+
+async function linkReport() {
+  if (!selectedReport.value || !linkPeopleGroupId.value) return
+  try {
+    linking.value = true
+    const res = await $fetch<{ report: Report }>(`/api/admin/people-group-reports/${selectedReport.value.id}/link`, {
+      method: 'POST',
+      body: { people_group_id: linkPeopleGroupId.value }
+    })
+    toast.add({ title: 'Report linked', color: 'success' })
+    showLinkModal.value = false
+    selectedReport.value = res.report
+    // Refresh the now-linked group's current values for the changes display.
+    try {
+      const detail = await $fetch<{ report: Report; peopleGroup: PeopleGroupSummary | null }>(
+        `/api/admin/people-group-reports/${res.report.id}`
+      )
+      selectedReport.value = detail.report
+      currentPeopleGroup.value = detail.peopleGroup
+    } catch {
+      currentPeopleGroup.value = null
+    }
+    await loadReports()
+  } catch (err: any) {
+    toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to link report', color: 'error' })
+  } finally {
+    linking.value = false
+  }
 }
 
 function matchPeopleGroup(name: string | null, uid: string | null): PeopleGroupSummary | null {
@@ -722,8 +860,17 @@ async function parseWithAi() {
 
     const matched = matchPeopleGroup(parsed.people_group_name, parsed.people_group_uid)
     if (matched) {
+      newGroupMode.value = false
       createForm.value.people_group_id = matched.id
       await onPeopleGroupSelected(matched.id)
+    } else if (parsed.people_group_name) {
+      // No existing group matched — capture it as a report for a group not yet
+      // in the system so the parsed details aren't lost.
+      newGroupMode.value = true
+      createForm.value.people_group_id = undefined
+      createPeopleGroup.value = null
+      createForm.value.people_group_name = parsed.people_group_name
+      createForm.value.people_group_uid = parsed.people_group_uid || ''
     }
 
     if (parsed.suggested_changes) {
@@ -781,8 +928,8 @@ async function submitReport() {
       }
     }
 
-    if (Object.keys(changes).length === 0) {
-      toast.add({ title: 'No changes', description: 'No field values differ from current data', color: 'warning' })
+    if (Object.keys(changes).length === 0 && !createForm.value.notes.trim()) {
+      toast.add({ title: 'No changes', description: 'Add a field change or a note before submitting', color: 'warning' })
       creating.value = false
       return
     }
@@ -790,7 +937,9 @@ async function submitReport() {
     await $fetch('/api/admin/people-group-reports', {
       method: 'POST',
       body: {
-        people_group_id: createForm.value.people_group_id,
+        people_group_id: newGroupMode.value ? undefined : createForm.value.people_group_id,
+        people_group_name: newGroupMode.value ? createForm.value.people_group_name.trim() : undefined,
+        people_group_uid: newGroupMode.value ? (createForm.value.people_group_uid?.trim() || undefined) : undefined,
         reporter_name: createForm.value.reporter_name.trim(),
         reporter_email: createForm.value.reporter_email?.trim() || undefined,
         suggested_changes: changes,
@@ -967,6 +1116,13 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.people-group-field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .field-update-label {

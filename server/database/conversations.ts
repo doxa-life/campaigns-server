@@ -15,6 +15,7 @@ export interface Conversation {
   assigned_user_id: string | null
   reply_token: string
   needs_review: boolean
+  source: string | null
   tags: string[]
   last_message_at: string | null
   last_message_direction: MessageDirection | null
@@ -59,10 +60,11 @@ class ConversationService {
     status?: ConversationStatus
     assigned_user_id?: string | null
     needs_review?: boolean
+    source?: string | null
   }): Promise<Conversation> {
     const [row] = await this.sql<Conversation[]>`
       INSERT INTO conversations (
-        subscriber_id, channel, subject, status, assigned_user_id, reply_token, needs_review
+        subscriber_id, channel, subject, status, assigned_user_id, reply_token, needs_review, source
       ) VALUES (
         ${data.subscriber_id},
         ${data.channel || 'email'},
@@ -70,7 +72,8 @@ class ConversationService {
         ${data.status || 'open'},
         ${data.assigned_user_id ?? null},
         ${generateReplyToken()},
-        ${data.needs_review ?? false}
+        ${data.needs_review ?? false},
+        ${data.source ?? null}
       )
       RETURNING *
     `
@@ -112,6 +115,22 @@ class ConversationService {
       SELECT * FROM conversations
       WHERE subscriber_id = ${subscriberId}
       ORDER BY last_message_at DESC NULLS LAST, created_at DESC
+      LIMIT 1
+    `
+    return row ?? null
+  }
+
+  // Most recent message-less conversation for a subscriber, created within the window.
+  // A message-less conversation only exists because a prior inbound failed after the
+  // conversation row was created; reusing it lets a provider's retries converge on one
+  // conversation instead of spawning a fresh empty shell each time.
+  async getRecentEmptyForSubscriber(subscriberId: number, withinHours = 24): Promise<Conversation | null> {
+    const [row] = await this.sql<Conversation[]>`
+      SELECT c.* FROM conversations c
+      WHERE c.subscriber_id = ${subscriberId}
+        AND c.created_at > NOW() - (${withinHours} * INTERVAL '1 hour')
+        AND NOT EXISTS (SELECT 1 FROM conversation_messages m WHERE m.conversation_id = c.id)
+      ORDER BY c.created_at DESC
       LIMIT 1
     `
     return row ?? null

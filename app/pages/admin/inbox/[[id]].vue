@@ -125,12 +125,14 @@
         <div class="conv-row">
           <div class="conv-top">
             <span class="conv-name">{{ c.subscriber_name || c.subscriber_email || $t('inbox.unassigned') }}</span>
-            <span class="conv-time">{{ formatTime(c.last_message_at) }}</span>
+            <span class="conv-time">{{ formatTime(c.last_message_at || c.created_at) }}</span>
           </div>
           <div class="conv-subject">{{ c.subject || '—' }}</div>
           <div class="conv-snippet">{{ c.last_message_snippet || '' }}</div>
           <div class="conv-badges">
             <UBadge :color="statusColor(c.status)" variant="subtle" size="xs">{{ $t('inbox.status.' + c.status) }}</UBadge>
+            <UBadge v-if="c.source" :color="sourceColor(c.source)" variant="subtle" size="xs">{{ $t('inbox.source.' + c.source) }}</UBadge>
+            <UBadge v-if="c.message_count === 0" color="error" variant="subtle" size="xs" icon="i-lucide-triangle-alert">{{ $t('inbox.noMessage') }}</UBadge>
             <UBadge v-if="c.needs_review" color="warning" variant="subtle" size="xs">{{ $t('inbox.needsReview') }}</UBadge>
             <UBadge v-if="c.assignee_name" color="neutral" variant="outline" size="xs">{{ c.assignee_name }}</UBadge>
             <UBadge
@@ -156,6 +158,8 @@
           >{{ selected.conversation.subscriber_name }}</NuxtLink>
           <span v-else-if="selected.conversation.subscriber_name" class="contact-name">{{ selected.conversation.subscriber_name }}</span>
           <span v-if="selected.conversation.subscriber_email" class="contact-email">{{ selected.conversation.subscriber_email }}</span>
+          <UBadge v-if="selected.conversation.source" :color="sourceColor(selected.conversation.source)" variant="subtle" size="xs">{{ $t('inbox.source.' + selected.conversation.source) }}</UBadge>
+          <UBadge v-if="selected.conversation.message_count === 0" color="error" variant="subtle" size="xs" icon="i-lucide-triangle-alert">{{ $t('inbox.noMessage') }}</UBadge>
         </div>
         <InboxTagPicker
           :conversation-id="selected.conversation.id"
@@ -236,7 +240,7 @@
               </div>
               <div class="msg-body" v-html="sanitizeMessageHtml(messageDisplayHtml(m))" />
               <UButton
-                v-if="m.direction === 'inbound' && m.body_stripped_html && m.body_html && m.body_html !== m.body_stripped_html"
+                v-if="hasQuotedContent(m)"
                 variant="link"
                 size="xs"
                 color="neutral"
@@ -371,11 +375,12 @@
           </div>
         </template>
 
-        <template #side-notes>
-          <RecordComments record-type="conversation" :record-id="selected.conversation.id" />
-        </template>
         <template #side-activity>
-          <RecordActivity table-name="conversations" :record-id="selected.conversation.id" />
+          <InboxActivityFeed
+            record-type="conversation"
+            table-name="conversations"
+            :record-id="selected.conversation.id"
+          />
         </template>
       </CrmDetailPanel>
     </template>
@@ -439,12 +444,15 @@ interface ConversationListItem {
   subject: string | null
   status: string
   needs_review: boolean
+  source: string | null
   assignee_name: string | null
   subscriber_name: string | null
   subscriber_email: string | null
   tags: string[]
+  message_count: number
   last_message_at: string | null
   last_message_snippet: string | null
+  created_at: string
 }
 interface AiDraftMetadata {
   gloss: string
@@ -475,7 +483,9 @@ interface ConversationDetail {
   status: string
   assigned_user_id: string | null
   needs_review: boolean
+  source: string | null
   tags: string[]
+  message_count: number
   subscriber_id: number | null
   subscriber_name: string | null
   subscriber_email: string | null
@@ -588,8 +598,7 @@ const statusOptions = computed(() => [
 ])
 
 const sideTabs = computed(() => [
-  { label: t('inbox.internalNotes'), slot: 'notes', icon: 'i-lucide-sticky-note' },
-  { label: t('inbox.activity'), slot: 'activity', icon: 'i-lucide-history' },
+  { label: t('inbox.notesActivity'), slot: 'activity', icon: 'i-lucide-history' },
 ])
 
 // Language picker for the canned-response inserter: choose which translation to insert.
@@ -609,6 +618,11 @@ const cannedOptions = computed(() =>
 
 function statusColor(status: string): any {
   return { open: 'success', pending: 'warning', closed: 'neutral', spam: 'error' }[status] || 'neutral'
+}
+
+// Origin badge colour — Contact-form stands out; email/staff stay muted.
+function sourceColor(source: string): any {
+  return { contact_form: 'info', inbound_email: 'neutral', staff: 'neutral' }[source] || 'neutral'
 }
 
 function tagDef(slug: string): InboxTag | undefined {
@@ -658,6 +672,26 @@ function messageDisplayHtml(m: Message): string {
     return m.body_html || m.body_stripped_html || (m.body_text || '').replace(/\n/g, '<br>')
   }
   return m.body_html || (m.body_text || '').replace(/\n/g, '<br>')
+}
+
+// Visible text of an HTML body, with tags and whitespace collapsed away, so two
+// bodies can be compared by what a reader sees rather than by their raw markup.
+function visibleText(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+// Whether the full body holds quoted history beyond the stripped body. Mailgun's
+// stripped-html differs from body-html in markup and whitespace even when nothing
+// was quoted, so compare visible text: only offer the toggle when expanding would
+// actually reveal more for the reader.
+function hasQuotedContent(m: Message): boolean {
+  if (m.direction !== 'inbound' || !m.body_stripped_html || !m.body_html) return false
+  return visibleText(m.body_html).length > visibleText(m.body_stripped_html).length
 }
 
 function toggleQuoted(id: number) {

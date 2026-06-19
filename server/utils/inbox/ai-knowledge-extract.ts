@@ -1,5 +1,5 @@
 import type Anthropic from '@anthropic-ai/sdk'
-import { getAnthropicClient, temperatureFor, toAnthropicHttpError } from '#server/utils/anthropic'
+import { getAnthropicClient, getAiModel, temperatureFor, toAnthropicHttpError } from '#server/utils/anthropic'
 import { conversationService } from '#server/database/conversations'
 import { messageService, type ConversationMessage } from '#server/database/conversation-messages'
 
@@ -64,8 +64,6 @@ export async function extractKnowledgeEntry(conversationId: number): Promise<Kno
 
   const messages = await messageService.listForConversation(conversationId)
 
-  const config = useRuntimeConfig()
-
   const thread = messages
     .map(m => `${m.direction === 'inbound' ? 'CONTACT' : 'TEAM'}: ${messageText(m)}`)
     .join('\n\n')
@@ -76,7 +74,7 @@ export async function extractKnowledgeEntry(conversationId: number): Promise<Kno
 
   const client = getAnthropicClient()
 
-  const model = config.inboxAiModel || 'claude-sonnet-4-6'
+  const model = await getAiModel()
   let response: Anthropic.Message
   try {
     response = await client.messages.create({

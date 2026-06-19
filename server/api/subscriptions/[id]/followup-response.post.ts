@@ -89,8 +89,9 @@ export default defineEventHandler(async (event) => {
     // Complete the follow-up cycle - increment followup_count, reset followup_reminder_count
     await peopleGroupSubscriptionService.completeFollowupCycle(subscription.id)
   } else if (response === 'not_praying') {
-    // Mark subscription as inactive
-    await peopleGroupSubscriptionService.updateStatus(subscription.id, 'inactive')
+    // The contact chose to stop praying: a deliberate opt-out, recorded as
+    // 'unsubscribed' (distinct from the automated system inactivating non-responders).
+    await peopleGroupSubscriptionService.updateStatus(subscription.id, 'unsubscribed')
   }
 
   trackEventInBackground(event, {

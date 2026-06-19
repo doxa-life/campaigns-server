@@ -52,10 +52,6 @@ function changeDurationText(change: number | null | undefined): string {
 }
 
 function buildStatRows(stats: ActivityStats, previousStats: ActivityStats | null): StatRow[] {
-  const unsubscribed = previousStats?.totalSubscribers != null
-    ? Math.max(0, previousStats.totalSubscribers + stats.newSubscribers - stats.totalSubscribers)
-    : null
-
   return [
     {
       label: 'New subscribers',
@@ -64,18 +60,18 @@ function buildStatRows(stats: ActivityStats, previousStats: ActivityStats | null
     },
     {
       label: 'Unsubscribed',
-      value: unsubscribed != null ? String(unsubscribed) : '—',
+      value: String(stats.unsubscribed),
+      change: null
+    },
+    {
+      label: 'Became inactive',
+      value: String(stats.becameInactive),
       change: null
     },
     {
       label: 'Total subscribers',
       value: String(stats.totalSubscribers),
       change: previousStats?.totalSubscribers != null ? formatChange(stats.totalSubscribers, previousStats.totalSubscribers) : null
-    },
-    {
-      label: 'Prayer time committed',
-      value: formatDuration(stats.prayerCommitted),
-      change: previousStats ? formatChange(stats.prayerCommitted, previousStats.prayerCommitted) : null
     },
     {
       label: 'Prayer time recorded',

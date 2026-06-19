@@ -2,6 +2,35 @@ import { getSql } from './db'
 import bcrypt from 'bcrypt'
 import { randomUUID } from 'crypto'
 
+export type NotificationPreferences = {
+  stats: { daily: boolean; weekly: boolean; monthly: boolean; yearly: boolean }
+  adoption: boolean
+  contact_us: boolean
+}
+
+// Opt-in by default: a user receives nothing until an admin (or the user, for stats)
+// turns a notification on. Eligibility still gates stats on top of this. This is the
+// single source of truth for defaults — the column only persists explicit choices, so
+// adding a preference or changing a default happens here, with no migration.
+export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  stats: { daily: false, weekly: false, monthly: false, yearly: false },
+  adoption: false,
+  contact_us: false,
+}
+
+// Merge a stored value (possibly null, or missing newer keys) over the defaults above.
+// Always read preferences through this so unset keys fall back to code defaults.
+export function resolveNotificationPreferences(
+  stored: Partial<NotificationPreferences> | null | undefined
+): NotificationPreferences {
+  const s = (stored && typeof stored === 'object') ? stored : {}
+  return {
+    stats: { ...DEFAULT_NOTIFICATION_PREFERENCES.stats, ...(s.stats ?? {}) },
+    adoption: typeof s.adoption === 'boolean' ? s.adoption : DEFAULT_NOTIFICATION_PREFERENCES.adoption,
+    contact_us: typeof s.contact_us === 'boolean' ? s.contact_us : DEFAULT_NOTIFICATION_PREFERENCES.contact_us,
+  }
+}
+
 export interface User {
   id: string // UUID
   email: string
@@ -12,7 +41,7 @@ export interface User {
   token_key: string
   created: string
   updated: string
-  activity_email_preferences: { daily: boolean; weekly: boolean; monthly: boolean; yearly: boolean } | null
+  notification_preferences: NotificationPreferences | null
   email_alias: string | null
   email_signature: string | null
 }
@@ -50,7 +79,7 @@ export class UserService {
 
   async getUserById(id: string): Promise<User | null> {
     const [row] = await this.sql`
-      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences, email_alias, email_signature
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences, email_alias, email_signature
       FROM users WHERE id = ${id}
     `
     return (row as User) ?? null
@@ -58,7 +87,7 @@ export class UserService {
 
   async getUserByEmail(email: string): Promise<User | null> {
     const [row] = await this.sql`
-      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences, email_alias, email_signature
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences, email_alias, email_signature
       FROM users WHERE email = ${email}
     `
     return (row as User) ?? null
@@ -66,7 +95,7 @@ export class UserService {
 
   async getAllUsers(): Promise<User[]> {
     return await this.sql`
-      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences, email_alias, email_signature
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences, email_alias, email_signature
       FROM users ORDER BY created DESC
     ` as any
   }
@@ -75,7 +104,7 @@ export class UserService {
   async getByEmailAlias(alias: string): Promise<User | null> {
     if (!alias) return null
     const [row] = await this.sql`
-      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences, email_alias, email_signature
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences, email_alias, email_signature
       FROM users WHERE LOWER(email_alias) = LOWER(${alias})
     `
     return (row as User) ?? null
@@ -107,18 +136,46 @@ export class UserService {
     return this.getUserById(id)
   }
 
-  async getAdminUsers(): Promise<User[]> {
+  // Users eligible to receive scheduled stats summary emails: admins, progress admins, and superadmins.
+  async getStatsEligibleUsers(): Promise<User[]> {
     return await this.sql`
-      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences
-      FROM users WHERE 'admin' = ANY(roles) OR superadmin = TRUE ORDER BY created DESC
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences
+      FROM users
+      WHERE 'admin' = ANY(roles) OR 'progress_admin' = ANY(roles) OR superadmin = TRUE
+      ORDER BY created DESC
     ` as any
+  }
+
+  // Users opted in to adoption-form notifications.
+  async getUsersOptedIntoAdoption(): Promise<User[]> {
+    return await this.sql`
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences, email_alias, email_signature
+      FROM users WHERE notification_preferences->>'adoption' = 'true'
+    ` as any
+  }
+
+  // Users opted in to contact-us / inbox notifications.
+  async getUsersOptedIntoContactUs(): Promise<User[]> {
+    return await this.sql`
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences, email_alias, email_signature
+      FROM users WHERE notification_preferences->>'contact_us' = 'true'
+    ` as any
+  }
+
+  // Replace a user's notification preferences (stats frequencies + adoption/contact_us opt-ins).
+  async updateNotificationPreferences(id: string, prefs: NotificationPreferences): Promise<User | null> {
+    await this.sql`
+      UPDATE users SET notification_preferences = ${this.sql.json(prefs)}, updated = NOW()
+      WHERE id = ${id}
+    `
+    return this.getUserById(id)
   }
 
   // Users whose roles include any of the given role names (used to enumerate inbox staff)
   async getUsersWithRoles(roleNames: string[]): Promise<User[]> {
     if (roleNames.length === 0) return []
     return await this.sql`
-      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences, email_alias, email_signature
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences, email_alias, email_signature
       FROM users WHERE roles && ${roleNames}::text[]
     ` as any
   }

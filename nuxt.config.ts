@@ -14,6 +14,15 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   ssr: false,
 
+  experimental: {
+    // A deploy ships new content-hashed chunk filenames, so a tab still holding the
+    // previous build imports chunks that no longer exist on the origin. 'automatic-immediate'
+    // makes Nuxt hard-reload the moment a chunk fails — including failures with no
+    // navigation (initial load or a lazy component) — to fetch the current shell and
+    // chunks. Nuxt's built-in handler guards against reload loops.
+    emitRouteChunkError: 'automatic-immediate'
+  },
+
   vue: {
     compilerOptions: {
       isCustomElement: (tag: string) => tag === 'feedback-web-component'
@@ -147,7 +156,8 @@ export default defineNuxtConfig({
 
     // Anthropic AI API
     anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
-    // Model used for inbox AI drafting + knowledge capture
+    // Fallback Claude model for all AI calls (inbox drafting, knowledge capture,
+    // report parsing) when the superadmin app_config 'ai_model' setting is unset
     inboxAiModel: process.env.INBOX_AI_MODEL || 'claude-sonnet-4-6',
     // Marketing site (doxa.life) base URL — source of grounding CMS pages (FAQ, about, …)
     marketingSiteUrl: process.env.MARKETING_SITE_URL || 'https://doxa.life',

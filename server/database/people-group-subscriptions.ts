@@ -147,15 +147,16 @@ class PeopleGroupSubscriptionService {
     return result.count
   }
 
-  // "Not praying any more" for a whole people group: pause every still-active prayer
-  // time (status 'inactive', reactivatable). Leaves already-unsubscribed rows alone.
+  // "Not praying any more" for a whole people group: the contact chose to stop, so
+  // every still-active prayer time becomes 'unsubscribed' (a deliberate opt-out that
+  // background activity never silently reverses). Leaves already-stopped rows alone.
   async stopPrayerForPeopleGroup(
     subscriberId: number,
     peopleGroupId: number
   ): Promise<number> {
     const result = await this.sql`
       UPDATE campaign_subscriptions
-      SET status = 'inactive', updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      SET status = 'unsubscribed', updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE subscriber_id = ${subscriberId} AND people_group_id = ${peopleGroupId}
         AND status = 'active'
     `
