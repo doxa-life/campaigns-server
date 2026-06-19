@@ -35,6 +35,7 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
     description: 'Monitors prayer progress and handles outreach — views people groups and stats, runs the inbox, and emails consenting contacts',
     permissions: [
       'people_groups.view',
+      'groups.view',
       'subscribers.view',
       'inbox.view',
       'inbox.send',
