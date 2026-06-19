@@ -63,7 +63,7 @@
           <UFormField label="Audience" required>
             <div class="audience-options">
               <div
-                v-if="isAdmin"
+                v-if="canSendDoxaAudiences"
                 class="audience-option"
                 :class="{ selected: form.audience_type === 'doxa' }"
                 @click="selectAudience('doxa')"
@@ -75,7 +75,7 @@
               </div>
 
               <div
-                v-if="isAdmin"
+                v-if="canSendDoxaAudiences"
                 class="audience-option"
                 :class="{ selected: form.audience_type === 'doxa_active_pg' }"
                 @click="selectAudience('doxa_active_pg')"
@@ -225,8 +225,13 @@ definePageMeta({
 })
 
 const router = useRouter()
-const { isAdmin } = useAuthUser()
+const { isAdmin, canAccessUnscoped } = useAuthUser()
 const toast = useToast()
+
+// Doxa-general-consent audiences reach every consenting subscriber, so they require
+// unscoped people-group access — the same gate the send endpoint enforces. "All Active
+// Subscribers" and hand-picked recipients stay admin-only (see isAdmin gating below).
+const canSendDoxaAudiences = computed(() => canAccessUnscoped('people_groups.view'))
 
 type AudienceType = 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'active_pg' | 'pick'
 
@@ -369,7 +374,7 @@ async function loadPeopleGroups() {
 }
 
 async function loadDoxaCount() {
-  if (!isAdmin.value) return
+  if (!canSendDoxaAudiences.value) return
   try {
     const response = await $fetch<{ count: number }>('/api/admin/marketing/audience/doxa')
     doxaCount.value = response.count
@@ -401,7 +406,7 @@ async function loadAdminCount() {
 }
 
 async function loadDoxaActivePgCount() {
-  if (!isAdmin.value) return
+  if (!canSendDoxaAudiences.value) return
   try {
     const response = await $fetch<{ count: number }>('/api/admin/marketing/audience/doxa-active-pg')
     doxaActivePgCount.value = response.count
@@ -623,11 +628,16 @@ onMounted(() => {
   loadAdminCount()
   loadSenders()
   loadTemplates()
-  if (isAdmin.value) {
+  if (canSendDoxaAudiences.value) {
     loadDoxaCount()
     loadDoxaActivePgCount()
+  }
+  if (isAdmin.value) {
     loadActivePgCount()
-  } else {
+  }
+  // Without access to any all-subscriber audience, a single people group is the only
+  // meaningful target, so preselect it.
+  if (!canSendDoxaAudiences.value) {
     form.value.audience_type = 'people_group'
   }
 })
