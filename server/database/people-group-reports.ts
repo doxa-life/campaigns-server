@@ -2,7 +2,11 @@ import { getSql } from './db'
 
 export interface PeopleGroupReport {
   id: number
-  people_group_id: number
+  // Null when the report is for a people group not yet in the system.
+  people_group_id: number | null
+  // Free-text name and identifier captured for an unlinked report.
+  people_group_name: string | null
+  people_group_uid: string | null
   reporter_name: string
   reporter_email: string | null
   suggested_changes: Record<string, any>
@@ -16,6 +20,8 @@ export interface PeopleGroupReport {
 }
 
 export interface PeopleGroupReportWithDetails extends PeopleGroupReport {
+  // Resolved display name: the linked group's name, falling back to the
+  // reported free-text name for unlinked reports.
   people_group_name: string
   people_group_slug: string | null
 }
@@ -24,16 +30,20 @@ class PeopleGroupReportService {
   private sql = getSql()
 
   async create(data: {
-    people_group_id: number
+    people_group_id?: number | null
+    people_group_name?: string | null
+    people_group_uid?: string | null
     reporter_name: string
     reporter_email?: string | null
     suggested_changes: Record<string, any>
     notes?: string | null
   }): Promise<PeopleGroupReport> {
     const [row] = await this.sql`
-      INSERT INTO people_group_reports (people_group_id, reporter_name, reporter_email, suggested_changes, notes)
+      INSERT INTO people_group_reports (people_group_id, people_group_name, people_group_uid, reporter_name, reporter_email, suggested_changes, notes)
       VALUES (
-        ${data.people_group_id},
+        ${data.people_group_id ?? null},
+        ${data.people_group_name ?? null},
+        ${data.people_group_uid ?? null},
         ${data.reporter_name},
         ${data.reporter_email ?? null},
         ${this.sql.json(data.suggested_changes)},
@@ -46,9 +56,9 @@ class PeopleGroupReportService {
 
   async getById(id: number): Promise<PeopleGroupReportWithDetails | null> {
     const [row] = await this.sql`
-      SELECT r.*, pg.name as people_group_name, pg.slug as people_group_slug
+      SELECT r.*, COALESCE(pg.name, r.people_group_name) as people_group_name, pg.slug as people_group_slug
       FROM people_group_reports r
-      JOIN people_groups pg ON r.people_group_id = pg.id
+      LEFT JOIN people_groups pg ON r.people_group_id = pg.id
       WHERE r.id = ${id}
     `
     return (row as PeopleGroupReportWithDetails) || null
@@ -66,7 +76,7 @@ class PeopleGroupReportService {
     if (opts.peopleGroupId) conditions.push(this.sql`r.people_group_id = ${opts.peopleGroupId}`)
     if (opts.search) {
       const search = `%${opts.search}%`
-      conditions.push(this.sql`(pg.name ILIKE ${search} OR r.reporter_name ILIKE ${search})`)
+      conditions.push(this.sql`(pg.name ILIKE ${search} OR r.people_group_name ILIKE ${search} OR r.reporter_name ILIKE ${search})`)
     }
 
     const where = conditions.length > 0
@@ -75,9 +85,9 @@ class PeopleGroupReportService {
 
     if (opts.limit) {
       return await this.sql`
-        SELECT r.*, pg.name as people_group_name, pg.slug as people_group_slug
+        SELECT r.*, COALESCE(pg.name, r.people_group_name) as people_group_name, pg.slug as people_group_slug
         FROM people_group_reports r
-        JOIN people_groups pg ON r.people_group_id = pg.id
+        LEFT JOIN people_groups pg ON r.people_group_id = pg.id
         ${where}
         ORDER BY r.created_at DESC
         LIMIT ${opts.limit} OFFSET ${opts.offset || 0}
@@ -85,9 +95,9 @@ class PeopleGroupReportService {
     }
 
     return await this.sql`
-      SELECT r.*, pg.name as people_group_name, pg.slug as people_group_slug
+      SELECT r.*, COALESCE(pg.name, r.people_group_name) as people_group_name, pg.slug as people_group_slug
       FROM people_group_reports r
-      JOIN people_groups pg ON r.people_group_id = pg.id
+      LEFT JOIN people_groups pg ON r.people_group_id = pg.id
       ${where}
       ORDER BY r.created_at DESC
     `
@@ -103,7 +113,7 @@ class PeopleGroupReportService {
     if (opts.peopleGroupId) conditions.push(this.sql`r.people_group_id = ${opts.peopleGroupId}`)
     if (opts.search) {
       const search = `%${opts.search}%`
-      conditions.push(this.sql`(pg.name ILIKE ${search} OR r.reporter_name ILIKE ${search})`)
+      conditions.push(this.sql`(pg.name ILIKE ${search} OR r.people_group_name ILIKE ${search} OR r.reporter_name ILIKE ${search})`)
     }
 
     const where = conditions.length > 0
@@ -113,7 +123,7 @@ class PeopleGroupReportService {
     const [row] = await this.sql`
       SELECT COUNT(*) as count
       FROM people_group_reports r
-      JOIN people_groups pg ON r.people_group_id = pg.id
+      LEFT JOIN people_groups pg ON r.people_group_id = pg.id
       ${where}
     `
     return Number(row?.count ?? 0)
@@ -156,6 +166,19 @@ class PeopleGroupReportService {
           reporter_email = ${data.reporter_email !== undefined ? data.reporter_email : current.reporter_email},
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ${id}
+      RETURNING *
+    `
+    return (row as PeopleGroupReport) || null
+  }
+
+  // Attach an unlinked report to a real people group. Only succeeds while the
+  // report has no people_group_id yet.
+  async link(id: number, peopleGroupId: number): Promise<PeopleGroupReport | null> {
+    const [row] = await this.sql`
+      UPDATE people_group_reports
+      SET people_group_id = ${peopleGroupId},
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${id} AND people_group_id IS NULL
       RETURNING *
     `
     return (row as PeopleGroupReport) || null
