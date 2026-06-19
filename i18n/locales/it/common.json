@@ -315,6 +315,8 @@
       },
       "muted": "Silenziato",
       "paused": "Interrotto",
+      "inactive": "Inattivo",
+      "stopped": "Interrotto",
       "stopRemindersPageTitle": "Interrompi i promemoria",
       "stopRemindersButton": "Interrompi promemoria",
       "stopReminderTitle": "Interrompi il promemoria delle {time} per {campaign}",

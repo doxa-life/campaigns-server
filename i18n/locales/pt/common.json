@@ -315,6 +315,8 @@
       },
       "muted": "Silenciado",
       "paused": "Parado",
+      "inactive": "Inativo",
+      "stopped": "Parado",
       "stopRemindersPageTitle": "Parar Lembretes",
       "stopRemindersButton": "Parar lembrete",
       "stopReminderTitle": "Parar seu lembrete das {time} para {campaign}",

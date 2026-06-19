@@ -315,6 +315,8 @@
       },
       "muted": "مكتوم",
       "paused": "موقوف",
+      "inactive": "غير نشط",
+      "stopped": "موقوف",
       "stopRemindersPageTitle": "إيقاف التذكيرات",
       "stopRemindersButton": "إيقاف التذكير",
       "stopReminderTitle": "أوقف تذكير الساعة {time} الخاص بـ {campaign}",

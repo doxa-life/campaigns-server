@@ -315,6 +315,8 @@
       },
       "muted": "已静音",
       "paused": "已停止",
+      "inactive": "已停用",
+      "stopped": "已停止",
       "stopRemindersPageTitle": "停止提醒",
       "stopRemindersButton": "停止提醒",
       "stopReminderTitle": "停止{campaign}的{time}提醒",

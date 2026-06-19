@@ -4,8 +4,9 @@
  * the stop-reminders page (or the manage page):
  *   - action 'mute': keep praying, just suppress the daily email (reminders_paused),
  *     subscription stays active so the monthly follow-up check-in still goes out.
- *   - action 'not_praying': pause the prayer commitment itself (status 'inactive');
- *     no daily email and no follow-up, reactivatable anytime.
+ *   - action 'not_praying': stop the prayer commitment itself. The contact chose to
+ *     stop, so the row becomes 'unsubscribed' (a deliberate opt-out, not reversed by
+ *     background activity); no daily email and no follow-up. Resubscribe to resume.
  * POST (not DELETE) because the reminder row is never removed here — that keeps the
  * subscriber's history and lets them resume.
  */
@@ -70,7 +71,7 @@ export default defineEventHandler(async (event) => {
       form_values: reminderDetails
     })
   } else {
-    await peopleGroupSubscriptionService.updateStatus(subscription.id, 'inactive')
+    await peopleGroupSubscriptionService.updateStatus(subscription.id, 'unsubscribed')
     logCreate('subscribers', String(subscriber.id), event, {
       source: 'self_service',
       badge: 'Stopped Prayer',

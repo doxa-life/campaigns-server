@@ -310,6 +310,8 @@
       "deleteReminderSuccess": "Reminder deleted.",
       "muted": "Muted",
       "paused": "Stopped",
+      "inactive": "Inactive",
+      "stopped": "Stopped",
       "stopRemindersPageTitle": "Stop Reminders",
       "stopRemindersButton": "Stop reminder",
       "stopReminderTitle": "Stop your {time} reminder for {campaign}",

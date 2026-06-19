@@ -3,6 +3,8 @@ import { committedDailyMinutes } from '#server/database/sql-helpers'
 
 export interface ActivityStats {
   newSubscribers: number
+  unsubscribed: number
+  becameInactive: number
   totalSubscribers: number
   totalPrayerTime: number
   prayerCommitted: number
@@ -21,6 +23,7 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
 
   const [
     subscribersRow,
+    churnRow,
     totalSubscribersRow,
     prayerTimeRow,
     prayerCommittedRow,
@@ -36,6 +39,30 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
       JOIN contact_methods cm ON cm.subscriber_id = s.id AND cm.type = 'email' AND cm.verified = true
       JOIN campaign_subscriptions cs ON cs.subscriber_id = s.id AND cs.status = 'active' AND cs.people_group_id IS NOT NULL
       WHERE cm.verified_at >= ${startIso} AND cm.verified_at < ${endIso}
+    `.then(rows => rows[0]),
+    // Contact-level churn for the period: a contact is counted once it has no
+    // active prayer reminders left, in the period its final reminder ended
+    // (last_churn_at). Bucketed by cause — a reminder the automated follow-up
+    // system deactivated has status 'inactive' ("became inactive"); a reminder
+    // the contact chose to stop has status 'unsubscribed'. Any system-deactivated
+    // reminder counts the contact as "became inactive"; otherwise it stopped
+    // every reminder itself ("unsubscribed").
+    sql`
+      WITH contact_status AS (
+        SELECT
+          subscriber_id,
+          COUNT(*) FILTER (WHERE status = 'active') AS active_count,
+          COUNT(*) FILTER (WHERE status = 'inactive') AS inactive_count,
+          MAX(updated_at) FILTER (WHERE status IN ('inactive', 'unsubscribed')) AS last_churn_at
+        FROM campaign_subscriptions
+        GROUP BY subscriber_id
+      )
+      SELECT
+        COUNT(*) FILTER (WHERE inactive_count = 0) AS unsubscribed,
+        COUNT(*) FILTER (WHERE inactive_count >= 1) AS became_inactive
+      FROM contact_status
+      WHERE active_count = 0
+        AND last_churn_at >= ${startIso} AND last_churn_at < ${endIso}
     `.then(rows => rows[0]),
     sql`
       SELECT COUNT(DISTINCT s.id) as count
@@ -64,6 +91,8 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
 
   return {
     newSubscribers: Number(subscribersRow?.count ?? 0),
+    unsubscribed: Number(churnRow?.unsubscribed ?? 0),
+    becameInactive: Number(churnRow?.became_inactive ?? 0),
     totalSubscribers: Number(totalSubscribersRow?.count ?? 0),
     totalPrayerTime: Number(prayerTimeRow?.total ?? 0),
     prayerCommitted: Math.round(Number(prayerCommittedRow?.total ?? 0)),

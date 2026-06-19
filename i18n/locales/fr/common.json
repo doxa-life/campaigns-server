@@ -315,6 +315,8 @@
       },
       "muted": "En sourdine",
       "paused": "Arrêté",
+      "inactive": "Inactif",
+      "stopped": "Arrêté",
       "stopRemindersPageTitle": "Arrêter les rappels",
       "stopRemindersButton": "Arrêter le rappel",
       "stopReminderTitle": "Arrêter votre rappel de {time} pour {campaign}",

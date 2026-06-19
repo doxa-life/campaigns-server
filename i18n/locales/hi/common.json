@@ -315,6 +315,8 @@
       },
       "muted": "मौन",
       "paused": "रोका गया",
+      "inactive": "निष्क्रिय",
+      "stopped": "रोका गया",
       "stopRemindersPageTitle": "रिमाइंडर रोकें",
       "stopRemindersButton": "रिमाइंडर रोकें",
       "stopReminderTitle": "{campaign} के लिए अपना {time} का रिमाइंडर रोकें",

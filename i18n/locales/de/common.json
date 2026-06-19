@@ -315,6 +315,8 @@
       },
       "muted": "Stummgeschaltet",
       "paused": "Gestoppt",
+      "inactive": "Inaktiv",
+      "stopped": "Gestoppt",
       "stopRemindersPageTitle": "Erinnerungen stoppen",
       "stopRemindersButton": "Erinnerung stoppen",
       "stopReminderTitle": "Ihre {time}-Erinnerung für {campaign} stoppen",

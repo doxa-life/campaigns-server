@@ -315,6 +315,8 @@
       },
       "muted": "Silenciado",
       "paused": "Detenido",
+      "inactive": "Inactivo",
+      "stopped": "Detenido",
       "stopRemindersPageTitle": "Detener Recordatorios",
       "stopRemindersButton": "Detener recordatorio",
       "stopReminderTitle": "Detén tu recordatorio de las {time} para los {campaign}",

@@ -315,6 +315,8 @@
       },
       "muted": "Заглушено",
       "paused": "Остановлено",
+      "inactive": "Неактивно",
+      "stopped": "Остановлено",
       "stopRemindersPageTitle": "Остановить напоминания",
       "stopRemindersButton": "Остановить напоминание",
       "stopReminderTitle": "Остановить напоминание в {time} для {campaign}",

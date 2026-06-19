@@ -315,6 +315,8 @@
       },
       "muted": "Dezactivat",
       "paused": "Oprit",
+      "inactive": "Inactiv",
+      "stopped": "Oprit",
       "stopRemindersPageTitle": "Oprește memento-urile",
       "stopRemindersButton": "Oprește memento-ul",
       "stopReminderTitle": "Oprește memento-ul tău de la ora {time} pentru {campaign}",
