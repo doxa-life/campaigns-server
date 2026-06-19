@@ -9,9 +9,10 @@ export default defineEventHandler(async (event) => {
     const user = await requireAuth(event)
     const sql = getSql()
 
-    const [row] = await sql`SELECT activity_email_preferences FROM users WHERE id = ${user.userId}`
-    const prefs = (typeof row?.activity_email_preferences === 'object' && row.activity_email_preferences)
-      ? row.activity_email_preferences
+    const [row] = await sql`SELECT notification_preferences FROM users WHERE id = ${user.userId}`
+    const np = (typeof row?.notification_preferences === 'object' && row.notification_preferences) || null
+    const prefs = (np && typeof np.stats === 'object' && np.stats)
+      ? np.stats
       : { daily: true, weekly: true, monthly: true, yearly: true }
 
     return prefs

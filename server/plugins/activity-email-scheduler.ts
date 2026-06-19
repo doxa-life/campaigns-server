@@ -1,8 +1,7 @@
 import { Cron } from 'croner'
 import { collectActivityStats, type ActivityStats } from '../utils/activity-email-stats'
 import { sendActivityEmail } from '../utils/activity-email'
-import { userService } from '#server/database/users'
-import { notificationRecipientService } from '#server/database/notification-recipients'
+import { userService, DEFAULT_NOTIFICATION_PREFERENCES } from '#server/database/users'
 
 type Frequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
 
@@ -93,17 +92,12 @@ export default defineNitroPlugin((nitroApp) => {
         getPreviousStats(frequency)
       ])
 
-      const statsRecipients = await notificationRecipientService.getByGroup('stats')
-      const statsEmails = new Set(statsRecipients.map(r => r.email.toLowerCase()))
+      const eligibleUsers = await userService.getStatsEligibleUsers()
 
-      const adminUsers = await userService.getAdminUsers()
-      const defaultPrefs = { daily: true, weekly: true, monthly: true, yearly: true }
-
-      const recipientEmails = adminUsers
+      const recipientEmails = eligibleUsers
         .filter(user => {
-          if (!statsEmails.has(user.email.toLowerCase())) return false
-          const prefs = user.activity_email_preferences ?? defaultPrefs
-          return prefs[frequency] !== false
+          const stats = user.notification_preferences?.stats ?? DEFAULT_NOTIFICATION_PREFERENCES.stats
+          return stats[frequency] !== false
         })
         .map(user => user.email)
 

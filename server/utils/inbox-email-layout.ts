@@ -7,7 +7,7 @@
  *   font, text color, and a width cap — no logo banner / colored bar / "automated"
  *   footer, because those would make a person's reply look impersonal and false.
  * - renderAdminNotificationEmail: the minimal admin-notification shell used by the
- *   existing app templates (e.g. contact-notification-email.ts), for staff alerts.
+ *   inbox notification templates (e.g. inbox-notification-email.ts), for staff alerts.
  */
 
 function escapeHtml(text: string): string {

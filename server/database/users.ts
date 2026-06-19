@@ -2,6 +2,18 @@ import { getSql } from './db'
 import bcrypt from 'bcrypt'
 import { randomUUID } from 'crypto'
 
+export type NotificationPreferences = {
+  stats: { daily: boolean; weekly: boolean; monthly: boolean; yearly: boolean }
+  adoption: boolean
+  contact_us: boolean
+}
+
+export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  stats: { daily: true, weekly: true, monthly: true, yearly: true },
+  adoption: false,
+  contact_us: false,
+}
+
 export interface User {
   id: string // UUID
   email: string
@@ -12,7 +24,7 @@ export interface User {
   token_key: string
   created: string
   updated: string
-  activity_email_preferences: { daily: boolean; weekly: boolean; monthly: boolean; yearly: boolean } | null
+  notification_preferences: NotificationPreferences | null
   email_alias: string | null
   email_signature: string | null
 }
@@ -50,7 +62,7 @@ export class UserService {
 
   async getUserById(id: string): Promise<User | null> {
     const [row] = await this.sql`
-      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences, email_alias, email_signature
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences, email_alias, email_signature
       FROM users WHERE id = ${id}
     `
     return (row as User) ?? null
@@ -58,7 +70,7 @@ export class UserService {
 
   async getUserByEmail(email: string): Promise<User | null> {
     const [row] = await this.sql`
-      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences, email_alias, email_signature
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences, email_alias, email_signature
       FROM users WHERE email = ${email}
     `
     return (row as User) ?? null
@@ -66,7 +78,7 @@ export class UserService {
 
   async getAllUsers(): Promise<User[]> {
     return await this.sql`
-      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences, email_alias, email_signature
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences, email_alias, email_signature
       FROM users ORDER BY created DESC
     ` as any
   }
@@ -75,7 +87,7 @@ export class UserService {
   async getByEmailAlias(alias: string): Promise<User | null> {
     if (!alias) return null
     const [row] = await this.sql`
-      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences, email_alias, email_signature
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences, email_alias, email_signature
       FROM users WHERE LOWER(email_alias) = LOWER(${alias})
     `
     return (row as User) ?? null
@@ -107,18 +119,46 @@ export class UserService {
     return this.getUserById(id)
   }
 
-  async getAdminUsers(): Promise<User[]> {
+  // Users eligible to receive scheduled stats summary emails: admins, progress admins, and superadmins.
+  async getStatsEligibleUsers(): Promise<User[]> {
     return await this.sql`
-      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences
-      FROM users WHERE 'admin' = ANY(roles) OR superadmin = TRUE ORDER BY created DESC
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences
+      FROM users
+      WHERE 'admin' = ANY(roles) OR 'progress_admin' = ANY(roles) OR superadmin = TRUE
+      ORDER BY created DESC
     ` as any
+  }
+
+  // Users opted in to adoption-form notifications.
+  async getUsersOptedIntoAdoption(): Promise<User[]> {
+    return await this.sql`
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences, email_alias, email_signature
+      FROM users WHERE notification_preferences->>'adoption' = 'true'
+    ` as any
+  }
+
+  // Users opted in to contact-us / inbox notifications.
+  async getUsersOptedIntoContactUs(): Promise<User[]> {
+    return await this.sql`
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences, email_alias, email_signature
+      FROM users WHERE notification_preferences->>'contact_us' = 'true'
+    ` as any
+  }
+
+  // Replace a user's notification preferences (stats frequencies + adoption/contact_us opt-ins).
+  async updateNotificationPreferences(id: string, prefs: NotificationPreferences): Promise<User | null> {
+    await this.sql`
+      UPDATE users SET notification_preferences = ${this.sql.json(prefs)}, updated = NOW()
+      WHERE id = ${id}
+    `
+    return this.getUserById(id)
   }
 
   // Users whose roles include any of the given role names (used to enumerate inbox staff)
   async getUsersWithRoles(roleNames: string[]): Promise<User[]> {
     if (roleNames.length === 0) return []
     return await this.sql`
-      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, activity_email_preferences, email_alias, email_signature
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences, email_alias, email_signature
       FROM users WHERE roles && ${roleNames}::text[]
     ` as any
   }
