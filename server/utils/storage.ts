@@ -7,6 +7,14 @@ let s3Client: S3Client | null = null
 
 const SIGNED_URL_EXPIRATION = 60 * 60 * 24 * 7 // 7 days in seconds
 
+// The AWS SDK needs a fully-qualified endpoint URL; a bare host like
+// "s3.us-east-005.backblazeb2.com" makes its URL parser throw ERR_INVALID_URL,
+// which silently fails every upload. Default a scheme-less endpoint to https.
+function normalizeEndpoint(endpoint: string | undefined): string | undefined {
+  if (!endpoint) return endpoint
+  return /^https?:\/\//i.test(endpoint) ? endpoint : `https://${endpoint}`
+}
+
 // Get S3 settings from environment variables
 function getS3Settings() {
   // Try to get runtime config first (for production builds), then fallback to process.env
@@ -30,7 +38,7 @@ function getS3Settings() {
   }
 
   return {
-    endpoint: S3_ENDPOINT,
+    endpoint: normalizeEndpoint(S3_ENDPOINT),
     region: S3_REGION || 'us-west-004',
     accessKeyId: S3_ACCESS_KEY_ID,
     secretAccessKey: S3_SECRET_ACCESS_KEY,
