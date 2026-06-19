@@ -14,6 +14,15 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   ssr: false,
 
+  experimental: {
+    // A deploy ships new content-hashed chunk filenames, so a tab still holding the
+    // previous build imports chunks that no longer exist on the origin. 'automatic-immediate'
+    // makes Nuxt hard-reload the moment a chunk fails — including failures with no
+    // navigation (initial load or a lazy component) — to fetch the current shell and
+    // chunks. Nuxt's built-in handler guards against reload loops.
+    emitRouteChunkError: 'automatic-immediate'
+  },
+
   vue: {
     compilerOptions: {
       isCustomElement: (tag: string) => tag === 'feedback-web-component'

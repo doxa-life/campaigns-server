@@ -8,10 +8,27 @@ export type NotificationPreferences = {
   contact_us: boolean
 }
 
+// Opt-in by default: a user receives nothing until an admin (or the user, for stats)
+// turns a notification on. Eligibility still gates stats on top of this. This is the
+// single source of truth for defaults — the column only persists explicit choices, so
+// adding a preference or changing a default happens here, with no migration.
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
-  stats: { daily: true, weekly: true, monthly: true, yearly: true },
+  stats: { daily: false, weekly: false, monthly: false, yearly: false },
   adoption: false,
   contact_us: false,
+}
+
+// Merge a stored value (possibly null, or missing newer keys) over the defaults above.
+// Always read preferences through this so unset keys fall back to code defaults.
+export function resolveNotificationPreferences(
+  stored: Partial<NotificationPreferences> | null | undefined
+): NotificationPreferences {
+  const s = (stored && typeof stored === 'object') ? stored : {}
+  return {
+    stats: { ...DEFAULT_NOTIFICATION_PREFERENCES.stats, ...(s.stats ?? {}) },
+    adoption: typeof s.adoption === 'boolean' ? s.adoption : DEFAULT_NOTIFICATION_PREFERENCES.adoption,
+    contact_us: typeof s.contact_us === 'boolean' ? s.contact_us : DEFAULT_NOTIFICATION_PREFERENCES.contact_us,
+  }
 }
 
 export interface User {
