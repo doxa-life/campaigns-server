@@ -145,8 +145,8 @@
       </UTable>
     </UCard>
 
-    <!-- Activity Email Preferences (admin only) -->
-    <UCard v-if="isAdmin" class="mb-6">
+    <!-- Activity Email Preferences -->
+    <UCard v-if="canManageStatsEmails" class="mb-6">
       <template #header>
         <h2 class="text-lg font-semibold">Activity Email Preferences</h2>
       </template>
@@ -227,8 +227,13 @@ definePageMeta({
   middleware: ['auth']
 })
 
-const { user, logout, checkAuth, isAdmin } = useAuthUser()
+const { user, logout, checkAuth, isAdmin, isSuperAdmin } = useAuthUser()
 const toast = useToast()
+
+// Admins and progress admins can self-manage which stats summary emails they receive.
+const canManageStatsEmails = computed(() =>
+  isAdmin.value || isSuperAdmin.value || (user.value?.roles?.includes('progress_admin') ?? false)
+)
 
 // --- Display Name ---
 const name = reactive({
@@ -472,7 +477,11 @@ async function handleLogout() {
 onMounted(() => {
   if (isAdmin.value) {
     fetchApiKeys()
-    fetchActivityEmailPrefs()
   }
 })
+
+// Load stats-email prefs once the user (and thus eligibility) is known.
+watch(canManageStatsEmails, (can) => {
+  if (can) fetchActivityEmailPrefs()
+}, { immediate: true })
 </script>

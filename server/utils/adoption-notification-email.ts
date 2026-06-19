@@ -1,4 +1,4 @@
-import { notificationRecipientService } from '../database/notification-recipients'
+import { userService } from '../database/users'
 import { LANGUAGES } from '../../config/languages'
 
 interface AdoptionNotificationData {
@@ -96,11 +96,11 @@ function sendAdoptionNotificationEmail(to: string, data: AdoptionNotificationDat
 }
 
 export async function notifyAdoptionRecipients(data: AdoptionNotificationData) {
-  const recipients = await notificationRecipientService.getByGroup('adoption')
-  if (recipients.length === 0) return
+  const users = await userService.getUsersOptedIntoAdoption()
+  if (users.length === 0) return
 
   const results = await Promise.allSettled(
-    recipients.map(r => sendAdoptionNotificationEmail(r.email, data))
+    users.map(u => sendAdoptionNotificationEmail(u.email, data))
   )
   for (const result of results) {
     if (result.status === 'rejected') {

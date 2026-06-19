@@ -26,16 +26,19 @@ export default defineEventHandler(async (event) => {
 
     const sql = getSql()
 
-    // Read current prefs
-    const [current] = await sql`SELECT activity_email_preferences FROM users WHERE id = ${user.userId}`
-    const currentPrefs = (typeof current?.activity_email_preferences === 'object' && current.activity_email_preferences)
-      ? current.activity_email_preferences
+    // Read current prefs and merge the partial stats update into notification_preferences.stats.
+    const [current] = await sql`SELECT notification_preferences FROM users WHERE id = ${user.userId}`
+    const np = (typeof current?.notification_preferences === 'object' && current.notification_preferences)
+      ? current.notification_preferences
+      : { stats: { daily: true, weekly: true, monthly: true, yearly: true }, adoption: false, contact_us: false }
+    const currentStats = (typeof np.stats === 'object' && np.stats)
+      ? np.stats
       : { daily: true, weekly: true, monthly: true, yearly: true }
-    const merged = { ...currentPrefs, ...preferences }
+    const merged = { ...np, stats: { ...currentStats, ...preferences } }
 
     await sql`
       UPDATE users
-      SET activity_email_preferences = ${sql.json(merged)},
+      SET notification_preferences = ${sql.json(merged)},
           updated = NOW()
       WHERE id = ${user.userId}
     `

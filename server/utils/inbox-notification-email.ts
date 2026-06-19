@@ -1,5 +1,4 @@
-import { notificationRecipientService } from '../database/notification-recipients'
-import { userService } from '../database/users'
+import { userService, type User } from '../database/users'
 import { roleService } from '../database/roles'
 import type { Conversation } from '../database/conversations'
 import type { ConversationMessage } from '../database/conversation-messages'
@@ -35,8 +34,7 @@ function getConfig() {
 // Build a Reply-To for a staff recipient: signed (authenticates reply-by-email) when the
 // recipient is a user with inbox.send; otherwise the plain contact reply address (their
 // reply would land as an unknown sender and be held — by design).
-async function replyToFor(recipientEmail: string, conversation: Conversation, cfg: ReturnType<typeof getConfig>): Promise<string> {
-  const user = await userService.getUserByEmail(recipientEmail)
+async function replyToFor(user: User | null, conversation: Conversation, cfg: ReturnType<typeof getConfig>): Promise<string> {
   if (user) {
     const canSend = await roleService.userHasPermission(user.id, 'inbox.send')
     if (canSend && cfg.replySecret) {
@@ -84,15 +82,15 @@ function renderNotification(opts: {
 /** Notify the configured contact_us recipient list about a new/unassigned/held conversation. */
 export async function notifyNewConversation(conversation: Conversation, message: ConversationMessage, opts: { held?: boolean } = {}): Promise<boolean> {
   const cfg = getConfig()
-  const recipients = await notificationRecipientService.getByGroup('contact_us')
-  if (recipients.length === 0) return true
+  const users = await userService.getUsersOptedIntoContactUs()
+  if (users.length === 0) return true
 
   const conversationUrl = `${cfg.siteUrl}/admin/inbox/${conversation.id}`
   const contactName = message.from_name || message.from_email || 'Contact'
   const contactEmail = message.from_email || ''
 
-  const results = await Promise.allSettled(recipients.map(async (r) => {
-    const replyTo = await replyToFor(r.email, conversation, cfg)
+  const results = await Promise.allSettled(users.map(async (u) => {
+    const replyTo = await replyToFor(u, conversation, cfg)
     const { html, text } = renderNotification({
       appName: cfg.appName,
       contactName,
@@ -103,7 +101,7 @@ export async function notifyNewConversation(conversation: Conversation, message:
     })
     return inboxEmailService.send({
       from: `"${cfg.appName}" <${cfg.fromAddress}>`,
-      to: r.email,
+      to: u.email,
       subject: opts.held ? `[Review] ${conversation.subject || 'Inbox message'}` : `New message: ${conversation.subject || 'Inbox'}`,
       html,
       text,
@@ -123,7 +121,7 @@ export async function notifyAssignee(conversation: Conversation, message: Conver
   const assignee = await userService.getUserById(conversation.assigned_user_id)
   if (!assignee?.email) return true
 
-  const replyTo = await replyToFor(assignee.email, conversation, cfg)
+  const replyTo = await replyToFor(assignee, conversation, cfg)
   const conversationUrl = `${cfg.siteUrl}/admin/inbox/${conversation.id}`
   const { html, text } = renderNotification({
     appName: cfg.appName,
