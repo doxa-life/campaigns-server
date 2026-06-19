@@ -618,8 +618,15 @@
     "conversation": "Conversa",
     "conversations": "Conversas",
     "internalNotes": "Notas internas",
+    "notesActivity": "Notas e atividade",
     "activity": "Atividade",
     "needsReview": "Requer revisão",
+    "noMessage": "Sem mensagem",
+    "source": {
+      "contact_form": "Formulário de contacto",
+      "inbound_email": "E-mail",
+      "staff": "Equipa"
+    },
     "unassigned": "Não atribuída",
     "assignedTo": "Atribuída a {name}",
     "assignToMe": "Atribuir a mim",

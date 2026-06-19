@@ -618,8 +618,15 @@
     "conversation": "Unterhaltung",
     "conversations": "Unterhaltungen",
     "internalNotes": "Interne Notizen",
+    "notesActivity": "Notizen & Aktivität",
     "activity": "Aktivität",
     "needsReview": "Zu prüfen",
+    "noMessage": "Keine Nachricht",
+    "source": {
+      "contact_form": "Kontaktformular",
+      "inbound_email": "E-Mail",
+      "staff": "Team"
+    },
     "unassigned": "Nicht zugewiesen",
     "assignedTo": "Zugewiesen an {name}",
     "assignToMe": "Mir zuweisen",

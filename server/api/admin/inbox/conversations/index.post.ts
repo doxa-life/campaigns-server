@@ -63,11 +63,19 @@ export default defineEventHandler(async (event) => {
       if (!EMAIL_RE.test(toEmail)) {
         throw createError({ statusCode: 400, statusMessage: 'Invalid email address' })
       }
-      const { subscriber } = await subscriberService.findOrCreateSubscriber({
+      const { subscriber, isNew } = await subscriberService.findOrCreateSubscriber({
         email: toEmail,
         name: body.to_name?.trim() || toEmail,
       })
       await subscriberService.addSource(subscriber.id, 'inbox')
+      // Log creation so a contact first reached via a new email has the same "Created"
+      // activity trail as one created through the contact form or signup.
+      if (isNew) {
+        logCreate('subscribers', String(subscriber.id), event, {
+          source: 'Inbox',
+          message: 'Created via new email',
+        })
+      }
       subscriberId = subscriber.id
       recipientEmail = toEmail
     } else {
@@ -88,6 +96,15 @@ export default defineEventHandler(async (event) => {
       subject,
       status: 'pending',
       assigned_user_id: auth.userId,
+      source: 'staff',
+    })
+    // Log creation before the message is queued, so the conversation keeps a full origin
+    // trail (source + the address it was sent to) even if a later step fails.
+    logCreate('conversations', String(conversation.id), event, {
+      message: 'New email queued',
+      source: 'staff',
+      received_on: recipientEmail,
+      direction: 'outbound',
     })
 
     // Personal signature only when sending as the agent's own alias.
@@ -111,8 +128,6 @@ export default defineEventHandler(async (event) => {
       referenceType: 'conversation',
       referenceId: conversation.id,
     })
-
-    logCreate('conversations', String(conversation.id), event, { message: 'New email queued', direction: 'outbound' })
 
     return { conversation, message, queued: true }
   } catch (error) {

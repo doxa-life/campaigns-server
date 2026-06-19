@@ -84,10 +84,20 @@ export default defineEventHandler(async (event) => {
 
     // Open a conversation in the shared inbox with the form message as the first inbound message.
     const subject = (message.split('\n')[0] || 'Contact form message').slice(0, 120)
+    const contactAddress = useRuntimeConfig().inboxContactAddress || 'contact@doxa.life'
     const conversation = await conversationService.create({
       subscriber_id: subscriber.id,
       subject,
       status: 'open',
+      source: 'contact_form',
+    })
+    // Log creation before the first message is inserted, so the conversation keeps a full
+    // origin trail (source + the address it arrived on) even if the message step fails.
+    logCreate('conversations', String(conversation.id), event, {
+      message: 'Contact form conversation opened',
+      source: 'contact_form',
+      received_on: contactAddress,
+      direction: 'inbound',
     })
     const firstMessage = await messageService.create({
       conversation_id: conversation.id,
@@ -95,13 +105,12 @@ export default defineEventHandler(async (event) => {
       status: 'received',
       from_email: email,
       from_name: name || email,
-      to_email: useRuntimeConfig().inboxContactAddress || 'contact@doxa.life',
+      to_email: contactAddress,
       subject,
       body_html: `<p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`,
       body_text: message,
     })
     await conversationService.touchLastMessage(conversation.id, firstMessage.created_at, 'inbound')
-    logCreate('conversations', String(conversation.id), event, { message: 'Contact form conversation opened', direction: 'inbound' })
 
     // Auto-ack (in the form's language) and the staff notification go through the job
     // queue so a transient send failure is retried instead of silently lost.

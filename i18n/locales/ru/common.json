@@ -618,8 +618,15 @@
     "conversation": "Разговор",
     "conversations": "Разговоры",
     "internalNotes": "Внутренние заметки",
+    "notesActivity": "Заметки и активность",
     "activity": "Активность",
     "needsReview": "Требует проверки",
+    "noMessage": "Нет сообщения",
+    "source": {
+      "contact_form": "Контактная форма",
+      "inbound_email": "Эл. почта",
+      "staff": "Команда"
+    },
     "unassigned": "Не назначено",
     "assignedTo": "Назначено: {name}",
     "assignToMe": "Назначить мне",

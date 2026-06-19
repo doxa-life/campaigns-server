@@ -125,12 +125,14 @@
         <div class="conv-row">
           <div class="conv-top">
             <span class="conv-name">{{ c.subscriber_name || c.subscriber_email || $t('inbox.unassigned') }}</span>
-            <span class="conv-time">{{ formatTime(c.last_message_at) }}</span>
+            <span class="conv-time">{{ formatTime(c.last_message_at || c.created_at) }}</span>
           </div>
           <div class="conv-subject">{{ c.subject || '—' }}</div>
           <div class="conv-snippet">{{ c.last_message_snippet || '' }}</div>
           <div class="conv-badges">
             <UBadge :color="statusColor(c.status)" variant="subtle" size="xs">{{ $t('inbox.status.' + c.status) }}</UBadge>
+            <UBadge v-if="c.source" :color="sourceColor(c.source)" variant="subtle" size="xs">{{ $t('inbox.source.' + c.source) }}</UBadge>
+            <UBadge v-if="c.message_count === 0" color="error" variant="subtle" size="xs" icon="i-lucide-triangle-alert">{{ $t('inbox.noMessage') }}</UBadge>
             <UBadge v-if="c.needs_review" color="warning" variant="subtle" size="xs">{{ $t('inbox.needsReview') }}</UBadge>
             <UBadge v-if="c.assignee_name" color="neutral" variant="outline" size="xs">{{ c.assignee_name }}</UBadge>
             <UBadge
@@ -156,6 +158,8 @@
           >{{ selected.conversation.subscriber_name }}</NuxtLink>
           <span v-else-if="selected.conversation.subscriber_name" class="contact-name">{{ selected.conversation.subscriber_name }}</span>
           <span v-if="selected.conversation.subscriber_email" class="contact-email">{{ selected.conversation.subscriber_email }}</span>
+          <UBadge v-if="selected.conversation.source" :color="sourceColor(selected.conversation.source)" variant="subtle" size="xs">{{ $t('inbox.source.' + selected.conversation.source) }}</UBadge>
+          <UBadge v-if="selected.conversation.message_count === 0" color="error" variant="subtle" size="xs" icon="i-lucide-triangle-alert">{{ $t('inbox.noMessage') }}</UBadge>
         </div>
         <InboxTagPicker
           :conversation-id="selected.conversation.id"
@@ -371,11 +375,12 @@
           </div>
         </template>
 
-        <template #side-notes>
-          <RecordComments record-type="conversation" :record-id="selected.conversation.id" />
-        </template>
         <template #side-activity>
-          <RecordActivity table-name="conversations" :record-id="selected.conversation.id" />
+          <InboxActivityFeed
+            record-type="conversation"
+            table-name="conversations"
+            :record-id="selected.conversation.id"
+          />
         </template>
       </CrmDetailPanel>
     </template>
@@ -439,12 +444,15 @@ interface ConversationListItem {
   subject: string | null
   status: string
   needs_review: boolean
+  source: string | null
   assignee_name: string | null
   subscriber_name: string | null
   subscriber_email: string | null
   tags: string[]
+  message_count: number
   last_message_at: string | null
   last_message_snippet: string | null
+  created_at: string
 }
 interface AiDraftMetadata {
   gloss: string
@@ -475,7 +483,9 @@ interface ConversationDetail {
   status: string
   assigned_user_id: string | null
   needs_review: boolean
+  source: string | null
   tags: string[]
+  message_count: number
   subscriber_id: number | null
   subscriber_name: string | null
   subscriber_email: string | null
@@ -588,8 +598,7 @@ const statusOptions = computed(() => [
 ])
 
 const sideTabs = computed(() => [
-  { label: t('inbox.internalNotes'), slot: 'notes', icon: 'i-lucide-sticky-note' },
-  { label: t('inbox.activity'), slot: 'activity', icon: 'i-lucide-history' },
+  { label: t('inbox.notesActivity'), slot: 'activity', icon: 'i-lucide-history' },
 ])
 
 // Language picker for the canned-response inserter: choose which translation to insert.
@@ -609,6 +618,11 @@ const cannedOptions = computed(() =>
 
 function statusColor(status: string): any {
   return { open: 'success', pending: 'warning', closed: 'neutral', spam: 'error' }[status] || 'neutral'
+}
+
+// Origin badge colour — Contact-form stands out; email/staff stay muted.
+function sourceColor(source: string): any {
+  return { contact_form: 'info', inbound_email: 'neutral', staff: 'neutral' }[source] || 'neutral'
 }
 
 function tagDef(slug: string): InboxTag | undefined {
