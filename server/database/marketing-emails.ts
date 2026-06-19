@@ -298,10 +298,18 @@ class MarketingEmailService {
     // so any user with marketing access may use it.
     if (audienceType === 'admins') return true
 
+    // "All Active Subscribers" and hand-picked recipients reach subscribers regardless
+    // of marketing opt-in, so they bypass the Doxa-general-consent boundary and stay
+    // restricted to admins.
+    if (audienceType === 'active_pg' || audienceType === 'pick') {
+      return await roleService.isAdmin(userId)
+    }
+
     const scoped = await roleService.isPermissionScoped(userId, 'people_groups.view')
 
-    // Doxa-wide and hand-picked audiences can reach any subscriber, so require unscoped access.
-    if (audienceType === 'doxa' || audienceType === 'doxa_active_pg' || audienceType === 'active_pg' || audienceType === 'pick') return !scoped
+    // Doxa-general-consent audiences only reach subscribers who opted into marketing,
+    // so they require unscoped people-group access (admins included).
+    if (audienceType === 'doxa' || audienceType === 'doxa_active_pg') return !scoped
 
     if (audienceType === 'people_group' && peopleGroupId) {
       if (!scoped) return true

@@ -8,7 +8,8 @@ import {
 import {
   createAdminUser,
   createEditorUser,
-  createNoRoleUser
+  createNoRoleUser,
+  createProgressAdminUser
 } from '../../../helpers/auth'
 
 describe('Marketing Emails API', async () => {
@@ -17,6 +18,7 @@ describe('Marketing Emails API', async () => {
   let adminAuth: { headers: { cookie: string } }
   let editorAuth: { headers: { cookie: string } }
   let noRoleAuth: { headers: { cookie: string } }
+  let progressAuth: { headers: { cookie: string } }
 
   beforeAll(async () => {
     await cleanupTestData(sql)
@@ -29,6 +31,9 @@ describe('Marketing Emails API', async () => {
 
     const noRole = await createNoRoleUser(sql)
     noRoleAuth = noRole.auth
+
+    const progress = await createProgressAdminUser(sql)
+    progressAuth = progress.auth
   })
 
   afterAll(async () => {
@@ -118,6 +123,55 @@ describe('Marketing Emails API', async () => {
       }).catch((e) => e)
 
       expect(error.statusCode).toBe(400)
+    })
+  })
+
+  // Progress Admin may email contacts who gave marketing (Doxa-general) consent, but is
+  // walled off from the all-subscriber and hand-picked audiences, which stay admin-only.
+  describe('POST /api/admin/marketing/emails — progress_admin audience boundaries', () => {
+    const content_json = { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hi' }] }] }
+
+    it('lists marketing emails (has marketing.view)', async () => {
+      const response = await $fetch('/api/admin/marketing/emails', progressAuth)
+      expect(Array.isArray(response.emails)).toBe(true)
+    })
+
+    it('can create a doxa (marketing consent) draft', async () => {
+      const response = await $fetch('/api/admin/marketing/emails', {
+        method: 'POST',
+        body: { subject: 'PA Doxa', content_json, audience_type: 'doxa' },
+        ...progressAuth
+      })
+      expect(response.success).toBe(true)
+      expect(response.email.audience_type).toBe('doxa')
+    })
+
+    it('can create a doxa_active_pg draft', async () => {
+      const response = await $fetch('/api/admin/marketing/emails', {
+        method: 'POST',
+        body: { subject: 'PA Doxa Active', content_json, audience_type: 'doxa_active_pg' },
+        ...progressAuth
+      })
+      expect(response.success).toBe(true)
+      expect(response.email.audience_type).toBe('doxa_active_pg')
+    })
+
+    it('cannot create an active_pg (All Active Subscribers) draft', async () => {
+      const error = await $fetch('/api/admin/marketing/emails', {
+        method: 'POST',
+        body: { subject: 'PA Active', content_json, audience_type: 'active_pg' },
+        ...progressAuth
+      }).catch((e) => e)
+      expect(error.statusCode).toBe(403)
+    })
+
+    it('cannot create a pick (hand-picked contacts) draft', async () => {
+      const error = await $fetch('/api/admin/marketing/emails', {
+        method: 'POST',
+        body: { subject: 'PA Pick', content_json, audience_type: 'pick', recipient_contact_method_ids: [] },
+        ...progressAuth
+      }).catch((e) => e)
+      expect(error.statusCode).toBe(403)
     })
   })
 
