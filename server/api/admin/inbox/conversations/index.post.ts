@@ -63,11 +63,19 @@ export default defineEventHandler(async (event) => {
       if (!EMAIL_RE.test(toEmail)) {
         throw createError({ statusCode: 400, statusMessage: 'Invalid email address' })
       }
-      const { subscriber } = await subscriberService.findOrCreateSubscriber({
+      const { subscriber, isNew } = await subscriberService.findOrCreateSubscriber({
         email: toEmail,
         name: body.to_name?.trim() || toEmail,
       })
       await subscriberService.addSource(subscriber.id, 'inbox')
+      // Log creation so a contact first reached via a new email has the same "Created"
+      // activity trail as one created through the contact form or signup.
+      if (isNew) {
+        logCreate('subscribers', String(subscriber.id), event, {
+          source: 'Inbox',
+          message: 'Created via new email',
+        })
+      }
       subscriberId = subscriber.id
       recipientEmail = toEmail
     } else {
