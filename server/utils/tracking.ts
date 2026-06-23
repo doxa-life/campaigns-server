@@ -132,6 +132,11 @@ async function sendEvent(event: H3Event | undefined, input: TrackEventInput): Pr
   try {
     const response = await $fetch<{ id: number | string }>(`${statinatorUrl}/api/events`, {
       method: 'POST',
+      // A stalled forward must not pin this request's H3Event in a suspended async
+      // frame — the event transitively retains the whole runtimeConfig, so parked
+      // forwards leak memory. Abort on timeout; retries off so a stall can't re-park.
+      timeout: 10000,
+      retry: 0,
       headers: {
         'content-type': 'application/json',
         'x-api-key': apiKey,
@@ -199,6 +204,10 @@ export async function forwardHeartbeat(event: H3Event | undefined, input: { even
   try {
     await $fetch(`${statinatorUrl}/api/heartbeat`, {
       method: 'POST',
+      // See sendEvent: without a timeout a stalled forward suspends this async frame
+      // indefinitely, retaining the request H3Event. Bound it.
+      timeout: 10000,
+      retry: 0,
       headers: {
         'content-type': 'application/json',
         'x-api-key': apiKey,
