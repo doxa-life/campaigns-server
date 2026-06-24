@@ -5,15 +5,25 @@
         <h1 class="text-2xl font-bold">Onboarding</h1>
         <p class="text-sm text-muted">People groups with outstanding setup work</p>
       </div>
-      <UButton
-        size="sm"
-        variant="outline"
-        icon="i-lucide-refresh-cw"
-        :loading="status === 'pending'"
-        @click="refresh()"
-      >
-        Refresh
-      </UButton>
+      <div class="flex items-center gap-2">
+        <UButton
+          size="sm"
+          variant="outline"
+          icon="i-lucide-download"
+          @click="exportCsv"
+        >
+          Export CSV
+        </UButton>
+        <UButton
+          size="sm"
+          variant="outline"
+          icon="i-lucide-refresh-cw"
+          :loading="status === 'pending'"
+          @click="refresh()"
+        >
+          Refresh
+        </UButton>
+      </div>
     </div>
 
     <div class="flex flex-wrap gap-2 mb-4">
@@ -122,6 +132,10 @@ const filteredRows = computed(() => {
   if (activeFilter.value === 'needs') return rows.value.filter(r => r.needs_tags.length > 0)
   return rows.value
 })
+
+function exportCsv() {
+  window.open('/api/admin/people-groups/onboarding-assets-csv', '_blank')
+}
 </script>
 
 <style scoped>
