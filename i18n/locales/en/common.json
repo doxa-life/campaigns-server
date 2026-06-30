@@ -450,7 +450,8 @@
     },
     "validation": {
       "email": "Please enter a valid email address.",
-      "message": "Please enter a message."
+      "message": "Please enter a message.",
+      "type": "Please choose a feedback type."
     }
   },
   "adoption": {

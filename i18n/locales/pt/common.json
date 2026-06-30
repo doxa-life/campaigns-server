@@ -450,7 +450,8 @@
     },
     "validation": {
       "email": "Introduza um endereço de e-mail válido.",
-      "message": "Escreva uma mensagem."
+      "message": "Escreva uma mensagem.",
+      "type": "Escolha um tipo de feedback."
     }
   },
   "adoption": {
