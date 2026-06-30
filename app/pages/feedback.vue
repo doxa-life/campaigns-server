@@ -18,13 +18,20 @@
         </template>
 
         <form class="space-y-4" @submit.prevent="submit">
-          <UFormField :label="$t('feedback.typeLabel')" name="feedback_type">
-            <USelect
-              v-model="form.feedback_type"
-              :items="typeItems"
-              value-key="value"
-              class="w-full"
-            />
+          <UFormField :label="$t('feedback.typeLabel')" name="feedback_type" required :error="typeError">
+            <div class="flex flex-wrap justify-center gap-2">
+              <UButton
+                v-for="opt in typeItems"
+                :key="opt.value"
+                :icon="opt.icon"
+                :label="opt.label"
+                :color="form.feedback_type === opt.value ? 'primary' : 'neutral'"
+                :variant="form.feedback_type === opt.value ? 'solid' : 'outline'"
+                size="lg"
+                class="justify-center"
+                @click="selectType(opt.value)"
+              />
+            </div>
           </UFormField>
 
           <UFormField :label="$t('feedback.nameLabel')" name="name">
@@ -66,34 +73,49 @@ const toast = useToast()
 // the existing subscriber — never rendered, never used to look anything up.
 const trackingId = (route.query.tracking_id as string) || undefined
 
+type FeedbackType = 'compliment' | 'suggestion' | 'problem'
+
+// Deliberately starts unselected so the user makes a conscious choice — submit
+// is blocked until one is picked.
 const form = reactive({
-  feedback_type: 'suggestion' as 'compliment' | 'suggestion' | 'problem',
+  feedback_type: null as FeedbackType | null,
   name: '',
   email: '',
   message: '',
   consent_doxa_general: false
 })
 
-const typeItems = computed(() => [
-  { label: t('feedback.type.compliment'), value: 'compliment' },
-  { label: t('feedback.type.suggestion'), value: 'suggestion' },
-  { label: t('feedback.type.problem'), value: 'problem' }
+const typeItems = computed<{ label: string; value: FeedbackType; icon: string }[]>(() => [
+  { label: t('feedback.type.compliment'), value: 'compliment', icon: 'i-lucide-heart' },
+  { label: t('feedback.type.suggestion'), value: 'suggestion', icon: 'i-lucide-lightbulb' },
+  { label: t('feedback.type.problem'), value: 'problem', icon: 'i-lucide-triangle-alert' }
 ])
 
 const submitting = ref(false)
 const submitted = ref(false)
+const typeError = ref<string | undefined>()
 const emailError = ref<string | undefined>()
 const messageError = ref<string | undefined>()
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+function selectType(value: FeedbackType) {
+  form.feedback_type = value
+  typeError.value = undefined
+}
+
 async function submit() {
+  typeError.value = undefined
   emailError.value = undefined
   messageError.value = undefined
 
   const email = form.email.trim()
   const message = form.message.trim()
   let valid = true
+  if (!form.feedback_type) {
+    typeError.value = t('feedback.validation.type')
+    valid = false
+  }
   if (!EMAIL_REGEX.test(email)) {
     emailError.value = t('feedback.validation.email')
     valid = false
