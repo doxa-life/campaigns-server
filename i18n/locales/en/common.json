@@ -420,6 +420,39 @@
       }
     }
   },
+  "feedback": {
+    "pageTitle": "Send Feedback",
+    "heading": "Send us your feedback",
+    "intro": "We'd love to hear from you — tell us what you love, share a suggestion, or report a problem.",
+    "typeLabel": "What kind of feedback is this?",
+    "type": {
+      "compliment": "Compliment",
+      "suggestion": "Suggestion",
+      "problem": "Problem"
+    },
+    "nameLabel": "Name",
+    "namePlaceholder": "Your name (optional)",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Enter your email",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Tell us more…",
+    "consentLabel": "I'd like to receive email updates from the DOXA partnership.",
+    "submit": "Send feedback",
+    "submitting": "Sending…",
+    "success": {
+      "title": "Thank you!",
+      "message": "Your feedback has been received. We really appreciate you taking the time."
+    },
+    "error": {
+      "title": "Something went wrong",
+      "message": "We couldn't send your feedback. Please try again.",
+      "rateLimited": "You've sent feedback recently. Please try again a little later."
+    },
+    "validation": {
+      "email": "Please enter a valid email address.",
+      "message": "Please enter a message."
+    }
+  },
   "adoption": {
     "verify": {
       "pageTitle": "Verify Adoption",

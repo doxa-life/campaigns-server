@@ -420,6 +420,39 @@
       }
     }
   },
+  "feedback": {
+    "pageTitle": "Enviar comentarios",
+    "heading": "Envíanos tus comentarios",
+    "intro": "Nos encantaría saber de ti: cuéntanos qué te gusta, comparte una sugerencia o informa de un problema.",
+    "typeLabel": "¿Qué tipo de comentario es?",
+    "type": {
+      "compliment": "Felicitación",
+      "suggestion": "Sugerencia",
+      "problem": "Problema"
+    },
+    "nameLabel": "Nombre",
+    "namePlaceholder": "Tu nombre (opcional)",
+    "emailLabel": "Correo electrónico",
+    "emailPlaceholder": "Ingrese su correo electrónico",
+    "messageLabel": "Mensaje",
+    "messagePlaceholder": "Cuéntanos más…",
+    "consentLabel": "Me gustaría recibir novedades por correo electrónico de la alianza DOXA.",
+    "submit": "Enviar comentarios",
+    "submitting": "Enviando…",
+    "success": {
+      "title": "¡Gracias!",
+      "message": "Hemos recibido tus comentarios. Agradecemos mucho que te hayas tomado el tiempo."
+    },
+    "error": {
+      "title": "Algo salió mal",
+      "message": "No pudimos enviar tus comentarios. Inténtalo de nuevo.",
+      "rateLimited": "Has enviado comentarios recientemente. Inténtalo de nuevo más tarde."
+    },
+    "validation": {
+      "email": "Introduce una dirección de correo válida.",
+      "message": "Escribe un mensaje."
+    }
+  },
   "adoption": {
     "verify": {
       "pageTitle": "Verificar Adopción",

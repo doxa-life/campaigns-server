@@ -4,7 +4,9 @@
       {
         "appIDs": ["REPLACE_TEAMID.com.example.doxaPrayerMobileApp"],
         "components": [
-          { "/": "/app/*", "comment": "Pray on the app smart links" }
+          { "/": "/app/*", "comment": "Pray on the app smart links" },
+          { "/": "/*/prayer", "comment": "Deep link into the app Pray screen" },
+          { "/": "/*/prayer/*", "comment": "Deep link into the app Pray screen (dated)" }
         ]
       }
     ]

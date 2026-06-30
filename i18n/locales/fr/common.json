@@ -420,6 +420,39 @@
       }
     }
   },
+  "feedback": {
+    "pageTitle": "Envoyer un commentaire",
+    "heading": "Envoyez-nous vos commentaires",
+    "intro": "Nous aimerions beaucoup vous lire : dites-nous ce que vous appréciez, partagez une suggestion ou signalez un problème.",
+    "typeLabel": "De quel type de commentaire s'agit-il ?",
+    "type": {
+      "compliment": "Compliment",
+      "suggestion": "Suggestion",
+      "problem": "Problème"
+    },
+    "nameLabel": "Nom",
+    "namePlaceholder": "Votre nom (facultatif)",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "Entrez votre e-mail",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Dites-nous-en plus…",
+    "consentLabel": "Je souhaite recevoir des actualités par e-mail du partenariat DOXA.",
+    "submit": "Envoyer le commentaire",
+    "submitting": "Envoi…",
+    "success": {
+      "title": "Merci !",
+      "message": "Vos commentaires ont bien été reçus. Merci d'avoir pris le temps."
+    },
+    "error": {
+      "title": "Une erreur s'est produite",
+      "message": "Nous n'avons pas pu envoyer vos commentaires. Veuillez réessayer.",
+      "rateLimited": "Vous avez envoyé des commentaires récemment. Veuillez réessayer plus tard."
+    },
+    "validation": {
+      "email": "Veuillez saisir une adresse e-mail valide.",
+      "message": "Veuillez saisir un message."
+    }
+  },
   "adoption": {
     "verify": {
       "pageTitle": "Vérifier l'adoption",
