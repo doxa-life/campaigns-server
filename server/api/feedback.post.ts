@@ -18,6 +18,25 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const FEEDBACK_TYPES: FeedbackType[] = ['compliment', 'suggestion', 'problem']
 
+// Device diagnostics the app may attach. This is a public endpoint, so we accept
+// only these keys and cap each value — never pass arbitrary client data through
+// to the inbox.
+const DEVICE_KEYS = ['platform', 'os_version', 'device_model', 'app_version', 'app_build', 'timezone']
+const DEVICE_VALUE_MAX = 100
+
+function sanitizeDevice(input: unknown): Record<string, string> {
+  if (!input || typeof input !== 'object') return {}
+  const out: Record<string, string> = {}
+  const src = input as Record<string, unknown>
+  for (const key of DEVICE_KEYS) {
+    const raw = src[key]
+    if (typeof raw !== 'string') continue
+    const value = raw.trim().slice(0, DEVICE_VALUE_MAX)
+    if (value) out[key] = value
+  }
+  return out
+}
+
 // Max accepted feedback submissions per IP per hour.
 const RATE_WINDOW_MS = 60 * 60 * 1000
 const RATE_MAX = 10
@@ -32,6 +51,7 @@ export default defineEventHandler(async (event) => {
     language?: string
     feedback_type?: string
     tracking_id?: string
+    device?: Record<string, unknown>
   }>(event)
 
   const email = body.email?.trim().toLowerCase()
@@ -92,6 +112,7 @@ export default defineEventHandler(async (event) => {
       consentDoxaGeneral: body.consent_doxa_general,
       trackingId,
       feedbackType,
+      device: sanitizeDevice(body.device),
     })
 
     return { success: true }

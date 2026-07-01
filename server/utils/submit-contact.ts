@@ -29,6 +29,42 @@ const FEEDBACK_LABELS: Record<FeedbackType, string> = {
   problem: 'Problem',
 }
 
+// Device fields the app may attach to feedback, with the order + labels used when
+// rendering the "Device info" block. app_version/app_build are merged into one line.
+const DEVICE_LABELS: { key: string; label: string }[] = [
+  { key: 'platform', label: 'Platform' },
+  { key: 'os_version', label: 'OS version' },
+  { key: 'device_model', label: 'Device' },
+  { key: 'timezone', label: 'Timezone' },
+]
+
+/**
+ * Renders an app-provided device map into plain-text and HTML "Device info"
+ * blocks, or null when there's nothing to show. Values are caller-sanitised;
+ * HTML output is additionally escaped here. app_version + app_build collapse
+ * into a single "App version: 1.10.0 (17)" line.
+ */
+function renderDeviceInfo(device: Record<string, string>): { text: string; html: string } | null {
+  const lines: { label: string; value: string }[] = []
+  for (const { key, label } of DEVICE_LABELS) {
+    const value = device[key]?.trim()
+    if (value) lines.push({ label, value })
+  }
+  const appVersion = device.app_version?.trim()
+  if (appVersion) {
+    const build = device.app_build?.trim()
+    lines.push({ label: 'App version', value: build ? `${appVersion} (${build})` : appVersion })
+  }
+  if (lines.length === 0) return null
+
+  const text = ['', '—', 'Device info', ...lines.map(l => `${l.label}: ${l.value}`)].join('\n')
+  const html =
+    '<hr><p><strong>Device info</strong><br>' +
+    lines.map(l => `${escapeHtml(l.label)}: ${escapeHtml(l.value)}`).join('<br>') +
+    '</p>'
+  return { text, html }
+}
+
 export interface SubmitContactInput {
   /** Trimmed display name; '' when the form omitted it. */
   name: string
@@ -43,6 +79,8 @@ export interface SubmitContactInput {
   trackingId?: string | null
   /** When set, this submission is feedback rather than a plain contact message. */
   feedbackType?: FeedbackType | null
+  /** App-provided device diagnostics (already sanitised by the caller). */
+  device?: Record<string, string> | null
 }
 
 /**
@@ -138,6 +176,12 @@ export async function submitContactMessage(event: H3Event, input: SubmitContactI
     received_on: contactAddress,
     direction: 'inbound',
   })
+  // Append a device-info block (feedback only) so staff see the diagnostic
+  // context inline in the inbox and in reply emails.
+  const deviceInfo = isFeedback && input.device ? renderDeviceInfo(input.device) : null
+  const bodyText = deviceInfo ? `${message}\n${deviceInfo.text}` : message
+  const bodyHtml = `<p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>${deviceInfo ? deviceInfo.html : ''}`
+
   const firstMessage = await messageService.create({
     conversation_id: conversation.id,
     direction: 'inbound',
@@ -146,8 +190,8 @@ export async function submitContactMessage(event: H3Event, input: SubmitContactI
     from_name: name || email,
     to_email: contactAddress,
     subject,
-    body_html: `<p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`,
-    body_text: message,
+    body_html: bodyHtml,
+    body_text: bodyText,
   })
   await conversationService.touchLastMessage(conversation.id, firstMessage.created_at, 'inbound')
 
@@ -181,6 +225,9 @@ export async function submitContactMessage(event: H3Event, input: SubmitContactI
       consent_doxa_general: input.consentDoxaGeneral ?? false,
       language,
       ...(isFeedback ? { feedback_type: feedbackType } : {}),
+      ...(isFeedback && input.device && Object.keys(input.device).length > 0
+        ? { device: input.device }
+        : {}),
     },
   })
 }

@@ -211,6 +211,93 @@ describe('POST /api/feedback', async () => {
     expect(contact!.verification_token).toBeTruthy()
   })
 
+  // --- Device diagnostics -------------------------------------------------
+
+  it('renders a Device info block into the message body', async () => {
+    const subscriber = await createTestSubscriber(sql, { name: 'Test Feedback Device' })
+    const email = `test-feedback-device-${Date.now()}@example.com`
+
+    await $fetch('/api/feedback', {
+      method: 'POST',
+      body: {
+        email,
+        message: 'Something broke',
+        feedback_type: 'problem',
+        tracking_id: subscriber.tracking_id,
+        device: {
+          platform: 'ios',
+          os_version: 'iOS 17.2',
+          device_model: 'iPhone14,2',
+          app_version: '1.10.0',
+          app_build: '17',
+          timezone: 'Europe/London'
+        }
+      }
+    })
+
+    const result = await latestFeedbackConversation(sql, subscriber.id)
+    const text: string = result!.message.body_text
+    const html: string = result!.message.body_html
+    // Original message preserved, then the device block.
+    expect(text).toContain('Something broke')
+    expect(text).toContain('Device info')
+    expect(text).toContain('Platform: ios')
+    expect(text).toContain('OS version: iOS 17.2')
+    expect(text).toContain('Device: iPhone14,2')
+    expect(text).toContain('App version: 1.10.0 (17)')
+    expect(text).toContain('Timezone: Europe/London')
+    expect(html).toContain('Device info')
+    expect(html).toContain('iPhone14,2')
+  })
+
+  it('drops unknown device keys and caps long values (sanitisation)', async () => {
+    const subscriber = await createTestSubscriber(sql, { name: 'Test Feedback Sanitise' })
+    const email = `test-feedback-sanitise-${Date.now()}@example.com`
+    const longModel = 'X'.repeat(300)
+
+    await $fetch('/api/feedback', {
+      method: 'POST',
+      body: {
+        email,
+        message: 'Check sanitising',
+        feedback_type: 'problem',
+        tracking_id: subscriber.tracking_id,
+        device: {
+          platform: 'android',
+          device_model: longModel,
+          evil: '<script>alert(1)</script>',
+          nested: { a: 1 }
+        }
+      }
+    })
+
+    const result = await latestFeedbackConversation(sql, subscriber.id)
+    const text: string = result!.message.body_text
+    const html: string = result!.message.body_html
+    expect(text).toContain('Platform: android')
+    // Unknown keys never make it into the body.
+    expect(text).not.toContain('evil')
+    expect(text).not.toContain('alert(1)')
+    expect(html).not.toContain('<script>')
+    // The over-long model value is capped at 100 chars.
+    const modelLine = text.split('\n').find(l => l.startsWith('Device: '))!
+    expect(modelLine.length).toBeLessThanOrEqual('Device: '.length + 100)
+  })
+
+  it('omits the Device info block when no device data is sent', async () => {
+    const subscriber = await createTestSubscriber(sql, { name: 'Test Feedback NoDevice' })
+    const email = `test-feedback-nodevice-${Date.now()}@example.com`
+
+    await $fetch('/api/feedback', {
+      method: 'POST',
+      body: { email, message: 'No device here', feedback_type: 'suggestion', tracking_id: subscriber.tracking_id }
+    })
+
+    const result = await latestFeedbackConversation(sql, subscriber.id)
+    expect(result!.message.body_text).toBe('No device here')
+    expect(result!.message.body_text).not.toContain('Device info')
+  })
+
   // --- Abuse protection ---------------------------------------------------
 
   it('rate-limits after 10 submissions from the same client within the window', async () => {

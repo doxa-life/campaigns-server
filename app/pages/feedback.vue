@@ -73,6 +73,15 @@ const toast = useToast()
 // the existing subscriber — never rendered, never used to look anything up.
 const trackingId = (route.query.tracking_id as string) || undefined
 
+// Device diagnostics the app appends to the URL. We forward a fixed allowlist
+// (the server sanitises again); never rendered.
+const DEVICE_KEYS = ['platform', 'os_version', 'device_model', 'app_version', 'app_build', 'timezone']
+const device: Record<string, string> = {}
+for (const key of DEVICE_KEYS) {
+  const value = route.query[key]
+  if (typeof value === 'string' && value) device[key] = value
+}
+
 type FeedbackType = 'compliment' | 'suggestion' | 'problem'
 
 // Deliberately starts unselected so the user makes a conscious choice — submit
@@ -137,7 +146,8 @@ async function submit() {
         feedback_type: form.feedback_type,
         consent_doxa_general: form.consent_doxa_general,
         language: locale.value,
-        tracking_id: trackingId
+        tracking_id: trackingId,
+        device
       }
     })
     submitted.value = true
