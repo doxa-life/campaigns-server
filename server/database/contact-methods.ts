@@ -16,6 +16,9 @@ export interface ContactMethod {
   verified: boolean
   verification_token: string | null
   verification_token_expires_at: string | null
+  // When a verification email was last dispatched for this address. Drives the
+  // resend cooldown (a reused token gives no send time). Null = never sent.
+  verification_last_sent_at: string | null
   verified_at: string | null
   consent_doxa_general: boolean
   consent_doxa_general_at: string | null
@@ -205,6 +208,16 @@ class ContactMethodService {
     if (!contactMethod || contactMethod.verified) return null
     const { token } = await this.generateVerificationToken(contactMethodId)
     return token
+  }
+
+  /** Stamp the moment a verification email was dispatched (drives the resend cooldown). */
+  async markVerificationSent(contactMethodId: number): Promise<void> {
+    await this.sql`
+      UPDATE contact_methods
+      SET verification_last_sent_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${contactMethodId}
+    `
   }
 
   // Mark a contact method verified directly (used when we receive an authenticated email
