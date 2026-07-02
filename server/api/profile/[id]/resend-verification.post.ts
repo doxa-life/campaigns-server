@@ -46,17 +46,15 @@ export default defineEventHandler(async (event) => {
       return { success: true, alreadyVerified: true }
     }
 
-    // Cooldown: refuse if a verification email went out recently.
-    if (contactMethod.verification_last_sent_at) {
-      const elapsedMs = Date.now() - new Date(contactMethod.verification_last_sent_at).getTime()
-      const remainingSeconds = Math.ceil((COOLDOWN_SECONDS * 1000 - elapsedMs) / 1000)
-      if (remainingSeconds > 0) {
-        throw createError({
-          statusCode: 429,
-          statusMessage: 'Please wait before requesting another verification email',
-          data: { retryAfterSeconds: remainingSeconds }
-        })
-      }
+    // Cooldown: atomically claim a send slot (and stamp the send) in one SQL
+    // statement, so rapid taps and concurrent requests can't each send an email.
+    const claim = await contactMethodService.claimVerificationSend(contactMethod.id, COOLDOWN_SECONDS)
+    if (!claim.allowed) {
+      throw createError({
+        statusCode: 429,
+        statusMessage: 'Please wait before requesting another verification email',
+        data: { retryAfterSeconds: claim.retryAfterSeconds }
+      })
     }
 
     // Reuses a still-valid token; only mints a new one if none/expired.
@@ -72,7 +70,6 @@ export default defineEventHandler(async (event) => {
       subscriber.name,
       subscriber.preferred_language || 'en'
     )
-    await contactMethodService.markVerificationSent(contactMethod.id)
 
     return { success: true }
   } catch (error) {
