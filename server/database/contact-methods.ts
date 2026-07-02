@@ -16,6 +16,9 @@ export interface ContactMethod {
   verified: boolean
   verification_token: string | null
   verification_token_expires_at: string | null
+  // When a verification email was last dispatched for this address. Drives the
+  // resend cooldown (a reused token gives no send time). Null = never sent.
+  verification_last_sent_at: string | null
   verified_at: string | null
   consent_doxa_general: boolean
   consent_doxa_general_at: string | null
@@ -205,6 +208,53 @@ class ContactMethodService {
     if (!contactMethod || contactMethod.verified) return null
     const { token } = await this.generateVerificationToken(contactMethodId)
     return token
+  }
+
+  /** Stamp the moment a verification email was dispatched (drives the resend cooldown). */
+  async markVerificationSent(contactMethodId: number): Promise<void> {
+    await this.sql`
+      UPDATE contact_methods
+      SET verification_last_sent_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ${contactMethodId}
+    `
+  }
+
+  /**
+   * Atomically claim a verification-send slot, enforcing a cooldown. If allowed,
+   * `verification_last_sent_at` is stamped in the SAME statement, so two
+   * concurrent requests can't both pass. All time math runs in Postgres — reading
+   * the timestamp back into JS and comparing there is unreliable because
+   * postgres.js interprets a `timestamp without time zone` in the server's local
+   * zone, not UTC, which silently breaks a seconds-scale comparison.
+   */
+  async claimVerificationSend(
+    contactMethodId: number,
+    cooldownSeconds: number
+  ): Promise<{ allowed: boolean; retryAfterSeconds: number }> {
+    const [claimed] = await this.sql`
+      UPDATE contact_methods
+      SET verification_last_sent_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
+          updated_at = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+      WHERE id = ${contactMethodId}
+        AND (
+          verification_last_sent_at IS NULL
+          OR verification_last_sent_at
+             <= (CURRENT_TIMESTAMP AT TIME ZONE 'UTC') - (${cooldownSeconds} * INTERVAL '1 second')
+        )
+      RETURNING id
+    `
+    if (claimed) return { allowed: true, retryAfterSeconds: 0 }
+
+    const [row] = await this.sql`
+      SELECT GREATEST(0, CEIL(EXTRACT(EPOCH FROM (
+        verification_last_sent_at + (${cooldownSeconds} * INTERVAL '1 second')
+          - (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+      ))))::int AS retry_after
+      FROM contact_methods
+      WHERE id = ${contactMethodId}
+    `
+    return { allowed: false, retryAfterSeconds: row?.retry_after ?? cooldownSeconds }
   }
 
   // Mark a contact method verified directly (used when we receive an authenticated email
