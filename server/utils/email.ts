@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer'
 import type { Transporter } from 'nodemailer'
-import mailgunTransport from 'nodemailer-mailgun-transport'
 import { SESClient, SendRawEmailCommand } from '@aws-sdk/client-ses'
 import { renderEmailTemplate, type EmailTemplateData } from './email-templates'
 
@@ -83,29 +82,6 @@ function getTransporter(): Transporter {
   const provider = config.provider.toLowerCase()
 
   switch (provider) {
-    case 'mailgun': {
-      // Validate Mailgun config
-      if (!config.mailgunApiKey || !config.mailgunDomain) {
-        throw new Error('Mailgun configuration incomplete. Set MAILGUN_API_KEY and MAILGUN_DOMAIN.')
-      }
-
-      console.log('[Email] Using Mailgun HTTP API')
-      const mailgunOptions: any = {
-        auth: {
-          api_key: config.mailgunApiKey,
-          domain: config.mailgunDomain
-        }
-      }
-
-      // Support EU region
-      if (config.mailgunHost) {
-        mailgunOptions.host = config.mailgunHost
-      }
-
-      transporter = nodemailer.createTransport(mailgunTransport(mailgunOptions))
-      break
-    }
-
     case 'ses': {
       // Validate SES config
       if (!config.awsRegion || !config.awsAccessKeyId || !config.awsSecretAccessKey) {
@@ -155,6 +131,50 @@ function getTransporter(): Transporter {
   return transporter
 }
 
+// Send via Mailgun's HTTP API with a direct fetch and native FormData. This is the
+// 'mailgun' provider path in production. nodemailer-mailgun-transport (mailgun.js +
+// form-data) leaks memory on every send under Bun; a direct fetch does not. The
+// request is bounded by a manually-cleared AbortController — AbortSignal.timeout()
+// also leaks per call under Bun, so the timer is cleared the instant the send settles.
+async function sendViaMailgunHttp(
+  mailOptions: { from: string; to: string; subject: string; html: string; text: string },
+  config: ReturnType<typeof getEmailConfig>
+): Promise<{ messageId?: string }> {
+  if (!config.mailgunApiKey || !config.mailgunDomain) {
+    throw new Error('Mailgun configuration incomplete. Set MAILGUN_API_KEY and MAILGUN_DOMAIN.')
+  }
+
+  const host = config.mailgunHost || 'api.mailgun.net'
+  const url = `https://${host}/v3/${config.mailgunDomain}/messages`
+  const auth = Buffer.from(`api:${config.mailgunApiKey}`).toString('base64')
+
+  const form = new FormData()
+  form.append('from', mailOptions.from)
+  form.append('to', mailOptions.to)
+  form.append('subject', mailOptions.subject)
+  form.append('html', mailOptions.html)
+  form.append('text', mailOptions.text)
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 30000)
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { Authorization: `Basic ${auth}` },
+      body: form,
+      signal: controller.signal,
+    })
+    if (!res.ok) {
+      const body = await res.text().catch(() => '')
+      throw new Error(`Mailgun responded ${res.status}: ${body}`)
+    }
+    const data = (await res.json().catch(() => ({}))) as { id?: string }
+    return { messageId: data.id }
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 export interface EmailOptions {
   to: string | string[]
   subject: string
@@ -193,13 +213,20 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       text: options.text || options.html.replace(/<[^>]*>/g, '')
     }
 
-    const info = await getTransporter().sendMail(mailOptions)
-    console.log('[Email] Sent successfully:', info.messageId)
+    const provider = config.provider.toLowerCase()
+    let messageId: string | undefined
+    if (!isDevelopment && provider === 'mailgun') {
+      const info = await sendViaMailgunHttp(mailOptions, config)
+      messageId = info.messageId
+    } else {
+      const info = await getTransporter().sendMail(mailOptions)
+      messageId = info.messageId
+    }
+    console.log('[Email] Sent successfully:', messageId)
 
     if (isDevelopment) {
       console.log('[Email] Development mode: View at http://localhost:8025')
     } else {
-      const provider = config.provider.toLowerCase()
       console.log(`[Email] Sent via ${provider.toUpperCase()}`)
     }
 

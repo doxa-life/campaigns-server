@@ -76,19 +76,28 @@ export async function sendMarketingEmail(options: MarketingSendOptions): Promise
       // A timeout throws AbortError, caught below → returns false → claim released → retry.
       const timeoutMs = Number(process.env.MARKETING_SEND_TIMEOUT_MS) || 30000
 
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { Authorization: `Basic ${auth}` },
-        body: form,
-        signal: AbortSignal.timeout(timeoutMs),
-      })
+      // Bound the request with a manually-cleared AbortController rather than
+      // AbortSignal.timeout(): under Bun the latter's per-call timer is never
+      // reclaimed, so each send leaks memory.
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), timeoutMs)
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { Authorization: `Basic ${auth}` },
+          body: form,
+          signal: controller.signal,
+        })
 
-      if (!res.ok) {
-        const body = await res.text().catch(() => '')
-        console.error(`[MarketingEmail] Mailgun responded ${res.status}: ${body}`)
-        return false
+        if (!res.ok) {
+          const body = await res.text().catch(() => '')
+          console.error(`[MarketingEmail] Mailgun responded ${res.status}: ${body}`)
+          return false
+        }
+        return true
+      } finally {
+        clearTimeout(timeout)
       }
-      return true
     } catch (error: any) {
       console.error('[MarketingEmail] Send failed:', error?.message || error)
       return false
