@@ -27,7 +27,7 @@
   },
   "campaign": {
     "peopleGroup": {
-      "findOutMore": "Saiba mais",
+      "findOutMore": "Ver perfil completo",
       "overview": {
         "title": "Visão Geral",
         "country": "País:",
@@ -49,6 +49,7 @@
     },
     "share": {
       "button": "Compartilhar",
+      "shareThisPage": "Compartilhar esta página",
       "qrCode": "Código QR",
       "shareLink": "Compartilhar link",
       "copyLink": "Copiar link",

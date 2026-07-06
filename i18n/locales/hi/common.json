@@ -27,7 +27,7 @@
   },
   "campaign": {
     "peopleGroup": {
-      "findOutMore": "और जानें",
+      "findOutMore": "पूर्ण प्रोफ़ाइल देखें",
       "overview": {
         "title": "सारांश",
         "country": "देश:",
@@ -49,6 +49,7 @@
     },
     "share": {
       "button": "साझा करें",
+      "shareThisPage": "यह पेज साझा करें",
       "qrCode": "QR कोड",
       "shareLink": "लिंक साझा करें",
       "copyLink": "लिंक कॉपी करें",

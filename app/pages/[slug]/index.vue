@@ -14,7 +14,7 @@
     <div v-else-if="pg" class="people-group-content">
 
       <!-- Sign Up CTA -->
-      <div class="max-w-5xl mx-auto px-4 pt-6 flex justify-center">
+      <div class="max-w-5xl mx-auto px-4 pt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
         <UButton
           size="lg"
           class="rounded-full px-8"
@@ -22,6 +22,19 @@
         >
           {{ $t('campaign.signupButton') }}
         </UButton>
+        <SharePopover>
+          <UButton
+            variant="ghost"
+            color="neutral"
+            size="lg"
+            class="share-page-cta rounded-full px-4"
+            icon="i-lucide-share-2"
+            :aria-label="$t('campaign.share.shareThisPage')"
+            :title="$t('campaign.share.shareThisPage')"
+          >
+            {{ $t('campaign.share.shareThisPage') }}
+          </UButton>
+        </SharePopover>
       </div>
 
       <!-- People Group Section -->
@@ -746,3 +759,31 @@ useHead(() => ({
   title: pg.value ? `${pg.value.name} - ${t('app.title')}` : `${t('campaign.pageTitle')} - ${t('app.title')}`
 }))
 </script>
+
+<style scoped>
+.share-page-cta {
+  border: 1px solid transparent;
+  box-shadow: none;
+  color: var(--ui-text-muted);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.share-page-cta:hover,
+.share-page-cta:focus-visible {
+  border-color: var(--ui-border);
+  background-color: var(--ui-bg);
+  color: var(--ui-text);
+}
+
+@media (max-width: 767px) {
+  .share-page-cta {
+    border-color: var(--ui-border);
+    background-color: transparent;
+    color: var(--ui-text);
+  }
+}
+</style>

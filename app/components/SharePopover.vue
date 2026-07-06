@@ -1,12 +1,14 @@
 <template>
   <UPopover v-model:open="popoverOpen">
-    <UButton
-      variant="ghost"
-      :aria-label="$t('campaign.share.button')"
-      :title="$t('campaign.share.button')"
-    >
-      <UIcon name="i-lucide-share-2" class="size-5" />
-    </UButton>
+    <slot>
+      <UButton
+        variant="ghost"
+        :aria-label="$t('campaign.share.button')"
+        :title="$t('campaign.share.button')"
+      >
+        <UIcon name="i-lucide-share-2" class="size-5" />
+      </UButton>
+    </slot>
 
     <template #content>
       <div class="flex flex-col gap-1 p-2 min-w-48">

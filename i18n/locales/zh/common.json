@@ -27,7 +27,7 @@
   },
   "campaign": {
     "peopleGroup": {
-      "findOutMore": "了解更多",
+      "findOutMore": "查看完整简介",
       "overview": {
         "title": "概览",
         "country": "国家：",
@@ -49,6 +49,7 @@
     },
     "share": {
       "button": "分享",
+      "shareThisPage": "分享此页面",
       "qrCode": "二维码",
       "shareLink": "分享链接",
       "copyLink": "复制链接",

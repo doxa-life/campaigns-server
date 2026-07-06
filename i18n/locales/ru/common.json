@@ -27,7 +27,7 @@
   },
   "campaign": {
     "peopleGroup": {
-      "findOutMore": "Узнать больше",
+      "findOutMore": "Посмотреть полный профиль",
       "overview": {
         "title": "Обзор",
         "country": "Страна:",
@@ -49,6 +49,7 @@
     },
     "share": {
       "button": "Поделиться",
+      "shareThisPage": "Поделиться этой страницей",
       "qrCode": "QR-код",
       "shareLink": "Поделиться ссылкой",
       "copyLink": "Копировать ссылку",

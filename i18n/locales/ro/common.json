@@ -27,7 +27,7 @@
   },
   "campaign": {
     "peopleGroup": {
-      "findOutMore": "Află mai multe",
+      "findOutMore": "Vezi profilul complet",
       "overview": {
         "title": "Prezentare generală",
         "country": "Țara:",
@@ -49,6 +49,7 @@
     },
     "share": {
       "button": "Distribuie",
+      "shareThisPage": "Distribuie această pagină",
       "qrCode": "Cod QR",
       "shareLink": "Distribuie linkul",
       "copyLink": "Copiază linkul",
