@@ -509,7 +509,7 @@
     "reminder": {
       "subject": "Rappel de prière - {campaign}",
       "header": "Rappel de prière",
-      "timeForPrayer": "C'est l'heure de votre session de prière de {duration} minutes.",
+      "timeForPrayer": "C'est l'heure de votre session de prière.",
       "viewPrayer": "Voir la prière d'aujourd'hui",
       "automatedReminder": "Ceci est un rappel de prière automatique de {appName}."
     },

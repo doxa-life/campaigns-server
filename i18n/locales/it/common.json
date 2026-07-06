@@ -509,7 +509,7 @@
     "reminder": {
       "subject": "Promemoria di Preghiera - {campaign}",
       "header": "Promemoria di Preghiera",
-      "timeForPrayer": "E ora della tua sessione di preghiera di {duration} minuti.",
+      "timeForPrayer": "E ora della tua sessione di preghiera.",
       "viewPrayer": "Vedi la Preghiera di Oggi",
       "automatedReminder": "Questo e un promemoria di preghiera automatico da {appName}."
     },

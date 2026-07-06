@@ -509,7 +509,7 @@
     "reminder": {
       "subject": "Gebetserinnerung - {campaign}",
       "header": "Gebetserinnerung",
-      "timeForPrayer": "Es ist Zeit für Ihre {duration}-minütige Gebetszeit.",
+      "timeForPrayer": "Es ist Zeit für Ihre Gebetszeit.",
       "viewPrayer": "Heutiges Gebet ansehen",
       "automatedReminder": "Dies ist eine automatische Gebetserinnerung von {appName}."
     },

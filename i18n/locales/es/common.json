@@ -509,7 +509,7 @@
     "reminder": {
       "subject": "Recordatorio de Oración - {campaign}",
       "header": "Recordatorio de Oración",
-      "timeForPrayer": "Es hora de tu sesión de oración de {duration} minutos.",
+      "timeForPrayer": "Es hora de tu sesión de oración.",
       "viewPrayer": "Ver la Oración de Hoy",
       "automatedReminder": "Este es un recordatorio automático de oración de {appName}."
     },
