@@ -509,7 +509,7 @@
     "reminder": {
       "subject": "Prayer Reminder - {campaign}",
       "header": "Prayer Reminder",
-      "timeForPrayer": "It's time for your {duration}-minute prayer session.",
+      "timeForPrayer": "It's time for your prayer session.",
       "viewPrayer": "View Today's Prayer",
       "automatedReminder": "This is an automated prayer reminder from {appName}."
     },

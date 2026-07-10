@@ -509,7 +509,7 @@
     "reminder": {
       "subject": "تذكير بالصلاة - {campaign}",
       "header": "تذكير بالصلاة",
-      "timeForPrayer": "حان وقت جلسة الصلاة لمدة {duration} دقيقة.",
+      "timeForPrayer": "حان وقت جلسة الصلاة.",
       "viewPrayer": "عرض صلاة اليوم",
       "automatedReminder": "هذا تذكير صلاة آلي من {appName}."
     },
