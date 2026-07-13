@@ -37,6 +37,8 @@ export async function applyEmailConsents(input: {
     if (isNew) {
       sendContactVerificationEmail(input.email, token, input.name, input.language)
         .catch(err => console.error('Failed to send verification email:', err))
+      // Stamp the send so an immediate resend (e.g. from the app) hits the cooldown.
+      await contactMethodService.markVerificationSent(emailContact.id)
     }
   }
 }

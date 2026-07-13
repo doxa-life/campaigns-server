@@ -2,6 +2,7 @@ import { subscriberService } from '#server/database/subscribers'
 import { contactMethodService } from '#server/database/contact-methods'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
 import { generateGoogleCalendarUrl, getIcsDownloadUrl } from '#server/utils/calendar-links'
+import { redactEmail } from '#server/utils/redact-email'
 import { t } from '#server/utils/translations'
 
 export default defineEventHandler(async (event) => {
@@ -98,6 +99,13 @@ export default defineEventHandler(async (event) => {
     }))
   }
 
+  // All signed-up email addresses, redacted so full addresses never leave the
+  // server. Keyed by contact-method id (the mobile app resends verification by
+  // id, since it only ever sees the redacted value).
+  const emails = contacts
+    .filter(c => c.type === 'email')
+    .map(c => ({ id: c.id, value: redactEmail(c.value), verified: c.verified }))
+
   return {
     subscriber: {
       id: subscriber.id,
@@ -107,6 +115,7 @@ export default defineEventHandler(async (event) => {
       email_verified: primaryEmail?.verified || false,
       phone: primaryPhone?.value || ''
     },
+    emails,
     peopleGroups,
     consents
   }
