@@ -27,7 +27,7 @@
   },
   "campaign": {
     "peopleGroup": {
-      "findOutMore": "En savoir plus",
+      "findOutMore": "Voir le profil complet",
       "overview": {
         "title": "Aperçu",
         "country": "Pays :",
@@ -49,6 +49,7 @@
     },
     "share": {
       "button": "Partager",
+      "shareThisPage": "Partager cette page",
       "qrCode": "Code QR",
       "shareLink": "Partager le lien",
       "copyLink": "Copier le lien",
@@ -543,7 +544,7 @@
     "reminder": {
       "subject": "Rappel de prière - {campaign}",
       "header": "Rappel de prière",
-      "timeForPrayer": "C'est l'heure de votre session de prière de {duration} minutes.",
+      "timeForPrayer": "C'est l'heure de votre session de prière.",
       "viewPrayer": "Voir la prière d'aujourd'hui",
       "automatedReminder": "Ceci est un rappel de prière automatique de {appName}."
     },

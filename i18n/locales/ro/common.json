@@ -27,7 +27,7 @@
   },
   "campaign": {
     "peopleGroup": {
-      "findOutMore": "Află mai multe",
+      "findOutMore": "Vezi profilul complet",
       "overview": {
         "title": "Prezentare generală",
         "country": "Țara:",
@@ -49,6 +49,7 @@
     },
     "share": {
       "button": "Distribuie",
+      "shareThisPage": "Distribuie această pagină",
       "qrCode": "Cod QR",
       "shareLink": "Distribuie linkul",
       "copyLink": "Copiază linkul",
@@ -505,7 +506,7 @@
     "reminder": {
       "subject": "Memento de rugăciune - {campaign}",
       "header": "Memento de rugăciune",
-      "timeForPrayer": "Este timpul pentru sesiunea ta de rugăciune de {duration} minute.",
+      "timeForPrayer": "Este timpul pentru sesiunea ta de rugăciune.",
       "viewPrayer": "Vezi rugăciunea de astăzi",
       "automatedReminder": "Acesta este un memento automat de rugăciune de la {appName}."
     },

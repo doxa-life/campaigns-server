@@ -27,7 +27,7 @@
   },
   "campaign": {
     "peopleGroup": {
-      "findOutMore": "और जानें",
+      "findOutMore": "पूर्ण प्रोफ़ाइल देखें",
       "overview": {
         "title": "सारांश",
         "country": "देश:",
@@ -49,6 +49,7 @@
     },
     "share": {
       "button": "साझा करें",
+      "shareThisPage": "यह पेज साझा करें",
       "qrCode": "QR कोड",
       "shareLink": "लिंक साझा करें",
       "copyLink": "लिंक कॉपी करें",
@@ -509,7 +510,7 @@
     "reminder": {
       "subject": "प्रार्थना रिमाइंडर - {campaign}",
       "header": "प्रार्थना रिमाइंडर",
-      "timeForPrayer": "आपके {duration}-मिनट प्रार्थना सत्र का समय है।",
+      "timeForPrayer": "आपके प्रार्थना सत्र का समय है।",
       "viewPrayer": "आज की प्रार्थना देखें",
       "automatedReminder": "यह {appName} से एक स्वचालित प्रार्थना रिमाइंडर है।"
     },

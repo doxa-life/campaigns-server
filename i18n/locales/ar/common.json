@@ -27,7 +27,7 @@
   },
   "campaign": {
     "peopleGroup": {
-      "findOutMore": "اكتشف المزيد",
+      "findOutMore": "عرض الملف الشخصي الكامل",
       "overview": {
         "title": "نظرة عامة",
         "country": "البلد:",
@@ -49,6 +49,7 @@
     },
     "share": {
       "button": "مشاركة",
+      "shareThisPage": "مشاركة هذه الصفحة",
       "qrCode": "رمز QR",
       "shareLink": "مشاركة الرابط",
       "copyLink": "نسخ الرابط",
@@ -543,7 +544,7 @@
     "reminder": {
       "subject": "تذكير بالصلاة - {campaign}",
       "header": "تذكير بالصلاة",
-      "timeForPrayer": "حان وقت جلسة الصلاة لمدة {duration} دقيقة.",
+      "timeForPrayer": "حان وقت جلسة الصلاة.",
       "viewPrayer": "عرض صلاة اليوم",
       "automatedReminder": "هذا تذكير صلاة آلي من {appName}."
     },

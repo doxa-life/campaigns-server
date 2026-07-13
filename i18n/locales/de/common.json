@@ -27,7 +27,7 @@
   },
   "campaign": {
     "peopleGroup": {
-      "findOutMore": "Mehr erfahren",
+      "findOutMore": "Vollständiges Profil ansehen",
       "overview": {
         "title": "Überblick",
         "country": "Land:",
@@ -49,6 +49,7 @@
     },
     "share": {
       "button": "Teilen",
+      "shareThisPage": "Diese Seite teilen",
       "qrCode": "QR-Code",
       "shareLink": "Link teilen",
       "copyLink": "Link kopieren",
@@ -509,7 +510,7 @@
     "reminder": {
       "subject": "Gebetserinnerung - {campaign}",
       "header": "Gebetserinnerung",
-      "timeForPrayer": "Es ist Zeit für Ihre {duration}-minütige Gebetszeit.",
+      "timeForPrayer": "Es ist Zeit für Ihre Gebetszeit.",
       "viewPrayer": "Heutiges Gebet ansehen",
       "automatedReminder": "Dies ist eine automatische Gebetserinnerung von {appName}."
     },
