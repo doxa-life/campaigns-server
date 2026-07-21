@@ -3,10 +3,10 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "app.prayer.doxa",
+      "package_name": "life.doxa.pray",
       "sha256_cert_fingerprints": [
-        "REPLACE_WITH_PLAY_APP_SIGNING_SHA256",
-        "REPLACE_WITH_UPLOAD_KEY_SHA256"
+        "CB:01:D7:D6:5B:B6:77:78:A4:79:E3:0A:64:A5:98:75:BB:39:0B:FE:3C:57:35:9A:A3:24:6D:19:C9:BD:0A:52",
+        "6F:88:F5:8A:1E:CD:6C:A2:BA:1E:F9:60:0B:B9:35:4B:44:72:95:AE:3E:3D:96:EF:8A:74:F4:DD:2A:B1:1F:BF"
       ]
     }
   },

@@ -2,7 +2,7 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["REPLACE_TEAMID.com.example.doxaPrayerMobileApp"],
+        "appIDs": ["7WDLZXA935.life.doxa.pray"],
         "components": [
           { "/": "/app/*", "comment": "Pray on the app smart links" },
           { "/": "/*/prayer", "comment": "Deep link into the app Pray screen" },
