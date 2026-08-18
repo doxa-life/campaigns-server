@@ -68,6 +68,9 @@ export default defineEventHandler(async (event) => {
           prayer_duration: sub.prayer_duration,
           status: sub.status,
           reminders_paused: sub.reminders_paused,
+          // Lets the profile page pick the most recently lapsed reminder when a
+          // re-engagement email link (?resume=1) asks to pre-open its restart confirm.
+          updated_at: sub.updated_at,
           // A calendar event needs a concrete reminder time; no-time signups
           // (reminders handled on-device) have none.
           calendar_urls: sub.status === 'active' && sub.time_preference ? {

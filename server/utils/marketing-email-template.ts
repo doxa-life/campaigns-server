@@ -1,63 +1,88 @@
 import { t } from './translations'
 
+// Per-recipient values substituted into personalized nodes at render time.
+export interface TiptapRenderOptions {
+  // Personal reactivation link for the recipient ("resubscribeButton" node).
+  // When absent (recipient has no resolvable profile, or a non-personalized
+  // preview), the button node renders nothing rather than a broken link.
+  resubscribeUrl?: string
+}
+
 /**
  * Convert Tiptap JSON content to plain HTML for email.
  */
-export function tiptapToHtml(contentJson: Record<string, any> | null): string {
+export function tiptapToHtml(contentJson: Record<string, any> | null, options?: TiptapRenderOptions): string {
   if (!contentJson || !contentJson.content) return ''
-  return renderNodes(contentJson.content)
+  return renderNodes(contentJson.content, options)
 }
 
-function renderNodes(nodes: any[]): string {
-  return nodes.map(node => renderNode(node)).join('')
+/** Whether the Tiptap document contains a node of the given type at any depth. */
+export function tiptapContainsNode(contentJson: Record<string, any> | null, type: string): boolean {
+  const search = (nodes: any[]): boolean =>
+    nodes.some(node => node?.type === type || (node?.content && search(node.content)))
+  return !!contentJson?.content && search(contentJson.content)
 }
 
-function renderNode(node: any): string {
+function renderNodes(nodes: any[], options?: TiptapRenderOptions): string {
+  return nodes.map(node => renderNode(node, options)).join('')
+}
+
+function renderNode(node: any, options?: TiptapRenderOptions): string {
   if (!node) return ''
 
   switch (node.type) {
     case 'paragraph':
-      const pContent = node.content ? renderNodes(node.content) : ''
+      const pContent = node.content ? renderNodes(node.content, options) : ''
       return `<p style="margin: 16px 0; font-size: 16px; line-height: 1.6; color: #3B463D;">${pContent}</p>`
 
     case 'heading':
       const rawLevel = node.attrs?.level
       const level = (typeof rawLevel === 'number' && rawLevel >= 1 && rawLevel <= 6) ? rawLevel : 2
-      const hContent = node.content ? renderNodes(node.content) : ''
+      const hContent = node.content ? renderNodes(node.content, options) : ''
       const sizes: Record<number, string> = { 1: '24px', 2: '20px', 3: '18px', 4: '16px', 5: '14px', 6: '12px' }
       return `<h${level} style="margin: 24px 0 16px; font-size: ${sizes[level] || '18px'}; font-weight: 600; color: #3B463D;">${hContent}</h${level}>`
 
     case 'bulletList':
-      const ulContent = node.content ? renderNodes(node.content) : ''
+      const ulContent = node.content ? renderNodes(node.content, options) : ''
       return `<ul style="margin: 16px 0; padding-left: 24px;">${ulContent}</ul>`
 
     case 'orderedList':
-      const olContent = node.content ? renderNodes(node.content) : ''
+      const olContent = node.content ? renderNodes(node.content, options) : ''
       return `<ol style="margin: 16px 0; padding-left: 24px;">${olContent}</ol>`
 
     case 'listItem':
-      const liContent = node.content ? renderNodes(node.content) : ''
+      const liContent = node.content ? renderNodes(node.content, options) : ''
       return `<li style="margin: 8px 0;">${liContent}</li>`
 
     case 'taskList':
-      const tlContent = node.content ? renderNodes(node.content) : ''
+      const tlContent = node.content ? renderNodes(node.content, options) : ''
       return `<ul style="margin: 16px 0; padding-left: 0; list-style: none;">${tlContent}</ul>`
 
     case 'taskItem':
-      const tiContent = node.content ? renderNodes(node.content) : ''
+      const tiContent = node.content ? renderNodes(node.content, options) : ''
       const checked = node.attrs?.checked ? '&#9745;' : '&#9744;'
       return `<li style="margin: 8px 0;">${checked} ${tiContent}</li>`
 
     case 'blockquote':
-      const bqContent = node.content ? renderNodes(node.content) : ''
+      const bqContent = node.content ? renderNodes(node.content, options) : ''
       return `<blockquote style="margin: 16px 0; padding: 12px 20px; border-left: 4px solid #3B463D; background: #f5f5f5; font-style: italic;">${bqContent}</blockquote>`
 
     case 'codeBlock':
-      const codeContent = node.content ? renderNodes(node.content) : ''
+      const codeContent = node.content ? renderNodes(node.content, options) : ''
       return `<pre style="margin: 16px 0; padding: 16px; background: #f5f5f5; border-radius: 4px; overflow-x: auto;"><code>${codeContent}</code></pre>`
 
     case 'horizontalRule':
       return `<hr style="margin: 24px 0; border: none; border-top: 1px solid #cccccc;" />`
+
+    // Personalized reactivation button (marketing composer node). The node's inline
+    // content is the button label; the href is the recipient's own profile link.
+    // Without a recipient URL the node is dropped entirely — a label pointing
+    // nowhere is worse than no button.
+    case 'resubscribeButton':
+      if (!options?.resubscribeUrl) return ''
+      const btnLabel = node.content ? renderNodes(node.content, options) : ''
+      if (!btnLabel) return ''
+      return `<div style="text-align: center; margin: 28px 0;"><a href="${escapeHtml(options.resubscribeUrl)}" style="display: inline-block; background: #3B463D; color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600;">${btnLabel}</a></div>`
 
     case 'hardBreak':
       return '<br />'
@@ -112,7 +137,7 @@ function renderNode(node: any): string {
 
     default:
       if (node.content) {
-        return renderNodes(node.content)
+        return renderNodes(node.content, options)
       }
       return ''
   }
@@ -130,18 +155,25 @@ function escapeHtml(text: string): string {
 /**
  * Convert Tiptap JSON content to plain text for email.
  */
-export function tiptapToText(contentJson: Record<string, any> | null): string {
+export function tiptapToText(contentJson: Record<string, any> | null, options?: TiptapRenderOptions): string {
   if (!contentJson || !contentJson.content) return ''
-  return extractText(contentJson.content).trim()
+  return extractText(contentJson.content, options).trim()
 }
 
-function extractText(nodes: any[]): string {
+function extractText(nodes: any[], options?: TiptapRenderOptions): string {
   return nodes.map(node => {
     if (node.type === 'text') {
       return node.text || ''
     }
+    if (node.type === 'resubscribeButton') {
+      // Mirror the HTML button as "label: url"; dropped without a recipient URL,
+      // matching the HTML renderer.
+      if (!options?.resubscribeUrl || !node.content) return ''
+      const label = extractText(node.content, options).trim()
+      return label ? `${label}: ${options.resubscribeUrl}\n` : ''
+    }
     if (node.content) {
-      const text = extractText(node.content)
+      const text = extractText(node.content, options)
       if (['paragraph', 'heading', 'listItem', 'blockquote', 'taskItem'].includes(node.type)) {
         return text + '\n'
       }
@@ -161,9 +193,10 @@ export function renderMarketingEmailHtml(
   contentJson: Record<string, any>,
   peopleGroupName?: string,
   unsubscribeUrl?: string,
-  locale: string = 'en'
+  locale: string = 'en',
+  renderOptions?: TiptapRenderOptions
 ): string {
-  return wrapMarketingEmailHtml(tiptapToHtml(contentJson), peopleGroupName, unsubscribeUrl, locale)
+  return wrapMarketingEmailHtml(tiptapToHtml(contentJson, renderOptions), peopleGroupName, unsubscribeUrl, locale)
 }
 
 /**

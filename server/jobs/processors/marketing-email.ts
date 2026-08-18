@@ -5,12 +5,12 @@ import { marketingSenderService } from '../../database/marketing-senders'
 import { subscriberService } from '../../database/subscribers'
 import { contactMethodService } from '../../database/contact-methods'
 import { marketingEmailSentService } from '../../database/marketing-email-sent'
-import { renderMarketingEmailHtml, renderMarketingEmailFromHtml, tiptapToText } from '../../utils/marketing-email-template'
+import { renderMarketingEmailHtml, renderMarketingEmailFromHtml, tiptapToText, tiptapContainsNode } from '../../utils/marketing-email-template'
 import { getMarketingTemplate } from '../../utils/marketing-templates'
 import { buildMarketingFrom, sendMarketingEmail } from '../../utils/marketing-email-sender'
 import { localePath, t } from '../../utils/translations'
 
-const emailCache = new Map<number, { email: any; text: string; from?: string; replyTo?: string }>()
+const emailCache = new Map<number, { email: any; text: string; hasResubscribeButton: boolean; from?: string; replyTo?: string }>()
 
 export async function processMarketingEmail(job: Job): Promise<ProcessorResult> {
   const payload = job.payload as MarketingEmailPayload
@@ -54,7 +54,16 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
     const from = sender ? (buildMarketingFrom(sender.name, sender.local_part) ?? undefined) : undefined
     const replyTo = sender?.reply_to || config.inboxContactAddress || undefined
 
-    cached = { email, text: tiptapToText(email.content_json), from, replyTo }
+    cached = {
+      email,
+      text: tiptapToText(email.content_json),
+      // A resubscribe-button node carries a per-recipient link, so the plain-text
+      // part can't be shared across recipients — flag it once here, render per
+      // recipient below.
+      hasResubscribeButton: tiptapContainsNode(email.content_json, 'resubscribeButton'),
+      from,
+      replyTo
+    }
     emailCache.set(payload.marketing_email_id, cached)
 
     setTimeout(() => emailCache.delete(payload.marketing_email_id), 5 * 60 * 1000)
@@ -123,14 +132,24 @@ export async function processMarketingEmail(job: Job): Promise<ProcessorResult> 
     subject = template.getSubject(subscriberLanguage)
     text = template.renderText(subscriberLanguage, vars)
   } else {
+    // Personal reactivation link for the resubscribe-button node. Lands on the
+    // subscriber's profile page, where ?resume=1 pre-opens the restart confirm for
+    // their most recently lapsed reminder. Left unset when the recipient has no
+    // resolvable profile, so the node renders nothing instead of a broken link.
+    const resubscribeUrl = subscriber
+      ? `${baseUrl}${localePath('/subscriber', subscriberLanguage)}?id=${profileId}&resume=1`
+      : undefined
     html = renderMarketingEmailHtml(
       cached.email.content_json,
       cached.email.audience_type === 'people_group' ? cached.email.people_group_name : undefined,
       unsubscribeUrl,
-      subscriberLanguage
+      subscriberLanguage,
+      { resubscribeUrl }
     )
     subject = cached.email.subject
-    text = cached.text
+    text = cached.hasResubscribeButton
+      ? tiptapToText(cached.email.content_json, { resubscribeUrl })
+      : cached.text
   }
 
   // Mirror the HTML footer's opt-out in the plain-text part so text-only clients (and the

@@ -87,6 +87,18 @@
               </div>
 
               <div
+                v-if="canSendDoxaAudiences"
+                class="audience-option"
+                :class="{ selected: form.audience_type === 'doxa_inactive_pg' }"
+                @click="selectAudience('doxa_inactive_pg')"
+              >
+                <input type="radio" v-model="form.audience_type" value="doxa_inactive_pg" />
+                <span class="option-title">Inactive Subscribers with Doxa General Consent</span>
+                <span class="option-description">Opted in to DOXA updates, reminders lapsed from inactivity, and no active subscription left</span>
+                <span class="option-count" v-if="doxaInactivePgCount !== null">{{ doxaInactivePgCount }} recipients</span>
+              </div>
+
+              <div
                 v-if="isAdmin"
                 class="audience-option"
                 :class="{ selected: form.audience_type === 'active_pg' }"
@@ -161,7 +173,7 @@
 
         <div class="form-section" v-if="form.template === 'default'">
           <UFormField label="Content" required>
-            <RichTextEditor v-model="form.content" />
+            <RichTextEditor v-model="form.content" resubscribe-button />
           </UFormField>
         </div>
 
@@ -233,7 +245,7 @@ const toast = useToast()
 // Subscribers" and hand-picked recipients stay admin-only (see isAdmin gating below).
 const canSendDoxaAudiences = computed(() => canAccessUnscoped('people_groups.view'))
 
-type AudienceType = 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'active_pg' | 'pick'
+type AudienceType = 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'active_pg' | 'pick' | 'doxa_inactive_pg'
 
 const form = ref({
   subject: '',
@@ -246,6 +258,7 @@ const form = ref({
 
 interface ContactOption { label: string; value: number; email: string }
 const doxaActivePgCount = ref<number | null>(null)
+const doxaInactivePgCount = ref<number | null>(null)
 const activePgCount = ref<number | null>(null)
 const pickedContacts = ref<ContactOption[]>([])
 const contactItems = ref<ContactOption[]>([])
@@ -306,6 +319,7 @@ const canSend = computed(() => {
   if (senderOptions.value.length > 0 && !form.value.sender_id) return false
   if (form.value.audience_type === 'doxa') return !!(doxaCount.value && doxaCount.value > 0)
   if (form.value.audience_type === 'doxa_active_pg') return !!(doxaActivePgCount.value && doxaActivePgCount.value > 0)
+  if (form.value.audience_type === 'doxa_inactive_pg') return !!(doxaInactivePgCount.value && doxaInactivePgCount.value > 0)
   if (form.value.audience_type === 'active_pg') return !!(activePgCount.value && activePgCount.value > 0)
   if (form.value.audience_type === 'people_group') return !!(peopleGroupCount.value && peopleGroupCount.value > 0)
   if (form.value.audience_type === 'admins') return !!(adminCount.value && adminCount.value > 0)
@@ -316,6 +330,7 @@ const canSend = computed(() => {
 const selectedAudienceCount = computed(() => {
   if (form.value.audience_type === 'doxa') return doxaCount.value
   if (form.value.audience_type === 'doxa_active_pg') return doxaActivePgCount.value
+  if (form.value.audience_type === 'doxa_inactive_pg') return doxaInactivePgCount.value
   if (form.value.audience_type === 'active_pg') return activePgCount.value
   if (form.value.audience_type === 'people_group') return peopleGroupCount.value
   if (form.value.audience_type === 'admins') return adminCount.value
@@ -327,6 +342,7 @@ const selectedAudienceLabel = computed(() => {
   switch (form.value.audience_type) {
     case 'doxa': return 'DOXA General'
     case 'doxa_active_pg': return 'Active Subscribers with Doxa General Consent'
+    case 'doxa_inactive_pg': return 'Inactive Subscribers with Doxa General Consent'
     case 'active_pg': return 'All Active Subscribers'
     case 'admins': return 'Admins'
     case 'pick': return 'the picked contacts'
@@ -412,6 +428,16 @@ async function loadDoxaActivePgCount() {
     doxaActivePgCount.value = response.count
   } catch (error) {
     console.error('Failed to load active PG subscriber count:', error)
+  }
+}
+
+async function loadDoxaInactivePgCount() {
+  if (!canSendDoxaAudiences.value) return
+  try {
+    const response = await $fetch<{ count: number }>('/api/admin/marketing/audience/doxa-inactive-pg')
+    doxaInactivePgCount.value = response.count
+  } catch (error) {
+    console.error('Failed to load inactive subscriber count:', error)
   }
 }
 
@@ -631,6 +657,7 @@ onMounted(() => {
   if (canSendDoxaAudiences.value) {
     loadDoxaCount()
     loadDoxaActivePgCount()
+    loadDoxaInactivePgCount()
   }
   if (isAdmin.value) {
     loadActivePgCount()
