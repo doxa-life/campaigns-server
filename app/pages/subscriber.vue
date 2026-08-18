@@ -311,6 +311,32 @@
       </div>
     </div>
 
+    <!-- Restart confirm pre-opened by re-engagement email links (?resume=1) -->
+    <UModal v-model:open="resumeModalOpen" :title="$t('campaign.profile.resumePromptTitle')">
+      <template #body>
+        <div class="space-y-4">
+          <p class="text-sm">{{ resumePromptMessage }}</p>
+          <div class="flex items-center justify-end gap-2">
+            <UButton
+              variant="ghost"
+              color="neutral"
+              :disabled="resumeProcessing"
+              @click="resumeModalOpen = false"
+            >
+              {{ $t('common.cancel') }}
+            </UButton>
+            <UButton
+              icon="i-lucide-bell-ring"
+              :loading="resumeProcessing"
+              @click="confirmResumePrompt"
+            >
+              {{ $t('campaign.profile.resubscribeButton') }}
+            </UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
+
     <!-- Stop reminders: mute this time, stop praying at this time, or stop everything -->
     <UModal v-model:open="stopModalOpen" :title="stopModalTitle">
       <template #body>
@@ -392,6 +418,7 @@ interface ProfileResponse {
       prayer_duration: number
       status: string
       reminders_paused: boolean
+      updated_at: string
       calendar_urls: { google: string; ics: string } | null
     }>
   }>
@@ -743,6 +770,47 @@ async function resubscribeReminder(reminder: any, pgGroup: any) {
       title: err.data?.statusMessage || t('campaign.profile.error.failed'),
       color: 'error'
     })
+  }
+}
+
+// Re-engagement email links land here with ?resume=1: pre-open a restart confirm
+// for the most recently lapsed reminder so reactivating takes a single tap. Any
+// other stopped reminders stay visible in the list behind the dialog. Shown at
+// most once per visit; without an inactive reminder the page simply loads as usual.
+const resumeModalOpen = ref(false)
+const resumeProcessing = ref(false)
+const resumeTarget = ref<{ reminder: any; peopleGroup: any } | null>(null)
+let resumePromptShown = false
+
+watch(data, (newData) => {
+  if (!newData || resumePromptShown || !route.query.resume) return
+  const lapsed = (newData.peopleGroups || [])
+    .flatMap(peopleGroup => peopleGroup.reminders.map(reminder => ({ reminder, peopleGroup })))
+    .filter(item => item.reminder.status === 'inactive')
+    .sort((a, b) => new Date(b.reminder.updated_at).getTime() - new Date(a.reminder.updated_at).getTime())
+  if (lapsed.length === 0) return
+  resumePromptShown = true
+  resumeTarget.value = lapsed[0]!
+  resumeModalOpen.value = true
+}, { immediate: true })
+
+const resumePromptMessage = computed(() => {
+  if (!resumeTarget.value) return ''
+  const campaign = resumeTarget.value.peopleGroup.title
+  const time = formatTime(resumeTarget.value.reminder.time_preference)
+  return time
+    ? t('campaign.profile.resumePromptMessage', { campaign, time })
+    : t('campaign.profile.resumePromptMessageNoTime', { campaign })
+})
+
+async function confirmResumePrompt() {
+  if (!resumeTarget.value) return
+  resumeProcessing.value = true
+  try {
+    await resubscribeReminder(resumeTarget.value.reminder, resumeTarget.value.peopleGroup)
+    resumeModalOpen.value = false
+  } finally {
+    resumeProcessing.value = false
   }
 }
 

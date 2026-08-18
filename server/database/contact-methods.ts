@@ -439,6 +439,31 @@ class ContactMethodService {
     `
   }
 
+  // Doxa-consented, verified contacts whose subscriber's engagement lapsed: at least
+  // one email-delivery subscription auto-marked 'inactive' (no follow-up response /
+  // no app activity) and no active subscription at all. Deliberate 'unsubscribed'
+  // opt-outs don't qualify on their own — this audience is for re-engagement, not
+  // for people who explicitly asked to stop.
+  async getContactsWithDoxaConsentAndInactiveSubscription(): Promise<ContactMethod[]> {
+    return await this.sql`
+      SELECT cm.* FROM contact_methods cm
+      WHERE cm.type = 'email'
+      AND cm.consent_doxa_general = true AND cm.verified = true
+      AND cm.suppressed_at IS NULL
+      AND EXISTS (
+        SELECT 1 FROM campaign_subscriptions cs
+        WHERE cs.subscriber_id = cm.subscriber_id
+          AND cs.status = 'inactive'
+          AND cs.delivery_method = 'email'
+      )
+      AND NOT EXISTS (
+        SELECT 1 FROM campaign_subscriptions cs
+        WHERE cs.subscriber_id = cm.subscriber_id AND cs.status = 'active'
+      )
+      ORDER BY cm.created_at DESC
+    `
+  }
+
   async getEmailContactsByIds(ids: number[]): Promise<ContactMethod[]> {
     if (ids.length === 0) return []
     return await this.sql`
@@ -554,6 +579,7 @@ class ContactMethodService {
         return row.consent_product_emails === true
       case 'doxa':
       case 'doxa_active_pg':
+      case 'doxa_inactive_pg':
         return row.consent_doxa_general === true
       default:
         return true

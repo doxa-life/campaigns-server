@@ -99,6 +99,18 @@
                 </div>
 
                 <div
+                  v-if="canSendDoxaAudiences"
+                  class="audience-option"
+                  :class="{ selected: form.audience_type === 'doxa_inactive_pg' }"
+                  @click="selectAudience('doxa_inactive_pg')"
+                >
+                  <input type="radio" v-model="form.audience_type" value="doxa_inactive_pg" />
+                  <span class="option-title">Inactive Subscribers with Doxa General Consent</span>
+                  <span class="option-description">Opted in to DOXA updates, reminders lapsed from inactivity, and no active subscription left</span>
+                  <span class="option-count" v-if="doxaInactivePgCount !== null">{{ doxaInactivePgCount }} recipients</span>
+                </div>
+
+                <div
                   class="audience-option"
                   :class="{ selected: form.audience_type === 'people_group' }"
                   @click="selectAudience('people_group')"
@@ -137,7 +149,7 @@
 
           <div class="form-section">
             <UFormField label="Content" required>
-              <RichTextEditor v-model="form.content" />
+              <RichTextEditor v-model="form.content" resubscribe-button />
             </UFormField>
           </div>
         </div>
@@ -160,7 +172,7 @@
             <label>Audience</label>
             <p class="view-value">
               <UBadge
-                :label="email.audience_type === 'doxa' ? 'Doxa General' : email.audience_type === 'doxa_active_pg' ? 'Active Subscribers with Doxa General Consent' : email.audience_type === 'admins' ? 'Admins (test)' : email.people_group_name || 'People Group'"
+                :label="email.audience_type === 'doxa' ? 'Doxa General' : email.audience_type === 'doxa_active_pg' ? 'Active Subscribers with Doxa General Consent' : email.audience_type === 'doxa_inactive_pg' ? 'Inactive Subscribers with Doxa General Consent' : email.audience_type === 'admins' ? 'Admins (test)' : email.people_group_name || 'People Group'"
                 variant="subtle"
                 color="neutral"
               />
@@ -278,7 +290,7 @@ interface MarketingEmail {
   id: number
   subject: string
   content_json: string
-  audience_type: 'doxa' | 'doxa_active_pg' | 'people_group' | 'admins'
+  audience_type: 'doxa' | 'doxa_active_pg' | 'people_group' | 'admins' | 'doxa_inactive_pg'
   people_group_id: number | null
   people_group_name?: string
   sender_id: number | null
@@ -306,7 +318,7 @@ const error = ref('')
 
 const form = ref({
   subject: '',
-  audience_type: '' as 'doxa' | 'doxa_active_pg' | 'people_group' | 'admins' | '',
+  audience_type: '' as 'doxa' | 'doxa_active_pg' | 'people_group' | 'admins' | 'doxa_inactive_pg' | '',
   people_group_id: undefined as number | undefined,
   sender_id: undefined as number | undefined,
   content: { type: 'doc', content: [{ type: 'paragraph' }] } as any
@@ -317,6 +329,7 @@ const originalForm = ref<string>('')
 const peopleGroups = ref<{ id: number; title: string }[]>([])
 const doxaCount = ref<number | null>(null)
 const doxaActivePgCount = ref<number | null>(null)
+const doxaInactivePgCount = ref<number | null>(null)
 const peopleGroupCount = ref<number | null>(null)
 const adminCount = ref<number | null>(null)
 
@@ -368,6 +381,7 @@ const canSend = computed(() => {
   if (senderOptions.value.length > 0 && !form.value.sender_id) return false
   if (form.value.audience_type === 'doxa') return !!(doxaCount.value && doxaCount.value > 0)
   if (form.value.audience_type === 'doxa_active_pg') return !!(doxaActivePgCount.value && doxaActivePgCount.value > 0)
+  if (form.value.audience_type === 'doxa_inactive_pg') return !!(doxaInactivePgCount.value && doxaInactivePgCount.value > 0)
   if (form.value.audience_type === 'people_group') return !!(peopleGroupCount.value && peopleGroupCount.value > 0)
   if (form.value.audience_type === 'admins') return !!(adminCount.value && adminCount.value > 0)
   return false
@@ -380,6 +394,7 @@ const hasUnsavedChanges = computed(() => {
 const selectedAudienceCount = computed(() => {
   if (form.value.audience_type === 'doxa') return doxaCount.value
   if (form.value.audience_type === 'doxa_active_pg') return doxaActivePgCount.value
+  if (form.value.audience_type === 'doxa_inactive_pg') return doxaInactivePgCount.value
   if (form.value.audience_type === 'people_group') return peopleGroupCount.value
   if (form.value.audience_type === 'admins') return adminCount.value
   return null
@@ -388,6 +403,7 @@ const selectedAudienceCount = computed(() => {
 const selectedAudienceLabel = computed(() => {
   if (form.value.audience_type === 'doxa') return 'Doxa General'
   if (form.value.audience_type === 'doxa_active_pg') return 'Active Subscribers with Doxa General Consent'
+  if (form.value.audience_type === 'doxa_inactive_pg') return 'Inactive Subscribers with Doxa General Consent'
   if (form.value.audience_type === 'admins') return 'Admins (test)'
   if (form.value.audience_type === 'people_group') {
     return peopleGroups.value.find(g => g.id === form.value.people_group_id)?.title || 'this people group'
@@ -423,7 +439,7 @@ function getStatusColor(status: string): BadgeColor {
   return colors[status] || 'neutral'
 }
 
-function selectAudience(type: 'doxa' | 'doxa_active_pg' | 'people_group' | 'admins') {
+function selectAudience(type: 'doxa' | 'doxa_active_pg' | 'people_group' | 'admins' | 'doxa_inactive_pg') {
   form.value.audience_type = type
   if (type !== 'people_group') {
     form.value.people_group_id = undefined
@@ -492,6 +508,16 @@ async function loadDoxaActivePgCount() {
     doxaActivePgCount.value = response.count
   } catch (error) {
     console.error('Failed to load active PG subscriber count:', error)
+  }
+}
+
+async function loadDoxaInactivePgCount() {
+  if (!canSendDoxaAudiences.value) return
+  try {
+    const response = await $fetch<{ count: number }>('/api/admin/marketing/audience/doxa-inactive-pg')
+    doxaInactivePgCount.value = response.count
+  } catch (error) {
+    console.error('Failed to load inactive subscriber count:', error)
   }
 }
 
@@ -743,6 +769,7 @@ onMounted(() => {
   if (canSendDoxaAudiences.value) {
     loadDoxaCount()
     loadDoxaActivePgCount()
+    loadDoxaInactivePgCount()
   }
 })
 </script>

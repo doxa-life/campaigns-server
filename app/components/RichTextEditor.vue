@@ -15,6 +15,7 @@ import { ImageUploadExtension } from '~/utils/imageUploadExtension'
 import { Spacer } from '~/extensions/spacer'
 import { Vimeo } from '~/extensions/vimeo'
 import { Verse } from '~/extensions/verse'
+import { ResubscribeButton } from '~/extensions/resubscribe-button'
 import { editorConfig } from '~/config/editor.config'
 import { mentionSuggestion } from '~/utils/mentionSuggestion'
 import { uploadImage } from '~/composables/editor/useImageUpload'
@@ -26,8 +27,12 @@ import type { Editor } from '@tiptap/core'
 const props = withDefaults(defineProps<{
   modelValue: any
   mentions?: boolean
+  // Offer the personalized "resubscribe button" block (marketing emails only —
+  // the node is meaningless in content rendered without a per-recipient link).
+  resubscribeButton?: boolean
 }>(), {
-  mentions: false
+  mentions: false,
+  resubscribeButton: false
 })
 
 const emit = defineEmits<{
@@ -274,7 +279,8 @@ const customExtensions = [
     onSuccess: (url: string) => {
       console.log('Upload successful:', url)
     }
-  })
+  }),
+  ...(props.resubscribeButton ? [ResubscribeButton] : [])
 ]
 
 const { showVideoUrlModal } = useVideoEmbed()
@@ -316,6 +322,14 @@ const customHandlers = {
     execute: (editor: Editor) => editor.chain().focus().setSpacer(),
     isActive: () => false,
     isDisabled: (editor: Editor) => !editor.isEditable
+  },
+  // Resubscribe button handler (only reachable when the resubscribeButton prop
+  // enables its insert item)
+  resubscribeButton: {
+    canExecute: (editor: Editor) => editor.can().setResubscribeButton(),
+    execute: (editor: Editor) => editor.chain().focus().setResubscribeButton(),
+    isActive: (editor: Editor) => editor.isActive('resubscribeButton'),
+    isDisabled: (editor: Editor) => !editor.isEditable
   }
 }
 
@@ -338,7 +352,8 @@ const insertItems = [
   { kind: 'imageUpload', label: 'Image', icon: 'i-lucide-image' },
   { kind: 'video', label: 'Video', icon: 'i-lucide-video' },
   { kind: 'horizontalRule', label: 'Horizontal Rule', icon: 'i-lucide-separator-horizontal' },
-  { kind: 'spacer', label: 'Spacer', icon: 'i-lucide-space' }
+  { kind: 'spacer', label: 'Spacer', icon: 'i-lucide-space' },
+  ...(props.resubscribeButton ? [{ kind: 'resubscribeButton', label: 'Resubscribe Button', icon: 'i-lucide-bell-ring' }] : [])
 ]
 
 const bubbleToolbarItems = computed(() => [

@@ -9,7 +9,7 @@ export interface MarketingEmail {
   subject: string
   content_json: Record<string, any>
   template: string
-  audience_type: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'active_pg' | 'pick'
+  audience_type: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'active_pg' | 'pick' | 'doxa_inactive_pg'
   people_group_id: number | null
   recipient_contact_method_ids: number[] | null
   sender_id: number | null
@@ -43,7 +43,7 @@ export interface CreateMarketingEmailData {
   subject: string
   content_json: Record<string, any>
   template?: string
-  audience_type: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'active_pg' | 'pick'
+  audience_type: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'active_pg' | 'pick' | 'doxa_inactive_pg'
   people_group_id?: number | null
   recipient_contact_method_ids?: number[] | null
   sender_id?: number | null
@@ -53,7 +53,7 @@ export interface CreateMarketingEmailData {
 export interface UpdateMarketingEmailData {
   subject?: string
   content_json?: Record<string, any>
-  audience_type?: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'active_pg' | 'pick'
+  audience_type?: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'active_pg' | 'pick' | 'doxa_inactive_pg'
   people_group_id?: number | null
   sender_id?: number | null
   updated_by: string
@@ -61,7 +61,7 @@ export interface UpdateMarketingEmailData {
 
 export interface MarketingEmailFilters {
   status?: 'draft' | 'queued' | 'sending' | 'sent' | 'failed' | 'cancelled'
-  audience_type?: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'active_pg' | 'pick'
+  audience_type?: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'active_pg' | 'pick' | 'doxa_inactive_pg'
   people_group_id?: number
 }
 
@@ -293,7 +293,7 @@ class MarketingEmailService {
     return email.created_by === userId
   }
 
-  async canUserSendToAudience(userId: string, audienceType: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'active_pg' | 'pick', peopleGroupId?: number): Promise<boolean> {
+  async canUserSendToAudience(userId: string, audienceType: 'doxa' | 'people_group' | 'admins' | 'doxa_active_pg' | 'active_pg' | 'pick' | 'doxa_inactive_pg', peopleGroupId?: number): Promise<boolean> {
     // The admins audience only emails internal admin users — it's a test tool,
     // so any user with marketing access may use it.
     if (audienceType === 'admins') return true
@@ -309,7 +309,7 @@ class MarketingEmailService {
 
     // Doxa-general-consent audiences only reach subscribers who opted into marketing,
     // so they require unscoped people-group access (admins included).
-    if (audienceType === 'doxa' || audienceType === 'doxa_active_pg') return !scoped
+    if (audienceType === 'doxa' || audienceType === 'doxa_active_pg' || audienceType === 'doxa_inactive_pg') return !scoped
 
     if (audienceType === 'people_group' && peopleGroupId) {
       if (!scoped) return true

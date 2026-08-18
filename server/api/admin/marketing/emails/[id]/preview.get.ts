@@ -52,13 +52,19 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  // Placeholder personal link so a resubscribe-button node shows up in the preview;
+  // real sends substitute each recipient's own profile URL.
+  const renderOptions = { resubscribeUrl: `${baseUrl}/subscriber?id=preview&resume=1` }
+
   const html = renderMarketingEmailHtml(
     email.content_json,
     email.audience_type === 'people_group' ? email.people_group_name : undefined,
-    unsubscribeUrl
+    unsubscribeUrl,
+    'en',
+    renderOptions
   )
 
-  const text = tiptapToText(email.content_json)
+  const text = tiptapToText(email.content_json, renderOptions)
 
   return {
     subject: email.subject,
