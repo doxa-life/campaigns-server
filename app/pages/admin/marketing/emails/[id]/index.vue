@@ -172,7 +172,7 @@
             <label>Audience</label>
             <p class="view-value">
               <UBadge
-                :label="email.audience_type === 'doxa' ? 'Doxa General' : email.audience_type === 'doxa_active_pg' ? 'Active Subscribers with Doxa General Consent' : email.audience_type === 'doxa_inactive_pg' ? 'Inactive Subscribers with Doxa General Consent' : email.audience_type === 'admins' ? 'Admins (test)' : email.people_group_name || 'People Group'"
+                :label="marketingAudienceLabel(email)"
                 variant="subtle"
                 color="neutral"
               />
@@ -401,14 +401,11 @@ const selectedAudienceCount = computed(() => {
 })
 
 const selectedAudienceLabel = computed(() => {
-  if (form.value.audience_type === 'doxa') return 'Doxa General'
-  if (form.value.audience_type === 'doxa_active_pg') return 'Active Subscribers with Doxa General Consent'
-  if (form.value.audience_type === 'doxa_inactive_pg') return 'Inactive Subscribers with Doxa General Consent'
-  if (form.value.audience_type === 'admins') return 'Admins (test)'
-  if (form.value.audience_type === 'people_group') {
+  const type = form.value.audience_type
+  if (type === 'people_group') {
     return peopleGroups.value.find(g => g.id === form.value.people_group_id)?.title || 'this people group'
   }
-  return ''
+  return type ? MARKETING_AUDIENCE_LABELS[type] : ''
 })
 
 const selectedSenderEmail = computed(() => {

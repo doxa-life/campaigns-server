@@ -339,16 +339,12 @@ const selectedAudienceCount = computed(() => {
 })
 
 const selectedAudienceLabel = computed(() => {
-  switch (form.value.audience_type) {
-    case 'doxa': return 'DOXA General'
-    case 'doxa_active_pg': return 'Active Subscribers with Doxa General Consent'
-    case 'doxa_inactive_pg': return 'Inactive Subscribers with Doxa General Consent'
-    case 'active_pg': return 'All Active Subscribers'
-    case 'admins': return 'Admins'
-    case 'pick': return 'the picked contacts'
-    case 'people_group': return peopleGroups.value.find(g => g.id === form.value.people_group_id)?.title || 'this people group'
-    default: return ''
+  const type = form.value.audience_type
+  if (type === 'pick') return 'the picked contacts'
+  if (type === 'people_group') {
+    return peopleGroups.value.find(g => g.id === form.value.people_group_id)?.title || 'this people group'
   }
+  return type ? MARKETING_AUDIENCE_LABELS[type] : ''
 })
 
 const selectedSenderEmail = computed(() => {
