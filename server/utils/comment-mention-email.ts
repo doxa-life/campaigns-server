@@ -50,7 +50,16 @@ export async function sendCommentMentionEmails(
   const appName = config.appName || 'Doxa'
 
   const recordTypeLabel = recordType.replace(/_/g, ' ')
-  const recordUrl = `${baseUrl}/admin/${recordType.replace(/_/g, '-')}s/${recordId}`
+  // Admin page for each comment-bearing record type. Types not listed here fall
+  // back to the /admin/<record-type>s/<id> convention.
+  const recordPaths: Record<string, string> = {
+    people_group: `/admin/people-groups/${recordId}`,
+    group: `/admin/groups/${recordId}`,
+    subscriber: `/admin/subscribers/${recordId}`,
+    conversation: `/admin/inbox/${recordId}`,
+    people_group_report: `/admin/people-groups/reports?id=${recordId}`
+  }
+  const recordUrl = `${baseUrl}${recordPaths[recordType] || `/admin/${recordType.replace(/_/g, '-')}s/${recordId}`}`
   const commentText = escapeHtml(tiptapToPlainText(content).trim())
   const safeAuthorName = escapeHtml(authorName)
   const safeRecordName = escapeHtml(recordName)
