@@ -10,8 +10,13 @@ export default defineEventHandler(async (event) => {
   if (!report) {
     throw createError({ statusCode: 404, statusMessage: 'Report not found' })
   }
-  if (report.status !== 'pending') {
-    throw createError({ statusCode: 400, statusMessage: 'Only pending reports can be edited' })
+  // Public suggestions stay editable until applied/denied (approvals persist
+  // through edits); admin reports are editable only while pending.
+  const editable = report.source === 'public'
+    ? ['awaiting_verification', 'pending', 'approved'].includes(report.status)
+    : report.status === 'pending'
+  if (!editable) {
+    throw createError({ statusCode: 400, statusMessage: 'This report can no longer be edited' })
   }
 
   const body = await readBody<{

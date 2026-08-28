@@ -154,6 +154,14 @@ export default defineNuxtConfig({
     deeplApiKey: process.env.DEEPL_API_KEY || '',
     deeplApiUrl: process.env.DEEPL_API_URL || 'https://api-free.deepl.com',
 
+    // Joshua Project API — external people group search on /updates
+    joshuaProjectApiKey: process.env.JOSHUA_PROJECT_API_KEY || '',
+
+    // Cloudflare Turnstile — spam protection on the public /updates form.
+    // Both keys empty = verification skipped (dev/test). Key names match the
+    // marketing site's convention.
+    turnstileSecretKey: process.env.NUXT_TURNSTILE_SECRET_KEY || '',
+
     // Anthropic AI API
     anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
     // Fallback Claude model for all AI calls (inbox drafting, knowledge capture,
@@ -212,6 +220,8 @@ export default defineNuxtConfig({
       statinatorProjectId: process.env.NUXT_PUBLIC_STATINATOR_PROJECT_ID || 'doxa',
       statinatorEnabled: process.env.NUXT_PUBLIC_STATINATOR_ENABLED === 'true',
       statinatorCookieDomain: process.env.NUXT_PUBLIC_STATINATOR_COOKIE_DOMAIN || '.doxa.life',
+      // Cloudflare Turnstile widget on /updates (empty = widget hidden, verification skipped)
+      turnstileSiteKey: process.env.NUXT_TURNSTILE_SITE_KEY || '',
 
       // Feedback widget (external chat bubble → support.gospelambition.org)
       feedbackApiBase: process.env.NUXT_PUBLIC_FEEDBACK_API_BASE || 'https://support.gospelambition.org',

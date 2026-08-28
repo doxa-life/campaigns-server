@@ -191,6 +191,20 @@ export const fieldsByCategory: Record<string, FieldDefinition[]> = allFields.red
 // Fields that are stored as table columns (not in metadata)
 export const tableColumnFields = allFields.filter((f) => f.tableColumn)
 
+// Fields the public /updates form may suggest changes to. Also enforced as a
+// whitelist by the public submission API.
+export const publicSuggestibleFieldKeys = [
+  'name',
+  'population',
+  'country_code',
+  'latitude',
+  'longitude',
+  'primary_language',
+  'primary_religion',
+  'engagement_status',
+  'image_url'
+] as const
+
 // Get a field definition by key
 export function getField(key: string): FieldDefinition | undefined {
   return allFields.find((f) => f.key === key)

@@ -108,7 +108,9 @@
       "reasonUnlisted": {
         "is_diaspora": "Is Diaspora",
         "historically_christian": "Historically Christian",
-        "merged_or_deleted": "Merged or Deleted"
+        "merged_or_deleted": "Merged or Deleted",
+        "no_longer_exists": "No Longer Exists",
+        "gsec_above_2": "GSEC Above 2"
       },
       "reasonEngaged": {
         "imb_report": "IMB Report",

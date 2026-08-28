@@ -424,6 +424,78 @@
       }
     }
   },
+  "updates": {
+    "pageTitle": "People Group Updates",
+    "heading": "People Group Updates",
+    "intro": "Suggest a change to the DOXA people group list. Every suggestion is reviewed by two coordinators before it is applied.",
+    "types": {
+      "update": "Update a people group",
+      "updateDesc": "Correct data on a group already in the DOXA list",
+      "add": "Add a people group",
+      "addDesc": "Suggest a group missing from the DOXA list",
+      "remove": "Remove a people group",
+      "removeDesc": "Report a group that should leave the DOXA list"
+    },
+    "searchDoxaLabel": "Which people group?",
+    "searchDoxaPlaceholder": "Search DOXA people groups...",
+    "searchExternalLabel": "Find the people group",
+    "searchExternalPlaceholder": "Search IMB and Joshua Project...",
+    "searchExternalHint": "Searches the IMB (peoplegroups.org) and Joshua Project datasets. If the group is not listed, you can enter its details manually.",
+    "searchNoResults": "No matches found",
+    "sourceImb": "IMB",
+    "sourceJp": "Joshua Project",
+    "alreadyInDoxa": "Already in DOXA",
+    "manualEntry": "I can't find the group — enter details manually",
+    "selectedGroup": "Selected group",
+    "changeSelection": "Change",
+    "currentValue": "Current",
+    "suggestedValue": "Suggested",
+    "updateFieldsHint": "Fill in only the fields that should change — leave the rest blank.",
+    "jpReligionHint": "Joshua Project lists the religion as \"{label}\" — pick the closest match.",
+    "reporter": {
+      "title": "About you",
+      "name": "Your name",
+      "org": "Organization",
+      "email": "Your email",
+      "emailHint": "We'll send a verification link to this address if we haven't verified it before."
+    },
+    "verifier": {
+      "title": "Verifier (optional)",
+      "hint": "Someone who can independently verify this information from objective data.",
+      "name": "Verifier name",
+      "entity": "Verifier organization",
+      "email": "Verifier email"
+    },
+    "commentsLabel": "Comments",
+    "commentsHint": "Anything that helps us review this: how you're connected to this people group, how you got your data, and any other context.",
+    "pictureLabel": "Picture",
+    "pictureHint": "JPEG, PNG, GIF or WebP, up to 10 MB.",
+    "pictureDropLabel": "Drop an image here, or click to browse",
+    "removeReasonLabel": "Reason for removal",
+    "removeFieldsToggle": "Correct field values before archiving",
+    "removeFieldsHint": "If any details should be corrected as part of the removal, enter them here.",
+    "submit": "Submit suggestion",
+    "submitting": "Submitting...",
+    "success": {
+      "title": "Thank you!",
+      "message": "Your suggestion has been submitted and will be reviewed by the DOXA team. We'll email you the outcome.",
+      "verifyTitle": "Almost done — check your email",
+      "verifyMessage": "We sent a verification link to {email}. Your suggestion enters review as soon as you click it.",
+      "another": "Submit another suggestion"
+    },
+    "verifiedBanner": "Email verified — your suggestion is now in review. Thank you!",
+    "verifyFailedBanner": "That verification link is invalid or expired.",
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "nameRequired": "Please enter your name",
+      "emailRequired": "Please enter a valid email address",
+      "groupRequired": "Please select a people group",
+      "groupNameRequired": "Please enter the people group's name",
+      "reasonRequired": "Please select a reason for removal",
+      "changesRequired": "Suggest at least one change or add a comment",
+      "uploadFailed": "The picture could not be uploaded"
+    }
+  },
   "feedback": {
     "pageTitle": "Send Feedback",
     "heading": "Send us your feedback",

@@ -10,7 +10,16 @@
           <UButton icon="i-lucide-arrow-left" variant="ghost" color="neutral" size="xs" to="/admin/people-groups" />
           <h1>People Group Reports</h1>
         </div>
-        <UButton icon="i-lucide-plus" @click="openCreateModal">New Report</UButton>
+        <div class="flex items-center gap-2">
+          <UButton
+            v-if="canManageApprovers"
+            icon="i-lucide-user-check"
+            variant="outline"
+            color="neutral"
+            @click="openApproversModal"
+          >Approvers</UButton>
+          <UButton icon="i-lucide-plus" @click="openCreateModal">New Report</UButton>
+        </div>
       </div>
     </template>
 
@@ -46,13 +55,27 @@
         <div class="report-name">{{ report.people_group_name }}</div>
         <div class="report-meta">
           <UBadge
-            :label="report.status"
+            :label="statusLabel(report.status)"
             :color="statusColor(report.status)"
             variant="subtle"
             size="xs"
           />
           <UBadge
-            v-if="!report.people_group_id"
+            v-if="report.type !== 'update'"
+            :label="report.type"
+            color="neutral"
+            variant="outline"
+            size="xs"
+          />
+          <UBadge
+            v-if="report.source === 'public'"
+            label="public"
+            color="info"
+            variant="outline"
+            size="xs"
+          />
+          <UBadge
+            v-if="!report.people_group_id && report.type !== 'add'"
             label="Not in system"
             color="neutral"
             variant="subtle"
@@ -90,7 +113,19 @@
 
     <template v-if="selectedReport" #detail-actions>
       <UBadge
-        :label="selectedReport.status"
+        v-if="selectedReport.type !== 'update'"
+        :label="selectedReport.type"
+        color="neutral"
+        variant="outline"
+      />
+      <UBadge
+        v-if="selectedReport.source === 'public'"
+        label="public"
+        color="info"
+        variant="outline"
+      />
+      <UBadge
+        :label="statusLabel(selectedReport.status)"
         :color="statusColor(selectedReport.status)"
         variant="subtle"
       />
@@ -102,7 +137,10 @@
           <CrmFormSection title="Report Info">
             <div class="info-grid">
               <div><span class="info-label">Reporter</span> {{ selectedReport.reporter_name }}</div>
+              <div v-if="selectedReport.reporter_org"><span class="info-label">Organization</span> {{ selectedReport.reporter_org }}</div>
               <div v-if="selectedReport.reporter_email"><span class="info-label">Email</span> {{ selectedReport.reporter_email }}</div>
+              <div v-if="selectedReport.verifier_name"><span class="info-label">Verifier</span> {{ selectedReport.verifier_name }}<template v-if="selectedReport.verifier_entity"> ({{ selectedReport.verifier_entity }})</template></div>
+              <div v-if="selectedReport.verifier_email"><span class="info-label">Verifier Email</span> {{ selectedReport.verifier_email }}</div>
               <div v-if="!selectedReport.people_group_id && selectedReport.people_group_uid"><span class="info-label">Reported UID</span> {{ selectedReport.people_group_uid }}</div>
               <div><span class="info-label">Submitted</span> {{ formatDate(selectedReport.created_at) }}</div>
               <div v-if="selectedReport.reviewed_at"><span class="info-label">Reviewed</span> {{ formatDate(selectedReport.reviewed_at) }}</div>
@@ -128,11 +166,74 @@
             </div>
           </CrmFormSection>
 
+          <CrmFormSection v-if="selectedReport.suggested_image_key" title="Suggested Picture">
+            <img :src="`/api/admin/people-group-reports/image/${selectedReport.suggested_image_key}`" class="suggested-image" alt="Suggested picture" />
+          </CrmFormSection>
+
           <CrmFormSection v-if="selectedReport.notes" title="Notes">
             <p class="review-notes-text">{{ selectedReport.notes }}</p>
           </CrmFormSection>
 
-          <div v-if="selectedReport.status === 'pending'" class="review-actions">
+          <CrmFormSection v-if="selectedReport.source === 'public'" title="Approvals">
+            <div class="approvals-list">
+              <div v-for="approver in approvers" :key="approver.id" class="approval-row">
+                <UIcon
+                  :name="hasApproved(approver.id) ? 'i-lucide-check-circle' : 'i-lucide-circle-dashed'"
+                  :class="hasApproved(approver.id) ? 'text-[var(--ui-success)]' : 'text-[var(--ui-text-dimmed)]'"
+                />
+                <span>{{ approver.display_name || approver.email }}</span>
+                <span v-if="approvalDate(approver.id)" class="approval-date">{{ formatDate(approvalDate(approver.id)!) }}</span>
+              </div>
+              <p v-if="approvers.length < 2" class="approvers-warning">
+                Approvers are not fully configured.
+                <template v-if="canManageApprovers"> Use the settings button in the header to designate two approvers.</template>
+              </p>
+            </div>
+          </CrmFormSection>
+
+          <!-- Public suggestions: two designated approvals, then an explicit apply -->
+          <div v-if="selectedReport.source === 'public' && ['awaiting_verification', 'pending', 'approved'].includes(selectedReport.status)" class="review-actions">
+            <UBadge
+              v-if="selectedReport.status === 'awaiting_verification'"
+              label="Waiting for the reporter to verify their email"
+              color="neutral"
+              variant="subtle"
+            />
+            <UButton
+              v-if="selectedReport.status === 'pending' && isCurrentUserApprover"
+              color="primary"
+              icon="i-lucide-check"
+              :label="hasApproved(currentUserId) ? 'Approved' : 'Approve'"
+              :disabled="hasApproved(currentUserId)"
+              :loading="approving"
+              @click="approveReport"
+            />
+            <UButton
+              v-if="selectedReport.status === 'approved' && isCurrentUserApprover"
+              color="success"
+              icon="i-lucide-circle-check-big"
+              label="Apply"
+              :loading="accepting"
+              @click="confirmAccept"
+            />
+            <UButton
+              v-if="isCurrentUserApprover"
+              color="error"
+              variant="outline"
+              icon="i-lucide-x"
+              label="Deny"
+              @click="openDenyModal"
+            />
+            <UButton
+              color="neutral"
+              variant="ghost"
+              icon="i-lucide-trash-2"
+              label="Delete"
+              @click="confirmDelete"
+            />
+          </div>
+
+          <div v-else-if="selectedReport.source !== 'public' && selectedReport.status === 'pending'" class="review-actions">
             <UButton
               v-if="selectedReport.people_group_id"
               color="success"
@@ -180,6 +281,56 @@
       <div class="flex justify-end gap-2 mt-4">
         <UButton variant="outline" @click="showAcceptModal = false">Cancel</UButton>
         <UButton color="success" :loading="accepting" @click="acceptReport">Accept</UButton>
+      </div>
+    </template>
+  </UModal>
+
+  <!-- Deny (public suggestion) Modal -->
+  <UModal v-model:open="showDenyModal" title="Deny Suggestion">
+    <template #body>
+      <div class="flex flex-col gap-4">
+        <p>Deny this suggestion? The reporter will be emailed that it was not applied (outcome only — no notes or comments are shared).</p>
+        <div class="flex justify-end gap-2">
+          <UButton variant="outline" @click="closeDenyModal">Cancel</UButton>
+          <UButton color="error" :loading="denying" @click="denyReport">Deny</UButton>
+        </div>
+      </div>
+    </template>
+  </UModal>
+
+  <!-- Approver Settings Modal -->
+  <UModal v-model:open="showApproversModal" title="Designated Approvers">
+    <template #body>
+      <div class="flex flex-col gap-4">
+        <p class="text-sm text-[var(--ui-text-muted)]">
+          Public suggestions from /updates require approval from both of these users before they can be applied.
+        </p>
+        <UFormField label="Approver 1" required>
+          <USelectMenu
+            v-model="approverForm[0]"
+            :items="approverUserOptions"
+            value-key="value"
+            placeholder="Select a user..."
+            class="w-full"
+          />
+        </UFormField>
+        <UFormField label="Approver 2" required>
+          <USelectMenu
+            v-model="approverForm[1]"
+            :items="approverUserOptions"
+            value-key="value"
+            placeholder="Select a user..."
+            class="w-full"
+          />
+        </UFormField>
+        <div class="flex justify-end gap-2">
+          <UButton variant="outline" @click="closeApproversModal">Cancel</UButton>
+          <UButton
+            :loading="savingApprovers"
+            :disabled="!approverForm[0] || !approverForm[1] || approverForm[0] === approverForm[1]"
+            @click="saveApprovers"
+          >Save</UButton>
+        </div>
       </div>
     </template>
   </UModal>
@@ -391,11 +542,19 @@ definePageMeta({
 interface Report {
   id: number
   people_group_id: number | null
+  type: 'add' | 'update' | 'remove'
+  source: 'admin' | 'public'
   reporter_name: string
   reporter_email: string | null
+  reporter_org: string | null
+  verifier_name: string | null
+  verifier_entity: string | null
+  verifier_email: string | null
   suggested_changes: Record<string, any>
+  suggested_image_key: string | null
   previous_values: Record<string, any> | null
-  status: 'pending' | 'accepted' | 'denied'
+  status: 'awaiting_verification' | 'pending' | 'approved' | 'accepted' | 'denied'
+  approvals: { user_id: string; approved_at: string }[]
   reviewed_by: string | null
   reviewed_at: string | null
   notes: string | null
@@ -453,6 +612,100 @@ const showLinkModal = ref(false)
 // Linking an unlinked report to an existing people group
 const linkPeopleGroupId = ref<number | undefined>(undefined)
 
+// Public-suggestion approval flow
+interface ApproverInfo { id: string; display_name: string | null; email: string }
+const approvers = ref<ApproverInfo[]>([])
+const approving = ref(false)
+const showDenyModal = ref(false)
+const showApproversModal = ref(false)
+const approverForm = ref<(string | undefined)[]>([undefined, undefined])
+const approverUsers = ref<{ id: string; display_name: string | null; email: string }[]>([])
+const savingApprovers = ref(false)
+
+const { isAdmin } = useAuthUser()
+const canManageApprovers = computed(() => isAdmin.value)
+const currentUserId = computed(() => (user.value as any)?.id || '')
+const isCurrentUserApprover = computed(() => approvers.value.some(a => a.id === currentUserId.value))
+
+const approverUserOptions = computed(() =>
+  approverUsers.value.map(u => ({ label: u.display_name || u.email, value: u.id }))
+)
+
+function hasApproved(userId: string): boolean {
+  return !!selectedReport.value?.approvals?.some(a => a.user_id === userId)
+}
+
+function approvalDate(userId: string): string | null {
+  return selectedReport.value?.approvals?.find(a => a.user_id === userId)?.approved_at || null
+}
+
+async function loadApprovers() {
+  try {
+    const res = await $fetch<{ approvers: ApproverInfo[] }>('/api/admin/people-group-reports/approvers')
+    approvers.value = res.approvers
+  } catch {
+    approvers.value = []
+  }
+}
+
+async function approveReport() {
+  if (!selectedReport.value) return
+  try {
+    approving.value = true
+    const res = await $fetch<{ report: Report }>(`/api/admin/people-group-reports/${selectedReport.value.id}/approve`, {
+      method: 'POST',
+      body: {}
+    })
+    toast.add({ title: 'Approval recorded', color: 'success' })
+    selectedReport.value = res.report
+    await loadReports()
+  } catch (err: any) {
+    toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to approve', color: 'error' })
+  } finally {
+    approving.value = false
+  }
+}
+
+function openDenyModal() {
+  showDenyModal.value = true
+}
+
+function closeDenyModal() {
+  showDenyModal.value = false
+}
+
+function closeApproversModal() {
+  showApproversModal.value = false
+}
+
+async function openApproversModal() {
+  approverForm.value = [approvers.value[0]?.id, approvers.value[1]?.id]
+  showApproversModal.value = true
+  try {
+    const res = await $fetch<{ users: { id: string; display_name: string | null; email: string }[] }>('/api/admin/users')
+    approverUsers.value = res.users
+  } catch {
+    approverUsers.value = []
+  }
+}
+
+async function saveApprovers() {
+  try {
+    savingApprovers.value = true
+    await $fetch('/api/admin/people-group-reports/approvers', {
+      method: 'PUT',
+      body: { approvers: approverForm.value.filter(Boolean) }
+    })
+    toast.add({ title: 'Approvers updated', color: 'success' })
+    showApproversModal.value = false
+    await loadApprovers()
+  } catch (err: any) {
+    toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to save approvers', color: 'error' })
+  } finally {
+    savingApprovers.value = false
+  }
+}
+
 // When on, the create form captures a free-text name for a people group not
 // yet in the system instead of selecting an existing one.
 const newGroupMode = ref(false)
@@ -463,7 +716,9 @@ const createPeopleGroup = ref<PeopleGroupSummary | null>(null)
 
 const statusOptions = [
   { label: 'All Statuses', value: null },
+  { label: 'Awaiting Verification', value: 'awaiting_verification' },
   { label: 'Pending', value: 'pending' },
+  { label: 'Approved', value: 'approved' },
   { label: 'Accepted', value: 'accepted' },
   { label: 'Denied', value: 'denied' }
 ]
@@ -546,11 +801,17 @@ const availableFieldOptions = computed(() => {
 
 function statusColor(status: string) {
   switch (status) {
+    case 'awaiting_verification': return 'neutral'
     case 'pending': return 'warning'
+    case 'approved': return 'info'
     case 'accepted': return 'success'
     case 'denied': return 'error'
     default: return 'neutral'
   }
+}
+
+function statusLabel(status: string) {
+  return status === 'awaiting_verification' ? 'awaiting verification' : status
 }
 
 function formatDate(dateStr: string) {
@@ -716,6 +977,7 @@ async function denyReport() {
       body: {}
     })
     toast.add({ title: 'Report denied', color: 'warning' })
+    showDenyModal.value = false
     selectedReport.value = res.report
     await loadReports()
   } catch (err: any) {
@@ -968,7 +1230,7 @@ async function loadPeopleGroups() {
 }
 
 onMounted(async () => {
-  await Promise.all([loadReports(), loadPeopleGroups()])
+  await Promise.all([loadReports(), loadPeopleGroups(), loadApprovers()])
 
   const idParam = route.query.id as string | undefined
   if (idParam) {
@@ -1095,6 +1357,38 @@ onMounted(async () => {
   display: flex;
   gap: 0.5rem;
   margin-top: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.suggested-image {
+  max-width: 240px;
+  border-radius: 8px;
+  display: block;
+}
+
+.approvals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.approval-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.approval-date {
+  color: var(--ui-text-muted);
+  font-size: 0.75rem;
+}
+
+.approvers-warning {
+  color: var(--ui-text-muted);
+  font-size: 0.8125rem;
+  margin: 0;
 }
 
 .review-notes-text {
