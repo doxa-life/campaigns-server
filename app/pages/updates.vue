@@ -574,12 +574,12 @@ function resetAll() {
 </script>
 
 <style scoped>
-/* The theme's muted/dimmed greys (main.css) are too faint for a public-facing
-   form, so this page renders secondary text in the full text color — visual
-   hierarchy comes from size and weight instead. Inherits into Nuxt UI children
-   (field descriptions, hints, placeholders) as well. */
+/* The theme's muted grey (main.css) is too faint for a public-facing form, so
+   this page renders secondary text in the full text color — visual hierarchy
+   comes from size and weight instead. Inherits into Nuxt UI children (field
+   descriptions, hints). Dimmed stays untouched: input placeholders use it and
+   should read as faded. */
 .updates-page {
-  --ui-text-dimmed: var(--ui-text);
   --ui-text-muted: var(--ui-text);
 }
 
@@ -612,7 +612,7 @@ function resetAll() {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--ui-text-dimmed);
+  color: var(--ui-text-muted);
   background: var(--ui-bg-elevated);
   border-bottom: 1px solid var(--ui-border);
   position: sticky;
@@ -680,7 +680,7 @@ function resetAll() {
   font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--ui-text-dimmed);
+  color: var(--ui-text-muted);
   margin-bottom: 0.125rem;
 }
 .current-image {
