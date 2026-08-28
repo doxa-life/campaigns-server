@@ -26,14 +26,14 @@ export default defineEventHandler(async (event) => {
   const jpIds = [...new Set(jpResults.map((r) => r.jp_people_id))]
   const [doxaByPeid, doxaByJpId] = await Promise.all([
     peids.length
-      ? sql`SELECT metadata->>'imb_peid' as peid FROM people_groups WHERE metadata->>'imb_peid' IN ${sql(peids)}`
-      : Promise.resolve([] as { peid: string }[]),
+      ? sql`SELECT id, metadata->>'imb_peid' as peid FROM people_groups WHERE metadata->>'imb_peid' IN ${sql(peids)}`
+      : Promise.resolve([] as { id: number; peid: string }[]),
     jpIds.length
-      ? sql`SELECT joshua_project_id FROM people_groups WHERE joshua_project_id IN ${sql(jpIds)}`
-      : Promise.resolve([] as { joshua_project_id: string }[])
+      ? sql`SELECT id, joshua_project_id FROM people_groups WHERE joshua_project_id IN ${sql(jpIds)}`
+      : Promise.resolve([] as { id: number; joshua_project_id: string }[])
   ])
-  const knownPeids = new Set(doxaByPeid.map((r: any) => r.peid))
-  const knownJpIds = new Set(doxaByJpId.map((r: any) => r.joshua_project_id))
+  const knownPeids = new Map(doxaByPeid.map((r: any) => [r.peid, r.id as number]))
+  const knownJpIds = new Map(doxaByJpId.map((r: any) => [r.joshua_project_id, r.id as number]))
 
   const results = [
     ...imbResults.map((r) => ({
@@ -42,6 +42,9 @@ export default defineEventHandler(async (event) => {
       name: r.name,
       country: r.country,
       in_doxa: knownPeids.has(r.peid),
+      // Set when the group is already on the Doxa list, so the picker can
+      // route the selection into the update/remove flow for that group.
+      doxa_id: knownPeids.get(r.peid) ?? null,
       // Values keyed by Doxa field keys, ready to prefill the add form.
       prefill: {
         name: r.name,
@@ -62,6 +65,7 @@ export default defineEventHandler(async (event) => {
       name: r.name,
       country: r.country,
       in_doxa: knownJpIds.has(r.jp_people_id),
+      doxa_id: knownJpIds.get(r.jp_people_id) ?? null,
       prefill: {
         name: r.name,
         population: r.population,

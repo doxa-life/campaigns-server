@@ -1048,6 +1048,9 @@ paths:
                         name: { type: string }
                         country: { type: [string, 'null'] }
                         in_doxa: { type: boolean }
+                        doxa_id:
+                          type: [integer, 'null']
+                          description: DOXA people group id when the group is already on the list
                         prefill:
                           type: object
                           description: Values keyed by DOXA field keys
