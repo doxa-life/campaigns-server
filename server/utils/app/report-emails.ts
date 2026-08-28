@@ -64,7 +64,7 @@ export async function sendReportVerificationEmail(to: string, token: string): Pr
 /** Notify both designated approvers that a suggestion entered the queue. */
 export async function notifyReportApprovers(report: PeopleGroupReport & { people_group_name?: string | null }): Promise<void> {
   const baseUrl = useRuntimeConfig().public.siteUrl || 'http://localhost:3000'
-  const reviewUrl = `${baseUrl}/admin/people-groups/reports`
+  const reviewUrl = `${baseUrl}/admin/people-groups/reports?id=${report.id}`
   const typeLabel = TYPE_LABELS[report.type] || report.type
   const reporter = escapeHtml(
     report.reporter_org ? `${report.reporter_name} (${report.reporter_org})` : report.reporter_name
