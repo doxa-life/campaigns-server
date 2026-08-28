@@ -67,6 +67,11 @@ export default defineEventHandler(async (event) => {
     if (!allowed.has(key)) continue
     if (value === undefined || value === null || value === '') continue
     const field = getField(key)
+    if (field?.type === 'boolean') {
+      if (value === true || value === 'true') suggestedChanges[key] = true
+      else if (value === false || value === 'false') suggestedChanges[key] = false
+      continue
+    }
     if (field?.type === 'number') {
       const n = Number(value)
       if (!Number.isFinite(n)) continue

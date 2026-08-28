@@ -60,6 +60,14 @@ const label = computed(() => (field.value ? t(field.value.labelKey) : props.fiel
 const selectOptions = computed<{ value: string; label: string }[] | null>(() => {
   const def = field.value
   if (!def) return null
+  // Booleans render as a Yes/No select so "no change" (blank) stays possible;
+  // the API coerces the 'true'/'false' strings to booleans.
+  if (def.type === 'boolean') {
+    return [
+      { value: 'true', label: t('common.yes') },
+      { value: 'false', label: t('common.no') }
+    ]
+  }
   if (def.optionsSource === 'countries') {
     // people_groups.country_code stores ISO alpha-3 (from IMB's ISOalpha3).
     return Object.entries(countriesLib.getNames('en', { select: 'official' }))

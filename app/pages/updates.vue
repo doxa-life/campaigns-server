@@ -140,47 +140,64 @@
                 <UpdatesSuggestFieldInput v-model="removeReason" field-key="reason_unlisted" />
               </UFormField>
 
-              <!-- ============ Field suggestions ============ -->
-              <template v-if="showFields">
-                <USeparator v-if="flow !== 'remove'" />
-                <div v-if="flow === 'remove'" class="flex items-center gap-3">
-                  <USwitch v-model="showRemoveCorrections" />
-                  <span class="text-sm text-[var(--ui-text-muted)]">{{ $t('updates.removeFieldsToggle') }}</span>
-                </div>
+              <!-- ============ UPDATE: engagement first, details collapsed ============ -->
+              <template v-if="flow === 'update'">
+                <USeparator />
 
-                <template v-if="flow !== 'remove' || showRemoveCorrections">
-                  <p v-if="flow === 'update'" class="text-sm text-[var(--ui-text-muted)] m-0">{{ $t('updates.updateFieldsHint') }}</p>
-                  <p v-else-if="flow === 'remove'" class="text-sm text-[var(--ui-text-muted)] m-0">{{ $t('updates.removeFieldsHint') }}</p>
+                <UpdatesFieldRow
+                  v-model="suggested.engagement_status"
+                  field-key="engagement_status"
+                  show-current
+                  :current-display="formatValue('engagement_status', currentValues.engagement_status)"
+                />
 
-                  <div v-for="key in editableFieldKeys" :key="key" class="field-row">
-                    <div class="field-label">{{ fieldLabel(key) }}</div>
-                    <div class="field-inputs" :class="{ 'with-current': hasCurrentColumn }">
-                      <div v-if="hasCurrentColumn" class="current-value">
-                        <span class="value-tag">{{ $t('updates.currentValue') }}</span>
-                        <span>{{ formatValue(key, currentValues[key]) || '—' }}</span>
-                      </div>
-                      <div>
-                        <span v-if="hasCurrentColumn" class="value-tag suggested">{{ $t('updates.suggestedValue') }}</span>
-                        <UpdatesSuggestFieldInput v-model="suggested[key]" :field-key="key" />
-                        <p v-if="key === 'primary_religion' && jpReligionLabel" class="jp-hint">
-                          <UIcon name="i-lucide-info" class="shrink-0" />
-                          {{ $t('updates.jpReligionHint', { label: jpReligionLabel }) }}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                <!-- The three engagement criteria as yes/no questions -->
+                <p class="group-title">{{ $t('updates.criteriaTitle') }}</p>
+                <UpdatesFieldRow
+                  v-for="key in criteriaKeys"
+                  :key="key"
+                  v-model="suggested[key]"
+                  :field-key="key"
+                  :label="$t(`updates.criteria.${key}`)"
+                  show-current
+                  :current-display="formatValue(key, currentValues[key])"
+                />
 
-                  <!-- Picture -->
-                  <div class="field-row">
-                    <div class="field-label">{{ $t('updates.pictureLabel') }}</div>
-                    <div class="field-inputs" :class="{ 'with-current': hasCurrentColumn }">
-                      <div v-if="hasCurrentColumn" class="current-value">
-                        <span class="value-tag">{{ $t('updates.currentValue') }}</span>
-                        <img v-if="currentImageUrl" :src="currentImageUrl" class="current-image" alt="" />
-                        <span v-else>—</span>
-                      </div>
-                      <div>
-                        <span v-if="hasCurrentColumn" class="value-tag suggested">{{ $t('updates.suggestedValue') }}</span>
+                <p class="group-title">{{ $t('updates.resourcesTitle') }}</p>
+                <UpdatesFieldRow
+                  v-for="key in resourceKeys"
+                  :key="key"
+                  v-model="suggested[key]"
+                  :field-key="key"
+                  show-current
+                  :current-display="formatValue(key, currentValues[key])"
+                />
+
+                <UCollapsible v-model:open="detailsOpen">
+                  <UButton
+                    type="button"
+                    variant="link"
+                    color="neutral"
+                    :icon="detailsOpen ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
+                    :label="$t('updates.detailsTitle')"
+                    class="px-0"
+                  />
+                  <template #content>
+                    <div class="space-y-4 mt-2">
+                      <p class="text-sm m-0">{{ $t('updates.updateFieldsHint') }}</p>
+                      <UpdatesFieldRow
+                        v-for="key in detailKeys"
+                        :key="key"
+                        v-model="suggested[key]"
+                        :field-key="key"
+                        show-current
+                        :current-display="formatValue(key, currentValues[key])"
+                      />
+                      <UpdatesFieldRow field-key="image_url" :label="$t('updates.pictureLabel')" show-current>
+                        <template #current>
+                          <img v-if="currentImageUrl" :src="currentImageUrl" class="current-image" alt="" />
+                          <span v-else>—</span>
+                        </template>
                         <UFileUpload
                           v-model="pictureFile"
                           accept="image/jpeg,image/png,image/gif,image/webp"
@@ -189,9 +206,51 @@
                           :description="$t('updates.pictureHint')"
                           class="w-full"
                         />
-                      </div>
+                      </UpdatesFieldRow>
                     </div>
-                  </div>
+                  </template>
+                </UCollapsible>
+              </template>
+
+              <!-- ============ ADD: detail fields + picture ============ -->
+              <template v-else-if="flow === 'add' && showFields">
+                <USeparator />
+                <UpdatesFieldRow
+                  v-for="key in addFieldKeys"
+                  :key="key"
+                  v-model="suggested[key]"
+                  :field-key="key"
+                  :hint="key === 'primary_religion' && jpReligionLabel ? $t('updates.jpReligionHint', { label: jpReligionLabel }) : undefined"
+                />
+                <UpdatesFieldRow field-key="image_url" :label="$t('updates.pictureLabel')">
+                  <UFileUpload
+                    v-model="pictureFile"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    variant="area"
+                    :label="$t('updates.pictureDropLabel')"
+                    :description="$t('updates.pictureHint')"
+                    class="w-full"
+                  />
+                </UpdatesFieldRow>
+              </template>
+
+              <!-- ============ REMOVE: optional corrections ============ -->
+              <template v-else-if="flow === 'remove' && showFields">
+                <div class="flex items-center gap-3">
+                  <USwitch v-model="showRemoveCorrections" />
+                  <span class="text-sm">{{ $t('updates.removeFieldsToggle') }}</span>
+                </div>
+
+                <template v-if="showRemoveCorrections">
+                  <p class="text-sm m-0">{{ $t('updates.removeFieldsHint') }}</p>
+                  <UpdatesFieldRow
+                    v-for="key in addFieldKeys"
+                    :key="key"
+                    v-model="suggested[key]"
+                    :field-key="key"
+                    show-current
+                    :current-display="formatValue(key, currentValues[key])"
+                  />
                 </template>
               </template>
 
@@ -245,7 +304,12 @@
 <script setup lang="ts">
 import countriesLib from 'i18n-iso-countries'
 import countriesEn from 'i18n-iso-countries/langs/en.json'
-import { getField, publicSuggestibleFieldKeys } from '~/utils/people-group-fields'
+import {
+  getField,
+  publicEngagementCriteriaKeys,
+  publicResourceFieldKeys,
+  publicDetailFieldKeys
+} from '~/utils/people-group-fields'
 
 countriesLib.registerLocale(countriesEn)
 
@@ -295,7 +359,14 @@ const verifiedBanner = computed<boolean | null>(() => {
 const flow = ref<Flow | null>(null)
 
 // The suggestible field keys shown as inputs (picture handled separately).
-const editableFieldKeys = publicSuggestibleFieldKeys.filter((k) => k !== 'image_url')
+// Field groups per flow: update leads with engagement (criteria + resources),
+// with the detail fields collapsed; add and remove-corrections use the flat
+// detail list plus engagement status. Picture is handled separately.
+const criteriaKeys = publicEngagementCriteriaKeys
+const resourceKeys = publicResourceFieldKeys
+const detailKeys = publicDetailFieldKeys.filter((k) => k !== 'image_url')
+const addFieldKeys = [...detailKeys, 'engagement_status']
+const detailsOpen = ref(false)
 
 // Shared reporter/verifier/comments state
 const form = ref({
@@ -352,8 +423,6 @@ const selectionCountry = computed(() => {
   return selectedExternal.value?.country ?? null
 })
 
-const hasCurrentColumn = computed(() => flow.value !== 'add')
-
 const showFields = computed(() => {
   if (flow.value === 'add') return !!selectedExternal.value || manualEntry.value
   return !!selectedDoxaGroup.value
@@ -367,14 +436,13 @@ function countryName(code: string): string {
   return countriesLib.getName(code, 'en', { select: 'official' }) || code
 }
 
-function fieldLabel(key: string): string {
-  const field = getField(key)
-  return field ? t(field.labelKey) : key
-}
-
 function formatValue(key: string, value: any): string {
   if (value === null || value === undefined || value === '') return ''
   const field = getField(key)
+  if (field?.type === 'boolean') {
+    if (value === true || value === 'true' || value === '1') return t('common.yes')
+    if (value === false || value === 'false' || value === '0') return t('common.no')
+  }
   if (field?.optionsSource === 'countries') return countryName(String(value))
   if (field?.type === 'select' && field.options) {
     const opt = field.options.find((o) => o.value === String(value))
@@ -441,7 +509,7 @@ function selectExternal(result: ExternalSearchResult) {
   selectedExternal.value = result
   flow.value = 'add'
   const prefill: Record<string, any> = {}
-  for (const key of editableFieldKeys) {
+  for (const key of addFieldKeys) {
     if (result.prefill[key] !== undefined && result.prefill[key] !== null) {
       prefill[key] = result.prefill[key]
     }
@@ -475,6 +543,7 @@ function resetSelection() {
   pictureFile.value = null
   removeReason.value = null
   showRemoveCorrections.value = false
+  detailsOpen.value = false
   if (searchQuery.value.trim().length >= 2) {
     void performSearch(searchQuery.value.trim())
   }
@@ -526,7 +595,7 @@ async function submit() {
     }
     if (flow.value === 'remove') {
       if (!showRemoveCorrections.value) {
-        for (const key of editableFieldKeys) delete suggestedChanges[key]
+        for (const key of Object.keys(suggestedChanges)) delete suggestedChanges[key]
       }
       suggestedChanges.reason_unlisted = removeReason.value
     }
@@ -649,51 +718,14 @@ function resetAll() {
   background: var(--ui-bg-elevated);
 }
 
-.field-row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-.field-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-.field-inputs.with-current {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-  align-items: start;
-}
-@media (max-width: 640px) {
-  .field-inputs.with-current {
-    grid-template-columns: 1fr;
-  }
-}
-.current-value {
-  font-size: 0.875rem;
-  color: var(--ui-text-muted);
-  padding: 0.375rem 0;
-  overflow-wrap: anywhere;
-}
-.value-tag {
-  display: block;
-  font-size: 0.6875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--ui-text-muted);
-  margin-bottom: 0.125rem;
+.group-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 0.5rem 0 0;
 }
 .current-image {
   max-width: 140px;
   border-radius: var(--ui-radius);
   display: block;
-}
-.jp-hint {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  margin: 0.375rem 0 0;
-  font-size: 0.8125rem;
-  color: var(--ui-info);
 }
 </style>

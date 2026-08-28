@@ -448,6 +448,14 @@
     "currentValue": "Current",
     "suggestedValue": "Suggested",
     "updateFieldsHint": "Only fill in what should change — everything else can stay blank.",
+    "criteriaTitle": "Engagement criteria",
+    "criteria": {
+      "workers_long_term": "Are there cross-cultural workers in residence among the people group?",
+      "work_in_local_language": "Are resident cross-cultural workers working in the local language and culture?",
+      "disciple_and_church_multiplication": "Are resident cross-cultural workers working in a way that will lead to an indigenous church?"
+    },
+    "resourcesTitle": "Resources available",
+    "detailsTitle": "People group details",
     "jpReligionHint": "Joshua Project lists the religion as \"{label}\" — choose the closest match.",
     "reporter": {
       "title": "About you",
@@ -457,7 +465,7 @@
       "emailHint": "If this is your first time writing to us, we'll send you a link to confirm your email."
     },
     "verifier": {
-      "title": "Verifier (optional)",
+      "title": "Verifier (recommended)",
       "hint": "If someone else can confirm this information, let us know who they are.",
       "name": "Verifier name",
       "entity": "Verifier organization",

@@ -229,7 +229,9 @@ describe('People Group Suggestions (/updates)', async () => {
     })
 
     it('sets reason_engaged to doxa_report when an engagement suggestion is applied', async () => {
-      const id = await createPendingUpdate({ engagement_status: 'engaged' })
+      // The criteria booleans arrive as 'true'/'false' strings from the form
+      // selects and are coerced to real booleans by the API.
+      const id = await createPendingUpdate({ engagement_status: 'engaged', workers_long_term: 'true', imb_bible_available: 'false' })
       await $fetch(`/api/admin/people-group-reports/${id}/approve`, { method: 'POST', body: {}, ...approver1.auth })
       await $fetch(`/api/admin/people-group-reports/${id}/approve`, { method: 'POST', body: {}, ...approver2.auth })
       await $fetch(`/api/admin/people-group-reports/${id}/accept`, { method: 'POST', body: {}, ...approver2.auth })
@@ -237,6 +239,8 @@ describe('People Group Suggestions (/updates)', async () => {
       const [group] = await sql`SELECT engagement_status, metadata FROM people_groups WHERE id = ${testGroupId}`
       expect(group!.engagement_status).toBe('engaged')
       expect(group!.metadata?.reason_engaged).toBe('doxa_report')
+      expect(group!.metadata?.workers_long_term).toBe(true)
+      expect(group!.metadata?.imb_bible_available).toBe(false)
 
       // Reset for later tests
       await sql`UPDATE people_groups SET engagement_status = 'unengaged' WHERE id = ${testGroupId}`

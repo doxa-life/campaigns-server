@@ -860,6 +860,9 @@ function getCurrentValueForCreate(key: string): string {
 function formatFieldValue(key: string, value: any): string {
   if (value == null) return ''
   const field = getField(key)
+  if (field?.type === 'boolean') {
+    return value === true || value === 'true' || value === '1' ? 'Yes' : 'No'
+  }
   if (field?.options) {
     const opt = field.options.find(o => o.value === String(value))
     if (opt) return opt.label || (opt.labelKey ? t(opt.labelKey) : String(value))

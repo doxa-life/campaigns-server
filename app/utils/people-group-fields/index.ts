@@ -191,9 +191,25 @@ export const fieldsByCategory: Record<string, FieldDefinition[]> = allFields.red
 // Fields that are stored as table columns (not in metadata)
 export const tableColumnFields = allFields.filter((f) => f.tableColumn)
 
-// Fields the public /updates form may suggest changes to. Also enforced as a
-// whitelist by the public submission API.
-export const publicSuggestibleFieldKeys = [
+// Field groups the public /updates form may suggest changes to.
+// The three engagement criteria (playbook: workers in residence, working in
+// the local language/culture, working toward an indigenous church).
+export const publicEngagementCriteriaKeys = [
+  'workers_long_term',
+  'work_in_local_language',
+  'disciple_and_church_multiplication'
+] as const
+
+export const publicResourceFieldKeys = [
+  'imb_bible_available',
+  'imb_jesus_film_available',
+  'imb_radio_broadcast_available',
+  'imb_gospel_recordings_available',
+  'imb_audio_scripture_available',
+  'imb_bible_stories_available'
+] as const
+
+export const publicDetailFieldKeys = [
   'name',
   'population',
   'country_code',
@@ -201,8 +217,16 @@ export const publicSuggestibleFieldKeys = [
   'longitude',
   'primary_language',
   'primary_religion',
-  'engagement_status',
   'image_url'
+] as const
+
+// Everything the public form may suggest — enforced as a whitelist by the
+// public submission API and returned by the current-values endpoint.
+export const publicSuggestibleFieldKeys = [
+  'engagement_status',
+  ...publicEngagementCriteriaKeys,
+  ...publicResourceFieldKeys,
+  ...publicDetailFieldKeys
 ] as const
 
 // Get a field definition by key
