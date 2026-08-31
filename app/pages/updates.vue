@@ -1,5 +1,5 @@
 <template>
-  <div class="updates-page min-h-[calc(100vh-200px)] flex justify-center p-4 sm:p-8">
+  <div class="updates-page grow min-h-[calc(100vh-200px)] flex justify-center p-4 sm:p-8 bg-beige-50 dark:bg-default">
     <div class="max-w-[760px] w-full">
       <!-- Email-verification result banner (?verified=1/0 from the email link) -->
       <UAlert
@@ -11,7 +11,7 @@
       />
 
       <!-- Success state -->
-      <UCard v-if="submitted" class="text-center py-8">
+      <UCard v-if="submitted" class="text-center py-8 dark:bg-elevated">
         <div class="flex items-center justify-center gap-3 mb-6">
           <UIcon
             :name="submittedNeedsVerification ? 'i-lucide-mail' : 'i-lucide-check-circle'"
@@ -29,7 +29,7 @@
         <UButton class="mt-6" variant="outline" @click="resetAll">{{ $t('updates.success.another') }}</UButton>
       </UCard>
 
-      <UCard v-else>
+      <UCard v-else class="dark:bg-elevated">
         <template #header>
           <h1 class="text-2xl font-bold mb-1">{{ $t('updates.heading') }}</h1>
           <p class="text-sm text-[var(--ui-text-muted)] m-0">{{ $t('updates.intro') }}</p>
@@ -802,9 +802,9 @@ function resetAll() {
 }
 
 .group-title {
-  font-size: 0.9375rem;
+  font-size: 1.125rem;
   font-weight: 600;
-  margin: 0.5rem 0 0;
+  margin: 1.5rem 0 0.75rem;
 }
 .current-image {
   max-width: 140px;
