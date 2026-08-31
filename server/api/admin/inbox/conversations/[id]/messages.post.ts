@@ -4,10 +4,13 @@ import { jobQueueService, type OutboundEmailPayload } from '#server/database/job
 import { userService } from '#server/database/users'
 import { getIntParam, handleApiError } from '#server/utils/api-helpers'
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const MAX_CC = 10
+
 /**
  * Compose / reply on a conversation (requires inbox.send).
  *
- * Body: { body_html, body_text?, from_identity?, saveDraft?, draft_id? }
+ * Body: { body_html, body_text?, from_identity?, cc_emails?, saveDraft?, draft_id? }
  *  - from_identity: 'personal' (the sender's alias) | 'contact' (the general address).
  *    Defaults to 'personal' when the sender has an alias, otherwise 'contact'.
  *  - saveDraft + no draft_id  → create a shared draft
@@ -31,6 +34,7 @@ export default defineEventHandler(async (event) => {
     body_text?: string
     subject?: string
     from_identity?: 'personal' | 'contact'
+    cc_emails?: string[]
     saveDraft?: boolean
     draft_id?: number
   }>(event)
@@ -40,6 +44,20 @@ export default defineEventHandler(async (event) => {
 
   if (!body.saveDraft && !bodyHtml && !body.draft_id) {
     throw createError({ statusCode: 400, statusMessage: 'Message body is required' })
+  }
+
+  // Normalize CC: trim, lowercase, dedupe. Persisted on the message row so the
+  // outbound-email processor (which sends asynchronously) can include them.
+  const ccEmails = Array.isArray(body.cc_emails)
+    ? [...new Set(body.cc_emails.map(e => String(e).trim().toLowerCase()).filter(Boolean))]
+    : []
+  if (ccEmails.length > MAX_CC) {
+    throw createError({ statusCode: 400, statusMessage: `Too many CC addresses (max ${MAX_CC})` })
+  }
+  for (const cc of ccEmails) {
+    if (!EMAIL_RE.test(cc)) {
+      throw createError({ statusCode: 400, statusMessage: `Invalid CC address: ${cc}` })
+    }
   }
 
   // Resolve the chosen From address: the sender's alias (personal) or the general contact address.
@@ -64,7 +82,7 @@ export default defineEventHandler(async (event) => {
     // --- Draft handling ---
     if (body.saveDraft) {
       if (body.draft_id) {
-        const updated = await messageService.updateDraft(body.draft_id, { body_html: bodyHtml, body_text: bodyText, from_email: fromEmail })
+        const updated = await messageService.updateDraft(body.draft_id, { body_html: bodyHtml, body_text: bodyText, from_email: fromEmail, cc_emails: ccEmails })
         if (!updated) throw createError({ statusCode: 404, statusMessage: 'Draft not found' })
         return { message: updated, draft: true }
       }
@@ -74,6 +92,7 @@ export default defineEventHandler(async (event) => {
         status: 'draft',
         sender_user_id: auth.userId,
         from_email: fromEmail,
+        cc_emails: ccEmails,
         subject: body.subject || conversation.subject,
         body_html: bodyHtml,
         body_text: bodyText,
@@ -92,7 +111,7 @@ export default defineEventHandler(async (event) => {
       // Apply latest edits + From choice, then queue. Personal signature only when
       // sending as the agent's own alias (not from the general contact address).
       const html = withSignature(bodyHtml || draft.body_html || '', useContact ? null : sender)
-      await messageService.updateDraft(draft.id, { body_html: html, body_text: bodyText ?? draft.body_text, from_email: fromEmail })
+      await messageService.updateDraft(draft.id, { body_html: html, body_text: bodyText ?? draft.body_text, from_email: fromEmail, cc_emails: ccEmails })
       await messageService.markStatus(draft.id, 'queued')
       messageId = draft.id
     } else {
@@ -103,6 +122,7 @@ export default defineEventHandler(async (event) => {
         status: 'queued',
         sender_user_id: auth.userId,
         from_email: fromEmail,
+        cc_emails: ccEmails,
         subject: body.subject || conversation.subject,
         body_html: html,
         body_text: bodyText,
