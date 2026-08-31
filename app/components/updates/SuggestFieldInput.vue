@@ -1,6 +1,22 @@
 <template>
+  <UFieldGroup v-if="field?.type === 'boolean'">
+    <UButton
+      type="button"
+      :variant="model === 'true' ? 'solid' : 'outline'"
+      :color="model === 'true' ? 'primary' : 'neutral'"
+      :label="$t('common.yes')"
+      @click="toggleBoolean('true')"
+    />
+    <UButton
+      type="button"
+      :variant="model === 'false' ? 'solid' : 'outline'"
+      :color="model === 'false' ? 'primary' : 'neutral'"
+      :label="$t('common.no')"
+      @click="toggleBoolean('false')"
+    />
+  </UFieldGroup>
   <USelectMenu
-    v-if="selectOptions"
+    v-else-if="selectOptions"
     :model-value="(model as string | undefined)"
     :items="selectOptions"
     value-key="value"
@@ -57,17 +73,15 @@ const { t } = useI18n()
 const field = computed(() => getField(props.fieldKey))
 const label = computed(() => (field.value ? t(field.value.labelKey) : props.fieldKey))
 
+// Booleans render as a Yes/No toggle pair; clicking the active side clears it
+// back to "no change". The API coerces the 'true'/'false' strings to booleans.
+function toggleBoolean(value: string) {
+  model.value = model.value === value ? null : value
+}
+
 const selectOptions = computed<{ value: string; label: string }[] | null>(() => {
   const def = field.value
   if (!def) return null
-  // Booleans render as a Yes/No select so "no change" (blank) stays possible;
-  // the API coerces the 'true'/'false' strings to booleans.
-  if (def.type === 'boolean') {
-    return [
-      { value: 'true', label: t('common.yes') },
-      { value: 'false', label: t('common.no') }
-    ]
-  }
   if (def.optionsSource === 'countries') {
     // people_groups.country_code stores ISO alpha-3 (from IMB's ISOalpha3).
     return Object.entries(countriesLib.getNames('en', { select: 'official' }))

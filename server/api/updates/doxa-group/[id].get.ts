@@ -1,15 +1,20 @@
 import { peopleGroupService } from '../../../database/people-groups'
 import { publicSuggestibleFieldKeys, isTableColumn } from '~/utils/people-group-fields'
-import { getIntParam } from '#server/utils/api-helpers'
 
 /**
  * GET /api/updates/doxa-group/[id]
  * Current values of the publicly suggestible fields, for the /updates
- * side-by-side comparison. Exposes only that subset.
+ * side-by-side comparison. Exposes only that subset. The path segment is
+ * either a numeric people group id or a slug.
  */
 export default defineEventHandler(async (event) => {
-  const id = getIntParam(event, 'id')
-  const group = await peopleGroupService.getPeopleGroupById(id)
+  const raw = String(getRouterParam(event, 'id') || '').trim()
+  if (!raw) {
+    throw createError({ statusCode: 400, statusMessage: 'Invalid id' })
+  }
+  const group = /^\d+$/.test(raw)
+    ? await peopleGroupService.getPeopleGroupById(Number(raw))
+    : await peopleGroupService.getPeopleGroupBySlug(raw)
   if (!group) {
     throw createError({ statusCode: 404, statusMessage: 'People group not found' })
   }

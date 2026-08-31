@@ -1083,8 +1083,9 @@ paths:
         - name: id
           in: path
           required: true
+          description: Numeric people group id or slug
           schema:
-            type: integer
+            type: string
       responses:
         '200':
           description: Current values

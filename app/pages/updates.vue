@@ -325,16 +325,8 @@
             </template>
           </template>
 
-          <!-- ============ Step: comments + reporter + verifier ============ -->
+          <!-- ============ Step: reporter + verifier ============ -->
           <template v-else-if="step === 'about'">
-            <UFormField
-              :label="$t('updates.commentsLabel')"
-              :description="$t('updates.commentsHint')"
-              :required="flow === 'add' || flow === 'remove'"
-            >
-              <UTextarea v-model="form.comments" :rows="4" class="w-full" />
-            </UFormField>
-
             <USeparator :label="$t('updates.reporter.title')" />
             <div class="grid sm:grid-cols-2 gap-4">
               <UFormField :label="$t('updates.reporter.name')" required>
@@ -364,6 +356,16 @@
 
             <UpdatesTurnstileWidget ref="turnstileRef" v-model="turnstileToken" />
           </template>
+
+          <!-- Comments close out the last content step: they back up the suggestion itself -->
+          <UFormField
+            v-if="step === commentsStep"
+            :label="$t('updates.commentsLabel')"
+            :description="$t('updates.commentsHint')"
+            :required="flow === 'add' || flow === 'remove'"
+          >
+            <UTextarea v-model="form.comments" :rows="4" class="w-full" />
+          </UFormField>
 
           <!-- ============ Step navigation ============ -->
           <div v-if="selectionMade && flow" class="flex items-center justify-between gap-4">
@@ -472,6 +474,8 @@ const stepSequence = computed<string[]>(() => {
   return ['group']
 })
 const stepIndex = computed(() => stepSequence.value.indexOf(step.value))
+// Comments belong to the last content step (right before "about you").
+const commentsStep = computed(() => stepSequence.value[stepSequence.value.length - 2])
 const stepperItems = computed(() =>
   stepSequence.value.map((value) => ({ value, title: t(`updates.steps.${value}`) }))
 )
@@ -479,6 +483,14 @@ const stepperItems = computed(() =>
 function nextStep() {
   if (step.value === 'reason' && !removeReason.value) {
     toast.add({ title: t('updates.errors.reasonRequired'), color: 'error' })
+    return
+  }
+  if (
+    step.value === commentsStep.value &&
+    (flow.value === 'add' || flow.value === 'remove') &&
+    !form.value.comments.trim()
+  ) {
+    toast.add({ title: t('updates.errors.commentsRequired'), color: 'error' })
     return
   }
   const next = stepSequence.value[stepIndex.value + 1]
@@ -613,7 +625,7 @@ function clearResults() {
 }
 
 // --- Selection ---
-async function selectDoxaGroup(id: number) {
+async function selectDoxaGroup(id: number | string) {
   clearResults()
   try {
     const res = await $fetch<{ id: number; name: string; current_values: Record<string, any>; image_url: string | null }>(
@@ -767,6 +779,16 @@ async function submit() {
     submitting.value = false
   }
 }
+
+// Deep link: /updates?id=<doxa id or slug> opens the update flow for that
+// group directly.
+onMounted(async () => {
+  const linked = route.query.id
+  if (typeof linked === 'string' && linked.trim()) {
+    await selectDoxaGroup(linked.trim())
+    if (selectedDoxaGroup.value) chooseUpdate()
+  }
+})
 
 function resetAll() {
   submitted.value = false

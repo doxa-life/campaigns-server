@@ -441,5 +441,11 @@ describe('People Group Suggestions (/updates)', async () => {
       expect(res.current_values).toHaveProperty('population')
       expect(res.current_values).not.toHaveProperty('people_praying')
     })
+
+    it('resolves a doxa group by slug', async () => {
+      const byId = await $fetch<{ id: number; slug: string }>(`/api/updates/doxa-group/${testGroupId}`)
+      const bySlug = await $fetch<{ id: number }>(`/api/updates/doxa-group/${byId.slug}`)
+      expect(bySlug.id).toBe(testGroupId)
+    })
   })
 })
