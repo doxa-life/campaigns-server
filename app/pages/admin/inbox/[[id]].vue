@@ -236,7 +236,12 @@
               </div>
               <div v-if="m.direction === 'inbound' ? m.to_email : m.from_email" class="msg-addr">
                 <span v-if="m.direction === 'inbound'"><span class="addr-label">{{ $t('inbox.compose.to') }}:</span> {{ m.to_email }}</span>
-                <span v-else><span class="addr-label">{{ $t('inbox.compose.from') }}:</span> {{ m.from_email }}</span>
+                <span v-else>
+                  <span class="addr-label">{{ $t('inbox.compose.from') }}:</span> {{ m.from_email }}
+                  <template v-if="m.cc_emails && m.cc_emails.length">
+                    · <span class="addr-label">{{ $t('inbox.compose.cc') }}:</span> {{ m.cc_emails.join(', ') }}
+                  </template>
+                </span>
               </div>
               <div class="msg-body" v-html="sanitizeMessageHtml(messageDisplayHtml(m))" />
               <UButton
@@ -275,6 +280,19 @@
                 class="from-select"
               />
               <span v-else class="from-static">{{ fromOptions[0]?.label }}</span>
+              <UButton
+                v-if="!showCc"
+                variant="link"
+                color="neutral"
+                size="xs"
+                @click="() => { showCc = true }"
+              >
+                {{ $t('inbox.compose.cc') }}
+              </UButton>
+            </div>
+            <div v-if="showCc" class="composer-cc">
+              <span class="from-label">{{ $t('inbox.compose.cc') }}:</span>
+              <AdminInboxCcInput v-model="ccEmails" :suggestions="ccSuggestions" />
             </div>
             <div v-if="cannedResponses.length" class="composer-toolbar">
               <USelectMenu
@@ -468,6 +486,7 @@ interface Message {
   from_name: string | null
   from_email: string | null
   to_email: string | null
+  cc_emails?: string[] | null
   sender_name: string | null
   body_html: string | null
   body_stripped_html: string | null
@@ -521,6 +540,8 @@ const replyHtml = ref('')
 const sending = ref(false)
 const savingDraft = ref(false)
 const currentDraftId = ref<number | null>(null)
+const ccEmails = ref<string[]>([])
+const showCc = ref(false)
 const expandedQuoted = ref<Set<number>>(new Set())
 
 // AI drafting: the generate/refine modal, plus review metadata (gloss/sources/
@@ -540,6 +561,11 @@ const cannedResponses = ref<any[]>([])
 const selectedCanned = ref<number | null>(null)
 const cannedLanguage = ref('en')
 const users = ref<{ id: string; display_name: string; email: string; email_alias?: string | null }[]>([])
+
+// CC autocomplete over the already-loaded inbox staff list; external addresses are free-typed.
+const ccSuggestions = computed(() => users.value
+  .filter(u => u.email)
+  .map(u => ({ label: `${u.display_name} <${u.email}>`, value: u.email.toLowerCase() })))
 
 // From-identity selector: send as the agent's personal alias or the general contact address.
 const publicConfig = useRuntimeConfig().public as { inboxContactAddress?: string; inboxDomain?: string }
@@ -825,6 +851,8 @@ async function selectConversation(id: number, updateUrl = true) {
     slideoverOpen.value = true
     replyHtml.value = ''
     currentDraftId.value = null
+    ccEmails.value = []
+    showCc.value = false
     aiMeta.value = null
     fromIdentity.value = defaultFromIdentity(res.messages)
     pendingFiles.value = []
@@ -978,7 +1006,7 @@ function defaultFromIdentity(messages: Message[]): 'personal' | 'contact' {
 async function ensureDraft(): Promise<number> {
   const res = await $fetch<{ message: { id: number } }>(
     `/api/admin/inbox/conversations/${selected.value!.conversation.id}/messages`,
-    { method: 'POST', body: { body_html: replyHtml.value, body_text: htmlToText(replyHtml.value), from_identity: effectiveFromIdentity(), saveDraft: true, draft_id: currentDraftId.value ?? undefined } }
+    { method: 'POST', body: { body_html: replyHtml.value, body_text: htmlToText(replyHtml.value), from_identity: effectiveFromIdentity(), cc_emails: ccEmails.value, saveDraft: true, draft_id: currentDraftId.value ?? undefined } }
   )
   currentDraftId.value = res.message.id
   return res.message.id
@@ -1032,11 +1060,14 @@ async function sendReply() {
         body_html: replyHtml.value,
         body_text: htmlToText(replyHtml.value),
         from_identity: effectiveFromIdentity(),
+        cc_emails: ccEmails.value,
         draft_id: currentDraftId.value ?? undefined,
       },
     })
     replyHtml.value = ''
     currentDraftId.value = null
+    ccEmails.value = []
+    showCc.value = false
     aiMeta.value = null
     toast.add({ title: t('inbox.toasts.sent'), color: 'success' })
     await refreshSelected()
@@ -1065,6 +1096,8 @@ function dismissAiMeta() {
 function loadDraft(d: Message) {
   replyHtml.value = d.body_html || ''
   currentDraftId.value = d.id
+  ccEmails.value = d.cc_emails ?? []
+  if (ccEmails.value.length) showCc.value = true
   aiMeta.value = d.ai_metadata ?? null
   if (d.from_email) {
     fromIdentity.value = d.from_email.toLowerCase() === contactAddress.toLowerCase() ? 'contact' : 'personal'
@@ -1220,6 +1253,7 @@ a.contact-name:hover { text-decoration: underline; }
 
 .composer { border-top: 1px solid var(--ui-border); padding-top: 1rem; }
 .composer-from { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.composer-cc { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
 .from-label { font-size: 0.75rem; color: var(--ui-text-muted); }
 .from-select { min-width: 260px; }
 .from-static { font-size: 0.8rem; color: var(--ui-text); }

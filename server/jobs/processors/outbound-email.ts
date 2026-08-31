@@ -76,6 +76,21 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
     return { success: true, data: { skipped: 'suppressed' } }
   }
 
+  // CC (stored lowercased at compose time): exclude the main recipient and drop
+  // suppressed addresses — CC is best-effort and never blocks the send.
+  let ccEmails = (message.cc_emails || []).filter(cc => cc !== recipientEmail.toLowerCase())
+  if (ccEmails.length) {
+    const deliverable: string[] = []
+    for (const cc of ccEmails) {
+      if (await contactMethodService.isSuppressed(cc)) {
+        console.warn(`[OutboundEmail] Dropping suppressed CC ${cc} on message ${message.id}`)
+      } else {
+        deliverable.push(cc)
+      }
+    }
+    ccEmails = deliverable
+  }
+
   // Build a quoted history of the prior thread so the recipient's email has context
   // (the in-app thread shows messages individually, so we quote only on the sent copy).
   const prior = (await messageService.listForConversation(conversation.id)).filter(m => m.id !== message.id)
@@ -140,6 +155,7 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
   const result = await inboxEmailService.send({
     from: fromAddress,
     to: recipientEmail,
+    cc: ccEmails.length ? ccEmails : undefined,
     subject: message.subject || conversation.subject || 'Re:',
     html,
     text: text || undefined,

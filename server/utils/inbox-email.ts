@@ -24,6 +24,7 @@ export interface InboxEmailAttachment {
 export interface InboxEmailOptions {
   from: string // full address, e.g. '"George with Doxa" <george@doxa.life>'
   to: string | string[]
+  cc?: string[]
   subject: string
   html: string
   text?: string
@@ -107,6 +108,7 @@ class InboxEmailService {
     const info = await transporter.sendMail({
       from: options.from,
       to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
+      cc: options.cc?.length ? options.cc.join(', ') : undefined,
       subject: options.subject,
       html: options.html,
       text: options.text || options.html.replace(/<[^>]*>/g, ''),
@@ -134,6 +136,7 @@ class InboxEmailService {
     form.append('from', options.from)
     const recipients = Array.isArray(options.to) ? options.to : [options.to]
     for (const r of recipients) form.append('to', r)
+    for (const c of options.cc || []) form.append('cc', c)
     form.append('subject', options.subject)
     form.append('html', options.html)
     form.append('text', options.text || options.html.replace(/<[^>]*>/g, ''))

@@ -29,6 +29,7 @@ export interface ConversationMessage {
   from_email: string | null
   from_name: string | null
   to_email: string | null
+  cc_emails: string[] | null
   subject: string | null
   body_html: string | null
   body_stripped_html: string | null
@@ -58,6 +59,7 @@ export interface CreateMessageData {
   from_email?: string | null
   from_name?: string | null
   to_email?: string | null
+  cc_emails?: string[] | null
   subject?: string | null
   body_html?: string | null
   body_stripped_html?: string | null
@@ -81,14 +83,15 @@ class MessageService {
     const [row] = await this.sql<ConversationMessage[]>`
       INSERT INTO conversation_messages (
         conversation_id, direction, status, sender_user_id,
-        from_email, from_name, to_email, subject,
+        from_email, from_name, to_email, cc_emails, subject,
         body_html, body_stripped_html, body_text,
         email_message_id, in_reply_to, email_references,
         spam_score, raw_s3_key, authenticated, auth_result, hold_reason,
         ai_generated, ai_metadata
       ) VALUES (
         ${data.conversation_id}, ${data.direction}, ${data.status || 'received'}, ${data.sender_user_id ?? null},
-        ${data.from_email ?? null}, ${data.from_name ?? null}, ${data.to_email ?? null}, ${data.subject ?? null},
+        ${data.from_email ?? null}, ${data.from_name ?? null}, ${data.to_email ?? null},
+        ${data.cc_emails && data.cc_emails.length ? data.cc_emails : null}, ${data.subject ?? null},
         ${data.body_html ?? null}, ${data.body_stripped_html ?? null}, ${data.body_text ?? null},
         ${data.email_message_id ?? null}, ${data.in_reply_to ?? null}, ${data.email_references ?? null},
         ${data.spam_score ?? null}, ${data.raw_s3_key ?? null}, ${data.authenticated ?? false},
@@ -197,12 +200,15 @@ class MessageService {
     `
   }
 
-  async updateDraft(id: number, data: { body_html?: string | null; body_text?: string | null; from_email?: string | null }): Promise<ConversationMessage | null> {
+  // cc_emails is set unconditionally (not COALESCEd) so callers can clear it —
+  // both call sites always pass the composer's full current CC list.
+  async updateDraft(id: number, data: { body_html?: string | null; body_text?: string | null; from_email?: string | null; cc_emails?: string[] | null }): Promise<ConversationMessage | null> {
     const [row] = await this.sql<ConversationMessage[]>`
       UPDATE conversation_messages
       SET body_html = ${data.body_html ?? null},
           body_text = ${data.body_text ?? null},
           from_email = COALESCE(${data.from_email ?? null}, from_email),
+          cc_emails = ${data.cc_emails && data.cc_emails.length ? data.cc_emails : null},
           updated_at = NOW()
       WHERE id = ${id} AND status = 'draft'
       RETURNING *

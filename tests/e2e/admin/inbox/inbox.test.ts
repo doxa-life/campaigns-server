@@ -1109,4 +1109,93 @@ describe('Shared inbox', async () => {
       expect(status).toBe(403)
     })
   })
+
+  // CC recipients on outbound replies
+  describe('CC recipients', () => {
+    it('sends the reply with normalized, deduped CC addresses', async () => {
+      const email = `inbox-cc-${uuidv4().slice(0, 8)}@example.com`
+      const subId = await makeSubscriber(email)
+      const convo = await makeConversation(subId, { status: 'open' })
+      await postInbound({
+        recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
+        from: `Contact <${email}>`, sender: email,
+        'body-html': '<p>hi</p>',
+        'message-headers': headerJson([['Message-Id', `<cc-${uuidv4()}@example.com>`]]),
+      })
+      await $fetch(`/api/admin/inbox/conversations/${convo.id}/messages`, {
+        method: 'POST',
+        body: { body_html: '<p>Reply NEEDLE-CC</p>', body_text: 'reply', cc_emails: [' Colleague@Example.com', 'colleague@example.com', 'other@ext.org'] },
+        ...agentAuth,
+      })
+      await clearRecordedEmails()
+      const { emails } = await drainOutbound(convo.id)
+      const reply = emails.find(e => typeof e.html === 'string' && e.html.includes('NEEDLE-CC'))
+      expect(reply).toBeTruthy()
+      expect(reply.to).toBe(email)
+      expect(reply.cc).toEqual(['colleague@example.com', 'other@ext.org'])
+    })
+
+    it('rejects invalid and oversized CC lists', async () => {
+      const subId = await makeSubscriber(`inbox-ccval-${uuidv4().slice(0, 8)}@example.com`)
+      const convo = await makeConversation(subId, { status: 'open' })
+      for (const cc_emails of [['not-an-email'], Array.from({ length: 11 }, (_, i) => `cc${i}@example.com`)]) {
+        let status = 0
+        try {
+          await $fetch(`/api/admin/inbox/conversations/${convo.id}/messages`, {
+            method: 'POST', body: { body_html: '<p>x</p>', cc_emails }, ...agentAuth,
+          })
+        } catch (err: any) {
+          status = err?.statusCode || err?.response?.status || 0
+        }
+        expect(status).toBe(400)
+      }
+    })
+
+    it('round-trips CC on a draft and persists clearing it', async () => {
+      const subId = await makeSubscriber(`inbox-ccdraft-${uuidv4().slice(0, 8)}@example.com`)
+      const convo = await makeConversation(subId, { status: 'open' })
+      const created = await $fetch<{ message: { id: number; cc_emails: string[] | null } }>(
+        `/api/admin/inbox/conversations/${convo.id}/messages`,
+        { method: 'POST', body: { body_html: '<p>draft</p>', saveDraft: true, cc_emails: ['cc@example.com'] }, ...agentAuth },
+      )
+      expect(created.message.cc_emails).toEqual(['cc@example.com'])
+
+      const detail = await $fetch<{ drafts: { id: number; cc_emails: string[] | null }[] }>(
+        `/api/admin/inbox/conversations/${convo.id}`, { ...agentAuth },
+      )
+      expect(detail.drafts.find(d => d.id === created.message.id)?.cc_emails).toEqual(['cc@example.com'])
+
+      const cleared = await $fetch<{ message: { cc_emails: string[] | null } }>(
+        `/api/admin/inbox/conversations/${convo.id}/messages`,
+        { method: 'POST', body: { body_html: '<p>draft</p>', saveDraft: true, draft_id: created.message.id, cc_emails: [] }, ...agentAuth },
+      )
+      expect(cleared.message.cc_emails).toBeNull()
+    })
+
+    it('drops suppressed and main-recipient addresses from CC at send time', async () => {
+      const email = `inbox-ccsup-${uuidv4().slice(0, 8)}@example.com`
+      const subId = await makeSubscriber(email)
+      const convo = await makeConversation(subId, { status: 'open' })
+      await postInbound({
+        recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
+        from: `Contact <${email}>`, sender: email,
+        'body-html': '<p>hi</p>',
+        'message-headers': headerJson([['Message-Id', `<ccsup-${uuidv4()}@example.com>`]]),
+      })
+      const suppressed = `inbox-ccsup-x-${uuidv4().slice(0, 8)}@example.com`
+      await makeSubscriber(suppressed)
+      await sql`UPDATE contact_methods SET suppressed_at = NOW() WHERE LOWER(value) = LOWER(${suppressed})`
+      await $fetch(`/api/admin/inbox/conversations/${convo.id}/messages`, {
+        method: 'POST',
+        body: { body_html: '<p>Reply NEEDLE-CCSUP</p>', body_text: 'reply', cc_emails: [suppressed, email, 'keep@ext.org'] },
+        ...agentAuth,
+      })
+      await clearRecordedEmails()
+      const { emails } = await drainOutbound(convo.id)
+      const reply = emails.find(e => typeof e.html === 'string' && e.html.includes('NEEDLE-CCSUP'))
+      expect(reply).toBeTruthy()
+      expect(reply.to).toBe(email)
+      expect(reply.cc).toEqual(['keep@ext.org'])
+    })
+  })
 })
