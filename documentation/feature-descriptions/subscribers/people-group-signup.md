@@ -33,7 +33,7 @@ The form has two sections:
 
 - **Name** — Required.
 - **Email** — Required.
-- **Communication consent** — Two optional checkboxes: receive updates about this people group, and receive general Doxa updates.
+- **Communication consent** — Two optional checkboxes: receive updates about this people group, and receive general DOXA updates.
 
 After submitting, a modal confirms the signup and asks the visitor to check their email. They must click the verification link to activate their reminders.
 

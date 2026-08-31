@@ -10,7 +10,7 @@ The contact form lives on doxa.life (the marketing website). When someone submit
 - **Name** (optional)
 - **Message** (required) — the content of their inquiry
 - **Country** (optional)
-- **Communication consent** — a checkbox to opt in to receiving general Doxa updates
+- **Communication consent** — a checkbox to opt in to receiving general DOXA updates
 
 ## What Happens After Submission
 

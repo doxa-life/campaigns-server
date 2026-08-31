@@ -31,7 +31,7 @@ The system prevents two subscribers from using the same email address.
 
 The profile shows toggles for marketing consent:
 
-**Doxa Updates** - Whether to receive general updates about Doxa's work across all people groups.
+**DOXA Updates** - Whether to receive general updates about DOXA's work across all people groups.
 
 **People Group Updates** - For each people group they're subscribed to, whether to receive news and announcements from that people group's organizers.
 

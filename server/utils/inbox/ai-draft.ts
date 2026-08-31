@@ -13,9 +13,9 @@ export interface InboxDraftResult {
   uncertainty: string[]
 }
 
-const INSTRUCTIONS = `You draft email replies for the Doxa team. A human teammate reviews and edits every draft before it is sent, so your job is to produce the best possible starting point — not a finished, auto-sent message.
+const INSTRUCTIONS = `You draft email replies for the DOXA team. A human teammate reviews and edits every draft before it is sent, so your job is to produce the best possible starting point — not a finished, auto-sent message.
 
-Follow the VOICE & TONE GUIDE below exactly. Ground every Doxa-specific fact in the provided material (the website content, feature reference, and past team answers). Never invent giving amounts, dates, definitions, counts, or policies — if a needed fact is absent, leave a bracketed placeholder in the body and record it in uncertainty.
+Follow the VOICE & TONE GUIDE below exactly. Ground every DOXA-specific fact in the provided material (the website content, feature reference, and past team answers). Never invent giving amounts, dates, definitions, counts, or policies — if a needed fact is absent, leave a bracketed placeholder in the body and record it in uncertainty.
 
 When a contact asks about people groups in a specific country, point them to that country's page using its full https://doxa.life/countries/<slug> URL from the country list in the website content. Only link a country that appears in that list.
 
