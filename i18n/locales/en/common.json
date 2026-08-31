@@ -428,6 +428,15 @@
     "pageTitle": "People Group Updates",
     "heading": "People Group Updates",
     "intro": "Welcome, and thank you for helping keep our people group information accurate. This brief form will ask for some basic information about you and the people group. Our team reviews every suggestion before a change is made.",
+    "steps": {
+      "group": "People group",
+      "engagement": "Engagement",
+      "details": "Details",
+      "reason": "Reason",
+      "about": "About you"
+    },
+    "back": "Back",
+    "next": "Next",
     "searchLabel": "Which people group would you like to tell us about?",
     "searchPlaceholder": "Type the people group's name...",
     "searchHint": "We'll look through our list, along with the IMB and Joshua Project databases.",

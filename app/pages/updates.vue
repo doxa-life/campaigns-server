@@ -29,78 +29,22 @@
         <UButton class="mt-6" variant="outline" @click="resetAll">{{ $t('updates.success.another') }}</UButton>
       </UCard>
 
-      <UCard v-else class="dark:bg-elevated">
+      <UCard
+        v-else
+        class="dark:bg-elevated"
+        :ui="{ root: 'divide-y-0 overflow-hidden', header: 'bg-sage-300 dark:bg-forest-800' }"
+      >
         <template #header>
           <h1 class="text-2xl font-bold mb-1">{{ $t('updates.heading') }}</h1>
           <p class="text-sm text-[var(--ui-text-muted)] m-0">{{ $t('updates.intro') }}</p>
         </template>
 
         <form class="space-y-6" @submit.prevent="submit">
-          <!-- ============ Unified search ============ -->
-          <template v-if="!selectionMade">
-            <UFormField :label="$t('updates.searchLabel')" :description="$t('updates.searchHint')">
-              <UInput
-                v-model="searchQuery"
-                icon="i-lucide-search"
-                :placeholder="$t('updates.searchPlaceholder')"
-                :loading="searching"
-                size="lg"
-                class="w-full"
-              />
-            </UFormField>
-
-            <div v-if="doxaResults.length > 0 || externalResults.length > 0" class="search-results">
-              <template v-if="doxaResults.length > 0">
-                <div class="search-section">{{ $t('updates.sectionDoxa') }}</div>
-                <button
-                  v-for="result in doxaResults"
-                  :key="`doxa-${result.id}`"
-                  type="button"
-                  class="search-result"
-                  @click="selectDoxaGroup(result.id)"
-                >
-                  <span class="flex items-center gap-2">
-                    <UBadge label="DOXA" color="primary" variant="subtle" size="sm" />
-                    <span class="font-medium">{{ result.name }}</span>
-                    <span v-if="result.country_code" class="text-xs text-[var(--ui-text-muted)]">{{ countryName(result.country_code) }}</span>
-                  </span>
-                  <UBadge v-if="result.status === 'archived'" label="archived" color="neutral" variant="subtle" size="sm" />
-                </button>
-              </template>
-              <template v-if="externalResults.length > 0">
-                <div class="search-section">{{ $t('updates.sectionExternal') }}</div>
-                <button
-                  v-for="(result, idx) in externalResults"
-                  :key="`ext-${result.source}-${result.external_id}-${idx}`"
-                  type="button"
-                  class="search-result"
-                  @click="selectExternal(result)"
-                >
-                  <span class="flex items-center gap-2">
-                    <UBadge :label="result.source === 'imb' ? $t('updates.sourceImb') : $t('updates.sourceJp')" variant="subtle" size="sm" />
-                    <span class="font-medium">{{ result.name }}</span>
-                    <span v-if="result.country" class="text-xs text-[var(--ui-text-muted)]">{{ result.country }}</span>
-                  </span>
-                  <UBadge v-if="result.in_doxa" :label="$t('updates.alreadyInDoxa')" color="neutral" variant="subtle" size="sm" />
-                </button>
-              </template>
-            </div>
-            <p v-else-if="searchQuery.trim().length >= 2 && !searching" class="text-sm text-[var(--ui-text-muted)] m-0">
-              {{ $t('updates.searchNoResults') }}
-            </p>
-
-            <UButton
-              v-if="searchQuery.trim().length >= 2 && !searching"
-              variant="link"
-              icon="i-lucide-plus"
-              :label="$t('updates.addNewCta')"
-              class="px-0"
-              @click="startManualEntry"
-            />
-          </template>
-
-          <template v-else>
-            <!-- Selection summary -->
+          <!-- Context band: the chosen group + progress, set off from the editable fields below -->
+          <div
+            v-if="selectionMade"
+            class="-mx-4 sm:-mx-6 -mt-4 sm:-mt-6 px-4 sm:px-6 py-4 space-y-4 bg-sage-300 dark:bg-forest-800 border-b border-default"
+          >
             <div class="selected-group">
               <div class="flex items-center gap-2">
                 <UBadge v-if="selectedDoxaGroup" label="DOXA" color="primary" variant="subtle" size="sm" />
@@ -117,250 +61,334 @@
               <UButton size="xs" variant="ghost" color="neutral" icon="i-lucide-x" :label="$t('updates.changeSelection')" @click="resetSelection" />
             </div>
 
-            <!-- DOXA group: choose what to do -->
-            <div v-if="selectedDoxaGroup && !flow">
+            <UStepper
+              v-if="flow"
+              v-model="step"
+              :items="stepperItems"
+              disabled
+              size="sm"
+            />
+          </div>
+
+          <!-- ============ Step: find the people group ============ -->
+          <template v-if="step === 'group'">
+            <template v-if="!selectionMade">
+              <UFormField :label="$t('updates.searchLabel')" :description="$t('updates.searchHint')">
+                <UInput
+                  v-model="searchQuery"
+                  icon="i-lucide-search"
+                  :placeholder="$t('updates.searchPlaceholder')"
+                  :loading="searching"
+                  size="lg"
+                  class="w-full"
+                />
+              </UFormField>
+
+              <div v-if="doxaResults.length > 0 || externalResults.length > 0" class="search-results">
+                <template v-if="doxaResults.length > 0">
+                  <div class="search-section">{{ $t('updates.sectionDoxa') }}</div>
+                  <button
+                    v-for="result in doxaResults"
+                    :key="`doxa-${result.id}`"
+                    type="button"
+                    class="search-result"
+                    @click="selectDoxaGroup(result.id)"
+                  >
+                    <span class="flex items-center gap-2">
+                      <UBadge label="DOXA" color="primary" variant="subtle" size="sm" />
+                      <span class="font-medium">{{ result.name }}</span>
+                      <span v-if="result.country_code" class="text-xs text-[var(--ui-text-muted)]">{{ countryName(result.country_code) }}</span>
+                    </span>
+                    <UBadge v-if="result.status === 'archived'" label="archived" color="neutral" variant="subtle" size="sm" />
+                  </button>
+                </template>
+                <template v-if="externalResults.length > 0">
+                  <div class="search-section">{{ $t('updates.sectionExternal') }}</div>
+                  <button
+                    v-for="(result, idx) in externalResults"
+                    :key="`ext-${result.source}-${result.external_id}-${idx}`"
+                    type="button"
+                    class="search-result"
+                    @click="selectExternal(result)"
+                  >
+                    <span class="flex items-center gap-2">
+                      <UBadge :label="result.source === 'imb' ? $t('updates.sourceImb') : $t('updates.sourceJp')" variant="subtle" size="sm" />
+                      <span class="font-medium">{{ result.name }}</span>
+                      <span v-if="result.country" class="text-xs text-[var(--ui-text-muted)]">{{ result.country }}</span>
+                    </span>
+                    <UBadge v-if="result.in_doxa" :label="$t('updates.alreadyInDoxa')" color="neutral" variant="subtle" size="sm" />
+                  </button>
+                </template>
+              </div>
+              <p v-else-if="searchQuery.trim().length >= 2 && !searching" class="text-sm text-[var(--ui-text-muted)] m-0">
+                {{ $t('updates.searchNoResults') }}
+              </p>
+
+              <UButton
+                v-if="searchQuery.trim().length >= 2 && !searching"
+                variant="link"
+                icon="i-lucide-plus"
+                :label="$t('updates.addNewCta')"
+                class="px-0"
+                @click="startManualEntry"
+              />
+            </template>
+
+            <!-- DOXA group: choose what to do (also allows switching later) -->
+            <div v-else-if="selectedDoxaGroup">
               <p class="text-sm font-medium mb-2">{{ $t('updates.actionQuestion') }}</p>
               <div class="grid sm:grid-cols-2 gap-2">
-                <button type="button" class="flow-option" @click="chooseUpdate">
+                <button type="button" class="flow-option" :class="{ active: flow === 'update' }" @click="chooseUpdate">
                   <UIcon name="i-lucide-pencil" class="text-xl shrink-0" />
                   <span class="font-medium">{{ $t('updates.actionUpdate') }}</span>
                   <span class="text-xs text-[var(--ui-text-muted)]">{{ $t('updates.actionUpdateDesc') }}</span>
                 </button>
-                <button type="button" class="flow-option" @click="chooseRemove">
+                <button type="button" class="flow-option" :class="{ active: flow === 'remove' }" @click="chooseRemove">
                   <UIcon name="i-lucide-archive" class="text-xl shrink-0" />
                   <span class="font-medium">{{ $t('updates.actionRemove') }}</span>
                   <span class="text-xs text-[var(--ui-text-muted)]">{{ $t('updates.actionRemoveDesc') }}</span>
                 </button>
               </div>
             </div>
+          </template>
 
-            <template v-if="flow">
-              <!-- ============ REMOVE: reason ============ -->
-              <UFormField v-if="flow === 'remove'" :label="$t('updates.removeReasonLabel')" required>
-                <URadioGroup
-                  v-model="removeReason"
-                  :items="removeReasonOptions"
-                  value-key="value"
-                />
-              </UFormField>
+          <!-- ============ Step: engagement (update leads with it, add ends with it) ============ -->
+          <template v-else-if="step === 'engagement'">
+            <template v-if="flow === 'update'">
+              <UpdatesFieldRow
+                v-model="suggested.engagement_status"
+                field-key="engagement_status"
+                show-current
+                :current-display="formatValue('engagement_status', currentValues.engagement_status)"
+              />
 
-              <!-- ============ UPDATE: engagement first, details collapsed ============ -->
-              <template v-if="flow === 'update'">
-                <USeparator />
+              <!-- The three engagement criteria as yes/no questions -->
+              <p class="group-title">{{ $t('updates.criteriaTitle') }}</p>
+              <UpdatesFieldRow
+                v-for="key in criteriaKeys"
+                :key="key"
+                v-model="suggested[key]"
+                :field-key="key"
+                :label="$t(`updates.criteria.${key}`)"
+                show-current
+                :current-display="formatValue(key, currentValues[key])"
+              />
 
-                <UpdatesFieldRow
-                  v-model="suggested.engagement_status"
-                  field-key="engagement_status"
-                  show-current
-                  :current-display="formatValue('engagement_status', currentValues.engagement_status)"
-                />
+              <p class="group-title">{{ $t('updates.resourcesTitle') }}</p>
+              <UpdatesFieldRow
+                v-for="key in resourceKeys"
+                :key="key"
+                v-model="suggested[key]"
+                :field-key="key"
+                show-current
+                :current-display="formatValue(key, currentValues[key])"
+              />
+            </template>
 
-                <!-- The three engagement criteria as yes/no questions -->
-                <p class="group-title">{{ $t('updates.criteriaTitle') }}</p>
-                <UpdatesFieldRow
-                  v-for="key in criteriaKeys"
-                  :key="key"
-                  v-model="suggested[key]"
-                  :field-key="key"
-                  :label="$t(`updates.criteria.${key}`)"
-                  show-current
-                  :current-display="formatValue(key, currentValues[key])"
-                />
+            <template v-else>
+              <p class="group-title">{{ $t('updates.criteriaTitle') }}</p>
+              <UpdatesFieldRow v-model="suggested.engagement_status" field-key="engagement_status" />
+              <UpdatesFieldRow
+                v-for="key in criteriaKeys"
+                :key="key"
+                v-model="suggested[key]"
+                :field-key="key"
+                :label="$t(`updates.criteria.${key}`)"
+              />
 
-                <p class="group-title">{{ $t('updates.resourcesTitle') }}</p>
-                <UpdatesFieldRow
-                  v-for="key in resourceKeys"
-                  :key="key"
-                  v-model="suggested[key]"
-                  :field-key="key"
-                  show-current
-                  :current-display="formatValue(key, currentValues[key])"
-                />
-
-                <UCollapsible v-model:open="detailsOpen">
-                  <UButton
-                    type="button"
-                    variant="link"
-                    color="neutral"
-                    :icon="detailsOpen ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
-                    :label="$t('updates.detailsTitle')"
-                    class="px-0"
-                  />
-                  <template #content>
-                    <div class="space-y-4 mt-2">
-                      <p class="text-sm m-0">{{ $t('updates.updateFieldsHint') }}</p>
-                      <UpdatesFieldRow
-                        v-for="key in detailKeys"
-                        :key="key"
-                        v-model="suggested[key]"
-                        :field-key="key"
-                        show-current
-                        :current-display="formatValue(key, currentValues[key])"
-                      />
-                      <UpdatesFieldRow field-key="image_url" :label="$t('updates.pictureLabel')" show-current>
-                        <template #current>
-                          <img v-if="currentImageUrl" :src="currentImageUrl" class="current-image" alt="" />
-                          <span v-else>—</span>
-                        </template>
-                        <UFileUpload
-                          v-model="pictureFile"
-                          accept="image/jpeg,image/png,image/gif,image/webp"
-                          variant="area"
-                          :label="$t('updates.pictureDropLabel')"
-                          :description="$t('updates.pictureHint')"
-                          class="w-full"
-                        />
-                      </UpdatesFieldRow>
-                    </div>
-                  </template>
-                </UCollapsible>
-              </template>
-
-              <!-- ============ ADD: request notice, details, engagement, resources ============ -->
-              <template v-else-if="flow === 'add' && showFields">
-                <UAlert
-                  color="info"
-                  icon="i-lucide-list-plus"
-                  :title="manualEntry ? $t('updates.addNoticeNew') : $t('updates.addNotice', { name: selectionName })"
-                />
-
-                <p v-if="manualEntry" class="text-sm mt-0 mb-6">{{ $t('updates.addManualHint') }}</p>
-                <p v-else-if="selectedExternal?.source === 'jp'" class="text-sm mt-0 mb-6">{{ $t('updates.addJpHint') }}</p>
-                <template v-else-if="selectedExternal?.source === 'imb'">
-                  <UAlert
-                    v-if="imbExclusionReasons.length > 0"
-                    color="warning"
-                    icon="i-lucide-circle-help"
-                    :title="$t('updates.addImbReasonsTitle')"
-                  >
-                    <template #description>
-                      <ul class="list-disc ml-4 my-1">
-                        <li v-for="reason in imbExclusionReasons" :key="reason">
-                          {{ $t(`updates.exclusionReasons.${reason}`) }}
-                        </li>
-                      </ul>
-                      {{ $t('updates.addImbReasonsHint') }}
-                    </template>
-                  </UAlert>
-                  <p v-else class="text-sm mt-0 mb-6">{{ $t('updates.addImbEligibleHint') }}</p>
-                </template>
-
-                <UpdatesFieldRow
-                  v-for="key in detailKeys"
-                  :key="key"
-                  v-model="suggested[key]"
-                  :field-key="key"
-                  :hint="key === 'primary_religion' && jpReligionLabel ? $t('updates.jpReligionHint', { label: jpReligionLabel }) : undefined"
-                />
-
-                <p class="group-title">{{ $t('updates.criteriaTitle') }}</p>
-                <UpdatesFieldRow v-model="suggested.engagement_status" field-key="engagement_status" />
-                <UpdatesFieldRow
-                  v-for="key in criteriaKeys"
-                  :key="key"
-                  v-model="suggested[key]"
-                  :field-key="key"
-                  :label="$t(`updates.criteria.${key}`)"
-                />
-
-                <p class="group-title">{{ $t('updates.resourcesTitle') }}</p>
-                <UpdatesFieldRow
-                  v-for="key in resourceKeys"
-                  :key="key"
-                  v-model="suggested[key]"
-                  :field-key="key"
-                />
-
-                <UpdatesFieldRow
-                  field-key="image_url"
-                  :label="$t('updates.pictureLabel')"
-                  :show-current="!!suggested.image_url"
-                  :current-label="selectedExternal?.source === 'jp' ? $t('updates.sourceJp') : $t('updates.sourceImb')"
-                >
-                  <template #current>
-                    <div class="captured-photo">
-                      <img :src="suggested.image_url" class="current-image" alt="" />
-                      <p class="text-xs m-0">
-                        {{ $t('updates.capturedPhotoNote', { source: selectedExternal?.source === 'jp' ? $t('updates.sourceJp') : $t('updates.sourceImb') }) }}
-                      </p>
-                    </div>
-                  </template>
-                  <UFileUpload
-                    v-model="pictureFile"
-                    accept="image/jpeg,image/png,image/gif,image/webp"
-                    variant="area"
-                    :label="$t('updates.pictureDropLabel')"
-                    :description="$t('updates.pictureHint')"
-                    class="w-full"
-                  />
-                </UpdatesFieldRow>
-              </template>
-
-              <!-- ============ REMOVE: optional corrections ============ -->
-              <template v-else-if="flow === 'remove' && showFields">
-                <div class="flex items-center gap-3">
-                  <USwitch v-model="showRemoveCorrections" />
-                  <span class="text-sm">{{ $t('updates.removeFieldsToggle') }}</span>
-                </div>
-
-                <template v-if="showRemoveCorrections">
-                  <p class="text-sm m-0">{{ $t('updates.removeFieldsHint') }}</p>
-                  <UpdatesFieldRow
-                    v-for="key in addFieldKeys"
-                    :key="key"
-                    v-model="suggested[key]"
-                    :field-key="key"
-                    show-current
-                    :current-display="formatValue(key, currentValues[key])"
-                  />
-                </template>
-              </template>
-
-              <!-- ============ Comments ============ -->
-              <UFormField
-                :label="$t('updates.commentsLabel')"
-                :description="$t('updates.commentsHint')"
-                :required="flow === 'add' || flow === 'remove'"
-              >
-                <UTextarea v-model="form.comments" :rows="4" class="w-full" />
-              </UFormField>
-
-              <!-- ============ Reporter ============ -->
-              <USeparator :label="$t('updates.reporter.title')" />
-              <div class="grid sm:grid-cols-2 gap-4">
-                <UFormField :label="$t('updates.reporter.name')" required>
-                  <UInput v-model="form.reporter_name" class="w-full" />
-                </UFormField>
-                <UFormField :label="$t('updates.reporter.org')">
-                  <UInput v-model="form.reporter_org" class="w-full" />
-                </UFormField>
-              </div>
-              <UFormField :label="$t('updates.reporter.email')" required :hint="$t('updates.reporter.emailHint')">
-                <UInput v-model="form.reporter_email" type="email" class="w-full" />
-              </UFormField>
-
-              <!-- ============ Verifier (optional) ============ -->
-              <USeparator :label="$t('updates.verifier.title')" />
-              <p class="text-sm text-[var(--ui-text-muted)] m-0">{{ $t('updates.verifier.hint') }}</p>
-              <div class="grid sm:grid-cols-2 gap-4">
-                <UFormField :label="$t('updates.verifier.name')">
-                  <UInput v-model="form.verifier_name" class="w-full" />
-                </UFormField>
-                <UFormField :label="$t('updates.verifier.entity')">
-                  <UInput v-model="form.verifier_entity" class="w-full" />
-                </UFormField>
-              </div>
-              <UFormField :label="$t('updates.verifier.email')">
-                <UInput v-model="form.verifier_email" type="email" class="w-full" />
-              </UFormField>
-
-              <UpdatesTurnstileWidget ref="turnstileRef" v-model="turnstileToken" />
-
-              <UButton type="submit" block size="lg" :loading="submitting" :disabled="submitting">
-                {{ submitting ? $t('updates.submitting') : $t('updates.submit') }}
-              </UButton>
+              <p class="group-title">{{ $t('updates.resourcesTitle') }}</p>
+              <UpdatesFieldRow
+                v-for="key in resourceKeys"
+                :key="key"
+                v-model="suggested[key]"
+                :field-key="key"
+              />
             </template>
           </template>
+
+          <!-- ============ Step: detail fields + picture ============ -->
+          <template v-else-if="step === 'details'">
+            <template v-if="flow === 'update'">
+              <p class="text-sm m-0">{{ $t('updates.updateFieldsHint') }}</p>
+              <UpdatesFieldRow
+                v-for="key in detailKeys"
+                :key="key"
+                v-model="suggested[key]"
+                :field-key="key"
+                show-current
+                :current-display="formatValue(key, currentValues[key])"
+              />
+              <UpdatesFieldRow field-key="image_url" :label="$t('updates.pictureLabel')" show-current>
+                <template #current>
+                  <img v-if="currentImageUrl" :src="currentImageUrl" class="current-image" alt="" />
+                  <span v-else>—</span>
+                </template>
+                <UFileUpload
+                  v-model="pictureFile"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  variant="area"
+                  :label="$t('updates.pictureDropLabel')"
+                  :description="$t('updates.pictureHint')"
+                  class="w-full"
+                />
+              </UpdatesFieldRow>
+            </template>
+
+            <!-- ADD: request notice + details -->
+            <template v-else>
+              <UAlert
+                color="info"
+                icon="i-lucide-list-plus"
+                :title="manualEntry ? $t('updates.addNoticeNew') : $t('updates.addNotice', { name: selectionName })"
+              />
+
+              <p v-if="manualEntry" class="text-sm mt-0 mb-6">{{ $t('updates.addManualHint') }}</p>
+              <p v-else-if="selectedExternal?.source === 'jp'" class="text-sm mt-0 mb-6">{{ $t('updates.addJpHint') }}</p>
+              <template v-else-if="selectedExternal?.source === 'imb'">
+                <UAlert
+                  v-if="imbExclusionReasons.length > 0"
+                  color="warning"
+                  icon="i-lucide-circle-help"
+                  :title="$t('updates.addImbReasonsTitle')"
+                >
+                  <template #description>
+                    <ul class="list-disc ml-4 my-1">
+                      <li v-for="reason in imbExclusionReasons" :key="reason">
+                        {{ $t(`updates.exclusionReasons.${reason}`) }}
+                      </li>
+                    </ul>
+                    {{ $t('updates.addImbReasonsHint') }}
+                  </template>
+                </UAlert>
+                <p v-else class="text-sm mt-0 mb-6">{{ $t('updates.addImbEligibleHint') }}</p>
+              </template>
+
+              <UpdatesFieldRow
+                v-for="key in detailKeys"
+                :key="key"
+                v-model="suggested[key]"
+                :field-key="key"
+                :hint="key === 'primary_religion' && jpReligionLabel ? $t('updates.jpReligionHint', { label: jpReligionLabel }) : undefined"
+              />
+
+              <UpdatesFieldRow
+                field-key="image_url"
+                :label="$t('updates.pictureLabel')"
+                :show-current="!!suggested.image_url"
+                :current-label="selectedExternal?.source === 'jp' ? $t('updates.sourceJp') : $t('updates.sourceImb')"
+              >
+                <template #current>
+                  <div class="captured-photo">
+                    <img :src="suggested.image_url" class="current-image" alt="" />
+                    <p class="text-xs m-0">
+                      {{ $t('updates.capturedPhotoNote', { source: selectedExternal?.source === 'jp' ? $t('updates.sourceJp') : $t('updates.sourceImb') }) }}
+                    </p>
+                  </div>
+                </template>
+                <UFileUpload
+                  v-model="pictureFile"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  variant="area"
+                  :label="$t('updates.pictureDropLabel')"
+                  :description="$t('updates.pictureHint')"
+                  class="w-full"
+                />
+              </UpdatesFieldRow>
+            </template>
+          </template>
+
+          <!-- ============ Step: removal reason + optional corrections ============ -->
+          <template v-else-if="step === 'reason'">
+            <UFormField :label="$t('updates.removeReasonLabel')" required>
+              <URadioGroup
+                v-model="removeReason"
+                :items="removeReasonOptions"
+                value-key="value"
+              />
+            </UFormField>
+
+            <div class="flex items-center gap-3">
+              <USwitch v-model="showRemoveCorrections" />
+              <span class="text-sm">{{ $t('updates.removeFieldsToggle') }}</span>
+            </div>
+
+            <template v-if="showRemoveCorrections">
+              <p class="text-sm m-0">{{ $t('updates.removeFieldsHint') }}</p>
+              <UpdatesFieldRow
+                v-for="key in addFieldKeys"
+                :key="key"
+                v-model="suggested[key]"
+                :field-key="key"
+                show-current
+                :current-display="formatValue(key, currentValues[key])"
+              />
+            </template>
+          </template>
+
+          <!-- ============ Step: comments + reporter + verifier ============ -->
+          <template v-else-if="step === 'about'">
+            <UFormField
+              :label="$t('updates.commentsLabel')"
+              :description="$t('updates.commentsHint')"
+              :required="flow === 'add' || flow === 'remove'"
+            >
+              <UTextarea v-model="form.comments" :rows="4" class="w-full" />
+            </UFormField>
+
+            <USeparator :label="$t('updates.reporter.title')" />
+            <div class="grid sm:grid-cols-2 gap-4">
+              <UFormField :label="$t('updates.reporter.name')" required>
+                <UInput v-model="form.reporter_name" class="w-full" />
+              </UFormField>
+              <UFormField :label="$t('updates.reporter.org')">
+                <UInput v-model="form.reporter_org" class="w-full" />
+              </UFormField>
+            </div>
+            <UFormField :label="$t('updates.reporter.email')" required :hint="$t('updates.reporter.emailHint')">
+              <UInput v-model="form.reporter_email" type="email" class="w-full" />
+            </UFormField>
+
+            <USeparator :label="$t('updates.verifier.title')" />
+            <p class="text-sm text-[var(--ui-text-muted)] m-0">{{ $t('updates.verifier.hint') }}</p>
+            <div class="grid sm:grid-cols-2 gap-4">
+              <UFormField :label="$t('updates.verifier.name')">
+                <UInput v-model="form.verifier_name" class="w-full" />
+              </UFormField>
+              <UFormField :label="$t('updates.verifier.entity')">
+                <UInput v-model="form.verifier_entity" class="w-full" />
+              </UFormField>
+            </div>
+            <UFormField :label="$t('updates.verifier.email')">
+              <UInput v-model="form.verifier_email" type="email" class="w-full" />
+            </UFormField>
+
+            <UpdatesTurnstileWidget ref="turnstileRef" v-model="turnstileToken" />
+          </template>
+
+          <!-- ============ Step navigation ============ -->
+          <div v-if="selectionMade && flow" class="flex items-center justify-between gap-4">
+            <UButton
+              v-if="stepIndex > 0"
+              type="button"
+              variant="ghost"
+              color="neutral"
+              icon="i-lucide-arrow-left"
+              :label="$t('updates.back')"
+              @click="prevStep"
+            />
+            <span v-else />
+            <UButton
+              v-if="step !== 'about'"
+              type="button"
+              size="lg"
+              trailing-icon="i-lucide-arrow-right"
+              :label="$t('updates.next')"
+              @click="nextStep"
+            />
+            <UButton v-else type="submit" size="lg" :loading="submitting" :disabled="submitting">
+              {{ submitting ? $t('updates.submitting') : $t('updates.submit') }}
+            </UButton>
+          </div>
         </form>
       </UCard>
     </div>
@@ -426,14 +454,41 @@ const verifiedBanner = computed<boolean | null>(() => {
 const flow = ref<Flow | null>(null)
 
 // The suggestible field keys shown as inputs (picture handled separately).
-// Field groups per flow: update leads with engagement (criteria + resources),
-// with the detail fields collapsed; add and remove-corrections use the flat
-// detail list plus engagement status. Picture is handled separately.
+// Update steps lead with engagement (criteria + resources) then details;
+// add steps lead with details then engagement; remove corrections use the
+// flat detail list plus engagement status.
 const criteriaKeys = publicEngagementCriteriaKeys
 const resourceKeys = publicResourceFieldKeys
 const detailKeys = publicDetailFieldKeys.filter((k) => k !== 'image_url')
 const addFieldKeys = [...detailKeys, 'engagement_status']
-const detailsOpen = ref(false)
+
+// Wizard steps per flow. The stepper and nav only render once a flow is
+// chosen; before that the sequence is just the group-selection step.
+const step = ref('group')
+const stepSequence = computed<string[]>(() => {
+  if (flow.value === 'update') return ['group', 'engagement', 'details', 'about']
+  if (flow.value === 'add') return ['group', 'details', 'engagement', 'about']
+  if (flow.value === 'remove') return ['group', 'reason', 'about']
+  return ['group']
+})
+const stepIndex = computed(() => stepSequence.value.indexOf(step.value))
+const stepperItems = computed(() =>
+  stepSequence.value.map((value) => ({ value, title: t(`updates.steps.${value}`) }))
+)
+
+function nextStep() {
+  if (step.value === 'reason' && !removeReason.value) {
+    toast.add({ title: t('updates.errors.reasonRequired'), color: 'error' })
+    return
+  }
+  const next = stepSequence.value[stepIndex.value + 1]
+  if (next) step.value = next
+}
+
+function prevStep() {
+  const prev = stepSequence.value[stepIndex.value - 1]
+  if (prev) step.value = prev
+}
 
 // Shared reporter/verifier/comments state
 const form = ref({
@@ -495,11 +550,6 @@ const selectionCountry = computed(() => {
     return code ? countryName(String(code)) : null
   }
   return selectedExternal.value?.country ?? null
-})
-
-const showFields = computed(() => {
-  if (flow.value === 'add') return !!selectedExternal.value || manualEntry.value
-  return !!selectedDoxaGroup.value
 })
 
 const jpReligionLabel = computed(() =>
@@ -597,6 +647,7 @@ function selectExternal(result: ExternalSearchResult) {
   // storage when the add is applied); the submitter can replace it by upload.
   if (result.prefill.image_url) prefill.image_url = result.prefill.image_url
   suggested.value = prefill
+  step.value = 'details'
 }
 
 function startManualEntry() {
@@ -604,14 +655,17 @@ function startManualEntry() {
   manualEntry.value = true
   flow.value = 'add'
   suggested.value = { name: searchQuery.value.trim() }
+  step.value = 'details'
 }
 
 function chooseUpdate() {
   flow.value = 'update'
+  step.value = 'engagement'
 }
 
 function chooseRemove() {
   flow.value = 'remove'
+  step.value = 'reason'
 }
 
 function resetSelection() {
@@ -625,7 +679,7 @@ function resetSelection() {
   pictureFile.value = null
   removeReason.value = undefined
   showRemoveCorrections.value = false
-  detailsOpen.value = false
+  step.value = 'group'
   if (searchQuery.value.trim().length >= 2) {
     void performSearch(searchQuery.value.trim())
   }
@@ -750,6 +804,9 @@ function resetAll() {
 }
 .flow-option:hover {
   border-color: var(--ui-border-accented);
+}
+.flow-option.active {
+  border-color: var(--ui-primary);
 }
 
 .search-results {
