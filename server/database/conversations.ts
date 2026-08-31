@@ -26,6 +26,12 @@ export interface Conversation {
 export interface ConversationWithDetails extends Conversation {
   subscriber_name: string | null
   subscriber_email: string | null
+  // Deliverability of the displayed subscriber_email row. Null when there is no
+  // email; only populated by getByIdWithDetails, not the list queries. The address
+  // a reply actually goes to can differ — see ReplyEmailStatus.
+  subscriber_email_verified?: boolean | null
+  subscriber_email_suppressed_at?: string | null
+  subscriber_email_suppression_reason?: string | null
   assignee_name: string | null
   message_count: number
   last_message_snippet: string | null
@@ -89,15 +95,22 @@ class ConversationService {
     const [row] = await this.sql`
       SELECT c.*,
         s.name AS subscriber_name,
-        (SELECT cm.value FROM contact_methods cm
-          WHERE cm.subscriber_id = c.subscriber_id AND cm.type = 'email'
-          ORDER BY cm.verified DESC, cm.created_at ASC LIMIT 1) AS subscriber_email,
+        ce.value AS subscriber_email,
+        ce.verified AS subscriber_email_verified,
+        ce.suppressed_at AS subscriber_email_suppressed_at,
+        ce.suppression_reason AS subscriber_email_suppression_reason,
         u.display_name AS assignee_name,
         (SELECT COUNT(*) FROM conversation_messages m WHERE m.conversation_id = c.id AND m.status <> 'draft') AS message_count,
         NULL AS last_message_snippet
       FROM conversations c
       LEFT JOIN subscribers s ON s.id = c.subscriber_id
       LEFT JOIN users u ON u.id = c.assigned_user_id
+      LEFT JOIN LATERAL (
+        SELECT cm.value, cm.verified, cm.suppressed_at, cm.suppression_reason
+        FROM contact_methods cm
+        WHERE cm.subscriber_id = c.subscriber_id AND cm.type = 'email'
+        ORDER BY cm.verified DESC, cm.created_at ASC LIMIT 1
+      ) ce ON true
       WHERE c.id = ${id}
     `
     if (!row) return null

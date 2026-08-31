@@ -2,6 +2,7 @@ import { conversationService } from '#server/database/conversations'
 import { messageService } from '#server/database/conversation-messages'
 import { conversationAttachmentService } from '#server/database/conversation-attachments'
 import { getIntParam, handleApiError } from '#server/utils/api-helpers'
+import { getReplyEmailStatus } from '#server/utils/inbox-reply-target'
 
 export default defineEventHandler(async (event) => {
   await requirePermission(event, 'inbox.view')
@@ -14,10 +15,11 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 404, statusMessage: 'Conversation not found' })
     }
 
-    const [messages, drafts, attachments] = await Promise.all([
+    const [messages, drafts, attachments, replyEmailStatus] = await Promise.all([
       messageService.listForConversation(id),
       messageService.listDrafts(id),
       conversationAttachmentService.listForConversation(id),
+      getReplyEmailStatus(id, conversation.subscriber_id),
     ])
 
     // Attach signed download URLs for attachments (skipped in tests where S3 is unconfigured).
@@ -48,7 +50,7 @@ export default defineEventHandler(async (event) => {
       attachments: attachmentsByMessage[m.id] || [],
     }))
 
-    return { conversation, messages: messagesWithAttachments, drafts }
+    return { conversation, messages: messagesWithAttachments, drafts, reply_email_status: replyEmailStatus }
   } catch (error) {
     handleApiError(error, 'Failed to load conversation')
   }

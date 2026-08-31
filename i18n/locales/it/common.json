@@ -792,7 +792,24 @@
       "addKnowledgeBase": "Aggiungi alla base di conoscenza"
     },
     "badge": {
-      "aiDraft": "IA"
+      "aiDraft": "IA",
+      "failed": "Non riuscito",
+      "held": "Trattenuto"
+    },
+    "deliverability": {
+      "verified": "Verificato",
+      "unverified": "Non verificato",
+      "notReceiving": "Non riceve e-mail",
+      "previouslyBounced": "Respinto in precedenza",
+      "suppressedWarning": "Le risposte a questo indirizzo non verranno recapitate — in passato ha avuto un mancato recapito definitivo o il destinatario ha segnalato i messaggi come spam.",
+      "noRecipient": "Nessun indirizzo e-mail valido — impossibile inviare risposte per questa conversazione.",
+      "reason": {
+        "hard_bounce": "Mancato recapito definitivo",
+        "complaint": "Segnalazione di spam"
+      },
+      "queued": "Invio in corso",
+      "delivered": "Recapitato",
+      "sendFailed": "Invio non riuscito"
     },
     "confirm": {
       "closeTitle": "Chiudi conversazione",

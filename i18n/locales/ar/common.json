@@ -826,7 +826,24 @@
       "addKnowledgeBase": "إضافة إلى قاعدة المعرفة"
     },
     "badge": {
-      "aiDraft": "AI"
+      "aiDraft": "AI",
+      "failed": "فشل",
+      "held": "معلّق"
+    },
+    "deliverability": {
+      "verified": "متحقَّق منه",
+      "unverified": "غير متحقَّق منه",
+      "notReceiving": "لا يستقبل البريد الإلكتروني",
+      "previouslyBounced": "ارتدّ سابقًا",
+      "suppressedWarning": "لن يتم تسليم الردود إلى هذا العنوان — فقد ارتدت الرسائل إليه نهائيًا من قبل أو قام المستلم بتصنيف الرسائل كبريد مزعج.",
+      "noRecipient": "لا يوجد عنوان بريد إلكتروني صالح — لا يمكن إرسال الردود في هذه المحادثة.",
+      "reason": {
+        "hard_bounce": "ارتداد نهائي",
+        "complaint": "شكوى بريد مزعج"
+      },
+      "queued": "جارٍ الإرسال",
+      "delivered": "تم التسليم",
+      "sendFailed": "فشل الإرسال"
     },
     "confirm": {
       "closeTitle": "إغلاق المحادثة",

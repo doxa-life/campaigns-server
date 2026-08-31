@@ -842,7 +842,24 @@
       "addKnowledgeBase": "Add to knowledge base"
     },
     "badge": {
-      "aiDraft": "AI"
+      "aiDraft": "AI",
+      "failed": "Failed",
+      "held": "Held"
+    },
+    "deliverability": {
+      "verified": "Verified",
+      "unverified": "Unverified",
+      "notReceiving": "Not receiving email",
+      "previouslyBounced": "Previously bounced",
+      "suppressedWarning": "Replies to this address will not be delivered — it previously hard-bounced or the recipient marked mail as spam.",
+      "noRecipient": "No deliverable email address — replies cannot be sent for this conversation.",
+      "reason": {
+        "hard_bounce": "Hard bounce",
+        "complaint": "Spam complaint"
+      },
+      "queued": "Sending",
+      "delivered": "Delivered",
+      "sendFailed": "Send failed"
     },
     "confirm": {
       "closeTitle": "Close conversation",

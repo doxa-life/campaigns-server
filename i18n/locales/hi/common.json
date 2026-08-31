@@ -792,7 +792,24 @@
       "addKnowledgeBase": "ज्ञान आधार में जोड़ें"
     },
     "badge": {
-      "aiDraft": "AI"
+      "aiDraft": "AI",
+      "failed": "विफल",
+      "held": "रोका गया"
+    },
+    "deliverability": {
+      "verified": "सत्यापित",
+      "unverified": "असत्यापित",
+      "notReceiving": "ईमेल प्राप्त नहीं हो रहे",
+      "previouslyBounced": "पहले बाउंस हुआ",
+      "suppressedWarning": "इस पते पर भेजे गए उत्तर वितरित नहीं होंगे — यह पहले स्थायी रूप से बाउंस हुआ था या प्राप्तकर्ता ने मेल को स्पैम के रूप में चिह्नित किया था।",
+      "noRecipient": "कोई मान्य ईमेल पता नहीं — इस वार्तालाप में उत्तर नहीं भेजे जा सकते।",
+      "reason": {
+        "hard_bounce": "स्थायी बाउंस",
+        "complaint": "स्पैम शिकायत"
+      },
+      "queued": "भेजा जा रहा है",
+      "delivered": "वितरित",
+      "sendFailed": "भेजना विफल"
     },
     "confirm": {
       "closeTitle": "बातचीत बंद करें",

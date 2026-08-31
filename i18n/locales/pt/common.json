@@ -826,7 +826,24 @@
       "addKnowledgeBase": "Adicionar à base de conhecimento"
     },
     "badge": {
-      "aiDraft": "IA"
+      "aiDraft": "IA",
+      "failed": "Falhou",
+      "held": "Retida"
+    },
+    "deliverability": {
+      "verified": "Verificado",
+      "unverified": "Não verificado",
+      "notReceiving": "Não recebe e-mails",
+      "previouslyBounced": "Devolvido anteriormente",
+      "suppressedWarning": "As respostas para este endereço não serão entregues — ele já teve uma devolução definitiva ou o destinatário marcou as mensagens como spam.",
+      "noRecipient": "Nenhum endereço de e-mail válido — não é possível enviar respostas nesta conversa.",
+      "reason": {
+        "hard_bounce": "Devolução definitiva",
+        "complaint": "Reclamação de spam"
+      },
+      "queued": "Enviando",
+      "delivered": "Entregue",
+      "sendFailed": "Falha no envio"
     },
     "confirm": {
       "closeTitle": "Fechar conversa",
