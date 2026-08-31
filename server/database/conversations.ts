@@ -314,6 +314,49 @@ class ConversationService {
     await this.sql`UPDATE conversations SET tags = ${this.sql.json(slugs)}, updated_at = NOW() WHERE id = ${id}`
   }
 
+  // Bulk triage over a set of conversation ids. Each method returns the ids it actually
+  // updated (missing ids are skipped) so callers can log per conversation.
+  async bulkUpdateStatus(ids: number[], status: ConversationStatus): Promise<number[]> {
+    const rows = await this.sql<{ id: number }[]>`
+      UPDATE conversations
+      SET status = ${status}, updated_at = NOW()
+      WHERE id = ANY(${ids})
+      RETURNING id
+    `
+    return rows.map(r => r.id)
+  }
+
+  async bulkAssign(ids: number[], userId: string | null): Promise<number[]> {
+    const rows = await this.sql<{ id: number }[]>`
+      UPDATE conversations
+      SET assigned_user_id = ${userId}, updated_at = NOW()
+      WHERE id = ANY(${ids})
+      RETURNING id
+    `
+    return rows.map(r => r.id)
+  }
+
+  async bulkClearNeedsReview(ids: number[]): Promise<void> {
+    await this.sql`UPDATE conversations SET needs_review = FALSE, updated_at = NOW() WHERE id = ANY(${ids})`
+  }
+
+  // Union the given slugs (already validated by the caller) into each conversation's tag
+  // set, keeping existing tags and order.
+  async bulkAddTags(ids: number[], slugs: string[]): Promise<number[]> {
+    const rows = await this.sql<{ id: number }[]>`
+      UPDATE conversations c
+      SET tags = c.tags || COALESCE(
+        (SELECT jsonb_agg(v.slug)
+          FROM jsonb_array_elements_text(${this.sql.json(slugs)}) AS v(slug)
+          WHERE NOT (c.tags ? v.slug)),
+        '[]'::jsonb
+      ), updated_at = NOW()
+      WHERE id = ANY(${ids})
+      RETURNING id
+    `
+    return rows.map(r => r.id)
+  }
+
   // Per-tag count of non-spam conversations, for the rail's clickable tag list. Each
   // tag acts as a cross-status folder, so spam is the only status excluded (it's noise).
   async tagCounts(): Promise<Record<string, number>> {

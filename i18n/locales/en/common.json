@@ -841,6 +841,16 @@
       "unflagReview": "Clear review",
       "addKnowledgeBase": "Add to knowledge base"
     },
+    "bulk": {
+      "selected": "{count} selected",
+      "selectAll": "Select all {count}",
+      "select": "Select conversation",
+      "setStatus": "Set status",
+      "assign": "Assign to",
+      "addTag": "Add tag",
+      "clear": "Clear selection",
+      "closeMessage": "Close {count} conversations?"
+    },
     "badge": {
       "aiDraft": "AI"
     },
@@ -856,6 +866,7 @@
       "draftSaved": "Draft saved",
       "assigned": "Conversation assigned",
       "statusChanged": "Status updated",
+      "bulkUpdated": "Updated {count} conversations",
       "markedSpam": "Marked as spam",
       "unmarkedSpam": "Removed from spam",
       "error": "Something went wrong"

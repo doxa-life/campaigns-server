@@ -825,6 +825,16 @@
       "hideQuoted": "Masquer le texte cité",
       "addKnowledgeBase": "Ajouter à la base de connaissances"
     },
+    "bulk": {
+      "selected": "{count} sélectionnées",
+      "selectAll": "Tout sélectionner ({count})",
+      "select": "Sélectionner la conversation",
+      "setStatus": "Changer le statut",
+      "assign": "Attribuer à",
+      "addTag": "Ajouter une étiquette",
+      "clear": "Effacer la sélection",
+      "closeMessage": "Fermer {count} conversations ?"
+    },
     "badge": {
       "aiDraft": "IA"
     },
@@ -840,6 +850,7 @@
       "draftSaved": "Brouillon enregistré",
       "assigned": "Conversation attribuée",
       "statusChanged": "Statut mis à jour",
+      "bulkUpdated": "{count} conversations mises à jour",
       "markedSpam": "Marquée comme spam",
       "unmarkedSpam": "Retirée du spam",
       "error": "Une erreur est survenue"

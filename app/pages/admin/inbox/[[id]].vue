@@ -122,6 +122,14 @@
         :active="selected?.conversation?.id === c.id"
         @click="selectConversation(c.id)"
       >
+        <div class="conv-line" :class="{ selecting: selectedIds.size > 0 }">
+          <span class="conv-check" @click.stop>
+            <UCheckbox
+              :model-value="selectedIds.has(c.id)"
+              :aria-label="$t('inbox.bulk.select')"
+              @update:model-value="toggleSelected(c.id)"
+            />
+          </span>
         <div class="conv-row">
           <div class="conv-top">
             <span class="conv-name">{{ c.subscriber_name || c.subscriber_email || $t('inbox.unassigned') }}</span>
@@ -144,7 +152,59 @@
             >{{ tagDef(slug)?.name || slug }}</UBadge>
           </div>
         </div>
+        </div>
       </CrmListItem>
+
+      <div v-if="selectedIds.size > 0" class="bulk-bar">
+        <span class="bulk-count">{{ $t('inbox.bulk.selected', { count: selectedIds.size }) }}</span>
+        <UButton
+          v-if="!allVisibleSelected"
+          variant="link"
+          size="xs"
+          @click="selectAllVisible"
+        >{{ $t('inbox.bulk.selectAll', { count: conversations.length }) }}</UButton>
+        <div class="bulk-spacer" />
+        <USelectMenu
+          :model-value="undefined"
+          :items="bulkStatusItems"
+          value-key="value"
+          size="xs"
+          :placeholder="$t('inbox.bulk.setStatus')"
+          :disabled="bulkBusy"
+          class="bulk-select"
+          @update:model-value="onBulkStatus"
+        />
+        <USelectMenu
+          v-if="canSend"
+          :model-value="undefined"
+          :items="assigneeOptions"
+          value-key="value"
+          size="xs"
+          :placeholder="$t('inbox.bulk.assign')"
+          :disabled="bulkBusy"
+          class="bulk-select"
+          @update:model-value="onBulkAssign"
+        />
+        <USelectMenu
+          v-if="tagPalette.length"
+          :model-value="undefined"
+          :items="bulkTagItems"
+          value-key="value"
+          size="xs"
+          :placeholder="$t('inbox.bulk.addTag')"
+          :disabled="bulkBusy"
+          class="bulk-select"
+          @update:model-value="onBulkAddTag"
+        />
+        <UButton
+          icon="i-lucide-x"
+          variant="ghost"
+          color="neutral"
+          size="xs"
+          :aria-label="$t('inbox.bulk.clear')"
+          @click="clearSelection"
+        />
+      </div>
     </template>
 
     <template #detail-header>
@@ -395,6 +455,14 @@
     @confirm="confirmClose"
   />
   <ConfirmModal
+    v-model:open="showBulkCloseModal"
+    :title="$t('inbox.confirm.closeTitle')"
+    :message="$t('inbox.bulk.closeMessage', { count: selectedIds.size })"
+    :confirm-text="$t('inbox.actions.close')"
+    confirm-color="primary"
+    @confirm="confirmBulkClose"
+  />
+  <ConfirmModal
     v-model:open="showSpamModal"
     :title="$t('inbox.confirm.spamTitle')"
     :message="$t('inbox.confirm.spamMessage')"
@@ -575,6 +643,67 @@ const pendingFiles = ref<File[]>([])
 
 const showCloseModal = ref(false)
 const showSpamModal = ref(false)
+const showBulkCloseModal = ref(false)
+
+// Bulk selection: ids checked in the list. Cleared whenever the list context (view,
+// status, tag, search) changes, and after a bulk action applies.
+const selectedIds = ref<Set<number>>(new Set())
+const bulkBusy = ref(false)
+const allVisibleSelected = computed(() =>
+  conversations.value.length > 0 && conversations.value.every(c => selectedIds.value.has(c.id))
+)
+const bulkStatusItems = computed(() => (
+  ['open', 'pending', 'closed'] as const
+).map(v => ({ label: t('inbox.status.' + v), value: v as string })))
+const bulkTagItems = computed(() => tagPalette.value.map(tag => ({ label: tag.name, value: tag.slug })))
+
+function toggleSelected(id: number) {
+  const next = new Set(selectedIds.value)
+  if (next.has(id)) next.delete(id); else next.add(id)
+  selectedIds.value = next
+}
+function selectAllVisible() {
+  selectedIds.value = new Set(conversations.value.map(c => c.id))
+}
+function clearSelection() {
+  selectedIds.value = new Set()
+}
+
+async function applyBulk(action: { status?: string; assigned_user_id?: string | null; add_tags?: string[] }) {
+  const ids = Array.from(selectedIds.value)
+  if (ids.length === 0) return
+  bulkBusy.value = true
+  try {
+    const res = await $fetch<{ updated: number }>('/api/admin/inbox/conversations/bulk', {
+      method: 'POST',
+      body: { ids, ...action },
+    })
+    toast.add({ title: t('inbox.toasts.bulkUpdated', { count: res.updated }), color: 'success' })
+    clearSelection()
+    // The open conversation may be in the batch — refresh it alongside the list.
+    if (selected.value && ids.includes(selected.value.conversation.id)) await refreshSelected()
+    await Promise.all([loadConversations(), loadCounts(), loadTagCounts()])
+  } catch {
+    toast.add({ title: t('inbox.toasts.error'), color: 'error' })
+  } finally {
+    bulkBusy.value = false
+  }
+}
+
+function onBulkStatus(next: string) {
+  if (next === 'closed') { showBulkCloseModal.value = true; return }
+  applyBulk({ status: next })
+}
+function confirmBulkClose() {
+  showBulkCloseModal.value = false
+  applyBulk({ status: 'closed' })
+}
+function onBulkAssign(value: string) {
+  applyBulk({ assigned_user_id: value === UNASSIGNED ? null : value })
+}
+function onBulkAddTag(slug: string) {
+  applyBulk({ add_tags: [slug] })
+}
 const showCanned = ref(false)
 const showCompose = ref(false)
 
@@ -747,12 +876,14 @@ async function loadCounts() {
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 function onSearch(val: string) {
   search.value = val
+  clearSelection()
   if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(loadConversations, 300)
 }
 
 function setView(key: 'all' | 'unassigned' | 'mine' | 'held') {
   view.value = key
+  clearSelection()
   // Switching to a scope folder leaves any active tag folder.
   tagFilter.value = null
   // The Held queue spans every status, so jump to the All tab to show the whole review backlog.
@@ -767,6 +898,7 @@ function setView(key: 'all' | 'unassigned' | 'mine' | 'held') {
 // Toggle a tag folder. Selecting one resets scope + status to All so the list shows
 // every conversation with that tag, matching the rail count.
 function selectTag(slug: string) {
+  clearSelection()
   if (tagFilter.value === slug) {
     tagFilter.value = null
   } else {
@@ -814,6 +946,7 @@ function onPaletteChanged() {
 
 function setStatus(key: 'all' | 'open' | 'pending' | 'closed' | 'spam') {
   statusFilter.value = key
+  clearSelection()
   loadConversations()
   loadCounts()
 }
@@ -1188,7 +1321,28 @@ onMounted(async () => {
   text-align: center;
   color: var(--ui-text-muted);
 }
-.conv-row { display: flex; flex-direction: column; gap: 0.15rem; }
+.conv-line { display: flex; gap: 0.5rem; align-items: flex-start; }
+/* Checkboxes stay hidden until the row is hovered or a selection is underway. */
+.conv-check { opacity: 0; transition: opacity 0.15s; padding-top: 0.1rem; }
+.crm-list-item:hover .conv-check,
+.conv-line.selecting .conv-check { opacity: 1; }
+/* Touch screens have no hover to reveal the checkbox, so always show it. */
+@media (hover: none) { .conv-check { opacity: 1; } }
+.conv-row { display: flex; flex-direction: column; gap: 0.15rem; flex: 1; min-width: 0; }
+.bulk-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--ui-bg);
+  border-top: 1px solid var(--ui-border);
+}
+.bulk-count { font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+.bulk-spacer { flex: 1; }
+.bulk-select { min-width: 7rem; }
 .conv-top { display: flex; justify-content: space-between; gap: 0.5rem; }
 .conv-name { font-weight: 600; font-size: 0.875rem; }
 .conv-time { font-size: 0.7rem; color: var(--ui-text-muted); flex-shrink: 0; }
