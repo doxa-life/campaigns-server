@@ -345,6 +345,23 @@ class ConversationService {
     `
   }
 
+  // Close pending conversations whose last message is older than quietDays. Pending means
+  // "we replied, awaiting their response" — a subscriber reply reopens even a closed
+  // conversation, so timing out is safe. Held (needs-review) conversations are an alarm
+  // that must not expire, and last_message_at IS NULL means nothing was ever sent
+  // (drafts don't touch it), so both are left alone.
+  async autoCloseStalePending(quietDays: number): Promise<Conversation[]> {
+    return await this.sql<Conversation[]>`
+      UPDATE conversations
+      SET status = 'closed', updated_at = NOW()
+      WHERE status = 'pending'
+        AND needs_review = false
+        AND last_message_at IS NOT NULL
+        AND last_message_at < NOW() - (${quietDays} * INTERVAL '1 day')
+      RETURNING *
+    `
+  }
+
   // Auto-close all of a sender's conversations (used when marking spam / inbound from blocklisted sender)
   async closeForSubscriberAsSpam(subscriberId: number): Promise<number> {
     const result = await this.sql`
