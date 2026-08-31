@@ -173,7 +173,7 @@ export async function createTestPeopleGroupSubscription(
     frequency?: string
     time_preference?: string
     timezone?: string
-    status?: 'active' | 'inactive' | 'unsubscribed'
+    status?: 'active' | 'inactive' | 'unsubscribed' | 'pending'
     days_of_week?: number[]
   } = {}
 ) {
