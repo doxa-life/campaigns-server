@@ -27,6 +27,8 @@ export async function applyReport(
   }
 
   // A suggested picture (private bucket) goes public only now, at apply time.
+  // Without an upload, a captured external photo URL (IMB/Joshua Project) is
+  // re-hosted on our own bucket; if that fails the external URL is kept.
   let suggestedImageUrl: string | null = null
   if (report.suggested_image_key) {
     const obj = await getSuggestionImageObject(report.suggested_image_key)
@@ -34,12 +36,28 @@ export async function applyReport(
       const uploaded = await uploadPublicImage(obj.data)
       suggestedImageUrl = uploaded.url
     }
+  } else if (typeof report.suggested_changes.image_url === 'string' && /^https?:\/\//.test(report.suggested_changes.image_url)) {
+    suggestedImageUrl = (await ingestExternalImage(report.suggested_changes.image_url)) ?? report.suggested_changes.image_url
   }
 
   if (report.type === 'add') {
     return applyAdd(report, userId, suggestedImageUrl, event)
   }
   return applyUpdateOrRemove(report, userId, suggestedImageUrl, event)
+}
+
+/** Download an external image and upload it to the public bucket; null on any failure. */
+async function ingestExternalImage(url: string): Promise<string | null> {
+  if (process.env.VITEST) return null
+  try {
+    const response = await fetch(url)
+    if (!response.ok) return null
+    const uploaded = await uploadPublicImage(Buffer.from(await response.arrayBuffer()))
+    return uploaded.url
+  } catch (error) {
+    console.error('Failed to ingest external suggestion image:', error)
+    return null
+  }
 }
 
 function splitChanges(changes: Record<string, any>): { columns: Record<string, any>; metadata: Record<string, any> } {

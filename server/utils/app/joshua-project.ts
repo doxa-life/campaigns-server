@@ -23,6 +23,7 @@ export interface JoshuaProjectGroup {
   religion: string | null
   language_name: string | null
   language_code: string | null
+  photo_url: string | null
   latitude: number | null
   longitude: number | null
 }
@@ -60,6 +61,7 @@ function mapJpRow(row: Record<string, any>): JoshuaProjectGroup | null {
     religion: row.PrimaryReligion ? String(row.PrimaryReligion) : null,
     language_name: row.PrimaryLanguageName ? String(row.PrimaryLanguageName) : null,
     language_code: row.ROL3 ? String(row.ROL3) : null,
+    photo_url: row.PeopleGroupPhotoURL ? String(row.PeopleGroupPhotoURL) : null,
     latitude: toNumberOrNull(row.Latitude),
     longitude: toNumberOrNull(row.Longitude)
   }

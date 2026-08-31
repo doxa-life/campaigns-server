@@ -886,7 +886,7 @@ paths:
                   format: email
                 comments:
                   type: string
-                  description: Free-text context for the reviewers
+                  description: Free-text context for the reviewers (required for add and remove)
                 people_group_id:
                   type: integer
                   description: DOXA people group id (required for update and remove)
@@ -1053,6 +1053,12 @@ paths:
                         doxa_id:
                           type: [integer, 'null']
                           description: DOXA people group id when the group is already on the list
+                        doxa_exclusion_reasons:
+                          type: array
+                          items:
+                            type: string
+                            enum: [engaged, gsec_above_2, christian_religion, diaspora]
+                          description: DOXA filter rules the group currently fails (IMB results only; empty = matches the filter but not yet imported)
                         prefill:
                           type: object
                           description: Values keyed by DOXA field keys

@@ -1,10 +1,32 @@
 import countries from 'i18n-iso-countries'
 import countriesEn from 'i18n-iso-countries/langs/en.json'
-import { imbPeopleGroupService } from '../../database/imb-people-groups'
+import { imbPeopleGroupService, type ImbPeopleGroup } from '../../database/imb-people-groups'
 import { searchJoshuaProject } from '../../utils/app/joshua-project'
 import { getSql } from '../../database/db'
 
 countries.registerLocale(countriesEn)
+
+// IMB serves these URL variants when a group has no real photo.
+const IMB_NO_PHOTO_MARKERS = ['NoImageAvailable', 'no_photo', 'nophoto', 'no-photo']
+
+function realPhotoUrl(url: string | null): string | null {
+  if (!url) return null
+  return IMB_NO_PHOTO_MARKERS.some((marker) => url.includes(marker)) ? null : url
+}
+
+// IMB ROR codes counted as a Christian background by the DOXA filter.
+const CHRISTIAN_ROR_CODES = new Set(['C', 'CPR', 'CPC', 'CRO', 'CEV', 'CAO', 'CAN', 'CCM', 'CFC', 'CRC', 'COR', 'CNP'])
+
+// Which DOXA filter rules an IMB group fails — i.e. why it isn't on the DOXA
+// list. Empty = the group matches the filter and simply hasn't been imported.
+function doxaExclusionReasons(row: ImbPeopleGroup): string[] {
+  const reasons: string[] = []
+  if (row.engagement_status && row.engagement_status !== 'unengaged') reasons.push('engaged')
+  if (row.gsec !== null && row.gsec > 2) reasons.push('gsec_above_2')
+  if (row.primary_religion && CHRISTIAN_ROR_CODES.has(row.primary_religion)) reasons.push('christian_religion')
+  if (row.is_diaspora) reasons.push('diaspora')
+  return reasons
+}
 
 /**
  * GET /api/updates/search-external?q=
@@ -45,6 +67,7 @@ export default defineEventHandler(async (event) => {
       // Set when the group is already on the Doxa list, so the picker can
       // route the selection into the update/remove flow for that group.
       doxa_id: knownPeids.get(r.peid) ?? null,
+      doxa_exclusion_reasons: doxaExclusionReasons(r),
       // Values keyed by Doxa field keys, ready to prefill the add form.
       prefill: {
         name: r.name,
@@ -55,7 +78,8 @@ export default defineEventHandler(async (event) => {
         longitude: r.longitude,
         primary_religion: r.primary_religion,
         primary_language: r.primary_language,
-        engagement_status: r.engagement_status
+        engagement_status: r.engagement_status,
+        image_url: realPhotoUrl(r.photo_url)
       },
       identifiers: { imb_peid: r.peid, imb_pgid: r.pgid }
     })),
@@ -75,7 +99,8 @@ export default defineEventHandler(async (event) => {
         longitude: r.longitude,
         // JP religion is a display label, not an IMB ROR code — shown to the
         // submitter but not prefilled into the religion select.
-        primary_language: r.language_code
+        primary_language: r.language_code,
+        image_url: r.photo_url
       },
       religion_label: r.religion,
       language_label: r.language_name,

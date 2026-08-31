@@ -3,7 +3,7 @@
     <div class="field-label">{{ label || registryLabel }}</div>
     <div class="field-inputs" :class="{ 'with-current': showCurrent }">
       <div v-if="showCurrent" class="current-value">
-        <span class="value-tag">{{ $t('updates.currentValue') }}</span>
+        <span class="value-tag">{{ currentLabel || $t('updates.currentValue') }}</span>
         <slot name="current">
           <span>{{ currentDisplay || '—' }}</span>
         </slot>
@@ -31,6 +31,8 @@ const props = defineProps<{
   fieldKey: string
   label?: string
   showCurrent?: boolean
+  // Tag over the left column; defaults to "Current".
+  currentLabel?: string
   currentDisplay?: string
   hint?: string
 }>()

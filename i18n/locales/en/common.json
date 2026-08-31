@@ -456,6 +456,19 @@
     },
     "resourcesTitle": "Resources available",
     "detailsTitle": "People group details",
+    "addNotice": "You're requesting that {name} be added to the DOXA prayer list.",
+    "addNoticeNew": "You're requesting that a new people group be added to the DOXA prayer list.",
+    "addManualHint": "This people group isn't in the IMB or Joshua Project lists yet, so please share every detail you can — including their engagement status.",
+    "addJpHint": "This group is listed by Joshua Project but not by the IMB. Please verify their engagement status below, and tell us in the comments why they belong on the DOXA list.",
+    "addImbReasonsTitle": "Why this group isn't on the DOXA list",
+    "addImbReasonsHint": "If any of this is out of date, correct it below and tell us more in the comments.",
+    "addImbEligibleHint": "This group matches DOXA's criteria and simply hasn't been added yet — confirming the details below will help us add them quickly.",
+    "exclusionReasons": {
+      "engaged": "IMB lists them as engaged",
+      "gsec_above_2": "Their GSEC score is above 2",
+      "christian_religion": "Their religion is recorded as a Christian background",
+      "diaspora": "They are classified as a diaspora group"
+    },
     "jpReligionHint": "Joshua Project lists the religion as \"{label}\" — choose the closest match.",
     "reporter": {
       "title": "About you",
@@ -476,7 +489,14 @@
     "pictureLabel": "Photo",
     "pictureHint": "JPEG, PNG, GIF or WebP, up to 10 MB.",
     "pictureDropLabel": "Drop a photo here, or click to browse",
+    "capturedPhotoNote": "Photo from {source} — upload your own to replace it.",
     "removeReasonLabel": "Why should this people group be removed?",
+    "removeReasons": {
+      "no_longer_exists": "The people group no longer exists.",
+      "merged_or_deleted": "The people group has been assimilated into another group.",
+      "is_diaspora": "The people group has been reclassified as diaspora.",
+      "historically_christian": "The people group has been reclassified as having a Christian background."
+    },
     "removeFieldsToggle": "I'd also like to correct some of their information",
     "removeFieldsHint": "If any of their details should be corrected as part of this, you can enter that here.",
     "submit": "Submit suggestion",
@@ -498,6 +518,7 @@
       "groupNameRequired": "Please tell us the people group's name",
       "reasonRequired": "Please tell us why this group should be removed",
       "changesRequired": "Please suggest at least one change or leave a comment",
+      "commentsRequired": "Please add a comment to help us understand your request",
       "uploadFailed": "We couldn't upload the photo — please try again"
     }
   },

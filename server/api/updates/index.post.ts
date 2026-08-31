@@ -107,6 +107,11 @@ export default defineEventHandler(async (event) => {
   if (type === 'remove' && !suggestedChanges.reason_unlisted) {
     throw createError({ statusCode: 400, statusMessage: 'Select a reason for removal' })
   }
+  // Adding or removing a group is a bigger ask than a field tweak — reviewers
+  // need the submitter's context.
+  if ((type === 'add' || type === 'remove') && !notes) {
+    throw createError({ statusCode: 400, statusMessage: 'Please add a comment explaining your request' })
+  }
 
   const contactMethod = await contactMethodService.ensureEmailRegistryRow(reporterEmail)
   const verified = contactMethod.verified

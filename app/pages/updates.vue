@@ -137,7 +137,11 @@
             <template v-if="flow">
               <!-- ============ REMOVE: reason ============ -->
               <UFormField v-if="flow === 'remove'" :label="$t('updates.removeReasonLabel')" required>
-                <UpdatesSuggestFieldInput v-model="removeReason" field-key="reason_unlisted" />
+                <URadioGroup
+                  v-model="removeReason"
+                  :items="removeReasonOptions"
+                  value-key="value"
+                />
               </UFormField>
 
               <!-- ============ UPDATE: engagement first, details collapsed ============ -->
@@ -212,17 +216,75 @@
                 </UCollapsible>
               </template>
 
-              <!-- ============ ADD: detail fields + picture ============ -->
+              <!-- ============ ADD: request notice, details, engagement, resources ============ -->
               <template v-else-if="flow === 'add' && showFields">
-                <USeparator />
+                <UAlert
+                  color="info"
+                  icon="i-lucide-list-plus"
+                  :title="manualEntry ? $t('updates.addNoticeNew') : $t('updates.addNotice', { name: selectionName })"
+                />
+
+                <p v-if="manualEntry" class="text-sm mt-0 mb-6">{{ $t('updates.addManualHint') }}</p>
+                <p v-else-if="selectedExternal?.source === 'jp'" class="text-sm mt-0 mb-6">{{ $t('updates.addJpHint') }}</p>
+                <template v-else-if="selectedExternal?.source === 'imb'">
+                  <UAlert
+                    v-if="imbExclusionReasons.length > 0"
+                    color="warning"
+                    icon="i-lucide-circle-help"
+                    :title="$t('updates.addImbReasonsTitle')"
+                  >
+                    <template #description>
+                      <ul class="list-disc ml-4 my-1">
+                        <li v-for="reason in imbExclusionReasons" :key="reason">
+                          {{ $t(`updates.exclusionReasons.${reason}`) }}
+                        </li>
+                      </ul>
+                      {{ $t('updates.addImbReasonsHint') }}
+                    </template>
+                  </UAlert>
+                  <p v-else class="text-sm mt-0 mb-6">{{ $t('updates.addImbEligibleHint') }}</p>
+                </template>
+
                 <UpdatesFieldRow
-                  v-for="key in addFieldKeys"
+                  v-for="key in detailKeys"
                   :key="key"
                   v-model="suggested[key]"
                   :field-key="key"
                   :hint="key === 'primary_religion' && jpReligionLabel ? $t('updates.jpReligionHint', { label: jpReligionLabel }) : undefined"
                 />
-                <UpdatesFieldRow field-key="image_url" :label="$t('updates.pictureLabel')">
+
+                <p class="group-title">{{ $t('updates.criteriaTitle') }}</p>
+                <UpdatesFieldRow v-model="suggested.engagement_status" field-key="engagement_status" />
+                <UpdatesFieldRow
+                  v-for="key in criteriaKeys"
+                  :key="key"
+                  v-model="suggested[key]"
+                  :field-key="key"
+                  :label="$t(`updates.criteria.${key}`)"
+                />
+
+                <p class="group-title">{{ $t('updates.resourcesTitle') }}</p>
+                <UpdatesFieldRow
+                  v-for="key in resourceKeys"
+                  :key="key"
+                  v-model="suggested[key]"
+                  :field-key="key"
+                />
+
+                <UpdatesFieldRow
+                  field-key="image_url"
+                  :label="$t('updates.pictureLabel')"
+                  :show-current="!!suggested.image_url"
+                  :current-label="selectedExternal?.source === 'jp' ? $t('updates.sourceJp') : $t('updates.sourceImb')"
+                >
+                  <template #current>
+                    <div class="captured-photo">
+                      <img :src="suggested.image_url" class="current-image" alt="" />
+                      <p class="text-xs m-0">
+                        {{ $t('updates.capturedPhotoNote', { source: selectedExternal?.source === 'jp' ? $t('updates.sourceJp') : $t('updates.sourceImb') }) }}
+                      </p>
+                    </div>
+                  </template>
                   <UFileUpload
                     v-model="pictureFile"
                     accept="image/jpeg,image/png,image/gif,image/webp"
@@ -254,6 +316,15 @@
                 </template>
               </template>
 
+              <!-- ============ Comments ============ -->
+              <UFormField
+                :label="$t('updates.commentsLabel')"
+                :description="$t('updates.commentsHint')"
+                :required="flow === 'add' || flow === 'remove'"
+              >
+                <UTextarea v-model="form.comments" :rows="4" class="w-full" />
+              </UFormField>
+
               <!-- ============ Reporter ============ -->
               <USeparator :label="$t('updates.reporter.title')" />
               <div class="grid sm:grid-cols-2 gap-4">
@@ -281,11 +352,6 @@
               </div>
               <UFormField :label="$t('updates.verifier.email')">
                 <UInput v-model="form.verifier_email" type="email" class="w-full" />
-              </UFormField>
-
-              <!-- ============ Comments ============ -->
-              <UFormField :label="$t('updates.commentsLabel')" :description="$t('updates.commentsHint')">
-                <UTextarea v-model="form.comments" :rows="4" class="w-full" />
               </UFormField>
 
               <UpdatesTurnstileWidget ref="turnstileRef" v-model="turnstileToken" />
@@ -335,6 +401,7 @@ interface ExternalSearchResult {
   country: string | null
   in_doxa: boolean
   doxa_id: number | null
+  doxa_exclusion_reasons?: string[]
   prefill: Record<string, any>
   identifiers: Record<string, string | null>
   religion_label?: string | null
@@ -396,9 +463,16 @@ const manualEntry = ref(false)
 const suggested = ref<Record<string, any>>({})
 const pictureFile = ref<File | null>(null)
 
-// Remove flow
-const removeReason = ref<string | null>(null)
+// Remove flow. The public form offers the playbook's four removal reasons
+// (gsec_above_2 stays admin-only), mapped to the reason_unlisted values.
+const removeReason = ref<string | undefined>(undefined)
 const showRemoveCorrections = ref(false)
+const removeReasonOptions = computed(() =>
+  ['no_longer_exists', 'merged_or_deleted', 'is_diaspora', 'historically_christian'].map((value) => ({
+    value,
+    label: t(`updates.removeReasons.${value}`)
+  }))
+)
 
 // Submission
 const turnstileToken = ref<string | null>(null)
@@ -430,6 +504,11 @@ const showFields = computed(() => {
 
 const jpReligionLabel = computed(() =>
   flow.value === 'add' && selectedExternal.value?.source === 'jp' ? selectedExternal.value.religion_label || null : null
+)
+
+// Which DOXA filter rules the selected IMB group currently fails (server-computed).
+const imbExclusionReasons = computed(() =>
+  selectedExternal.value?.source === 'imb' ? selectedExternal.value.doxa_exclusion_reasons || [] : []
 )
 
 function countryName(code: string): string {
@@ -514,6 +593,9 @@ function selectExternal(result: ExternalSearchResult) {
       prefill[key] = result.prefill[key]
     }
   }
+  // The source's photo is captured with the suggestion (copied to our own
+  // storage when the add is applied); the submitter can replace it by upload.
+  if (result.prefill.image_url) prefill.image_url = result.prefill.image_url
   suggested.value = prefill
 }
 
@@ -541,7 +623,7 @@ function resetSelection() {
   flow.value = null
   suggested.value = {}
   pictureFile.value = null
-  removeReason.value = null
+  removeReason.value = undefined
   showRemoveCorrections.value = false
   detailsOpen.value = false
   if (searchQuery.value.trim().length >= 2) {
@@ -555,6 +637,7 @@ function validate(): string | null {
   if (flow.value !== 'add' && !selectedDoxaGroup.value) return t('updates.errors.groupRequired')
   if (flow.value === 'add' && !String(suggested.value.name || '').trim()) return t('updates.errors.groupNameRequired')
   if (flow.value === 'remove' && !removeReason.value) return t('updates.errors.reasonRequired')
+  if ((flow.value === 'add' || flow.value === 'remove') && !form.value.comments.trim()) return t('updates.errors.commentsRequired')
   if (flow.value === 'update') {
     const hasChange = Object.values(suggested.value).some((v) => v !== null && v !== undefined && v !== '')
     if (!hasChange && !pictureFile.value && !form.value.comments.trim()) return t('updates.errors.changesRequired')
@@ -727,5 +810,11 @@ function resetAll() {
   max-width: 140px;
   border-radius: var(--ui-radius);
   display: block;
+}
+.captured-photo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-bottom: 0.5rem;
 }
 </style>

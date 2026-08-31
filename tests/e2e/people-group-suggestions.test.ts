@@ -101,6 +101,21 @@ describe('People Group Suggestions (/updates)', async () => {
       expect(noReason.statusCode).toBe(400)
     })
 
+    it('requires a comment for add and remove suggestions', async () => {
+      const addNoComment = await submitSuggestion({
+        type: 'add',
+        suggested_changes: { name: 'Test Commentless Group' }
+      }).catch((e) => e)
+      expect(addNoComment.statusCode).toBe(400)
+
+      const removeNoComment = await submitSuggestion({
+        type: 'remove',
+        people_group_id: testGroupId,
+        suggested_changes: { reason_unlisted: 'no_longer_exists' }
+      }).catch((e) => e)
+      expect(removeNoComment.statusCode).toBe(400)
+    })
+
     it('holds unverified submissions as awaiting_verification and promotes on email verify', async () => {
       const email = testEmail()
       const res = await submitSuggestion({
@@ -279,6 +294,7 @@ describe('People Group Suggestions (/updates)', async () => {
       const res = await submitSuggestion({
         type: 'add',
         reporter_email: email,
+        comments: 'Met this group on a survey trip',
         suggested_changes: {
           name: 'Test Added Group',
           country_code: 'NPL',
@@ -315,6 +331,7 @@ describe('People Group Suggestions (/updates)', async () => {
       const res = await submitSuggestion({
         type: 'remove',
         reporter_email: email,
+        comments: 'Could not find them at the last known location',
         people_group_id: removable!.id,
         suggested_changes: { reason_unlisted: 'no_longer_exists', population: 0 }
       })
@@ -403,6 +420,20 @@ describe('People Group Suggestions (/updates)', async () => {
       expect(imbResult.prefill.country_code).toBe('NPL')
       expect(imbResult.in_doxa).toBe(false)
       expect(imbResult.identifiers.imb_peid).toBe('TESTPEID900')
+      expect(imbResult.doxa_exclusion_reasons).toEqual([])
+    })
+
+    it('reports why an IMB group fails the DOXA filter', async () => {
+      await sql`
+        INSERT INTO imb_people_groups (peid, name, country, country_code, population, primary_religion, primary_language, engagement_status, gsec, is_diaspora, raw)
+        VALUES ('TESTPEID901', 'Test Excluded People', 'Nepal', 'NPL', 500, 'CRC', 'nep', 'engaged', 3, true, '{}')
+        ON CONFLICT (peid) DO NOTHING
+      `
+      const res = await $fetch<{ results: any[] }>('/api/updates/search-external', {
+        query: { q: 'Test Excluded People' }
+      })
+      const imbResult = res.results.find((r) => r.source === 'imb' && r.external_id === 'TESTPEID901')
+      expect(imbResult.doxa_exclusion_reasons.sort()).toEqual(['christian_religion', 'diaspora', 'engaged', 'gsec_above_2'])
     })
 
     it('returns limited current values for a doxa group', async () => {
