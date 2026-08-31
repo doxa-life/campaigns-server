@@ -494,12 +494,24 @@ function nextStep() {
     return
   }
   const next = stepSequence.value[stepIndex.value + 1]
-  if (next) step.value = next
+  if (next) {
+    step.value = next
+    scrollToTop()
+  }
 }
 
 function prevStep() {
   const prev = stepSequence.value[stepIndex.value - 1]
-  if (prev) step.value = prev
+  if (prev) {
+    step.value = prev
+    scrollToTop()
+  }
+}
+
+// Step content swaps in place, so the viewport would otherwise stay scrolled
+// to wherever the nav buttons were on the previous step.
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 // Shared reporter/verifier/comments state
