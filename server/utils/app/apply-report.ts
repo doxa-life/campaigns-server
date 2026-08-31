@@ -5,7 +5,7 @@ import { peopleGroupService, type PeopleGroup, type UpdatePeopleGroupData } from
 import { isTableColumn } from '~/utils/people-group-fields'
 import { logUpdate, logCreate } from '../activity-logger'
 import { trackEventInBackground } from '../tracking'
-import { getSuggestionImageObject } from './suggestion-images'
+import { getSuggestionImageObject, isSuggestionImageKey } from './suggestion-images'
 import { uploadPublicImage } from './public-image-storage'
 
 /**
@@ -30,7 +30,7 @@ export async function applyReport(
   // Without an upload, a captured external photo URL (IMB/Joshua Project) is
   // re-hosted on our own bucket; if that fails the external URL is kept.
   let suggestedImageUrl: string | null = null
-  if (report.suggested_image_key) {
+  if (report.suggested_image_key && isSuggestionImageKey(report.suggested_image_key)) {
     const obj = await getSuggestionImageObject(report.suggested_image_key)
     if (obj) {
       const uploaded = await uploadPublicImage(obj.data)

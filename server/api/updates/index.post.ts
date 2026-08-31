@@ -2,6 +2,7 @@ import { peopleGroupReportService, type ReportType } from '../../database/people
 import { peopleGroupService } from '../../database/people-groups'
 import { contactMethodService } from '../../database/contact-methods'
 import { verifyTurnstile } from '../../utils/app/turnstile'
+import { isSuggestionImageKey } from '../../utils/app/suggestion-images'
 import { sendReportVerificationEmail, notifyReportApprovers } from '../../utils/app/report-emails'
 import { checkRateLimit, logRateLimitExceeded } from '../../utils/rate-limit'
 import { logEvent } from '../../utils/activity-logger'
@@ -98,10 +99,18 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  // Only keys minted by /api/updates/upload-image are accepted — the apply
+  // step reads this key from the private bucket, so it must never point
+  // outside the suggestion prefix.
+  const suggestedImageKey = body.suggested_image_key ? String(body.suggested_image_key) : null
+  if (suggestedImageKey && !isSuggestionImageKey(suggestedImageKey)) {
+    throw createError({ statusCode: 400, statusMessage: 'Invalid image key' })
+  }
+
   if (type === 'add' && !suggestedChanges.name) {
     throw createError({ statusCode: 400, statusMessage: 'The people group name is required' })
   }
-  if (type === 'update' && Object.keys(suggestedChanges).length === 0 && !body.suggested_image_key && !notes) {
+  if (type === 'update' && Object.keys(suggestedChanges).length === 0 && !suggestedImageKey && !notes) {
     throw createError({ statusCode: 400, statusMessage: 'Suggest at least one change or add a comment' })
   }
   if (type === 'remove' && !suggestedChanges.reason_unlisted) {
@@ -130,7 +139,7 @@ export default defineEventHandler(async (event) => {
     verifier_email: body.verifier_email ? String(body.verifier_email).slice(0, 200) : null,
     reporter_contact_method_id: contactMethod.id,
     suggested_changes: suggestedChanges,
-    suggested_image_key: body.suggested_image_key ? String(body.suggested_image_key) : null,
+    suggested_image_key: suggestedImageKey,
     notes
   })
 

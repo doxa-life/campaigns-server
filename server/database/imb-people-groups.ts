@@ -83,16 +83,6 @@ class ImbPeopleGroupService {
       LIMIT ${limit}
     `
   }
-
-  async getByPeid(peid: string): Promise<ImbPeopleGroup | null> {
-    const [row] = await this.sql<ImbPeopleGroup[]>`SELECT * FROM imb_people_groups WHERE peid = ${peid}`
-    return row ?? null
-  }
-
-  async count(): Promise<number> {
-    const [row] = await this.sql`SELECT COUNT(*)::int as count FROM imb_people_groups`
-    return (row?.count as number) ?? 0
-  }
 }
 
 export const imbPeopleGroupService = new ImbPeopleGroupService()

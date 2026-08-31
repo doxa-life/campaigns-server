@@ -189,12 +189,3 @@ export async function searchJoshuaProject(query: string, limit = 20): Promise<Jo
   }
   return results
 }
-
-export async function getJoshuaProjectGroup(jpPeopleId: string, countryCode: string | null): Promise<JoshuaProjectGroup | null> {
-  const dataset = await getJpDataset()
-  return (
-    dataset.find(
-      (g) => g.jp_people_id === jpPeopleId && (!countryCode || g.country_code === countryCode)
-    ) ?? null
-  )
-}

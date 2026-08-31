@@ -370,7 +370,7 @@
           <!-- ============ Step navigation ============ -->
           <div v-if="selectionMade && flow" class="flex items-center justify-between gap-4">
             <UButton
-              v-if="stepIndex > 0"
+              v-if="canGoBack"
               type="button"
               variant="ghost"
               color="neutral"
@@ -474,6 +474,10 @@ const stepSequence = computed<string[]>(() => {
   return ['group']
 })
 const stepIndex = computed(() => stepSequence.value.indexOf(step.value))
+// In the add flow the group step has no content once a selection is made
+// (search and the update/remove chooser both hide), so Back stops one step
+// short of it — the header's "Change" button is the way back to the search.
+const canGoBack = computed(() => stepIndex.value > (flow.value === 'add' ? 1 : 0))
 // Comments belong to the last content step (right before "about you").
 const commentsStep = computed(() => stepSequence.value[stepSequence.value.length - 2])
 const stepperItems = computed(() =>
