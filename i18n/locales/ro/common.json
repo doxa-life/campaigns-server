@@ -424,6 +424,113 @@
       }
     }
   },
+  "updates": {
+    "pageTitle": "Actualizări despre grupurile etnice",
+    "heading": "Actualizări despre grupurile etnice",
+    "intro": "Bine ai venit și îți mulțumim că ne ajuți să păstrăm exacte informațiile despre grupurile etnice. Acest scurt formular îți va cere câteva informații de bază despre tine și despre grupul etnic. Echipa noastră analizează fiecare sugestie înainte de a face o modificare.",
+    "steps": {
+      "group": "Grup etnic",
+      "engagement": "Angajare",
+      "details": "Detalii",
+      "reason": "Motiv",
+      "about": "Despre tine"
+    },
+    "back": "Înapoi",
+    "next": "Înainte",
+    "searchLabel": "Despre ce grup etnic ai vrea să ne spui?",
+    "searchPlaceholder": "Scrie numele grupului etnic...",
+    "searchHint": "Vom căuta în lista noastră, precum și în bazele de date IMB și Joshua Project.",
+    "searchNoResults": "Nu am găsit nicio potrivire — încearcă o altă ortografie sau adaugă-l mai jos ca grup etnic nou.",
+    "sectionDoxa": "În lista noastră",
+    "sectionExternal": "IMB / Joshua Project",
+    "sourceImb": "IMB",
+    "sourceJp": "Joshua Project",
+    "alreadyInDoxa": "Deja în lista noastră",
+    "addNewCta": "Nu îl găsești? Spune-ne despre un grup etnic nou",
+    "newGroupBadge": "Nou",
+    "actionQuestion": "Ce ai vrea să faci?",
+    "actionUpdate": "Să actualizez informațiile",
+    "actionUpdateDesc": "O parte din informațiile pe care le avem sunt depășite",
+    "actionRemove": "Să cer eliminarea",
+    "actionRemoveDesc": "Acest grup nu ar mai trebui să fie în lista noastră",
+    "changeSelection": "Schimbă",
+    "currentValue": "Actual",
+    "suggestedValue": "Sugerat",
+    "updateFieldsHint": "Completează doar ce trebuie schimbat — restul poate rămâne necompletat.",
+    "criteriaTitle": "Criterii de angajare",
+    "criteria": {
+      "workers_long_term": "Există lucrători interculturali rezidenți în mijlocul grupului etnic?",
+      "work_in_local_language": "Lucrătorii interculturali rezidenți lucrează în limba și cultura locală?",
+      "disciple_and_church_multiplication": "Lucrătorii interculturali rezidenți lucrează într-un mod care va duce la o biserică autohtonă?"
+    },
+    "resourcesTitle": "Resurse disponibile",
+    "detailsTitle": "Detalii despre grupul etnic",
+    "addNotice": "Ceri ca {name} să fie adăugat în lista de rugăciune DOXA.",
+    "addNoticeNew": "Ceri ca un grup etnic nou să fie adăugat în lista de rugăciune DOXA.",
+    "addManualHint": "Acest grup etnic nu se află încă în listele IMB sau Joshua Project, așa că te rugăm să ne împărtășești toate detaliile pe care le poți oferi — inclusiv starea sa de angajare.",
+    "addJpHint": "Acest grup este listat de Joshua Project, dar nu și de IMB. Te rugăm să verifici mai jos starea sa de angajare și să ne spui în comentarii de ce ar trebui să fie în lista DOXA.",
+    "addImbReasonsTitle": "De ce acest grup nu este în lista DOXA",
+    "addImbReasonsHint": "Dacă ceva din acestea este depășit, corectează mai jos și spune-ne mai multe în comentarii.",
+    "addImbEligibleHint": "Acest grup îndeplinește criteriile DOXA și pur și simplu nu a fost încă adăugat — confirmarea detaliilor de mai jos ne va ajuta să îl adăugăm rapid.",
+    "exclusionReasons": {
+      "engaged": "IMB îl înregistrează ca angajat",
+      "gsec_above_2": "Scorul său GSEC este peste 2",
+      "christian_religion": "Religia sa este înregistrată ca fond creștin",
+      "diaspora": "Este clasificat ca grup de diaspora"
+    },
+    "jpReligionHint": "Joshua Project înregistrează religia ca \"{label}\" — alege varianta cea mai apropiată.",
+    "reporter": {
+      "title": "Despre tine",
+      "name": "Numele tău",
+      "org": "Organizația",
+      "email": "Emailul tău",
+      "emailHint": "Dacă ne scrii pentru prima dată, îți vom trimite un link pentru a-ți confirma emailul."
+    },
+    "verifier": {
+      "title": "Verificator (recomandat)",
+      "hint": "Dacă altcineva poate confirma aceste informații, spune-ne cine este.",
+      "name": "Numele verificatorului",
+      "entity": "Organizația verificatorului",
+      "email": "Emailul verificatorului"
+    },
+    "commentsLabel": "Comentarii",
+    "commentsHint": "Ne-ar plăcea să aflăm orice altceva ne-ar putea ajuta — cum ești legat de acest grup etnic, cum ai aflat aceste informații sau orice alt context.",
+    "pictureLabel": "Fotografie",
+    "pictureHint": "JPEG, PNG, GIF sau WebP, până la 10 MB.",
+    "pictureDropLabel": "Trage o fotografie aici sau dă clic pentru a răsfoi",
+    "capturedPhotoNote": "Fotografie de la {source} — încarcă una proprie pentru a o înlocui.",
+    "removeReasonLabel": "De ce ar trebui eliminat acest grup etnic?",
+    "removeReasons": {
+      "no_longer_exists": "Grupul etnic nu mai există.",
+      "merged_or_deleted": "Grupul etnic a fost asimilat în alt grup.",
+      "is_diaspora": "Grupul etnic a fost reclasificat ca diaspora.",
+      "historically_christian": "Grupul etnic a fost reclasificat ca având un fond creștin."
+    },
+    "removeFieldsToggle": "Aș vrea să corectez și o parte din informațiile sale",
+    "removeFieldsHint": "Dacă unele detalii ar trebui corectate cu această ocazie, le poți introduce aici.",
+    "submit": "Trimite sugestia",
+    "submitting": "Se trimite...",
+    "success": {
+      "title": "Mulțumim!",
+      "message": "Îți mulțumim că ți-ai făcut timp să ne împărtășești acest lucru. Echipa noastră îți va analiza sugestia și îți vom trimite un email de îndată ce s-a luat o decizie.",
+      "verifyTitle": "Aproape gata — te rugăm să îți verifici emailul",
+      "verifyMessage": "Am trimis un link de confirmare la {email}. Odată ce dai clic pe el, sugestia ta va ajunge la echipa noastră pentru analiză.",
+      "another": "Trimite altă sugestie"
+    },
+    "verifiedBanner": "Mulțumim — emailul tău este confirmat, iar sugestia ta este acum la echipa noastră pentru analiză.",
+    "verifyFailedBanner": "Acest link de confirmare este invalid sau a expirat.",
+    "errors": {
+      "generic": "Ceva nu a mers bine. Te rugăm să încerci din nou.",
+      "nameRequired": "Te rugăm să ne spui numele tău",
+      "emailRequired": "Te rugăm să introduci o adresă de email validă",
+      "groupRequired": "Te rugăm să alegi un grup etnic",
+      "groupNameRequired": "Te rugăm să ne spui numele grupului etnic",
+      "reasonRequired": "Te rugăm să ne spui de ce ar trebui eliminat acest grup",
+      "changesRequired": "Te rugăm să sugerezi cel puțin o modificare sau să lași un comentariu",
+      "commentsRequired": "Te rugăm să adaugi un comentariu care să ne ajute să înțelegem cererea ta",
+      "uploadFailed": "Nu am putut încărca fotografia — te rugăm să încerci din nou"
+    }
+  },
   "adoption": {
     "verify": {
       "pageTitle": "Verifică adoptarea",

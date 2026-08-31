@@ -424,6 +424,113 @@
       }
     }
   },
+  "updates": {
+    "pageTitle": "族群信息更新",
+    "heading": "族群信息更新",
+    "intro": "欢迎您，感谢您帮助我们保持族群信息的准确性。这份简短的表单会请您填写关于您本人和该族群的一些基本信息。在做出任何更改之前，我们的团队都会审核每一条建议。",
+    "steps": {
+      "group": "族群",
+      "engagement": "接触状态",
+      "details": "详细信息",
+      "reason": "原因",
+      "about": "关于您"
+    },
+    "back": "上一步",
+    "next": "下一步",
+    "searchLabel": "您想向我们反馈哪个族群的信息？",
+    "searchPlaceholder": "输入族群名称...",
+    "searchHint": "我们会在自己的名单以及 IMB 和 Joshua Project 的数据库中查找。",
+    "searchNoResults": "未找到匹配结果——请尝试其他拼写，或在下方将其添加为新族群。",
+    "sectionDoxa": "在我们的名单中",
+    "sectionExternal": "IMB / Joshua Project",
+    "sourceImb": "IMB",
+    "sourceJp": "Joshua Project",
+    "alreadyInDoxa": "已在我们的名单中",
+    "addNewCta": "找不到？向我们介绍一个新族群",
+    "newGroupBadge": "新增",
+    "actionQuestion": "您想做什么？",
+    "actionUpdate": "更新该族群的信息",
+    "actionUpdateDesc": "我们掌握的部分信息已过时",
+    "actionRemove": "申请移除",
+    "actionRemoveDesc": "该族群不应再出现在我们的名单中",
+    "changeSelection": "更换",
+    "currentValue": "当前",
+    "suggestedValue": "建议",
+    "updateFieldsHint": "只需填写需要更改的内容——其余项目可以留空。",
+    "criteriaTitle": "接触标准",
+    "criteria": {
+      "workers_long_term": "该族群当中是否有驻地的跨文化工人？",
+      "work_in_local_language": "驻地的跨文化工人是否在使用当地语言并融入当地文化开展事工？",
+      "disciple_and_church_multiplication": "驻地的跨文化工人的事工方式是否会带来本土教会的建立？"
+    },
+    "resourcesTitle": "可用资源",
+    "detailsTitle": "族群详细信息",
+    "addNotice": "您正在申请将 {name} 添加到 DOXA 祷告名单中。",
+    "addNoticeNew": "您正在申请将一个新族群添加到 DOXA 祷告名单中。",
+    "addManualHint": "该族群尚未列入 IMB 或 Joshua Project 的名单，请尽量提供所有细节——包括其接触状态。",
+    "addJpHint": "该族群已被 Joshua Project 收录，但未被 IMB 收录。请在下方核实其接触状态，并在备注中告诉我们它为何应列入 DOXA 名单。",
+    "addImbReasonsTitle": "该族群未列入 DOXA 名单的原因",
+    "addImbReasonsHint": "如果其中任何信息已过时，请在下方更正，并在备注中告诉我们更多情况。",
+    "addImbEligibleHint": "该族群符合 DOXA 的标准，只是尚未被添加——确认下方的详细信息将帮助我们尽快添加。",
+    "exclusionReasons": {
+      "engaged": "IMB 将其记录为已接触",
+      "gsec_above_2": "其 GSEC 评分高于 2",
+      "christian_religion": "其宗教被记录为基督教背景",
+      "diaspora": "其被归类为散居群体"
+    },
+    "jpReligionHint": "Joshua Project 记录的宗教为\"{label}\"——请选择最接近的选项。",
+    "reporter": {
+      "title": "关于您",
+      "name": "您的姓名",
+      "org": "所属机构",
+      "email": "您的邮箱",
+      "emailHint": "如果这是您第一次给我们写信，我们会向您发送一个确认邮箱的链接。"
+    },
+    "verifier": {
+      "title": "核实人（建议填写）",
+      "hint": "如果有其他人可以核实这些信息，请告诉我们他们是谁。",
+      "name": "核实人姓名",
+      "entity": "核实人所属机构",
+      "email": "核实人邮箱"
+    },
+    "commentsLabel": "备注",
+    "commentsHint": "我们很想了解任何有帮助的信息——您与该族群的关系、您如何得知这些信息，或任何其他背景情况。",
+    "pictureLabel": "照片",
+    "pictureHint": "JPEG、PNG、GIF 或 WebP 格式，最大 10 MB。",
+    "pictureDropLabel": "将照片拖放到此处，或点击浏览",
+    "capturedPhotoNote": "照片来自 {source}——上传您自己的照片即可替换。",
+    "removeReasonLabel": "为什么应移除该族群？",
+    "removeReasons": {
+      "no_longer_exists": "该族群已不复存在。",
+      "merged_or_deleted": "该族群已被同化并入其他族群。",
+      "is_diaspora": "该族群已被重新归类为散居群体。",
+      "historically_christian": "该族群已被重新归类为具有基督教背景。"
+    },
+    "removeFieldsToggle": "我还想更正该族群的部分信息",
+    "removeFieldsHint": "如果需要一并更正某些详细信息，可以在此填写。",
+    "submit": "提交建议",
+    "submitting": "提交中...",
+    "success": {
+      "title": "谢谢您！",
+      "message": "感谢您抽出时间与我们分享。我们的团队会审核您的建议，做出决定后我们会通过邮件通知您。",
+      "verifyTitle": "即将完成——请查收您的邮件",
+      "verifyMessage": "我们已向 {email} 发送了确认链接。点击该链接后，您的建议将交由我们的团队审核。",
+      "another": "提交另一条建议"
+    },
+    "verifiedBanner": "谢谢您——您的邮箱已确认，您的建议已交由我们的团队审核。",
+    "verifyFailedBanner": "该确认链接无效或已过期。",
+    "errors": {
+      "generic": "出了点问题，请重试。",
+      "nameRequired": "请告诉我们您的姓名",
+      "emailRequired": "请输入有效的邮箱地址",
+      "groupRequired": "请选择一个族群",
+      "groupNameRequired": "请告诉我们该族群的名称",
+      "reasonRequired": "请告诉我们为什么应移除该族群",
+      "changesRequired": "请至少建议一项更改或留下备注",
+      "commentsRequired": "请添加备注，帮助我们理解您的请求",
+      "uploadFailed": "照片上传失败——请重试"
+    }
+  },
   "adoption": {
     "verify": {
       "pageTitle": "验证认领",

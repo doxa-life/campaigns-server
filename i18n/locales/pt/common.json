@@ -424,6 +424,113 @@
       }
     }
   },
+  "updates": {
+    "pageTitle": "Atualizações de grupos étnicos",
+    "heading": "Atualizações de grupos étnicos",
+    "intro": "Bem-vindo, e obrigado por nos ajudar a manter precisas as informações sobre os grupos étnicos. Este breve formulário pedirá algumas informações básicas sobre você e sobre o grupo étnico. Nossa equipe revisa cada sugestão antes de qualquer mudança ser feita.",
+    "steps": {
+      "group": "Grupo étnico",
+      "engagement": "Engajamento",
+      "details": "Detalhes",
+      "reason": "Motivo",
+      "about": "Sobre você"
+    },
+    "back": "Voltar",
+    "next": "Avançar",
+    "searchLabel": "Sobre qual grupo étnico você gostaria de nos falar?",
+    "searchPlaceholder": "Digite o nome do grupo étnico...",
+    "searchHint": "Vamos procurar em nossa lista e também nas bases de dados da IMB e do Joshua Project.",
+    "searchNoResults": "Não encontramos nenhuma correspondência — tente outra grafia, ou adicione-o como um novo grupo étnico abaixo.",
+    "sectionDoxa": "Na nossa lista",
+    "sectionExternal": "IMB / Joshua Project",
+    "sourceImb": "IMB",
+    "sourceJp": "Joshua Project",
+    "alreadyInDoxa": "Já está na nossa lista",
+    "addNewCta": "Não encontrou? Fale-nos sobre um novo grupo étnico",
+    "newGroupBadge": "Novo",
+    "actionQuestion": "O que você gostaria de fazer?",
+    "actionUpdate": "Atualizar as informações",
+    "actionUpdateDesc": "Parte das informações que temos está desatualizada",
+    "actionRemove": "Solicitar remoção",
+    "actionRemoveDesc": "Este grupo não deveria mais estar na nossa lista",
+    "changeSelection": "Alterar",
+    "currentValue": "Atual",
+    "suggestedValue": "Sugerido",
+    "updateFieldsHint": "Preencha apenas o que deve mudar — todo o resto pode ficar em branco.",
+    "criteriaTitle": "Critérios de engajamento",
+    "criteria": {
+      "workers_long_term": "Há obreiros transculturais residentes entre o grupo étnico?",
+      "work_in_local_language": "Os obreiros transculturais residentes trabalham na língua e cultura locais?",
+      "disciple_and_church_multiplication": "Os obreiros transculturais residentes trabalham de uma forma que levará a uma igreja autóctone?"
+    },
+    "resourcesTitle": "Recursos disponíveis",
+    "detailsTitle": "Detalhes do grupo étnico",
+    "addNotice": "Você está solicitando que {name} seja adicionado à lista de oração da DOXA.",
+    "addNoticeNew": "Você está solicitando que um novo grupo étnico seja adicionado à lista de oração da DOXA.",
+    "addManualHint": "Este grupo étnico ainda não está nas listas da IMB nem do Joshua Project, então compartilhe todos os detalhes que puder — incluindo seu status de engajamento.",
+    "addJpHint": "Este grupo está listado no Joshua Project, mas não na IMB. Verifique o status de engajamento abaixo e conte-nos nos comentários por que ele deveria estar na lista da DOXA.",
+    "addImbReasonsTitle": "Por que este grupo não está na lista da DOXA",
+    "addImbReasonsHint": "Se algo disso estiver desatualizado, corrija abaixo e conte-nos mais nos comentários.",
+    "addImbEligibleHint": "Este grupo atende aos critérios da DOXA e simplesmente ainda não foi adicionado — confirmar os detalhes abaixo nos ajudará a adicioná-lo rapidamente.",
+    "exclusionReasons": {
+      "engaged": "A IMB o registra como engajado",
+      "gsec_above_2": "Sua pontuação GSEC é superior a 2",
+      "christian_religion": "Sua religião está registrada como um contexto cristão",
+      "diaspora": "Está classificado como grupo de diáspora"
+    },
+    "jpReligionHint": "O Joshua Project registra a religião como \"{label}\" — escolha a opção mais próxima.",
+    "reporter": {
+      "title": "Sobre você",
+      "name": "Seu nome",
+      "org": "Organização",
+      "email": "Seu e-mail",
+      "emailHint": "Se esta é a primeira vez que você nos escreve, enviaremos um link para confirmar seu e-mail."
+    },
+    "verifier": {
+      "title": "Verificador (recomendado)",
+      "hint": "Se outra pessoa puder confirmar essas informações, diga-nos quem é.",
+      "name": "Nome do verificador",
+      "entity": "Organização do verificador",
+      "email": "E-mail do verificador"
+    },
+    "commentsLabel": "Comentários",
+    "commentsHint": "Adoraríamos saber qualquer outra coisa que possa nos ajudar — como você está conectado a este grupo étnico, como obteve essas informações, ou qualquer outro contexto.",
+    "pictureLabel": "Foto",
+    "pictureHint": "JPEG, PNG, GIF ou WebP, até 10 MB.",
+    "pictureDropLabel": "Arraste uma foto aqui, ou clique para procurar",
+    "capturedPhotoNote": "Foto de {source} — envie a sua para substituí-la.",
+    "removeReasonLabel": "Por que este grupo étnico deveria ser removido?",
+    "removeReasons": {
+      "no_longer_exists": "O grupo étnico não existe mais.",
+      "merged_or_deleted": "O grupo étnico foi assimilado por outro grupo.",
+      "is_diaspora": "O grupo étnico foi reclassificado como diáspora.",
+      "historically_christian": "O grupo étnico foi reclassificado como tendo um contexto cristão."
+    },
+    "removeFieldsToggle": "Também gostaria de corrigir algumas das informações",
+    "removeFieldsHint": "Se algum dos detalhes precisar de correção como parte disso, você pode informá-lo aqui.",
+    "submit": "Enviar sugestão",
+    "submitting": "Enviando...",
+    "success": {
+      "title": "Obrigado!",
+      "message": "Obrigado por dedicar tempo para compartilhar isso conosco. Nossa equipe revisará sua sugestão e enviaremos um e-mail assim que uma decisão for tomada.",
+      "verifyTitle": "Quase pronto — verifique seu e-mail",
+      "verifyMessage": "Enviamos um link de confirmação para {email}. Assim que você clicar nele, sua sugestão seguirá para revisão pela nossa equipe.",
+      "another": "Enviar outra sugestão"
+    },
+    "verifiedBanner": "Obrigado — seu e-mail foi confirmado e sua sugestão já está com a nossa equipe para revisão.",
+    "verifyFailedBanner": "Esse link de confirmação é inválido ou expirou.",
+    "errors": {
+      "generic": "Algo deu errado. Por favor, tente novamente.",
+      "nameRequired": "Por favor, diga-nos o seu nome",
+      "emailRequired": "Por favor, insira um endereço de e-mail válido",
+      "groupRequired": "Por favor, escolha um grupo étnico",
+      "groupNameRequired": "Por favor, diga-nos o nome do grupo étnico",
+      "reasonRequired": "Por favor, diga-nos por que este grupo deveria ser removido",
+      "changesRequired": "Por favor, sugira pelo menos uma mudança ou deixe um comentário",
+      "commentsRequired": "Por favor, adicione um comentário para nos ajudar a entender sua solicitação",
+      "uploadFailed": "Não foi possível enviar a foto — por favor, tente novamente"
+    }
+  },
   "feedback": {
     "pageTitle": "Enviar feedback",
     "heading": "Envie-nos o seu feedback",

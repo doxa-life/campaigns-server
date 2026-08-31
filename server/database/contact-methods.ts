@@ -61,6 +61,24 @@ class ContactMethodService {
     return (row as ContactMethod) ?? null
   }
 
+  /**
+   * Get or create a registry-only row (no subscriber) for an email address —
+   * used when a non-subscriber interaction (e.g. a public /updates submission)
+   * needs a verifiable contact record.
+   */
+  async ensureEmailRegistryRow(value: string): Promise<ContactMethod> {
+    const existing = await this.getByValue('email', value)
+    if (existing) return existing
+    const [row] = await this.sql`
+      INSERT INTO contact_methods (subscriber_id, type, value)
+      VALUES (NULL, 'email', ${value})
+      ON CONFLICT (type, value) DO UPDATE
+        SET updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      RETURNING *
+    `
+    return row as ContactMethod
+  }
+
   async getByValue(type: 'email' | 'phone', value: string): Promise<ContactMethod | null> {
     const [row] = await this.sql`
       SELECT * FROM contact_methods

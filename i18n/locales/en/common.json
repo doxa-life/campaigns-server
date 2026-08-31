@@ -424,6 +424,113 @@
       }
     }
   },
+  "updates": {
+    "pageTitle": "People Group Updates",
+    "heading": "People Group Updates",
+    "intro": "Welcome, and thank you for helping keep our people group information accurate. This brief form will ask for some basic information about you and the people group. Our team reviews every suggestion before a change is made.",
+    "steps": {
+      "group": "People group",
+      "engagement": "Engagement",
+      "details": "Details",
+      "reason": "Reason",
+      "about": "About you"
+    },
+    "back": "Back",
+    "next": "Next",
+    "searchLabel": "Which people group would you like to tell us about?",
+    "searchPlaceholder": "Type the people group's name...",
+    "searchHint": "We'll look through our list, along with the IMB and Joshua Project databases.",
+    "searchNoResults": "We couldn't find a match — try another spelling, or add it as a new people group below.",
+    "sectionDoxa": "On our list",
+    "sectionExternal": "IMB / Joshua Project",
+    "sourceImb": "IMB",
+    "sourceJp": "Joshua Project",
+    "alreadyInDoxa": "Already on our list",
+    "addNewCta": "Can't find it? Tell us about a new people group",
+    "newGroupBadge": "New",
+    "actionQuestion": "What would you like to do?",
+    "actionUpdate": "Update their information",
+    "actionUpdateDesc": "Some of the information we have is out of date",
+    "actionRemove": "Request removal",
+    "actionRemoveDesc": "This group should no longer be on our list",
+    "changeSelection": "Change",
+    "currentValue": "Current",
+    "suggestedValue": "Suggested",
+    "updateFieldsHint": "Only fill in what should change — everything else can stay blank.",
+    "criteriaTitle": "Engagement criteria",
+    "criteria": {
+      "workers_long_term": "Are there cross-cultural workers in residence among the people group?",
+      "work_in_local_language": "Are resident cross-cultural workers working in the local language and culture?",
+      "disciple_and_church_multiplication": "Are resident cross-cultural workers working in a way that will lead to an indigenous church?"
+    },
+    "resourcesTitle": "Resources available",
+    "detailsTitle": "People group details",
+    "addNotice": "You're requesting that {name} be added to the DOXA prayer list.",
+    "addNoticeNew": "You're requesting that a new people group be added to the DOXA prayer list.",
+    "addManualHint": "This people group isn't in the IMB or Joshua Project lists yet, so please share every detail you can — including their engagement status.",
+    "addJpHint": "This group is listed by Joshua Project but not by the IMB. Please verify their engagement status below, and tell us in the comments why they belong on the DOXA list.",
+    "addImbReasonsTitle": "Why this group isn't on the DOXA list",
+    "addImbReasonsHint": "If any of this is out of date, correct it below and tell us more in the comments.",
+    "addImbEligibleHint": "This group matches DOXA's criteria and simply hasn't been added yet — confirming the details below will help us add them quickly.",
+    "exclusionReasons": {
+      "engaged": "IMB lists them as engaged",
+      "gsec_above_2": "Their GSEC score is above 2",
+      "christian_religion": "Their religion is recorded as a Christian background",
+      "diaspora": "They are classified as a diaspora group"
+    },
+    "jpReligionHint": "Joshua Project lists the religion as \"{label}\" — choose the closest match.",
+    "reporter": {
+      "title": "About you",
+      "name": "Your name",
+      "org": "Organization",
+      "email": "Your email",
+      "emailHint": "If this is your first time writing to us, we'll send you a link to confirm your email."
+    },
+    "verifier": {
+      "title": "Verifier (recommended)",
+      "hint": "If someone else can confirm this information, let us know who they are.",
+      "name": "Verifier name",
+      "entity": "Verifier organization",
+      "email": "Verifier email"
+    },
+    "commentsLabel": "Comments",
+    "commentsHint": "We'd love to hear anything else that would help us — how you're connected to this people group, how you learned this information, or any other context.",
+    "pictureLabel": "Photo",
+    "pictureHint": "JPEG, PNG, GIF or WebP, up to 10 MB.",
+    "pictureDropLabel": "Drop a photo here, or click to browse",
+    "capturedPhotoNote": "Photo from {source} — upload your own to replace it.",
+    "removeReasonLabel": "Why should this people group be removed?",
+    "removeReasons": {
+      "no_longer_exists": "The people group no longer exists.",
+      "merged_or_deleted": "The people group has been assimilated into another group.",
+      "is_diaspora": "The people group has been reclassified as diaspora.",
+      "historically_christian": "The people group has been reclassified as having a Christian background."
+    },
+    "removeFieldsToggle": "I'd also like to correct some of their information",
+    "removeFieldsHint": "If any of their details should be corrected as part of this, you can enter that here.",
+    "submit": "Submit suggestion",
+    "submitting": "Submitting...",
+    "success": {
+      "title": "Thank you!",
+      "message": "Thank you for taking the time to share this with us. Our team will review your suggestion, and we'll email you once a decision has been made.",
+      "verifyTitle": "Almost done — please check your email",
+      "verifyMessage": "We've sent a confirmation link to {email}. Once you click it, your suggestion will go to our team for review.",
+      "another": "Submit another suggestion"
+    },
+    "verifiedBanner": "Thank you — your email is confirmed and your suggestion is now with our team for review.",
+    "verifyFailedBanner": "That confirmation link is invalid or has expired.",
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "nameRequired": "Please tell us your name",
+      "emailRequired": "Please enter a valid email address",
+      "groupRequired": "Please choose a people group",
+      "groupNameRequired": "Please tell us the people group's name",
+      "reasonRequired": "Please tell us why this group should be removed",
+      "changesRequired": "Please suggest at least one change or leave a comment",
+      "commentsRequired": "Please add a comment to help us understand your request",
+      "uploadFailed": "We couldn't upload the photo — please try again"
+    }
+  },
   "feedback": {
     "pageTitle": "Send Feedback",
     "heading": "Send us your feedback",

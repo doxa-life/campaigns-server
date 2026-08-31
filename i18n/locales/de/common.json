@@ -424,6 +424,113 @@
       }
     }
   },
+  "updates": {
+    "pageTitle": "Volksgruppen-Aktualisierungen",
+    "heading": "Volksgruppen-Aktualisierungen",
+    "intro": "Willkommen, und danke, dass Sie uns helfen, unsere Informationen über die Volksgruppen aktuell zu halten. Dieses kurze Formular fragt einige grundlegende Angaben zu Ihnen und zur Volksgruppe ab. Unser Team prüft jeden Vorschlag, bevor eine Änderung vorgenommen wird.",
+    "steps": {
+      "group": "Volksgruppe",
+      "engagement": "Engagement",
+      "details": "Details",
+      "reason": "Grund",
+      "about": "Über Sie"
+    },
+    "back": "Zurück",
+    "next": "Weiter",
+    "searchLabel": "Über welche Volksgruppe möchten Sie uns berichten?",
+    "searchPlaceholder": "Geben Sie den Namen der Volksgruppe ein...",
+    "searchHint": "Wir durchsuchen unsere Liste sowie die Datenbanken der IMB und von Joshua Project.",
+    "searchNoResults": "Wir konnten keinen Treffer finden — versuchen Sie eine andere Schreibweise, oder fügen Sie sie unten als neue Volksgruppe hinzu.",
+    "sectionDoxa": "Auf unserer Liste",
+    "sectionExternal": "IMB / Joshua Project",
+    "sourceImb": "IMB",
+    "sourceJp": "Joshua Project",
+    "alreadyInDoxa": "Bereits auf unserer Liste",
+    "addNewCta": "Nicht gefunden? Berichten Sie uns von einer neuen Volksgruppe",
+    "newGroupBadge": "Neu",
+    "actionQuestion": "Was möchten Sie tun?",
+    "actionUpdate": "Informationen aktualisieren",
+    "actionUpdateDesc": "Einige unserer Informationen sind veraltet",
+    "actionRemove": "Entfernung beantragen",
+    "actionRemoveDesc": "Diese Gruppe sollte nicht mehr auf unserer Liste stehen",
+    "changeSelection": "Ändern",
+    "currentValue": "Aktuell",
+    "suggestedValue": "Vorgeschlagen",
+    "updateFieldsHint": "Füllen Sie nur aus, was sich ändern soll — alles andere kann leer bleiben.",
+    "criteriaTitle": "Engagement-Kriterien",
+    "criteria": {
+      "workers_long_term": "Gibt es interkulturelle Mitarbeiter vor Ort, die unter der Volksgruppe leben?",
+      "work_in_local_language": "Arbeiten die ansässigen interkulturellen Mitarbeiter in der lokalen Sprache und Kultur?",
+      "disciple_and_church_multiplication": "Arbeiten die ansässigen interkulturellen Mitarbeiter so, dass daraus eine einheimische Gemeinde entstehen wird?"
+    },
+    "resourcesTitle": "Verfügbare Ressourcen",
+    "detailsTitle": "Details zur Volksgruppe",
+    "addNotice": "Sie beantragen, dass {name} zur DOXA-Gebetsliste hinzugefügt wird.",
+    "addNoticeNew": "Sie beantragen, dass eine neue Volksgruppe zur DOXA-Gebetsliste hinzugefügt wird.",
+    "addManualHint": "Diese Volksgruppe ist noch nicht in den Listen der IMB oder von Joshua Project enthalten — bitte teilen Sie daher alle Details mit, die Sie kennen, einschließlich ihres Engagement-Status.",
+    "addJpHint": "Diese Gruppe ist bei Joshua Project gelistet, aber nicht bei der IMB. Bitte überprüfen Sie unten ihren Engagement-Status und erklären Sie uns in den Kommentaren, warum sie auf die DOXA-Liste gehört.",
+    "addImbReasonsTitle": "Warum diese Gruppe nicht auf der DOXA-Liste steht",
+    "addImbReasonsHint": "Wenn etwas davon veraltet ist, korrigieren Sie es unten und erzählen Sie uns mehr in den Kommentaren.",
+    "addImbEligibleHint": "Diese Gruppe erfüllt die DOXA-Kriterien und wurde einfach noch nicht hinzugefügt — die Bestätigung der Details unten hilft uns, sie schnell aufzunehmen.",
+    "exclusionReasons": {
+      "engaged": "Die IMB führt sie als engagiert",
+      "gsec_above_2": "Ihr GSEC-Wert liegt über 2",
+      "christian_religion": "Ihre Religion ist als christlicher Hintergrund erfasst",
+      "diaspora": "Sie ist als Diaspora-Gruppe eingestuft"
+    },
+    "jpReligionHint": "Joshua Project führt die Religion als \"{label}\" — wählen Sie die nächstliegende Option.",
+    "reporter": {
+      "title": "Über Sie",
+      "name": "Ihr Name",
+      "org": "Organisation",
+      "email": "Ihre E-Mail",
+      "emailHint": "Wenn Sie uns zum ersten Mal schreiben, senden wir Ihnen einen Link zur Bestätigung Ihrer E-Mail-Adresse."
+    },
+    "verifier": {
+      "title": "Bestätigende Person (empfohlen)",
+      "hint": "Wenn jemand anderes diese Informationen bestätigen kann, teilen Sie uns mit, wer das ist.",
+      "name": "Name der bestätigenden Person",
+      "entity": "Organisation der bestätigenden Person",
+      "email": "E-Mail der bestätigenden Person"
+    },
+    "commentsLabel": "Kommentare",
+    "commentsHint": "Wir freuen uns über alles, was uns weiterhilft — wie Sie mit dieser Volksgruppe verbunden sind, woher Sie diese Informationen haben, oder jeden weiteren Kontext.",
+    "pictureLabel": "Foto",
+    "pictureHint": "JPEG, PNG, GIF oder WebP, bis zu 10 MB.",
+    "pictureDropLabel": "Foto hierher ziehen oder klicken zum Auswählen",
+    "capturedPhotoNote": "Foto von {source} — laden Sie Ihr eigenes hoch, um es zu ersetzen.",
+    "removeReasonLabel": "Warum sollte diese Volksgruppe entfernt werden?",
+    "removeReasons": {
+      "no_longer_exists": "Die Volksgruppe existiert nicht mehr.",
+      "merged_or_deleted": "Die Volksgruppe ist in einer anderen Gruppe aufgegangen.",
+      "is_diaspora": "Die Volksgruppe wurde als Diaspora neu eingestuft.",
+      "historically_christian": "Die Volksgruppe wurde als mit christlichem Hintergrund neu eingestuft."
+    },
+    "removeFieldsToggle": "Ich möchte außerdem einige ihrer Informationen korrigieren",
+    "removeFieldsHint": "Wenn dabei auch Details korrigiert werden sollten, können Sie das hier eintragen.",
+    "submit": "Vorschlag absenden",
+    "submitting": "Wird gesendet...",
+    "success": {
+      "title": "Vielen Dank!",
+      "message": "Danke, dass Sie sich die Zeit genommen haben, uns dies mitzuteilen. Unser Team wird Ihren Vorschlag prüfen, und wir benachrichtigen Sie per E-Mail, sobald eine Entscheidung getroffen wurde.",
+      "verifyTitle": "Fast geschafft — bitte prüfen Sie Ihre E-Mails",
+      "verifyMessage": "Wir haben einen Bestätigungslink an {email} gesendet. Sobald Sie ihn anklicken, geht Ihr Vorschlag zur Prüfung an unser Team.",
+      "another": "Weiteren Vorschlag einreichen"
+    },
+    "verifiedBanner": "Danke — Ihre E-Mail ist bestätigt und Ihr Vorschlag liegt jetzt unserem Team zur Prüfung vor.",
+    "verifyFailedBanner": "Dieser Bestätigungslink ist ungültig oder abgelaufen.",
+    "errors": {
+      "generic": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+      "nameRequired": "Bitte nennen Sie uns Ihren Namen",
+      "emailRequired": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+      "groupRequired": "Bitte wählen Sie eine Volksgruppe",
+      "groupNameRequired": "Bitte nennen Sie uns den Namen der Volksgruppe",
+      "reasonRequired": "Bitte sagen Sie uns, warum diese Gruppe entfernt werden sollte",
+      "changesRequired": "Bitte schlagen Sie mindestens eine Änderung vor oder hinterlassen Sie einen Kommentar",
+      "commentsRequired": "Bitte fügen Sie einen Kommentar hinzu, damit wir Ihr Anliegen besser verstehen",
+      "uploadFailed": "Das Foto konnte nicht hochgeladen werden — bitte versuchen Sie es erneut"
+    }
+  },
   "adoption": {
     "verify": {
       "pageTitle": "Adoption Bestätigen",

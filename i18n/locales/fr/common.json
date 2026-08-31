@@ -424,6 +424,113 @@
       }
     }
   },
+  "updates": {
+    "pageTitle": "Mises à jour des peuples",
+    "heading": "Mises à jour des peuples",
+    "intro": "Bienvenue, et merci de nous aider à garder nos informations sur les peuples exactes. Ce court formulaire vous demandera quelques informations de base sur vous et sur le peuple concerné. Notre équipe examine chaque suggestion avant qu'un changement ne soit effectué.",
+    "steps": {
+      "group": "Peuple",
+      "engagement": "Engagement",
+      "details": "Détails",
+      "reason": "Motif",
+      "about": "À propos de vous"
+    },
+    "back": "Retour",
+    "next": "Suivant",
+    "searchLabel": "De quel peuple souhaitez-vous nous parler ?",
+    "searchPlaceholder": "Saisissez le nom du peuple...",
+    "searchHint": "Nous chercherons dans notre liste, ainsi que dans les bases de données de l'IMB et de Joshua Project.",
+    "searchNoResults": "Nous n'avons trouvé aucune correspondance — essayez une autre orthographe, ou ajoutez-le comme nouveau peuple ci-dessous.",
+    "sectionDoxa": "Dans notre liste",
+    "sectionExternal": "IMB / Joshua Project",
+    "sourceImb": "IMB",
+    "sourceJp": "Joshua Project",
+    "alreadyInDoxa": "Déjà dans notre liste",
+    "addNewCta": "Introuvable ? Parlez-nous d'un nouveau peuple",
+    "newGroupBadge": "Nouveau",
+    "actionQuestion": "Que souhaitez-vous faire ?",
+    "actionUpdate": "Mettre à jour ses informations",
+    "actionUpdateDesc": "Certaines des informations que nous avons ne sont plus à jour",
+    "actionRemove": "Demander son retrait",
+    "actionRemoveDesc": "Ce peuple ne devrait plus figurer dans notre liste",
+    "changeSelection": "Changer",
+    "currentValue": "Actuel",
+    "suggestedValue": "Suggéré",
+    "updateFieldsHint": "Ne remplissez que ce qui doit changer — tout le reste peut rester vide.",
+    "criteriaTitle": "Critères d'engagement",
+    "criteria": {
+      "workers_long_term": "Y a-t-il des ouvriers transculturels résidents parmi ce peuple ?",
+      "work_in_local_language": "Les ouvriers transculturels résidents travaillent-ils dans la langue et la culture locales ?",
+      "disciple_and_church_multiplication": "Les ouvriers transculturels résidents travaillent-ils d'une manière qui mènera à une église autochtone ?"
+    },
+    "resourcesTitle": "Ressources disponibles",
+    "detailsTitle": "Détails du peuple",
+    "addNotice": "Vous demandez que {name} soit ajouté à la liste de prière DOXA.",
+    "addNoticeNew": "Vous demandez qu'un nouveau peuple soit ajouté à la liste de prière DOXA.",
+    "addManualHint": "Ce peuple ne figure pas encore dans les listes de l'IMB ni de Joshua Project, alors partagez tous les détails que vous pouvez — y compris son statut d'engagement.",
+    "addJpHint": "Ce peuple est répertorié par Joshua Project mais pas par l'IMB. Veuillez vérifier son statut d'engagement ci-dessous, et dites-nous dans les commentaires pourquoi il a sa place dans la liste DOXA.",
+    "addImbReasonsTitle": "Pourquoi ce peuple ne figure pas dans la liste DOXA",
+    "addImbReasonsHint": "Si l'une de ces informations n'est plus à jour, corrigez-la ci-dessous et donnez-nous plus de détails dans les commentaires.",
+    "addImbEligibleHint": "Ce peuple correspond aux critères de DOXA et n'a simplement pas encore été ajouté — confirmer les détails ci-dessous nous aidera à l'ajouter rapidement.",
+    "exclusionReasons": {
+      "engaged": "L'IMB le répertorie comme engagé",
+      "gsec_above_2": "Son score GSEC est supérieur à 2",
+      "christian_religion": "Sa religion est enregistrée comme un arrière-plan chrétien",
+      "diaspora": "Il est classé comme groupe de diaspora"
+    },
+    "jpReligionHint": "Joshua Project indique la religion « {label} » — choisissez l'option la plus proche.",
+    "reporter": {
+      "title": "À propos de vous",
+      "name": "Votre nom",
+      "org": "Organisation",
+      "email": "Votre e-mail",
+      "emailHint": "Si c'est la première fois que vous nous écrivez, nous vous enverrons un lien pour confirmer votre e-mail."
+    },
+    "verifier": {
+      "title": "Vérificateur (recommandé)",
+      "hint": "Si quelqu'un d'autre peut confirmer ces informations, dites-nous de qui il s'agit.",
+      "name": "Nom du vérificateur",
+      "entity": "Organisation du vérificateur",
+      "email": "E-mail du vérificateur"
+    },
+    "commentsLabel": "Commentaires",
+    "commentsHint": "Nous aimerions savoir tout ce qui pourrait nous aider — votre lien avec ce peuple, comment vous avez appris ces informations, ou tout autre contexte.",
+    "pictureLabel": "Photo",
+    "pictureHint": "JPEG, PNG, GIF ou WebP, jusqu'à 10 Mo.",
+    "pictureDropLabel": "Déposez une photo ici, ou cliquez pour parcourir",
+    "capturedPhotoNote": "Photo de {source} — téléversez la vôtre pour la remplacer.",
+    "removeReasonLabel": "Pourquoi ce peuple devrait-il être retiré ?",
+    "removeReasons": {
+      "no_longer_exists": "Le peuple n'existe plus.",
+      "merged_or_deleted": "Le peuple a été assimilé à un autre groupe.",
+      "is_diaspora": "Le peuple a été reclassé comme diaspora.",
+      "historically_christian": "Le peuple a été reclassé comme ayant un arrière-plan chrétien."
+    },
+    "removeFieldsToggle": "Je souhaite aussi corriger certaines de ses informations",
+    "removeFieldsHint": "Si certains de ses détails doivent être corrigés à cette occasion, vous pouvez les saisir ici.",
+    "submit": "Envoyer la suggestion",
+    "submitting": "Envoi en cours...",
+    "success": {
+      "title": "Merci !",
+      "message": "Merci d'avoir pris le temps de partager cela avec nous. Notre équipe examinera votre suggestion, et nous vous enverrons un e-mail dès qu'une décision aura été prise.",
+      "verifyTitle": "Presque terminé — veuillez consulter votre boîte mail",
+      "verifyMessage": "Nous avons envoyé un lien de confirmation à {email}. Dès que vous aurez cliqué dessus, votre suggestion sera transmise à notre équipe pour examen.",
+      "another": "Envoyer une autre suggestion"
+    },
+    "verifiedBanner": "Merci — votre e-mail est confirmé et votre suggestion est maintenant entre les mains de notre équipe pour examen.",
+    "verifyFailedBanner": "Ce lien de confirmation est invalide ou a expiré.",
+    "errors": {
+      "generic": "Une erreur s'est produite. Veuillez réessayer.",
+      "nameRequired": "Veuillez nous indiquer votre nom",
+      "emailRequired": "Veuillez saisir une adresse e-mail valide",
+      "groupRequired": "Veuillez choisir un peuple",
+      "groupNameRequired": "Veuillez nous indiquer le nom du peuple",
+      "reasonRequired": "Veuillez nous dire pourquoi ce peuple devrait être retiré",
+      "changesRequired": "Veuillez suggérer au moins un changement ou laisser un commentaire",
+      "commentsRequired": "Veuillez ajouter un commentaire pour nous aider à comprendre votre demande",
+      "uploadFailed": "Nous n'avons pas pu téléverser la photo — veuillez réessayer"
+    }
+  },
   "feedback": {
     "pageTitle": "Envoyer un commentaire",
     "heading": "Envoyez-nous vos commentaires",

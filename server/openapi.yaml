@@ -23,6 +23,8 @@ tags:
     description: Unreached people group data for WordPress themes and map widgets
   - name: App
     description: Mobile app support endpoints
+  - name: Suggestions
+    description: Public people group change suggestions (/updates form)
 
 paths:
   /api/app/version:
@@ -831,6 +833,276 @@ paths:
                         content_json: { type: object, description: Tiptap document JSON }
         '401':
           description: Invalid or missing API key
+        '404':
+          description: People group not found
+
+  /api/updates:
+    post:
+      tags:
+        - Suggestions
+      summary: Submit a people group suggestion
+      description: >
+        Public submission of a suggestion to add, update, or remove a people
+        group on the DOXA list. Protected by Cloudflare Turnstile and per-IP
+        rate limiting (10/hour). If the reporter's email is not yet verified,
+        the suggestion is held (`awaiting_verification`) and a verification
+        email is sent; once verified it enters review by the two designated
+        approvers. Suggested field keys are whitelisted per type — update
+        allows engagement_status, the three engagement criteria booleans
+        (workers_long_term, work_in_local_language,
+        disciple_and_church_multiplication), the six resource availability
+        booleans (imb_*_available), and name, population, country_code,
+        latitude, longitude, primary_language, primary_religion, image_url;
+        add additionally allows imb_peid, imb_pgid, joshua_project_id;
+        remove additionally allows reason_unlisted (required).
+      operationId: submitPeopleGroupSuggestion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, reporter_name, reporter_email]
+              properties:
+                type:
+                  type: string
+                  enum: [add, update, remove]
+                turnstile_token:
+                  type: string
+                  description: Cloudflare Turnstile response token (required when Turnstile is configured)
+                reporter_name:
+                  type: string
+                reporter_org:
+                  type: string
+                reporter_email:
+                  type: string
+                  format: email
+                verifier_name:
+                  type: string
+                verifier_entity:
+                  type: string
+                verifier_email:
+                  type: string
+                  format: email
+                comments:
+                  type: string
+                  description: Free-text context for the reviewers (required for add and remove)
+                people_group_id:
+                  type: integer
+                  description: DOXA people group id (required for update and remove)
+                suggested_changes:
+                  type: object
+                  description: Suggested values keyed by people group field key (whitelisted per type)
+                suggested_image_key:
+                  type: string
+                  description: Key returned by /api/updates/upload-image
+      responses:
+        '200':
+          description: Suggestion recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  status:
+                    type: string
+                    enum: [awaiting_verification, pending]
+        '400':
+          description: Validation or anti-spam failure
+        '404':
+          description: People group not found
+        '429':
+          description: Rate limit exceeded
+
+  /api/updates/verify:
+    get:
+      tags:
+        - Suggestions
+      summary: Verify a reporter email
+      description: >
+        Email verification link target. Marks the reporter's email verified and
+        promotes their held suggestions into review, then redirects to
+        /updates?verified=1 (or verified=0 on an invalid/expired token).
+      operationId: verifySuggestionEmail
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to /updates with the verification outcome
+
+  /api/updates/upload-image:
+    post:
+      tags:
+        - Suggestions
+      summary: Upload a suggested picture
+      description: >
+        Uploads a picture for a suggestion (multipart field `image`). Validated
+        by magic-byte sniffing (JPEG/PNG/GIF/WebP) with a 10 MB cap and per-IP
+        rate limiting (10/hour). Stored privately; published only if the
+        suggestion is applied.
+      operationId: uploadSuggestionImage
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    description: Pass as suggested_image_key when submitting the suggestion
+        '400':
+          description: No image file found
+        '413':
+          description: Image exceeds the size limit
+        '415':
+          description: Unsupported image type
+        '429':
+          description: Rate limit exceeded
+
+  /api/updates/search-doxa:
+    get:
+      tags:
+        - Suggestions
+      summary: Search DOXA people groups
+      description: Public name search over the DOXA people group list, for the update/remove pickers. Returns at most 20 results; queries under 2 characters return none.
+      operationId: searchDoxaPeopleGroups
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+      responses:
+        '200':
+          description: Matching people groups
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer }
+                        name: { type: string }
+                        slug: { type: [string, 'null'] }
+                        country_code: { type: [string, 'null'] }
+                        status: { type: [string, 'null'] }
+                        engagement_status: { type: [string, 'null'] }
+
+  /api/updates/search-external:
+    get:
+      tags:
+        - Suggestions
+      summary: Search IMB and Joshua Project datasets
+      description: >
+        Public search over the local IMB (peoplegroups.org) mirror and the
+        Joshua Project dataset for the add-flow picker. Each result carries
+        prefill values keyed by DOXA field keys, source identifiers, and an
+        in_doxa flag marking groups already on the DOXA list.
+      operationId: searchExternalPeopleGroups
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+      responses:
+        '200':
+          description: Matching external people groups
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        source:
+                          type: string
+                          enum: [imb, jp]
+                        external_id: { type: string }
+                        name: { type: string }
+                        country: { type: [string, 'null'] }
+                        in_doxa: { type: boolean }
+                        doxa_id:
+                          type: [integer, 'null']
+                          description: DOXA people group id when the group is already on the list
+                        doxa_exclusion_reasons:
+                          type: array
+                          items:
+                            type: string
+                            enum: [engaged, gsec_above_2, christian_religion, diaspora]
+                          description: DOXA filter rules the group currently fails (IMB results only; empty = matches the filter but not yet imported)
+                        prefill:
+                          type: object
+                          description: Values keyed by DOXA field keys
+                        identifiers:
+                          type: object
+                          description: imb_peid/imb_pgid or joshua_project_id
+                        religion_label:
+                          type: [string, 'null']
+                          description: JP religion display label (JP results only)
+                        language_label:
+                          type: [string, 'null']
+                          description: JP language display label (JP results only)
+
+  /api/updates/doxa-group/{id}:
+    get:
+      tags:
+        - Suggestions
+      summary: Current values of the suggestible fields
+      description: Returns the publicly suggestible field values for one DOXA people group, for the update flow's side-by-side comparison. Only that field subset is exposed.
+      operationId: getDoxaGroupSuggestibleValues
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Numeric people group id or slug
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Current values
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer }
+                  name: { type: string }
+                  slug: { type: [string, 'null'] }
+                  status: { type: [string, 'null'] }
+                  engagement_status: { type: [string, 'null'] }
+                  image_url: { type: [string, 'null'] }
+                  current_values:
+                    type: object
+                    description: Values keyed by the suggestible field keys
         '404':
           description: People group not found
 
