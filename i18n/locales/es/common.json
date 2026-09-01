@@ -836,7 +836,24 @@
       "closeMessage": "¿Cerrar {count} conversaciones?"
     },
     "badge": {
-      "aiDraft": "IA"
+      "aiDraft": "IA",
+      "failed": "Fallido",
+      "held": "Retenido"
+    },
+    "deliverability": {
+      "verified": "Verificada",
+      "unverified": "No verificada",
+      "notReceiving": "No recibe correos",
+      "previouslyBounced": "Rebotó anteriormente",
+      "suppressedWarning": "Las respuestas a esta dirección no se entregarán: anteriormente tuvo un rebote definitivo o el destinatario marcó los correos como spam.",
+      "noRecipient": "No hay una dirección de correo válida: no se pueden enviar respuestas en esta conversación.",
+      "reason": {
+        "hard_bounce": "Rebote definitivo",
+        "complaint": "Queja de spam"
+      },
+      "queued": "Enviando",
+      "delivered": "Entregado",
+      "sendFailed": "Error de envío"
     },
     "confirm": {
       "closeTitle": "Cerrar conversación",

@@ -6,6 +6,7 @@ import { conversationAttachmentService } from '../../database/conversation-attac
 import { contactMethodService } from '../../database/contact-methods'
 import { userService } from '../../database/users'
 import { inboxEmailService, type InboxEmailAttachment } from '../../utils/inbox-email'
+import { resolveReplyTargetEmail } from '../../utils/inbox-reply-target'
 import { buildContactReplyAddress, buildFromAddress } from '../../utils/inbox-addressing'
 import { getInlineImageObject } from '../../utils/app/inbox-inline-images'
 import { renderInboxMessageEmail } from '../../utils/inbox-email-layout'
@@ -57,15 +58,11 @@ export async function processOutboundEmail(job: Job): Promise<ProcessorResult> {
 
   const lastInbound = await messageService.getLastInbound(conversation.id)
 
-  // Reply to the address the contact actually used — the explicitly composed to_email, else
-  // the address that last wrote in — falling back to the subscriber's primary email (which may
-  // differ from the one that wrote in, and which getPrimaryEmail doesn't filter for suppression).
-  // getLastInbound is received-only, so a held/wrong-From sender who knew the reply token can't
-  // become the reply target.
+  // Reply to the explicitly composed to_email, else the shared reply-target resolution
+  // (the address that last wrote in, else the subscriber's primary email) — the same
+  // resolution the inbox UI displays as the reply recipient.
   const recipientEmail = message.to_email
-    || lastInbound?.from_email
-    || (await contactMethodService.getPrimaryEmail(conversation.subscriber_id))?.value
-    || null
+    || await resolveReplyTargetEmail(conversation.id, conversation.subscriber_id, lastInbound)
   if (!recipientEmail) {
     await messageService.markStatus(message.id, 'failed', { failed_reason: 'No contact email' })
     return { success: false, data: { error: 'No contact email' } }

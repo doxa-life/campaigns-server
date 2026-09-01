@@ -798,7 +798,24 @@
       "closeMessage": "Închizi {count} conversații?"
     },
     "badge": {
-      "aiDraft": "IA"
+      "aiDraft": "IA",
+      "failed": "Eșuat",
+      "held": "Reținut"
+    },
+    "deliverability": {
+      "verified": "Verificată",
+      "unverified": "Neverificată",
+      "notReceiving": "Nu primește e-mailuri",
+      "previouslyBounced": "Respins anterior",
+      "suppressedWarning": "Răspunsurile către această adresă nu vor fi livrate — a avut anterior o respingere definitivă sau destinatarul a marcat mesajele ca spam.",
+      "noRecipient": "Nicio adresă de e-mail validă — răspunsurile nu pot fi trimise pentru această conversație.",
+      "reason": {
+        "hard_bounce": "Respingere definitivă",
+        "complaint": "Reclamație de spam"
+      },
+      "queued": "Se trimite",
+      "delivered": "Livrat",
+      "sendFailed": "Trimitere eșuată"
     },
     "confirm": {
       "closeTitle": "Închide conversația",

@@ -12,7 +12,7 @@ Each subscriber in the list shows:
 - **Email or phone** — Their primary contact method
 - **People group badges** — One badge per people group they're subscribed to (with a count if they have multiple subscriptions to the same group)
 - **Source badges** — How they entered the system (e.g., website signup, import, contact form)
-- **Doxa consent badge** — A green badge if they've opted in to general Doxa updates
+- **DOXA consent badge** — A green badge if they've opted in to general DOXA updates
 - **Prayer time** — Total prayer time logged, if any
 - **Comment count** — Number of team comments on this record
 - **Unverified badge** — A red badge if their email hasn't been verified yet
@@ -52,7 +52,7 @@ Lists any groups (churches/organizations) this subscriber is linked to. Each gro
 
 Toggle switches for marketing preferences:
 
-- **Doxa General Updates** — Whether they receive general Doxa communications
+- **DOXA General Updates** — Whether they receive general DOXA communications
 - **People Group Updates** — Badges showing which people groups they've consented to receive marketing about. You can add or remove individual people group consents.
 
 If the subscriber's email is not verified, consents are shown but disabled with a warning that they aren't active until verification.

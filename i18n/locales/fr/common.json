@@ -836,7 +836,24 @@
       "closeMessage": "Fermer {count} conversations ?"
     },
     "badge": {
-      "aiDraft": "IA"
+      "aiDraft": "IA",
+      "failed": "Échec",
+      "held": "Retenu"
+    },
+    "deliverability": {
+      "verified": "Vérifiée",
+      "unverified": "Non vérifiée",
+      "notReceiving": "Ne reçoit pas d'e-mails",
+      "previouslyBounced": "A déjà rebondi",
+      "suppressedWarning": "Les réponses à cette adresse ne seront pas distribuées : elle a déjà subi un rebond définitif ou le destinataire a signalé les messages comme spam.",
+      "noRecipient": "Aucune adresse e-mail valide — impossible d'envoyer des réponses pour cette conversation.",
+      "reason": {
+        "hard_bounce": "Rebond définitif",
+        "complaint": "Signalement de spam"
+      },
+      "queued": "Envoi en cours",
+      "delivered": "Distribué",
+      "sendFailed": "Échec de l'envoi"
     },
     "confirm": {
       "closeTitle": "Fermer la conversation",

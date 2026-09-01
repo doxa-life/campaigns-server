@@ -802,7 +802,24 @@
       "closeMessage": "确定关闭 {count} 个会话吗？"
     },
     "badge": {
-      "aiDraft": "AI"
+      "aiDraft": "AI",
+      "failed": "失败",
+      "held": "已搁置"
+    },
+    "deliverability": {
+      "verified": "已验证",
+      "unverified": "未验证",
+      "notReceiving": "无法接收邮件",
+      "previouslyBounced": "曾被退回",
+      "suppressedWarning": "发送至该地址的回复将无法送达——该地址曾发生永久退信，或收件人已将邮件标记为垃圾邮件。",
+      "noRecipient": "没有可用的电子邮件地址——此对话无法发送回复。",
+      "reason": {
+        "hard_bounce": "永久退信",
+        "complaint": "垃圾邮件投诉"
+      },
+      "queued": "发送中",
+      "delivered": "已送达",
+      "sendFailed": "发送失败"
     },
     "confirm": {
       "closeTitle": "关闭会话",

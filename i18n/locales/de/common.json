@@ -802,7 +802,24 @@
       "closeMessage": "{count} Unterhaltungen schließen?"
     },
     "badge": {
-      "aiDraft": "KI"
+      "aiDraft": "KI",
+      "failed": "Fehlgeschlagen",
+      "held": "Zurückgehalten"
+    },
+    "deliverability": {
+      "verified": "Verifiziert",
+      "unverified": "Nicht verifiziert",
+      "notReceiving": "Empfängt keine E-Mails",
+      "previouslyBounced": "Zuvor unzustellbar",
+      "suppressedWarning": "Antworten an diese Adresse werden nicht zugestellt — sie war zuvor endgültig unzustellbar oder der Empfänger hat E-Mails als Spam markiert.",
+      "noRecipient": "Keine zustellbare E-Mail-Adresse — für diese Unterhaltung können keine Antworten gesendet werden.",
+      "reason": {
+        "hard_bounce": "Endgültig unzustellbar",
+        "complaint": "Spam-Beschwerde"
+      },
+      "queued": "Wird gesendet",
+      "delivered": "Zugestellt",
+      "sendFailed": "Senden fehlgeschlagen"
     },
     "confirm": {
       "closeTitle": "Unterhaltung schließen",

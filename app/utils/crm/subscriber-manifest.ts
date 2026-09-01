@@ -1,5 +1,6 @@
 import { LANGUAGES } from '~/utils/languages'
 import { getFieldOptions } from '~/utils/subscriber-fields'
+import { SUBSCRIBER_STATUS_LABELS } from '#shared/subscriber-status'
 import type { ClientManifest } from './filter-manifest'
 
 export function useSubscriberFilterManifest() {
@@ -15,6 +16,12 @@ export function useSubscriberFilterManifest() {
   const manifest = computed<ClientManifest>(() => [
     { key: 'name', label: 'Name', type: 'text' },
     { key: 'role', label: 'Role', type: 'text' },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'enum',
+      values: Object.entries(SUBSCRIBER_STATUS_LABELS).map(([value, label]) => ({ label, value })),
+    },
     {
       key: 'preferred_language',
       label: 'Language',

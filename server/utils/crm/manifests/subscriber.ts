@@ -1,5 +1,6 @@
 import type { Sql, Fragment } from 'postgres'
 import type { Operator } from '#shared/crm/filter-types'
+import { SUBSCRIBER_STATUS_LABELS } from '#shared/subscriber-status'
 import {
   arrayEnumColumn,
   dateColumn,
@@ -12,6 +13,28 @@ import {
 export const subscriberServerManifest: ServerManifest = {
   name: { type: 'text', buildSql: textColumn('s.name') },
   role: { type: 'text', buildSql: textColumn('s.role') },
+
+  status: {
+    type: 'enum',
+    buildSql: (op: Operator, value: unknown, sql: Sql): Fragment | null => {
+      if (typeof value !== 'string' || !(value in SUBSCRIBER_STATUS_LABELS)) return null
+      // SQL mirror of deriveSubscriberStatus() in shared/subscriber-status.ts —
+      // keep the precedence order in sync.
+      const derived = sql`COALESCE((
+        SELECT CASE
+          WHEN bool_or(cs.status = 'active') THEN 'active'
+          WHEN bool_or(cs.status = 'pending') THEN 'pending'
+          WHEN bool_or(cs.status = 'unsubscribed') THEN 'unsubscribed'
+          WHEN bool_or(cs.status = 'inactive') THEN 'inactive'
+        END
+        FROM campaign_subscriptions cs
+        WHERE cs.subscriber_id = s.id
+      ), 'none')`
+      if (op === 'is') return sql`${derived} = ${value}`
+      if (op === 'is_not') return sql`(${derived} IS DISTINCT FROM ${value})`
+      return null
+    },
+  },
   preferred_language: { type: 'enum', buildSql: enumColumn('s.preferred_language') },
   country: { type: 'enum', buildSql: enumColumn('s.country') },
   sources: { type: 'enum-multi', buildSql: arrayEnumColumn('s.sources') },

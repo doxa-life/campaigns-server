@@ -47,6 +47,11 @@
         </div>
         <div class="subscriber-meta">
           <UBadge
+            v-bind="getStatusBadge(subscriber.subscriptions)"
+            variant="subtle"
+            size="xs"
+          />
+          <UBadge
             v-for="source in subscriber.sources"
             :key="source"
             :label="getFieldOptionLabel('sources', source)"
@@ -114,8 +119,7 @@
             <div class="stat-block">
               <span class="stat-label">Status</span>
               <UBadge
-                :label="subscriberStatus"
-                :color="subscriberStatus === 'Active' ? 'success' : 'error'"
+                v-bind="getStatusBadge(selectedSubscriber.subscriptions)"
                 variant="subtle"
               />
             </div>
@@ -686,6 +690,7 @@
 import type { FilterState } from '#shared/crm/filter-types'
 import { EMPTY_FILTER } from '#shared/crm/filter-types'
 import { decodeFilter, encodeFilter } from '#shared/crm/filter-codec'
+import { deriveSubscriberStatus, SUBSCRIBER_STATUS_LABELS, SUBSCRIBER_STATUS_COLORS } from '#shared/subscriber-status'
 import { useSubscriberFilterManifest } from '~/utils/crm/subscriber-manifest'
 
 definePageMeta({
@@ -930,9 +935,10 @@ const emailSuppression = computed<EmailSuppression | null>(() => {
 const activeSubscriptionCount = computed(() => {
   return selectedSubscriber.value?.subscriptions.filter(s => s.status === 'active').length ?? 0
 })
-const subscriberStatus = computed(() => {
-  return emailVerified.value && activeSubscriptionCount.value > 0 ? 'Active' : 'Inactive'
-})
+function getStatusBadge(subscriptions: Array<{ status: string }>) {
+  const status = deriveSubscriberStatus(subscriptions)
+  return { label: SUBSCRIBER_STATUS_LABELS[status], color: SUBSCRIBER_STATUS_COLORS[status] }
+}
 const sideTabs = computed(() => [
   ...(canAccess('inbox.view')
     ? [{ label: t('inbox.conversations'), slot: 'conversations', icon: 'i-lucide-mail', badge: conversations.value.length || undefined }]

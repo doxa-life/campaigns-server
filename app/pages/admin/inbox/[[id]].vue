@@ -218,6 +218,13 @@
           >{{ selected.conversation.subscriber_name }}</NuxtLink>
           <span v-else-if="selected.conversation.subscriber_name" class="contact-name">{{ selected.conversation.subscriber_name }}</span>
           <span v-if="selected.conversation.subscriber_email" class="contact-email">{{ selected.conversation.subscriber_email }}</span>
+          <UBadge v-if="selected.conversation.subscriber_email && selected.conversation.subscriber_email_verified === false" color="warning" variant="subtle" size="xs">{{ $t('inbox.deliverability.unverified') }}</UBadge>
+          <UTooltip
+            v-if="selected.conversation.subscriber_email_suppressed_at"
+            :text="`${suppressionReasonText(selected.conversation.subscriber_email_suppression_reason)} · ${formatTime(selected.conversation.subscriber_email_suppressed_at)}`"
+          >
+            <UBadge color="error" variant="solid" size="xs" icon="i-lucide-mail-x">{{ $t('inbox.deliverability.notReceiving') }}</UBadge>
+          </UTooltip>
           <UBadge v-if="selected.conversation.source" :color="sourceColor(selected.conversation.source)" variant="subtle" size="xs">{{ $t('inbox.source.' + selected.conversation.source) }}</UBadge>
           <UBadge v-if="selected.conversation.message_count === 0" color="error" variant="subtle" size="xs" icon="i-lucide-triangle-alert">{{ $t('inbox.noMessage') }}</UBadge>
         </div>
@@ -288,8 +295,14 @@
                   <UBadge :color="m.direction === 'outbound' ? 'primary' : 'neutral'" variant="subtle" size="xs">
                     {{ $t('inbox.direction.' + m.direction) }}
                   </UBadge>
-                  <UBadge v-if="m.status === 'failed'" color="error" variant="subtle" size="xs">failed</UBadge>
-                  <UBadge v-if="m.status === 'held'" color="warning" variant="subtle" size="xs">held</UBadge>
+                  <UTooltip v-if="m.status === 'failed'" :text="m.failed_reason || $t('inbox.deliverability.sendFailed')">
+                    <UBadge color="error" variant="subtle" size="xs">{{ $t('inbox.badge.failed') }}</UBadge>
+                  </UTooltip>
+                  <UBadge v-if="m.status === 'held'" color="warning" variant="subtle" size="xs">{{ $t('inbox.badge.held') }}</UBadge>
+                  <UBadge v-if="m.direction === 'outbound' && m.status === 'queued'" color="neutral" variant="subtle" size="xs" icon="i-lucide-clock">{{ $t('inbox.deliverability.queued') }}</UBadge>
+                  <UTooltip v-if="m.delivered_at" :text="formatTime(m.delivered_at)">
+                    <UBadge color="success" variant="subtle" size="xs" icon="i-lucide-check-check">{{ $t('inbox.deliverability.delivered') }}</UBadge>
+                  </UTooltip>
                   <UBadge v-if="m.ai_generated" color="info" variant="subtle" size="xs" icon="i-lucide-sparkles">{{ $t('inbox.badge.aiDraft') }}</UBadge>
                   <span class="msg-time">{{ formatTime(m.created_at) }}</span>
                 </span>
@@ -324,6 +337,44 @@
 
           <!-- Composer -->
           <div v-if="canSend && selected.conversation.status !== 'spam'" class="composer">
+            <div v-if="replyStatus?.email" class="composer-to">
+              <span class="from-label">{{ $t('inbox.compose.to') }}:</span>
+              <span class="to-address">{{ replyStatus.email }}</span>
+              <UBadge
+                :color="replyStatus.verified ? 'success' : 'warning'"
+                variant="subtle"
+                size="xs"
+              >{{ replyStatus.verified ? $t('inbox.deliverability.verified') : $t('inbox.deliverability.unverified') }}</UBadge>
+              <UTooltip
+                v-if="replyStatus.suppressed_at"
+                :text="`${suppressionReasonText(replyStatus.suppression_reason)} · ${formatTime(replyStatus.suppressed_at)}`"
+              >
+                <UBadge color="error" variant="solid" size="xs" icon="i-lucide-mail-x">{{ $t('inbox.deliverability.notReceiving') }}</UBadge>
+              </UTooltip>
+              <UBadge
+                v-if="!replyStatus.suppressed_at && replyStatus.bounce_count > 0"
+                color="warning"
+                variant="subtle"
+                size="xs"
+                icon="i-lucide-mail-warning"
+              >{{ $t('inbox.deliverability.previouslyBounced') }}</UBadge>
+            </div>
+            <UAlert
+              v-if="replyStatus?.suppressed_at"
+              color="error"
+              variant="subtle"
+              icon="i-lucide-mail-x"
+              :title="$t('inbox.deliverability.suppressedWarning')"
+              class="composer-alert"
+            />
+            <UAlert
+              v-else-if="replyStatus && !replyStatus.email"
+              color="warning"
+              variant="subtle"
+              icon="i-lucide-mail-question-mark"
+              :title="$t('inbox.deliverability.noRecipient')"
+              class="composer-alert"
+            />
             <div class="composer-from">
               <span class="from-label">{{ $t('inbox.compose.from') }}:</span>
               <USelect
@@ -541,6 +592,8 @@ interface Message {
   body_stripped_html: string | null
   body_text: string | null
   created_at: string
+  failed_reason?: string | null
+  delivered_at?: string | null
   ai_generated?: boolean
   ai_metadata?: AiDraftMetadata | null
   attachments?: { id: number; filename: string | null; url: string | null }[]
@@ -557,11 +610,24 @@ interface ConversationDetail {
   subscriber_id: number | null
   subscriber_name: string | null
   subscriber_email: string | null
+  subscriber_email_verified?: boolean | null
+  subscriber_email_suppressed_at?: string | null
+  subscriber_email_suppression_reason?: string | null
+}
+// Deliverability of the address a reply will actually go to (which can differ
+// from the header's subscriber_email). email null ⇒ a reply cannot be delivered.
+interface ReplyEmailStatus {
+  email: string | null
+  verified: boolean
+  suppressed_at: string | null
+  suppression_reason: string | null
+  bounce_count: number
 }
 interface SelectedConversation {
   conversation: ConversationDetail
   messages: Message[]
   drafts: Message[]
+  reply_email_status: ReplyEmailStatus | null
 }
 
 const canSend = computed(() => canAccess('inbox.send'))
@@ -786,6 +852,13 @@ function formatTime(ts: string | null): string {
   if (!ts) return ''
   const d = new Date(ts)
   return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+const replyStatus = computed(() => selected.value?.reply_email_status ?? null)
+
+function suppressionReasonText(reason: string | null | undefined): string {
+  if (reason === 'hard_bounce' || reason === 'complaint') return t('inbox.deliverability.reason.' + reason)
+  return t('inbox.deliverability.notReceiving')
 }
 
 function messageSender(m: Message): string {
@@ -1373,6 +1446,9 @@ a.contact-name:hover { text-decoration: underline; }
 .attachment-chip { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; padding: 0.2rem 0.5rem; border: 1px solid var(--ui-border); border-radius: 4px; }
 
 .composer { border-top: 1px solid var(--ui-border); padding-top: 1rem; }
+.composer-to { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; }
+.to-address { font-size: 0.8rem; color: var(--ui-text); }
+.composer-alert { margin-bottom: 0.5rem; }
 .composer-from { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
 .from-label { font-size: 0.75rem; color: var(--ui-text-muted); }
 .from-select { min-width: 260px; }

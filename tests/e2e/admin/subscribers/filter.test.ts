@@ -18,6 +18,7 @@ describe('Subscribers filter builder', async () => {
   let adminAuth: { headers: { cookie: string } }
   let pg1: { id: number; slug: string }
   let pg2: { id: number; slug: string }
+  let pg3: { id: number; slug: string }
   const created: number[] = []
 
   beforeAll(async () => {
@@ -26,6 +27,7 @@ describe('Subscribers filter builder', async () => {
     adminAuth = admin.auth
     pg1 = await createTestPeopleGroup(sql, { title: 'PG One' })
     pg2 = await createTestPeopleGroup(sql, { title: 'PG Two' })
+    pg3 = await createTestPeopleGroup(sql, { title: 'PG Three' })
 
     // Subscriber A: name "Filter Alice", verified email, doxa consent, sub to pg1
     const a = await createTestSubscriber(sql, { name: 'Filter Alice' })
@@ -46,6 +48,23 @@ describe('Subscribers filter builder', async () => {
     const c = await createTestSubscriber(sql, { name: 'Other Carol' })
     await sql`UPDATE subscribers SET country = 'NP' WHERE id = ${c.id}`
     created.push(c.id)
+
+    // Subscriber D: only an inactive (auto-lapsed) sub
+    const d = await createTestSubscriber(sql, { name: 'Filter Dana' })
+    await createTestPeopleGroupSubscription(sql, pg3.id, d.id, { status: 'inactive' })
+    created.push(d.id)
+
+    // Subscriber E: unsubscribed + inactive subs — unsubscribed takes precedence
+    const e = await createTestSubscriber(sql, { name: 'Filter Evan' })
+    await createTestPeopleGroupSubscription(sql, pg3.id, e.id, { status: 'unsubscribed' })
+    await createTestPeopleGroupSubscription(sql, pg3.id, e.id, { status: 'inactive' })
+    created.push(e.id)
+
+    // Subscriber F: pending + unsubscribed subs — pending takes precedence
+    const f = await createTestSubscriber(sql, { name: 'Filter Fran' })
+    await createTestPeopleGroupSubscription(sql, pg3.id, f.id, { status: 'pending' })
+    await createTestPeopleGroupSubscription(sql, pg3.id, f.id, { status: 'unsubscribed' })
+    created.push(f.id)
   })
 
   afterAll(async () => {
@@ -162,6 +181,66 @@ describe('Subscribers filter builder', async () => {
         { field: 'doxa_general_consent', op: 'is_true', value: null },
       ])
       expect(names).toEqual(['Filter Alice'])
+    })
+  })
+
+  describe('derived subscriber status', () => {
+    it('is active matches subscribers with any active sub', async () => {
+      const names = await fetchWithFilter([
+        { field: 'status', op: 'is', value: 'active' },
+      ])
+      expect(names).toContain('Filter Alice')
+      expect(names).toContain('Filter Bob')
+      expect(names).not.toContain('Filter Dana')
+      expect(names).not.toContain('Filter Evan')
+      expect(names).not.toContain('Filter Fran')
+      expect(names).not.toContain('Other Carol')
+    })
+
+    it('is inactive matches only lapsed subscribers without an unsubscribed sub', async () => {
+      const names = await fetchWithFilter([
+        { field: 'status', op: 'is', value: 'inactive' },
+      ])
+      expect(names).toEqual(['Filter Dana'])
+    })
+
+    it('is unsubscribed — unsubscribed wins over inactive', async () => {
+      const names = await fetchWithFilter([
+        { field: 'status', op: 'is', value: 'unsubscribed' },
+      ])
+      expect(names).toEqual(['Filter Evan'])
+    })
+
+    it('is pending — pending wins over unsubscribed', async () => {
+      const names = await fetchWithFilter([
+        { field: 'status', op: 'is', value: 'pending' },
+      ])
+      expect(names).toEqual(['Filter Fran'])
+    })
+
+    it('is none matches subscribers with no subscriptions', async () => {
+      const names = await fetchWithFilter([
+        { field: 'status', op: 'is', value: 'none' },
+      ])
+      expect(names).toEqual(['Other Carol'])
+    })
+
+    it('is_not inactive excludes only the lapsed subscriber', async () => {
+      const names = await fetchWithFilter([
+        { field: 'status', op: 'is_not', value: 'inactive' },
+      ])
+      expect(names).not.toContain('Filter Dana')
+      expect(names).toContain('Filter Alice')
+      expect(names).toContain('Filter Evan')
+      expect(names).toContain('Other Carol')
+    })
+
+    it('drops an invalid status value instead of erroring', async () => {
+      const names = await fetchWithFilter([
+        { field: 'status', op: 'is', value: 'bogus' },
+        { field: 'name', op: 'eq', value: 'Filter Dana' },
+      ])
+      expect(names).toEqual(['Filter Dana'])
     })
   })
 
