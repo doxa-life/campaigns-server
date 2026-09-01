@@ -1049,6 +1049,17 @@ async function selectConversation(id: number, updateUrl = true) {
   }
 }
 
+watch(slideoverOpen, (open) => {
+  if (!open) deselectConversation()
+})
+
+function deselectConversation() {
+  selected.value = null
+  if (import.meta.client) {
+    window.history.replaceState({}, '', '/admin/inbox')
+  }
+}
+
 async function refreshSelected() {
   if (selected.value) {
     const id = selected.value.conversation.id
@@ -1090,7 +1101,7 @@ async function toggleNeedsReview() {
   }
 }
 
-async function changeStatus(status: string) {
+async function changeStatus(status: string, opts?: { close?: boolean }) {
   if (!selected.value) return
   try {
     await $fetch(`/api/admin/inbox/conversations/${selected.value.conversation.id}`, {
@@ -1098,7 +1109,11 @@ async function changeStatus(status: string) {
       body: { status },
     })
     toast.add({ title: t('inbox.toasts.statusChanged'), color: 'success' })
-    await refreshSelected()
+    if (opts?.close) {
+      slideoverOpen.value = false
+    } else {
+      await refreshSelected()
+    }
     await loadConversations()
     await loadCounts()
   } catch {
@@ -1107,7 +1122,7 @@ async function changeStatus(status: string) {
 }
 
 function askClose() { showCloseModal.value = true }
-function confirmClose() { showCloseModal.value = false; changeStatus('closed') }
+function confirmClose() { showCloseModal.value = false; changeStatus('closed', { close: true }) }
 
 function askSpam() { showSpamModal.value = true }
 async function confirmSpam() {
