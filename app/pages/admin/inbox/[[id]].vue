@@ -172,6 +172,7 @@
           :placeholder="$t('inbox.bulk.setStatus')"
           :disabled="bulkBusy"
           class="bulk-select"
+          :ui="bulkMenuUi"
           @update:model-value="onBulkStatus"
         />
         <USelectMenu
@@ -183,6 +184,7 @@
           :placeholder="$t('inbox.bulk.assign')"
           :disabled="bulkBusy"
           class="bulk-select"
+          :ui="bulkMenuUi"
           @update:model-value="onBulkAssign"
         />
         <USelectMenu
@@ -194,6 +196,7 @@
           :placeholder="$t('inbox.bulk.addTag')"
           :disabled="bulkBusy"
           class="bulk-select"
+          :ui="bulkMenuUi"
           @update:model-value="onBulkAddTag"
         />
         <UButton
@@ -722,6 +725,9 @@ const bulkStatusItems = computed(() => (
   ['open', 'pending', 'closed'] as const
 ).map(v => ({ label: t('inbox.status.' + v), value: v as string })))
 const bulkTagItems = computed(() => tagPalette.value.map(tag => ({ label: tag.name, value: tag.slug })))
+// The bulk-bar triggers are narrow, so let each dropdown size to its items instead of
+// inheriting the trigger width (the theme pins content width to the trigger).
+const bulkMenuUi = { content: 'w-auto min-w-(--reka-combobox-trigger-width) max-w-64' }
 
 function toggleSelected(id: number) {
   const next = new Set(selectedIds.value)
