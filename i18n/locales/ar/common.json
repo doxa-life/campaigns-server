@@ -344,6 +344,7 @@
   "prayerFuel": {
     "pageTitle": "محتوى الصلاة",
     "title": "صلاة اليوم",
+    "prayingWithYou": "شخص واحد يصلّي معك الآن | {count} أشخاص يصلّون معك الآن",
     "loading": "جارٍ تحميل صلاة اليوم...",
     "backTo": "العودة إلى {campaign}",
     "backToToday": "العودة إلى صلاة اليوم",

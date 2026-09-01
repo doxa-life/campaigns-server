@@ -344,6 +344,7 @@
   "prayerFuel": {
     "pageTitle": "Contenu de prière",
     "title": "Prière du jour",
+    "prayingWithYou": "{count} personne prie avec vous en ce moment | {count} personnes prient avec vous en ce moment",
     "loading": "Chargement de la prière du jour...",
     "backTo": "Retour à {campaign}",
     "backToToday": "Retour à la prière d'aujourd'hui",

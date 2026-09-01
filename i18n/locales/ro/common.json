@@ -344,6 +344,7 @@
   "prayerFuel": {
     "pageTitle": "Conținut de rugăciune",
     "title": "Rugăciunea de astăzi",
+    "prayingWithYou": "{count} persoană se roagă cu tine acum | {count} persoane se roagă cu tine acum",
     "loading": "Se încarcă rugăciunea de astăzi...",
     "backTo": "Înapoi la {campaign}",
     "backToToday": "Înapoi la rugăciunea de astăzi",

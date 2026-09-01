@@ -344,6 +344,7 @@
   "prayerFuel": {
     "pageTitle": "Gebetsinhalt",
     "title": "Heutiges Gebet",
+    "prayingWithYou": "{count} Person betet jetzt mit Ihnen | {count} Personen beten jetzt mit Ihnen",
     "loading": "Heutiges Gebet wird geladen...",
     "backTo": "Zurück zu {campaign}",
     "backToToday": "Zurück zum heutigen Gebet",

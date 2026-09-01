@@ -38,6 +38,7 @@
               icon="i-lucide-chevron-right"
             />
           </div>
+          <PrayingNowBanner />
         </div>
       </header>
 
