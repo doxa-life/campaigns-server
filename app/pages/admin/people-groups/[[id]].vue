@@ -23,29 +23,7 @@
         :total-count="filteredPeopleGroups.length"
       >
         <template #filters>
-          <div class="filter-row">
-            <USelectMenu
-              v-model="filterEngagement"
-              :items="engagementOptions"
-              value-key="value"
-              placeholder="All Engagement"
-              class="filter-select"
-            />
-            <USelectMenu
-              v-model="filterAdopted"
-              :items="adoptedOptions"
-              value-key="value"
-              placeholder="All Adoption"
-              class="filter-select"
-            />
-            <USelectMenu
-              v-model="filterPrayerCommitment"
-              :items="prayerCommitmentOptions"
-              value-key="value"
-              placeholder="All Prayer"
-              class="filter-select"
-            />
-          </div>
+          <CrmFilterBuilder v-model="filterState" :manifest="filterManifest" />
         </template>
       </CrmListPanel>
     </template>
@@ -66,6 +44,13 @@
         </template>
         <div class="group-name">{{ group.name }}</div>
         <div class="group-meta">
+          <UBadge
+            v-if="group.status === 'archived'"
+            label="Archived"
+            color="neutral"
+            variant="subtle"
+            size="xs"
+          />
           <UBadge
             v-if="group.adoption_count > 0"
             label="Adopted"
@@ -347,7 +332,11 @@
 <script setup lang="ts">
 import { allFields, fieldsByCategory, categories, tableColumnFields, type FieldDefinition } from '~/utils/people-group-fields'
 import type { Adoption } from '~/types/adoption'
-import { encodeFilter } from '#shared/crm/filter-codec'
+import { encodeFilter, decodeFilter } from '#shared/crm/filter-codec'
+import type { FilterState } from '#shared/crm/filter-types'
+import { EMPTY_FILTER, isEmptyFilter } from '#shared/crm/filter-types'
+import { matchesFilter } from '~/utils/crm/filter-eval'
+import { usePeopleGroupFilterManifest, getPeopleGroupFilterValue } from '~/utils/crm/people-group-manifest'
 
 definePageMeta({
   layout: 'admin',
@@ -369,6 +358,7 @@ interface PeopleGroup {
   longitude: number | null
   population: number | null
   evangelical_pct: number | null
+  status: string | null
   engagement_status: string | null
   primary_religion: string | null
   primary_language: string | null
@@ -494,27 +484,8 @@ const error = ref('')
 const searchQuery = ref('')
 
 // Filters
-const filterEngagement = ref<string | null>(null)
-const filterAdopted = ref<string | null>(null)
-const filterPrayerCommitment = ref<string | null>(null)
-
-const engagementOptions = [
-  { label: 'All Engagement', value: null },
-  { label: 'Engaged', value: 'engaged' },
-  { label: 'Unengaged', value: 'unengaged' }
-]
-
-const adoptedOptions = [
-  { label: 'All Adoption', value: null },
-  { label: 'Adopted', value: 'adopted' },
-  { label: 'Not Adopted', value: 'not_adopted' }
-]
-
-const prayerCommitmentOptions = [
-  { label: 'All Prayer', value: null },
-  { label: 'With Commitments', value: 'with' },
-  { label: 'Without Commitments', value: 'without' }
-]
+const filterState = ref<FilterState>({ ...EMPTY_FILTER })
+const filterManifest = usePeopleGroupFilterManifest(peopleGroups)
 
 const filteredPeopleGroups = computed(() => {
   let filtered = peopleGroups.value
@@ -524,24 +495,31 @@ const filteredPeopleGroups = computed(() => {
     filtered = filtered.filter(g => g.name.toLowerCase().includes(q))
   }
 
-  if (filterEngagement.value) {
-    filtered = filtered.filter(g => g.engagement_status === filterEngagement.value)
-  }
-
-  if (filterAdopted.value) {
+  if (!isEmptyFilter(filterState.value)) {
     filtered = filtered.filter(g =>
-      filterAdopted.value === 'adopted' ? g.adoption_count > 0 : g.adoption_count === 0
-    )
-  }
-
-  if (filterPrayerCommitment.value) {
-    filtered = filtered.filter(g =>
-      filterPrayerCommitment.value === 'with' ? g.people_committed > 0 : g.people_committed === 0
+      matchesFilter(g, filterState.value, filterManifest.value, getPeopleGroupFilterValue)
     )
   }
 
   return filtered
 })
+
+// Write filter + search to the URL (without server roundtrip).
+function syncUrl() {
+  if (!import.meta.client) return
+  const params = new URLSearchParams()
+  const encoded = encodeFilter(filterState.value)
+  if (encoded) params.set('filter', encoded)
+  if (searchQuery.value) params.set('q', searchQuery.value)
+  const qs = params.toString()
+  const base = selectedGroup.value
+    ? `/admin/people-groups/${selectedGroup.value.id}`
+    : '/admin/people-groups'
+  window.history.replaceState({}, '', qs ? `${base}?${qs}` : base)
+}
+
+watch(filterState, () => syncUrl(), { deep: true })
+watch(searchQuery, () => syncUrl())
 
 // i18n and localized options
 const { t } = useI18n()
@@ -635,9 +613,7 @@ async function selectGroup(group: PeopleGroup, updateUrl = true) {
   selectedGroup.value = group
   slideoverOpen.value = true
   resetAutoSave(buildFormData(group))
-  if (updateUrl && import.meta.client) {
-    window.history.replaceState({}, '', `/admin/people-groups/${group.id}`)
-  }
+  if (updateUrl) syncUrl()
 
   try {
     const res = await $fetch<{ adoptions: Adoption[] }>(`/api/admin/people-groups/${group.id}`)
@@ -649,9 +625,7 @@ async function selectGroup(group: PeopleGroup, updateUrl = true) {
 
 function deselectGroup() {
   selectedGroup.value = null
-  if (import.meta.client) {
-    window.history.replaceState({}, '', '/admin/people-groups')
-  }
+  syncUrl()
 }
 
 const columnKeys = new Set(tableColumnFields.map(f => f.key))
@@ -759,6 +733,14 @@ function formatDuration(minutes: number): string {
 }
 
 onMounted(async () => {
+  // Restore filter + search from URL.
+  const filterParam = route.query.filter
+  if (typeof filterParam === 'string' && filterParam) {
+    filterState.value = decodeFilter(filterParam)
+  }
+  const qParam = route.query.q
+  if (typeof qParam === 'string') searchQuery.value = qParam
+
   const idParam = route.params.id as string | undefined
 
   if (idParam) {
@@ -778,6 +760,9 @@ onMounted(async () => {
       slideoverOpen.value = true
       resetAutoSave(buildFormData(group))
       adoptions.value = groupRes.adoptions
+      // The filter/search watchers may have rewritten the URL before the
+      // group loaded; put the id segment back now that it's selected.
+      syncUrl()
     } catch {
       // Group not found — just wait for the list
     }
@@ -886,16 +871,5 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-.filter-row {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.filter-select {
-  flex: 1;
-  min-width: 120px;
 }
 </style>

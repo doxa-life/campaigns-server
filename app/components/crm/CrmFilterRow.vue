@@ -95,6 +95,7 @@
           :model-value="row.value"
           :items="(field.values || []) as any"
           value-key="value"
+          :virtualize="(field.values || []).length > 50"
           class="flex-1 min-w-48"
           placeholder="Select..."
           @update:model-value="setValue($event)"
