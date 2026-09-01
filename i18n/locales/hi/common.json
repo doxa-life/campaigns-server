@@ -791,6 +791,16 @@
       "hideQuoted": "उद्धृत पाठ छिपाएं",
       "addKnowledgeBase": "ज्ञान आधार में जोड़ें"
     },
+    "bulk": {
+      "selected": "{count} चयनित",
+      "selectAll": "सभी {count} चुनें",
+      "select": "बातचीत चुनें",
+      "setStatus": "स्थिति बदलें",
+      "assign": "सौंपें",
+      "addTag": "टैग जोड़ें",
+      "clear": "चयन हटाएँ",
+      "closeMessage": "क्या {count} बातचीतें बंद करें?"
+    },
     "badge": {
       "aiDraft": "AI",
       "failed": "विफल",
@@ -823,6 +833,7 @@
       "draftSaved": "ड्राफ्ट सहेजा गया",
       "assigned": "बातचीत सौंपी गई",
       "statusChanged": "स्थिति अपडेट हुई",
+      "bulkUpdated": "{count} बातचीतें अपडेट हुईं",
       "markedSpam": "स्पैम के रूप में चिह्नित",
       "unmarkedSpam": "स्पैम से हटाया गया",
       "error": "कुछ गलत हो गया"

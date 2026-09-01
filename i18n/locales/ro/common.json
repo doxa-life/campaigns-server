@@ -787,6 +787,16 @@
       "hideQuoted": "Ascunde textul citat",
       "addKnowledgeBase": "Adaugă în baza de cunoștințe"
     },
+    "bulk": {
+      "selected": "{count} selectate",
+      "selectAll": "Selectează toate ({count})",
+      "select": "Selectează conversația",
+      "setStatus": "Setează starea",
+      "assign": "Atribuie către",
+      "addTag": "Adaugă etichetă",
+      "clear": "Golește selecția",
+      "closeMessage": "Închizi {count} conversații?"
+    },
     "badge": {
       "aiDraft": "IA",
       "failed": "Eșuat",
@@ -819,6 +829,7 @@
       "draftSaved": "Ciornă salvată",
       "assigned": "Conversație atribuită",
       "statusChanged": "Stare actualizată",
+      "bulkUpdated": "{count} conversații actualizate",
       "markedSpam": "Marcată ca spam",
       "unmarkedSpam": "Eliminată din spam",
       "error": "Ceva nu a mers bine"

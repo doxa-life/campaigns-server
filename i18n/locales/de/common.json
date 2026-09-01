@@ -791,6 +791,16 @@
       "hideQuoted": "Zitierten Text ausblenden",
       "addKnowledgeBase": "Zur Wissensdatenbank hinzufügen"
     },
+    "bulk": {
+      "selected": "{count} ausgewählt",
+      "selectAll": "Alle {count} auswählen",
+      "select": "Unterhaltung auswählen",
+      "setStatus": "Status setzen",
+      "assign": "Zuweisen an",
+      "addTag": "Tag hinzufügen",
+      "clear": "Auswahl aufheben",
+      "closeMessage": "{count} Unterhaltungen schließen?"
+    },
     "badge": {
       "aiDraft": "KI",
       "failed": "Fehlgeschlagen",
@@ -823,6 +833,7 @@
       "draftSaved": "Entwurf gespeichert",
       "assigned": "Unterhaltung zugewiesen",
       "statusChanged": "Status aktualisiert",
+      "bulkUpdated": "{count} Unterhaltungen aktualisiert",
       "markedSpam": "Als Spam markiert",
       "unmarkedSpam": "Aus Spam entfernt",
       "error": "Etwas ist schiefgelaufen"

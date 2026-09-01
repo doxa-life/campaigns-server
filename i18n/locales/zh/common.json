@@ -791,6 +791,16 @@
       "hideQuoted": "隐藏引用内容",
       "addKnowledgeBase": "添加到知识库"
     },
+    "bulk": {
+      "selected": "已选择 {count} 个",
+      "selectAll": "全选 {count} 个",
+      "select": "选择会话",
+      "setStatus": "设置状态",
+      "assign": "分配给",
+      "addTag": "添加标签",
+      "clear": "清除选择",
+      "closeMessage": "确定关闭 {count} 个会话吗？"
+    },
     "badge": {
       "aiDraft": "AI",
       "failed": "失败",
@@ -823,6 +833,7 @@
       "draftSaved": "草稿已保存",
       "assigned": "会话已分配",
       "statusChanged": "状态已更新",
+      "bulkUpdated": "已更新 {count} 个会话",
       "markedSpam": "已标记为垃圾邮件",
       "unmarkedSpam": "已从垃圾邮件中移除",
       "error": "出错了"

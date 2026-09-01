@@ -825,6 +825,16 @@
       "hideQuoted": "إخفاء النص المقتبس",
       "addKnowledgeBase": "إضافة إلى قاعدة المعرفة"
     },
+    "bulk": {
+      "selected": "{count} محددة",
+      "selectAll": "تحديد الكل ({count})",
+      "select": "تحديد المحادثة",
+      "setStatus": "تعيين الحالة",
+      "assign": "إسناد إلى",
+      "addTag": "إضافة وسم",
+      "clear": "مسح التحديد",
+      "closeMessage": "هل تريد إغلاق {count} من المحادثات؟"
+    },
     "badge": {
       "aiDraft": "AI",
       "failed": "فشل",
@@ -857,6 +867,7 @@
       "draftSaved": "تم حفظ المسودة",
       "assigned": "تم إسناد المحادثة",
       "statusChanged": "تم تحديث الحالة",
+      "bulkUpdated": "تم تحديث {count} من المحادثات",
       "markedSpam": "تم وضع علامة بريد مزعج",
       "unmarkedSpam": "تمت الإزالة من البريد المزعج",
       "error": "حدث خطأ ما"

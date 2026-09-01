@@ -825,6 +825,16 @@
       "hideQuoted": "Скрыть цитату",
       "addKnowledgeBase": "Добавить в базу знаний"
     },
+    "bulk": {
+      "selected": "Выбрано: {count}",
+      "selectAll": "Выбрать все ({count})",
+      "select": "Выбрать разговор",
+      "setStatus": "Изменить статус",
+      "assign": "Назначить",
+      "addTag": "Добавить тег",
+      "clear": "Снять выделение",
+      "closeMessage": "Закрыть выбранные разговоры ({count})?"
+    },
     "badge": {
       "aiDraft": "ИИ",
       "failed": "Ошибка",
@@ -857,6 +867,7 @@
       "draftSaved": "Черновик сохранён",
       "assigned": "Разговор назначен",
       "statusChanged": "Статус обновлён",
+      "bulkUpdated": "Обновлено разговоров: {count}",
       "markedSpam": "Помечено как спам",
       "unmarkedSpam": "Убрано из спама",
       "error": "Что-то пошло не так"
