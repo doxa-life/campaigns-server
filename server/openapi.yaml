@@ -1577,3 +1577,12 @@ components:
             Frequency-weighted daily committed prayer minutes across all active
             subscriptions (weekly commitments scaled by days-per-week ÷ 7).
           example: 36000
+        praying_now:
+          type: integer
+          description: >
+            People currently in a prayer session, across the mobile app and the
+            web prayer pages. A session re-reports itself about every 60
+            seconds while it runs, so this counts distinct sessions last seen
+            within the past 5 minutes. Approximate by design, and served with a
+            5-minute cache — treat it as "roughly now", not a precise instant.
+          example: 42

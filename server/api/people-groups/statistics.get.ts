@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
 
   const sql = getSql()
 
-  const [result, adoptedResult, commitmentStats] = await Promise.all([
+  const [result, adoptedResult, prayingNowResult, commitmentStats] = await Promise.all([
     sql`
       SELECT
         COUNT(*) as total_active,
@@ -29,6 +29,23 @@ export default defineEventHandler(async (event) => {
       JOIN people_groups pg ON pg.id = a.people_group_id
       WHERE a.status = 'active' AND pg.status != 'archived'
     `.then(rows => rows[0] as { count: string | number }),
+    // "Praying right now". Every prayer session upserts its row on each ping
+    // (immediately on open, then 30s/60s and every 60s to 15 min), and the
+    // upsert rewrites `timestamp` — so `timestamp` is the session's LAST-SEEN
+    // time, and a recent one means someone is still on the page.
+    //
+    // `NOW() AT TIME ZONE 'UTC'` is deliberate, not decoration: `timestamp` is
+    // TIMESTAMP *without* time zone holding UTC (migration 012). Comparing it
+    // against bare NOW() converts using the DB session's TimeZone, which over a
+    // 5-minute window would make this permanently 0 or permanently everything.
+    //
+    // COALESCE to session_id so one person's two tabs count once, while
+    // sessions with no tracking_id (SSR, iframes, blocked storage) still count.
+    sql`
+      SELECT COUNT(DISTINCT COALESCE(tracking_id, session_id)) as praying_now
+      FROM prayer_activity
+      WHERE timestamp > (NOW() AT TIME ZONE 'UTC') - INTERVAL '5 minutes'
+    `.then(rows => rows[0] as { praying_now: string | number }),
     peopleGroupSubscriptionService.getGlobalCommitmentStats()
   ])
 
@@ -43,6 +60,7 @@ export default defineEventHandler(async (event) => {
     total_with_prayer_committed: commitmentStats.people_groups_with_commitment,
     total_adopted: Number(adoptedResult.count),
     people_committed: commitmentStats.people_committed,
-    committed_duration: commitmentStats.committed_duration
+    committed_duration: commitmentStats.committed_duration,
+    praying_now: Number(prayingNowResult.praying_now)
   }
 })

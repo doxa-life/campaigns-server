@@ -344,6 +344,7 @@
   "prayerFuel": {
     "pageTitle": "Contenido de Oración",
     "title": "Oración de Hoy",
+    "prayingWithYou": "{count} persona orando con usted ahora | {count} personas orando con usted ahora",
     "loading": "Cargando la oración de hoy...",
     "backTo": "Volver a {campaign}",
     "backToToday": "Volver a la Oración de Hoy",

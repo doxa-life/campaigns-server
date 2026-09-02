@@ -344,6 +344,7 @@
   "prayerFuel": {
     "pageTitle": "Contenuti di Preghiera",
     "title": "Preghiera di Oggi",
+    "prayingWithYou": "{count} persona prega con te in questo momento | {count} persone pregano con te in questo momento",
     "loading": "Caricamento della preghiera di oggi...",
     "backTo": "Torna a {campaign}",
     "backToToday": "Torna alla Preghiera di Oggi",

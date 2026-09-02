@@ -344,6 +344,7 @@
   "prayerFuel": {
     "pageTitle": "Prayer Content",
     "title": "Today's Prayer",
+    "prayingWithYou": "{count} person praying with you now | {count} people praying with you now",
     "loading": "Loading today's prayer...",
     "backTo": "Back to {campaign}",
     "backToToday": "Back to Today's Prayer",

@@ -344,6 +344,7 @@
   "prayerFuel": {
     "pageTitle": "祷告内容",
     "title": "今日祷告",
+    "prayingWithYou": "现在有 {count} 人正在与您一同祷告 | 现在有 {count} 人正在与您一同祷告",
     "loading": "正在加载今日祷告...",
     "backTo": "返回{campaign}",
     "backToToday": "返回今日祷告",
