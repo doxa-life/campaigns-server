@@ -142,6 +142,13 @@ export default defineNuxtConfig({
     awsRegion: process.env.AWS_REGION || process.env.AWS_SES_REGION || '',
     awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
     awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+    // SES configuration sets (per-stream event publishing); empty = sends untagged
+    sesTransactionalConfigSet: process.env.SES_TRANSACTIONAL_CONFIGURATION_SET || '',
+    sesMarketingConfigSet: process.env.SES_MARKETING_CONFIGURATION_SET || '',
+    // S3 bucket SES inbound receipt rules deliver raw mail into
+    sesInboundBucket: process.env.SES_INBOUND_BUCKET || '',
+    // Comma-separated SNS TopicArns the SES webhooks accept (empty = any verified SNS message)
+    snsAllowedTopicArns: process.env.SNS_ALLOWED_TOPIC_ARNS || '',
 
     // S3 configuration (base layer)
     s3Endpoint: process.env.S3_ENDPOINT || '',
@@ -181,8 +188,11 @@ export default defineNuxtConfig({
     inboxContactAddress: process.env.INBOX_CONTACT_ADDRESS || 'contact@doxa.life',
     inboxDomain: process.env.INBOX_DOMAIN || 'doxa.life',
 
-    // Marketing email transport — separate Mailgun domain + key so marketing
-    // sends on its own subdomain reputation, isolated from transactional/inbox.
+    // Marketing email transport — separate sending domain so marketing sends on
+    // its own subdomain reputation, isolated from transactional/inbox.
+    // MARKETING_EMAIL_DOMAIN is provider-neutral (SES); the MARKETING_MAILGUN_*
+    // vars additionally configure the Mailgun transport.
+    marketingEmailDomain: process.env.MARKETING_EMAIL_DOMAIN || '',
     marketingMailgunApiKey: process.env.MARKETING_MAILGUN_API_KEY || '',
     marketingMailgunDomain: process.env.MARKETING_MAILGUN_DOMAIN || '',
     marketingMailgunHost: process.env.MARKETING_MAILGUN_HOST || 'api.mailgun.net',

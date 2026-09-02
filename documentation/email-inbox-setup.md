@@ -169,3 +169,34 @@ No DNS/Mailgun needed locally. With `EMAIL_PROVIDER` unset (or not `mailgun`), `
 - **Both webhooks verify** Mailgun's HMAC-SHA256 signature (timestamp + token + signing key), reject stale (>10 min) and replayed tokens — `server/utils/mailgun-webhook.ts`.
 - **The `From` header is never trusted alone.** Reply-by-email requires a valid signed address **and** DKIM-aligned authentication; otherwise it's held for human review — `server/utils/mailgun-inbound.ts`.
 - **Durable-before-ack:** the inbound webhook returns success only after the message is persisted; transient failures return a retryable error so Mailgun retries (idempotent by `Message-Id`).
+
+---
+
+## 12. AWS SES variant (`EMAIL_PROVIDER=ses`)
+
+The app also runs the whole inbox on Amazon SES. The address scheme, reply signing, and all in-app behavior are identical — only the transport and webhooks differ. Both providers can be live at once (during a migration, keep the Mailgun webhooks registered while any Mailgun sending remains).
+
+```
+Contact ──email──▶ doxa.life MX ──▶ SES receipt rule ──▶ S3 (raw MIME) + SNS ──▶ POST /api/webhooks/ses/inbound ──▶ app
+  ▲                                                                                                                │
+  └────────────────── SES SendEmail (raw) ◀── inboxEmailService ◀── reply / auto-ack ◀────────────────────────────┘
+             (config-set events: Bounce/Complaint/Delivery) ──▶ SNS ──▶ POST /api/webhooks/ses/events ──▶ app
+```
+
+- **Sending**: all three transports (base transactional, inbox, marketing) send raw MIME via the SESv2 API (`server/utils/ses.ts`), tagged with a per-stream configuration set so events publish per stream.
+- **Receiving**: the SES receipt rule stores each message in the `SES_INBOUND_BUCKET` S3 bucket and notifies SNS; `server/api/webhooks/ses/inbound.post.ts` fetches and parses the raw MIME (mailparser), derives the stripped "new content" variants (`server/utils/email-reply-stripper.ts`), and runs the same pipeline as Mailgun inbound (`server/utils/inbound-email-processor.ts`).
+- **Events**: `server/api/webhooks/ses/events.post.ts` maps `Bounce` (Permanent) → `hard_bounce` suppression, `Complaint` → `complaint` suppression, `Delivery` → the in-thread delivered flag. Transient bounces are ignored.
+- **Webhook auth**: both SES endpoints verify the SNS X.509 message signature, allow-list topics via `SNS_ALLOWED_TOPIC_ARNS`, guard replays by SNS `MessageId`, and answer the subscription-confirmation handshake automatically (`server/utils/sns-webhook.ts`) — so subscribing the URLs in the SNS console is all that's needed.
+- **Inbound auth**: the receipt's DMARC verdict plus the `Authentication-Results` header SES writes into the stored message feed the same authenticated/held gating.
+- **Return-Path**: with a custom MAIL FROM domain, OOO auto-replies go to Amazon's feedback processor instead of the inbound catch-all; the `bounce@` drop remains as defense-in-depth.
+
+AWS-side setup (identities, DKIM, MAIL FROM, configuration sets, topics, bucket, receipt rule, sandbox exit) lives in the SES setup runbook. App env for SES:
+
+| Variable | Purpose |
+|---|---|
+| `EMAIL_PROVIDER=ses` | Switch all three send paths to SES |
+| `AWS_REGION` / `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | SES + inbound-bucket credentials |
+| `SES_TRANSACTIONAL_CONFIGURATION_SET` / `SES_MARKETING_CONFIGURATION_SET` | Per-stream event publishing |
+| `SES_INBOUND_BUCKET` | Bucket the receipt rule stores raw mail in |
+| `SNS_ALLOWED_TOPIC_ARNS` | Comma-separated TopicArns the SES webhooks accept |
+| `MARKETING_EMAIL_DOMAIN` | Marketing From domain (e.g. `mail.doxa.life`), provider-neutral |
