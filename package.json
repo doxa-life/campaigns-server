@@ -52,7 +52,6 @@
     "jsonwebtoken": "^9.0.3",
     "mailparser": "^3.9.20",
     "nodemailer": "^8.0.9",
-    "nodemailer-mailgun-transport": "^2.1.5",
     "nuxt": "^4.4.6",
     "postgres": "^3.4.9",
     "qrcode": "^1.5.4",
