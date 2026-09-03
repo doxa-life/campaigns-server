@@ -15,7 +15,7 @@
       variant="soft"
       icon="i-lucide-triangle-alert"
       title="Marketing domain not configured"
-      description="Set MARKETING_MAILGUN_DOMAIN (and MARKETING_MAILGUN_API_KEY) so these senders can deliver. Until then, marketing emails fall back to the default transactional From."
+      description="Set MARKETING_EMAIL_DOMAIN so these senders can deliver. Until then, marketing emails fall back to the default transactional From."
       class="mb-4"
     />
 
