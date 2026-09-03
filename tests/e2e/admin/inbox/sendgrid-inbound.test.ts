@@ -50,11 +50,11 @@ describe('SendGrid inbound webhook', async () => {
     rawMime: string,
     recipient: string,
     sender: string,
-    opts: { dkim?: string; spf?: string; spamScore?: string } = {}
+    opts: { dkim?: string; spf?: string; spamScore?: string; envelopeTo?: string[] } = {}
   ): URLSearchParams {
     const params = new URLSearchParams()
     params.append('email', rawMime)
-    params.append('envelope', JSON.stringify({ to: [recipient], from: sender }))
+    params.append('envelope', JSON.stringify({ to: opts.envelopeTo || [recipient], from: sender }))
     params.append('to', recipient)
     params.append('from', sender)
     params.append('dkim', opts.dkim ?? 'none')
@@ -144,6 +144,34 @@ describe('SendGrid inbound webhook', async () => {
     expect(res.conversation_id).toBe(convo!.id)
     const [updated] = await sql`SELECT status FROM conversations WHERE id = ${convo!.id}`
     expect((updated as any).status).toBe('open')
+  })
+
+  it('routes on the inbox-domain envelope recipient when others are listed first', async () => {
+    const email = `sg-multi-${uuidv4().slice(0, 8)}@example.com`
+    const [sub] = await sql`
+      INSERT INTO subscribers (tracking_id, profile_id, name)
+      VALUES (${uuidv4()}, ${uuidv4()}, ${'Test SendGrid ' + email})
+      RETURNING id
+    `
+    createdSubscriberIds.push(sub!.id)
+    await sql`
+      INSERT INTO contact_methods (subscriber_id, type, value, verified)
+      VALUES (${sub!.id}, 'email', ${email}, false)
+    `
+    const token = uuidv4().replace(/-/g, '').slice(0, 20)
+    const [convo] = await sql`
+      INSERT INTO conversations (subscriber_id, status, reply_token, subject)
+      VALUES (${sub!.id}, 'open', ${token}, 'Multi-recipient thread')
+      RETURNING id
+    `
+
+    const inboxRecipient = `contact+${token}@${INBOX_DOMAIN}`
+    const mime = buildMime({ from: email, to: inboxRecipient, subject: 'Re: Multi-recipient thread', html: '<p>hi</p>', text: 'hi' })
+    const res = await postInbound(
+      parseForm(mime, inboxRecipient, email, { envelopeTo: ['cc@example.org', inboxRecipient] })
+    )
+    expect(res.status).toBe('contact')
+    expect(res.conversation_id).toBe(convo!.id)
   })
 
   it('derives stripped body variants from quoted-reply content', async () => {

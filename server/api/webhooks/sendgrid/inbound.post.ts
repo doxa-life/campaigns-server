@@ -86,7 +86,16 @@ export default defineEventHandler(async (event) => {
     const parsed = await simpleParser(rawMime)
     const headers = headersFromHeaderLines(parsed.headerLines || [])
 
-    const recipient = envelope.to?.[0] || extractEmailAddress(field('to') || headers.get('to') || '') || ''
+    // One SMTP transaction can carry several recipients (e.g. contact@ plus a staff
+    // alias CC'd); reply-token and alias routing key off this one address, so prefer
+    // an inbox-domain entry over whatever SendGrid happened to list first.
+    const inboxDomain = String(config.inboxDomain || 'doxa.life').toLowerCase()
+    const envelopeTo = envelope.to || []
+    const recipient =
+      envelopeTo.find(r => r.toLowerCase().endsWith(`@${inboxDomain}`)) ||
+      envelopeTo[0] ||
+      extractEmailAddress(field('to') || headers.get('to') || '') ||
+      ''
     const fromEmail =
       parsed.from?.value?.[0]?.address?.toLowerCase() ||
       extractEmailAddress(field('from') || headers.get('from') || '')

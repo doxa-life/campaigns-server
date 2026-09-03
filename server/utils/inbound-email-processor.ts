@@ -24,7 +24,7 @@ import { jobQueueService, type InboxEmailPayload } from '../database/job-queue'
  * conversation resolution, staff/contact/held outcome, durable persistence
  * (message + attachments + raw MIME), and notification enqueueing.
  *
- * The provider webhooks (Mailgun form-forward, SES via SNS+S3) verify their own
+ * The provider webhooks (Mailgun form-forward, SendGrid Inbound Parse) verify their own
  * transport signatures, extract these fields from their payload shape, and map
  * the result / thrown TransientInboundError back to their retry semantics.
  */

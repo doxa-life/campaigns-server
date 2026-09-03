@@ -1,7 +1,8 @@
 /**
  * Strip quoted history from an email reply, leaving only the new content —
  * the equivalent of Mailgun's stripped-html / stripped-text for providers
- * (SES) that deliver raw MIME without a stripped variant.
+ * (SendGrid Inbound Parse in raw MIME mode) that deliver raw MIME without a
+ * stripped variant.
  *
  * Heuristic, not a full parser: cut everything from the earliest known
  * quote marker to the end. Major clients wrap the quoted thread in a
@@ -34,7 +35,8 @@ export function stripQuotedHtml(html: string): string {
 }
 
 const TEXT_QUOTE_MARKERS: RegExp[] = [
-  // "On Mon, Jan 5, 2026 at 3:12 PM Name <a@b.com> wrote:" (possibly wrapped to a second line)
+  // "On Mon, Jan 5, 2026 at 3:12 PM Name <a@b.com> wrote:" — single-line
+  // attributions only; an attribution a client wrapped across lines is left unstripped
   /^On .{0,200}wrote:\s*$/m,
   /^-{2,}\s*Original Message\s*-{2,}/im,
   // Outlook's separator line above the quoted headers

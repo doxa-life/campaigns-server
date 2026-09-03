@@ -190,7 +190,9 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       const info = await sendViaMailgunHttp(mailOptions, config)
       messageId = info.messageId
     } else if (!isDevelopment && provider === 'sendgrid') {
-      const info = await sendViaSendgrid(mailOptions)
+      // Pass the original to value: sendViaSendgrid handles arrays itself, and a
+      // comma-joined string would be read as one (invalid) address.
+      const info = await sendViaSendgrid({ ...mailOptions, to: options.to })
       messageId = info.messageId
     } else {
       const info = await getTransporter().sendMail(mailOptions)

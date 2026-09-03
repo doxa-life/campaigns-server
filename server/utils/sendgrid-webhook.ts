@@ -22,8 +22,12 @@ export function verifySendgridSignature(params: {
   if (!publicKeyB64) return { ok: false, reason: 'Verification key not configured' }
   if (!signature || !timestamp) return { ok: false, reason: 'Missing signature headers' }
 
-  const ts = Date.parse(timestamp)
-  if (!Number.isNaN(ts) && Math.abs(Date.now() - ts) / 1000 > MAX_AGE_SECONDS) {
+  // SendGrid sends the timestamp as Unix seconds (Date.parse can't read that
+  // form); ISO strings are accepted too. Unparseable → rejected as stale, so a
+  // captured signed batch can't be replayed outside the window.
+  const trimmed = timestamp.trim()
+  const ts = /^\d+$/.test(trimmed) ? Number(trimmed) * 1000 : Date.parse(trimmed)
+  if (Number.isNaN(ts) || Math.abs(Date.now() - ts) / 1000 > MAX_AGE_SECONDS) {
     return { ok: false, reason: 'Stale signature' }
   }
 

@@ -45,6 +45,9 @@ export interface SendgridSendOptions {
   references?: string
   headers?: Record<string, string>
   attachments?: SendgridAttachment[]
+  // Per-request cap; default 30s. Marketing passes MARKETING_SEND_TIMEOUT_MS so a
+  // hung connection fails fast instead of stalling the serial batch.
+  timeoutMs?: number
 }
 
 /** Split a `"Name" <a@b>` style address into SendGrid's {email, name} shape. */
@@ -95,7 +98,7 @@ export async function sendViaSendgrid(options: SendgridSendOptions): Promise<{ m
   // AbortSignal.timeout(): under Bun the latter's per-call timer is never
   // reclaimed, so each send leaks memory.
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 30000)
+  const timeout = setTimeout(() => controller.abort(), options.timeoutMs || 30000)
   try {
     const res = await fetch(`https://${host}/v3/mail/send`, {
       method: 'POST',

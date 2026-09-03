@@ -186,7 +186,7 @@ export default defineNuxtConfig({
 
     // Marketing email transport — separate sending domain so marketing sends on
     // its own subdomain reputation, isolated from transactional/inbox.
-    // MARKETING_EMAIL_DOMAIN is provider-neutral (SES); the MARKETING_MAILGUN_*
+    // MARKETING_EMAIL_DOMAIN is provider-neutral (SendGrid); the MARKETING_MAILGUN_*
     // vars additionally configure the Mailgun transport.
     marketingEmailDomain: process.env.MARKETING_EMAIL_DOMAIN || '',
     marketingMailgunApiKey: process.env.MARKETING_MAILGUN_API_KEY || '',

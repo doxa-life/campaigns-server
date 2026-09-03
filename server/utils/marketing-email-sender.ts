@@ -88,6 +88,7 @@ export async function sendMarketingEmail(options: MarketingSendOptions): Promise
         text: options.text,
         replyTo: options.replyTo,
         headers: Object.keys(headers).length ? headers : undefined,
+        timeoutMs: Number(process.env.MARKETING_SEND_TIMEOUT_MS) || 30000,
       })
       return true
     } catch (error: any) {
