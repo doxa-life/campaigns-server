@@ -1,5 +1,5 @@
 import { libraryContentService } from '#server/database/library-content'
-import { translateTiptapContent, reconcileVersesFromSource, isDeepLConfigured, type TiptapNode, type VerseWarning } from '#server/utils/deepl'
+import { translateTiptapContent, reconcileVersesFromSource, isTranslationConfigured, type TiptapNode, type VerseWarning } from '#server/utils/translate'
 import { getErrorMessage, getIntParam } from '#server/utils/api-helpers'
 
 /**
@@ -20,11 +20,11 @@ export default defineEventHandler(async (event) => {
   const libraryId = getIntParam(event, 'libraryId')
   const contentId = getIntParam(event, 'id')
 
-  // Check if DeepL is configured
-  if (!isDeepLConfigured()) {
+  // Check if the translation service is configured
+  if (!isTranslationConfigured()) {
     throw createError({
       statusCode: 503,
-      statusMessage: 'Translation service not configured. Please add DEEPL_API_KEY to environment.'
+      statusMessage: 'Translation service not configured. Please add OPENROUTER_API_KEY to environment.'
     })
   }
 

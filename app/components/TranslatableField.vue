@@ -30,7 +30,7 @@
       <template #body>
         <div class="p-6 space-y-4">
           <p class="text-[var(--ui-text-muted)]">
-            Translate the English content to all other languages using DeepL.
+            Translate the English content to all other languages using AI translation.
           </p>
 
           <UCheckbox

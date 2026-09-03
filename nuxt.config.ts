@@ -150,9 +150,16 @@ export default defineNuxtConfig({
     s3SecretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
     s3BucketName: process.env.S3_BUCKET_NAME || process.env.S3_BACKUP_BUCKET || '',
 
-    // DeepL Translation API
+    // DeepL Translation API (fallback provider)
     deeplApiKey: process.env.DEEPL_API_KEY || '',
     deeplApiUrl: process.env.DEEPL_API_URL || 'https://api-free.deepl.com',
+
+    // OpenRouter — LLM content translation. TRANSLATION_PROVIDER selects
+    // 'openrouter' (default) or 'deepl'; TRANSLATION_MODEL overrides the
+    // default model when no app_config value is set.
+    openrouterApiKey: process.env.OPENROUTER_API_KEY || '',
+    translationModel: process.env.TRANSLATION_MODEL || '',
+    translationProvider: process.env.TRANSLATION_PROVIDER || 'openrouter',
 
     // Joshua Project API — external people group search on /updates
     joshuaProjectApiKey: process.env.JOSHUA_PROJECT_API_KEY || '',

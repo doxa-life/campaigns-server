@@ -1,13 +1,16 @@
 /**
- * DeepL Translation Utility
+ * Translation Utility
  *
- * Provides translation services using the DeepL API.
- * Handles both plain text and Tiptap JSON content.
+ * Translates plain text and Tiptap JSON content between the app's languages.
+ * The provider is chosen by TRANSLATION_PROVIDER: 'openrouter' (LLM, the
+ * default) or 'deepl'. Verse nodes are never machine-translated — they are
+ * fetched from the Bible API in the target language.
  */
 
 import { LANGUAGE_CODES, getDeeplTargetCode, getDeeplSourceCode, getBibleId, getBibleLabel, getGlossaryId } from '~/utils/languages'
 import { parseReference, localizeReference, type ParsedReference } from '../../config/bible-books'
 import { fetchVerseData, isBollsBibleConfigured, BibleUnavailableError } from './app/bolls-bible'
+import { openrouterTranslateTexts, isOpenRouterConfigured } from './openrouter'
 
 // Re-export for convenience
 export const SUPPORTED_LANGUAGES = LANGUAGE_CODES
@@ -27,66 +30,23 @@ interface DeepLResponse {
   translations: DeepLTranslation[]
 }
 
+function getTranslationProvider(): 'openrouter' | 'deepl' {
+  return useRuntimeConfig().translationProvider === 'deepl' ? 'deepl' : 'openrouter'
+}
+
 /**
- * Translate text using DeepL API
+ * Translate a single text using the active provider
  */
 export async function translateText(
   text: string,
   targetLanguage: string,
   sourceLanguage?: string
 ): Promise<string> {
-  const config = useRuntimeConfig()
-  const apiKey = config.deeplApiKey
-
-  if (!apiKey) {
-    throw new Error('DEEPL_API_KEY is not configured')
+  const [translated] = await translateTexts([text], targetLanguage, sourceLanguage)
+  if (translated === undefined) {
+    throw new Error('No translation returned')
   }
-
-  const targetLang = getDeeplTargetCode(targetLanguage)
-  const sourceLang = sourceLanguage ? getDeeplSourceCode(sourceLanguage) : undefined
-
-  const params = new URLSearchParams({
-    text,
-    target_lang: targetLang
-  })
-
-  if (sourceLang) {
-    params.append('source_lang', sourceLang)
-  }
-
-  const glossaryId = getGlossaryId(targetLanguage)
-  if (glossaryId) {
-    params.append('glossary_id', glossaryId)
-  }
-
-  // Use quality_optimized model for best translation quality
-  params.append('model_type', 'quality_optimized')
-
-  const apiUrl = config.deeplApiUrl || 'https://api-free.deepl.com'
-
-  console.log(`[DeepL] Translating 1 text → ${targetLang}${sourceLang ? ` from ${sourceLang}` : ''}${glossaryId ? ` (glossary: ${glossaryId})` : ''}`)
-
-  const response = await fetch(`${apiUrl}/v2/translate`, {
-    method: 'POST',
-    headers: {
-      Authorization: `DeepL-Auth-Key ${apiKey}`,
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: params.toString()
-  })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`DeepL API error: ${response.status} - ${errorText}`)
-  }
-
-  const data: DeepLResponse = await response.json()
-
-  if (!data.translations || data.translations.length === 0) {
-    throw new Error('No translation returned from DeepL')
-  }
-
-  return data.translations[0]!.text
+  return translated
 }
 
 /**
@@ -99,6 +59,20 @@ export async function translateTexts(
 ): Promise<string[]> {
   if (texts.length === 0) return []
 
+  if (getTranslationProvider() === 'openrouter') {
+    return openrouterTranslateTexts(texts, targetLanguage, sourceLanguage)
+  }
+  return deeplTranslateTexts(texts, targetLanguage, sourceLanguage)
+}
+
+/**
+ * Translate multiple texts with the DeepL API (fallback provider)
+ */
+async function deeplTranslateTexts(
+  texts: string[],
+  targetLanguage: string,
+  sourceLanguage?: string
+): Promise<string[]> {
   const config = useRuntimeConfig()
   const apiKey = config.deeplApiKey
 
@@ -247,7 +221,7 @@ export async function translateTiptapContent(
 /**
  * Batch translate multiple Tiptap JSON documents in a single operation.
  * More efficient than calling translateTiptapContent() per doc because it
- * combines all text nodes across all documents into chunked DeepL API calls.
+ * combines all text nodes across all documents into chunked translation calls.
  *
  * Returns translated documents in the same order as the input.
  */
@@ -272,9 +246,10 @@ export async function batchTranslateTiptapContents(
     }
   }
 
-  // Translate in chunks of 100
+  // Chunk size balances request count against the fragment-alignment
+  // contract, which gets harder for the model to honor on long batches
   if (allEntries.length > 0) {
-    const CHUNK_SIZE = 100
+    const CHUNK_SIZE = 40
     const allTranslated: string[] = []
 
     for (let i = 0; i < allEntries.length; i += CHUNK_SIZE) {
@@ -443,11 +418,13 @@ export async function reconcileVersesFromSource(
 }
 
 /**
- * Check if DeepL API is configured
+ * Check if the active translation provider is configured
  */
-export function isDeepLConfigured(): boolean {
-  const config = useRuntimeConfig()
-  return !!config.deeplApiKey
+export function isTranslationConfigured(): boolean {
+  if (getTranslationProvider() === 'openrouter') {
+    return isOpenRouterConfigured()
+  }
+  return !!useRuntimeConfig().deeplApiKey
 }
 
 /**

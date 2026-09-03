@@ -1,7 +1,7 @@
 import type { Job, TranslationBatchPayload } from '../../database/job-queue'
 import type { ProcessorResult } from './index'
 import { libraryContentService } from '../../database/library-content'
-import { batchTranslateTiptapContents, isDeepLConfigured, reconcileVersesFromSource, translateVerseNodes, type TiptapNode, type VerseWarning } from '../../utils/deepl'
+import { batchTranslateTiptapContents, isTranslationConfigured, reconcileVersesFromSource, translateVerseNodes, type TiptapNode, type VerseWarning } from '../../utils/translate'
 
 /**
  * Check if a verse node has actual text content (not empty).
@@ -50,8 +50,8 @@ async function preserveOrFetchVerses(
 export async function processBatchTranslation(job: Job): Promise<ProcessorResult> {
   const payload = job.payload as TranslationBatchPayload
 
-  if (!isDeepLConfigured()) {
-    return { success: false, data: { error: 'DeepL API key not configured' } }
+  if (!isTranslationConfigured()) {
+    return { success: false, data: { error: 'Translation service not configured' } }
   }
 
   // Get all source content for this library + language
