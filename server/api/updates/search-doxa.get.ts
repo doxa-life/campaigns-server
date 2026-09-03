@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   const q = String(getQuery(event).q || '').trim()
   if (q.length < 2) return { results: [] }
 
-  const groups = await peopleGroupService.getAllPeopleGroups({ search: q, limit: 20 })
+  const groups = await peopleGroupService.getAllPeopleGroups({ search: q, limit: 20, searchAlternateNames: true })
   return {
     results: groups.map((g) => ({
       id: g.id,
@@ -16,7 +16,9 @@ export default defineEventHandler(async (event) => {
       slug: g.slug,
       country_code: g.country_code,
       status: g.status,
-      engagement_status: g.engagement_status
+      engagement_status: g.engagement_status,
+      // Lets the picker explain a match found under an IMB alternate name.
+      alternate_name: g.metadata?.imb_alternate_name || null
     }))
   }
 })

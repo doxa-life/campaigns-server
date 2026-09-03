@@ -431,8 +431,10 @@
     "intro": "Willkommen, und danke, dass Sie uns helfen, unsere Informationen über die Volksgruppen aktuell zu halten. Dieses kurze Formular fragt einige grundlegende Angaben zu Ihnen und zur Volksgruppe ab. Unser Team prüft jeden Vorschlag, bevor eine Änderung vorgenommen wird.",
     "steps": {
       "group": "Volksgruppe",
+      "eligibility": "Voraussetzungen",
       "engagement": "Engagement",
       "details": "Details",
+      "resources": "Ressourcen",
       "reason": "Grund",
       "about": "Über Sie"
     },
@@ -447,6 +449,8 @@
     "sourceImb": "IMB",
     "sourceJp": "Joshua Project",
     "alreadyInDoxa": "Bereits auf unserer Liste",
+    "alsoKnownAs": "auch bekannt als {names}",
+    "searchMissingNote": "Eine Volksgruppe, die auf unserer Liste fehlt, kann eine Diaspora-Bevölkerung sein oder die DOXA-Kriterien nicht erfüllen. Wenn Sie glauben, dass sie auf die Liste gehört, wählen Sie sie oben aus oder fügen Sie sie als neue Volksgruppe hinzu und sagen Sie uns, warum.",
     "addNewCta": "Nicht gefunden? Berichten Sie uns von einer neuen Volksgruppe",
     "newGroupBadge": "Neu",
     "actionQuestion": "Was möchten Sie tun?",
@@ -468,9 +472,16 @@
     "detailsTitle": "Details zur Volksgruppe",
     "addNotice": "Sie beantragen, dass {name} zur DOXA-Gebetsliste hinzugefügt wird.",
     "addNoticeNew": "Sie beantragen, dass eine neue Volksgruppe zur DOXA-Gebetsliste hinzugefügt wird.",
-    "addManualHint": "Diese Volksgruppe ist noch nicht in den Listen der IMB oder von Joshua Project enthalten — bitte teilen Sie daher alle Details mit, die Sie kennen, einschließlich ihres Engagement-Status.",
-    "addJpHint": "Diese Gruppe ist bei Joshua Project gelistet, aber nicht bei der IMB. Bitte überprüfen Sie unten ihren Engagement-Status und erklären Sie uns in den Kommentaren, warum sie auf die DOXA-Liste gehört.",
-    "addImbReasonsTitle": "Warum diese Gruppe nicht auf der DOXA-Liste steht",
+    "eligibilityTitle": "Wer in die DOXA-Liste aufgenommen werden kann",
+    "eligibility": {
+      "indigenous": "In ihrem Land beheimatet, keine Diaspora-Bevölkerung",
+      "unengaged": "Nicht-engagiert — es läuft keine Gemeindegründungsarbeit unter ihnen",
+      "notChristian": "Ihre Hauptreligion ist nicht christlich, und sie galten auch historisch nicht als christlich",
+      "otherCriteria": "Erfüllt im Übrigen die festgelegten DOXA-Kriterien"
+    },
+    "engagedBlockedTitle": "Engagierte Gruppen können nicht hinzugefügt werden",
+    "engagedBlockedText": "Die DOXA-Liste konzentriert sich auf nicht-engagierte Volksgruppen; eine engagierte Gruppe liegt daher außerhalb ihres Rahmens. Wenn Sie glauben, dass die Engagement-Angaben veraltet sind, wählen Sie Nicht-engagiert und erzählen Sie uns mehr in den Kommentaren.",
+    "addManualHint": "Diese Volksgruppe ist noch nicht in den Listen der IMB oder von Joshua Project enthalten — bitte teilen Sie daher alle Details mit, die Sie kennen, einschließlich ihres Engagement-Status.",    "addImbReasonsTitle": "Warum diese Gruppe nicht auf der DOXA-Liste steht",
     "addImbReasonsHint": "Wenn etwas davon veraltet ist, korrigieren Sie es unten und erzählen Sie uns mehr in den Kommentaren.",
     "addImbEligibleHint": "Diese Gruppe erfüllt die DOXA-Kriterien und wurde einfach noch nicht hinzugefügt — die Bestätigung der Details unten hilft uns, sie schnell aufzunehmen.",
     "exclusionReasons": {
@@ -488,8 +499,8 @@
       "emailHint": "Wenn Sie uns zum ersten Mal schreiben, senden wir Ihnen einen Link zur Bestätigung Ihrer E-Mail-Adresse."
     },
     "verifier": {
-      "title": "Bestätigende Person (empfohlen)",
-      "hint": "Wenn jemand anderes diese Informationen bestätigen kann, teilen Sie uns mit, wer das ist.",
+      "title": "Bestätigende Person",
+      "hint": "Jeder Vorschlag braucht eine zweite Person, die ihn unabhängig bestätigen kann — ein Teammitglied, eine Leitungsperson vor Ort oder ein Vertreter einer Organisation mit Kenntnissen aus erster Hand über die Volksgruppe, jedoch nicht Sie selbst.",
       "name": "Name der bestätigenden Person",
       "entity": "Organisation der bestätigenden Person",
       "email": "E-Mail der bestätigenden Person"
@@ -529,7 +540,12 @@
       "reasonRequired": "Bitte sagen Sie uns, warum diese Gruppe entfernt werden sollte",
       "changesRequired": "Bitte schlagen Sie mindestens eine Änderung vor oder hinterlassen Sie einen Kommentar",
       "commentsRequired": "Bitte fügen Sie einen Kommentar hinzu, damit wir Ihr Anliegen besser verstehen",
-      "uploadFailed": "Das Foto konnte nicht hochgeladen werden — bitte versuchen Sie es erneut"
+      "uploadFailed": "Das Foto konnte nicht hochgeladen werden — bitte versuchen Sie es erneut",
+      "engagementRequired": "Bitte wählen Sie den Engagement-Status der Gruppe",
+      "engagedBlocked": "Engagierte Volksgruppen liegen außerhalb des Rahmens der DOXA-Liste",
+      "verifierNameRequired": "Bitte nennen Sie uns den Namen der bestätigenden Person",
+      "verifierEmailRequired": "Bitte geben Sie eine gültige E-Mail-Adresse der bestätigenden Person ein",
+      "verifierEmailSame": "Die bestätigende Person muss jemand anderes sein als Sie"
     }
   },
   "adoption": {

@@ -844,7 +844,9 @@ paths:
       description: >
         Public submission of a suggestion to add, update, or remove a people
         group on the DOXA list. Protected by Cloudflare Turnstile and per-IP
-        rate limiting (10/hour). If the reporter's email is not yet verified,
+        rate limiting (10/hour). Every submission requires an independent
+        verifier (verifier_name + verifier_email, which must differ from
+        reporter_email). If the reporter's email is not yet verified,
         the suggestion is held (`awaiting_verification`) and a verification
         email is sent; once verified it enters review by the two designated
         approvers. Suggested field keys are whitelisted per type — update
@@ -852,9 +854,12 @@ paths:
         (workers_long_term, work_in_local_language,
         disciple_and_church_multiplication), the six resource availability
         booleans (imb_*_available), and name, population, country_code,
-        latitude, longitude, primary_language, primary_religion, image_url;
+        imb_is_indigenous, latitude, longitude, primary_language,
+        primary_religion, image_url;
         add additionally allows imb_peid, imb_pgid, joshua_project_id;
-        remove additionally allows reason_unlisted (required).
+        remove additionally allows reason_unlisted (required). An add with
+        engagement_status `engaged` is rejected — engaged groups are outside
+        the DOXA list's scope.
       operationId: submitPeopleGroupSuggestion
       requestBody:
         required: true
@@ -862,7 +867,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [type, reporter_name, reporter_email]
+              required: [type, reporter_name, reporter_email, verifier_name, verifier_email]
               properties:
                 type:
                   type: string
@@ -879,11 +884,13 @@ paths:
                   format: email
                 verifier_name:
                   type: string
+                  description: Someone other than the reporter with firsthand knowledge who can confirm the change
                 verifier_entity:
                   type: string
                 verifier_email:
                   type: string
                   format: email
+                  description: Must differ from reporter_email
                 comments:
                   type: string
                   description: Free-text context for the reviewers (required for add and remove)
@@ -983,7 +990,7 @@ paths:
       tags:
         - Suggestions
       summary: Search DOXA people groups
-      description: Public name search over the DOXA people group list, for the update/remove pickers. Returns at most 20 results; queries under 2 characters return none.
+      description: Public name search over the DOXA people group list, for the update/remove pickers. Also matches IMB alternate names, so a group is findable under any of its names. Returns at most 20 results; queries under 2 characters return none.
       operationId: searchDoxaPeopleGroups
       parameters:
         - name: q
@@ -1011,6 +1018,9 @@ paths:
                         country_code: { type: [string, 'null'] }
                         status: { type: [string, 'null'] }
                         engagement_status: { type: [string, 'null'] }
+                        alternate_name:
+                          type: [string, 'null']
+                          description: IMB alternate names for the group, when recorded
 
   /api/updates/search-external:
     get:
@@ -1021,7 +1031,10 @@ paths:
         Public search over the local IMB (peoplegroups.org) mirror and the
         Joshua Project dataset for the add-flow picker. Each result carries
         prefill values keyed by DOXA field keys, source identifiers, and an
-        in_doxa flag marking groups already on the DOXA list.
+        in_doxa flag marking groups already on the DOXA list. Matching is
+        country-specific: IMB results match by PEID, Joshua Project results by
+        PeopleID3 plus country, so only the exact country record of a group
+        maps to its DOXA counterpart.
       operationId: searchExternalPeopleGroups
       parameters:
         - name: q
@@ -1053,6 +1066,9 @@ paths:
                         doxa_id:
                           type: [integer, 'null']
                           description: DOXA people group id when the group is already on the list
+                        is_diaspora:
+                          type: [boolean, 'null']
+                          description: Whether the source classifies this country record as diaspora (null when the source doesn't say)
                         doxa_exclusion_reasons:
                           type: array
                           items:

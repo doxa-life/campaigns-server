@@ -863,6 +863,12 @@ function formatFieldValue(key: string, value: any): string {
   if (field?.type === 'boolean') {
     return value === true || value === 'true' || value === '1' ? 'Yes' : 'No'
   }
+  // Thousands separators for whole numbers (population); fractional values
+  // like coordinates keep their exact digits.
+  if (field?.type === 'number' && value !== '') {
+    const n = Number(value)
+    if (Number.isInteger(n)) return n.toLocaleString('en-US')
+  }
   if (field?.options) {
     const opt = field.options.find(o => o.value === String(value))
     if (opt) return opt.label || (opt.labelKey ? t(opt.labelKey) : String(value))
@@ -875,6 +881,10 @@ function formatCurrentValue(key: string): string {
   const field = getFieldDef(key)
   if (field?.type === 'boolean') {
     return raw === 'true' || raw === '1' ? 'Yes' : 'No'
+  }
+  if (field?.type === 'number' && raw !== '') {
+    const n = Number(raw)
+    if (Number.isInteger(n)) return n.toLocaleString('en-US')
   }
   if (field?.type === 'select' && field.options && raw) {
     const opt = field.options.find(o => o.value === raw)

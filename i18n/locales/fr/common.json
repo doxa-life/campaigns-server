@@ -431,8 +431,10 @@
     "intro": "Bienvenue, et merci de nous aider à garder nos informations sur les peuples exactes. Ce court formulaire vous demandera quelques informations de base sur vous et sur le peuple concerné. Notre équipe examine chaque suggestion avant qu'un changement ne soit effectué.",
     "steps": {
       "group": "Peuple",
+      "eligibility": "Éligibilité",
       "engagement": "Engagement",
       "details": "Détails",
+      "resources": "Ressources",
       "reason": "Motif",
       "about": "À propos de vous"
     },
@@ -447,6 +449,8 @@
     "sourceImb": "IMB",
     "sourceJp": "Joshua Project",
     "alreadyInDoxa": "Déjà dans notre liste",
+    "alsoKnownAs": "aussi appelé {names}",
+    "searchMissingNote": "Un peuple absent de notre liste peut être une population de la diaspora ou ne pas répondre aux critères DOXA. Si vous pensez qu'il devrait figurer sur la liste, sélectionnez-le ci-dessus ou ajoutez-le comme nouveau peuple en nous expliquant pourquoi.",
     "addNewCta": "Introuvable ? Parlez-nous d'un nouveau peuple",
     "newGroupBadge": "Nouveau",
     "actionQuestion": "Que souhaitez-vous faire ?",
@@ -468,9 +472,16 @@
     "detailsTitle": "Détails du peuple",
     "addNotice": "Vous demandez que {name} soit ajouté à la liste de prière DOXA.",
     "addNoticeNew": "Vous demandez qu'un nouveau peuple soit ajouté à la liste de prière DOXA.",
-    "addManualHint": "Ce peuple ne figure pas encore dans les listes de l'IMB ni de Joshua Project, alors partagez tous les détails que vous pouvez — y compris son statut d'engagement.",
-    "addJpHint": "Ce peuple est répertorié par Joshua Project mais pas par l'IMB. Veuillez vérifier son statut d'engagement ci-dessous, et dites-nous dans les commentaires pourquoi il a sa place dans la liste DOXA.",
-    "addImbReasonsTitle": "Pourquoi ce peuple ne figure pas dans la liste DOXA",
+    "eligibilityTitle": "Qui peut être ajouté à la liste DOXA",
+    "eligibility": {
+      "indigenous": "Autochtone de son pays, et non une population de la diaspora",
+      "unengaged": "Non engagé — aucun travail d'implantation d'églises n'est en cours parmi eux",
+      "notChristian": "Sa religion principale n'est pas chrétienne, et il n'a pas été historiquement considéré comme chrétien",
+      "otherCriteria": "Éligible par ailleurs selon les critères établis de DOXA"
+    },
+    "engagedBlockedTitle": "Les peuples engagés ne peuvent pas être ajoutés",
+    "engagedBlockedText": "La liste DOXA se concentre sur les peuples non engagés ; un peuple engagé sort donc de son champ. Si vous pensez que l'information d'engagement n'est plus à jour, sélectionnez Non engagé et donnez-nous plus de détails dans les commentaires.",
+    "addManualHint": "Ce peuple ne figure pas encore dans les listes de l'IMB ni de Joshua Project, alors partagez tous les détails que vous pouvez — y compris son statut d'engagement.",    "addImbReasonsTitle": "Pourquoi ce peuple ne figure pas dans la liste DOXA",
     "addImbReasonsHint": "Si l'une de ces informations n'est plus à jour, corrigez-la ci-dessous et donnez-nous plus de détails dans les commentaires.",
     "addImbEligibleHint": "Ce peuple correspond aux critères de DOXA et n'a simplement pas encore été ajouté — confirmer les détails ci-dessous nous aidera à l'ajouter rapidement.",
     "exclusionReasons": {
@@ -488,8 +499,8 @@
       "emailHint": "Si c'est la première fois que vous nous écrivez, nous vous enverrons un lien pour confirmer votre e-mail."
     },
     "verifier": {
-      "title": "Vérificateur (recommandé)",
-      "hint": "Si quelqu'un d'autre peut confirmer ces informations, dites-nous de qui il s'agit.",
+      "title": "Vérificateur",
+      "hint": "Chaque suggestion nécessite une seconde personne capable de la confirmer de façon indépendante — un membre de l'équipe, un responsable de terrain ou un représentant d'organisation ayant une connaissance directe du peuple, autre que vous-même.",
       "name": "Nom du vérificateur",
       "entity": "Organisation du vérificateur",
       "email": "E-mail du vérificateur"
@@ -529,7 +540,12 @@
       "reasonRequired": "Veuillez nous dire pourquoi ce peuple devrait être retiré",
       "changesRequired": "Veuillez suggérer au moins un changement ou laisser un commentaire",
       "commentsRequired": "Veuillez ajouter un commentaire pour nous aider à comprendre votre demande",
-      "uploadFailed": "Nous n'avons pas pu téléverser la photo — veuillez réessayer"
+      "uploadFailed": "Nous n'avons pas pu téléverser la photo — veuillez réessayer",
+      "engagementRequired": "Veuillez sélectionner le statut d'engagement du peuple",
+      "engagedBlocked": "Les peuples engagés sont hors du champ de la liste DOXA",
+      "verifierNameRequired": "Veuillez indiquer le nom du vérificateur",
+      "verifierEmailRequired": "Veuillez saisir une adresse e-mail valide pour le vérificateur",
+      "verifierEmailSame": "Le vérificateur doit être une personne autre que vous"
     }
   },
   "feedback": {

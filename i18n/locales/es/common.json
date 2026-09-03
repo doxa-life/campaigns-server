@@ -431,8 +431,10 @@
     "intro": "Bienvenido, y gracias por ayudarnos a mantener precisa nuestra información sobre los grupos étnicos. Este breve formulario te pedirá algunos datos básicos sobre ti y sobre el grupo étnico. Nuestro equipo revisa cada sugerencia antes de realizar un cambio.",
     "steps": {
       "group": "Grupo étnico",
+      "eligibility": "Elegibilidad",
       "engagement": "Compromiso",
       "details": "Detalles",
+      "resources": "Recursos",
       "reason": "Motivo",
       "about": "Sobre ti"
     },
@@ -447,6 +449,8 @@
     "sourceImb": "IMB",
     "sourceJp": "Joshua Project",
     "alreadyInDoxa": "Ya está en nuestra lista",
+    "alsoKnownAs": "también conocido como {names}",
+    "searchMissingNote": "Un grupo que no aparece en nuestra lista puede ser una población de diáspora o no cumplir los criterios de DOXA. Si crees que debería estar en la lista, selecciónalo arriba o agrégalo como un grupo étnico nuevo y cuéntanos por qué.",
     "addNewCta": "¿No lo encuentras? Cuéntanos sobre un nuevo grupo étnico",
     "newGroupBadge": "Nuevo",
     "actionQuestion": "¿Qué te gustaría hacer?",
@@ -468,9 +472,16 @@
     "detailsTitle": "Detalles del grupo étnico",
     "addNotice": "Estás solicitando que {name} sea añadido a la lista de oración de DOXA.",
     "addNoticeNew": "Estás solicitando que un nuevo grupo étnico sea añadido a la lista de oración de DOXA.",
-    "addManualHint": "Este grupo étnico aún no está en las listas de la IMB ni de Joshua Project, así que comparte todos los detalles que puedas — incluido su estado de compromiso.",
-    "addJpHint": "Este grupo aparece en Joshua Project pero no en la IMB. Verifica su estado de compromiso abajo, y cuéntanos en los comentarios por qué debería estar en la lista de DOXA.",
-    "addImbReasonsTitle": "Por qué este grupo no está en la lista de DOXA",
+    "eligibilityTitle": "Quiénes pueden añadirse a la lista DOXA",
+    "eligibility": {
+      "indigenous": "Indígena de su país, y no una población de diáspora",
+      "unengaged": "No comprometido — no hay trabajo de plantación de iglesias en curso entre ellos",
+      "notChristian": "Su religión principal no es cristiana, y no se les ha considerado históricamente cristianos",
+      "otherCriteria": "Elegible en lo demás según los criterios establecidos de DOXA"
+    },
+    "engagedBlockedTitle": "Los grupos comprometidos no pueden añadirse",
+    "engagedBlockedText": "La lista DOXA se centra en grupos étnicos no comprometidos, por lo que un grupo comprometido queda fuera de su alcance. Si crees que la información de compromiso está desactualizada, selecciona No comprometido y cuéntanos más en los comentarios.",
+    "addManualHint": "Este grupo étnico aún no está en las listas de la IMB ni de Joshua Project, así que comparte todos los detalles que puedas — incluido su estado de compromiso.",    "addImbReasonsTitle": "Por qué este grupo no está en la lista de DOXA",
     "addImbReasonsHint": "Si algo de esto está desactualizado, corrígelo abajo y cuéntanos más en los comentarios.",
     "addImbEligibleHint": "Este grupo cumple los criterios de DOXA y simplemente aún no ha sido añadido — confirmar los detalles abajo nos ayudará a añadirlo rápidamente.",
     "exclusionReasons": {
@@ -488,8 +499,8 @@
       "emailHint": "Si es la primera vez que nos escribes, te enviaremos un enlace para confirmar tu correo."
     },
     "verifier": {
-      "title": "Verificador (recomendado)",
-      "hint": "Si alguien más puede confirmar esta información, dinos quién es.",
+      "title": "Verificador",
+      "hint": "Cada sugerencia necesita una segunda persona que pueda confirmarla de forma independiente: un miembro del equipo, un líder de campo o un representante de una organización con conocimiento de primera mano del grupo étnico, distinto de ti.",
       "name": "Nombre del verificador",
       "entity": "Organización del verificador",
       "email": "Correo del verificador"
@@ -529,7 +540,12 @@
       "reasonRequired": "Por favor, dinos por qué debería eliminarse este grupo",
       "changesRequired": "Por favor, sugiere al menos un cambio o deja un comentario",
       "commentsRequired": "Por favor, añade un comentario que nos ayude a entender tu solicitud",
-      "uploadFailed": "No pudimos subir la foto — por favor, inténtalo de nuevo"
+      "uploadFailed": "No pudimos subir la foto — por favor, inténtalo de nuevo",
+      "engagementRequired": "Selecciona el estado de compromiso del grupo",
+      "engagedBlocked": "Los grupos étnicos comprometidos están fuera del alcance de la lista DOXA",
+      "verifierNameRequired": "Indícanos el nombre del verificador",
+      "verifierEmailRequired": "Introduce un correo electrónico válido del verificador",
+      "verifierEmailSame": "El verificador debe ser una persona distinta de ti"
     }
   },
   "feedback": {

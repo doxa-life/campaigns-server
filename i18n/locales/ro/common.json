@@ -431,8 +431,10 @@
     "intro": "Bine ai venit și îți mulțumim că ne ajuți să păstrăm exacte informațiile despre grupurile etnice. Acest scurt formular îți va cere câteva informații de bază despre tine și despre grupul etnic. Echipa noastră analizează fiecare sugestie înainte de a face o modificare.",
     "steps": {
       "group": "Grup etnic",
+      "eligibility": "Eligibilitate",
       "engagement": "Angajare",
       "details": "Detalii",
+      "resources": "Resurse",
       "reason": "Motiv",
       "about": "Despre tine"
     },
@@ -447,6 +449,8 @@
     "sourceImb": "IMB",
     "sourceJp": "Joshua Project",
     "alreadyInDoxa": "Deja în lista noastră",
+    "alsoKnownAs": "cunoscut și ca {names}",
+    "searchMissingNote": "Un grup care lipsește din lista noastră poate fi o populație din diaspora sau poate să nu îndeplinească criteriile DOXA. Dacă crezi că ar trebui să fie pe listă, selectează-l mai sus sau adaugă-l ca grup etnic nou și spune-ne de ce.",
     "addNewCta": "Nu îl găsești? Spune-ne despre un grup etnic nou",
     "newGroupBadge": "Nou",
     "actionQuestion": "Ce ai vrea să faci?",
@@ -468,9 +472,16 @@
     "detailsTitle": "Detalii despre grupul etnic",
     "addNotice": "Ceri ca {name} să fie adăugat în lista de rugăciune DOXA.",
     "addNoticeNew": "Ceri ca un grup etnic nou să fie adăugat în lista de rugăciune DOXA.",
-    "addManualHint": "Acest grup etnic nu se află încă în listele IMB sau Joshua Project, așa că te rugăm să ne împărtășești toate detaliile pe care le poți oferi — inclusiv starea sa de angajare.",
-    "addJpHint": "Acest grup este listat de Joshua Project, dar nu și de IMB. Te rugăm să verifici mai jos starea sa de angajare și să ne spui în comentarii de ce ar trebui să fie în lista DOXA.",
-    "addImbReasonsTitle": "De ce acest grup nu este în lista DOXA",
+    "eligibilityTitle": "Cine poate fi adăugat pe lista DOXA",
+    "eligibility": {
+      "indigenous": "Indigen în țara sa, nu o populație din diaspora",
+      "unengaged": "Neangajat — nu există lucrare de plantare de biserici în desfășurare printre ei",
+      "notChristian": "Religia lor principală nu este creștină și nu au fost considerați istoric creștini",
+      "otherCriteria": "Eligibil în rest conform criteriilor DOXA stabilite"
+    },
+    "engagedBlockedTitle": "Grupurile angajate nu pot fi adăugate",
+    "engagedBlockedText": "Lista DOXA se concentrează pe grupurile etnice neangajate, așa că un grup angajat este în afara domeniului ei. Dacă crezi că informațiile despre angajare sunt învechite, selectează Neangajat și spune-ne mai multe în comentarii.",
+    "addManualHint": "Acest grup etnic nu se află încă în listele IMB sau Joshua Project, așa că te rugăm să ne împărtășești toate detaliile pe care le poți oferi — inclusiv starea sa de angajare.",    "addImbReasonsTitle": "De ce acest grup nu este în lista DOXA",
     "addImbReasonsHint": "Dacă ceva din acestea este depășit, corectează mai jos și spune-ne mai multe în comentarii.",
     "addImbEligibleHint": "Acest grup îndeplinește criteriile DOXA și pur și simplu nu a fost încă adăugat — confirmarea detaliilor de mai jos ne va ajuta să îl adăugăm rapid.",
     "exclusionReasons": {
@@ -488,8 +499,8 @@
       "emailHint": "Dacă ne scrii pentru prima dată, îți vom trimite un link pentru a-ți confirma emailul."
     },
     "verifier": {
-      "title": "Verificator (recomandat)",
-      "hint": "Dacă altcineva poate confirma aceste informații, spune-ne cine este.",
+      "title": "Verificator",
+      "hint": "Fiecare sugestie are nevoie de o a doua persoană care o poate confirma independent — un membru al echipei, un lider de teren sau un reprezentant al unei organizații cu cunoaștere directă a grupului etnic, alta decât tine.",
       "name": "Numele verificatorului",
       "entity": "Organizația verificatorului",
       "email": "Emailul verificatorului"
@@ -529,7 +540,12 @@
       "reasonRequired": "Te rugăm să ne spui de ce ar trebui eliminat acest grup",
       "changesRequired": "Te rugăm să sugerezi cel puțin o modificare sau să lași un comentariu",
       "commentsRequired": "Te rugăm să adaugi un comentariu care să ne ajute să înțelegem cererea ta",
-      "uploadFailed": "Nu am putut încărca fotografia — te rugăm să încerci din nou"
+      "uploadFailed": "Nu am putut încărca fotografia — te rugăm să încerci din nou",
+      "engagementRequired": "Selectează statutul de angajare al grupului",
+      "engagedBlocked": "Grupurile etnice angajate sunt în afara domeniului listei DOXA",
+      "verifierNameRequired": "Spune-ne numele verificatorului",
+      "verifierEmailRequired": "Introdu o adresă de e-mail validă a verificatorului",
+      "verifierEmailSame": "Verificatorul trebuie să fie altcineva decât tine"
     }
   },
   "adoption": {

@@ -35,6 +35,8 @@ describe('People Group Suggestions (/updates)', async () => {
       body: {
         reporter_name: 'Test Reporter',
         reporter_email: testEmail(),
+        verifier_name: 'Test Verifier',
+        verifier_email: 'test-verifier@example.com',
         ...body
       }
     })
@@ -99,6 +101,43 @@ describe('People Group Suggestions (/updates)', async () => {
 
       const noReason = await submitSuggestion({ type: 'remove', people_group_id: testGroupId, suggested_changes: {} }).catch((e) => e)
       expect(noReason.statusCode).toBe(400)
+    })
+
+    it('requires an independent verifier', async () => {
+      const noVerifier = await submitSuggestion({
+        type: 'update',
+        verifier_name: '',
+        people_group_id: testGroupId,
+        suggested_changes: { population: 5 }
+      }).catch((e) => e)
+      expect(noVerifier.statusCode).toBe(400)
+
+      const badVerifierEmail = await submitSuggestion({
+        type: 'update',
+        verifier_email: 'not-an-email',
+        people_group_id: testGroupId,
+        suggested_changes: { population: 5 }
+      }).catch((e) => e)
+      expect(badVerifierEmail.statusCode).toBe(400)
+
+      const email = testEmail()
+      const selfVerified = await submitSuggestion({
+        type: 'update',
+        reporter_email: email,
+        verifier_email: email,
+        people_group_id: testGroupId,
+        suggested_changes: { population: 5 }
+      }).catch((e) => e)
+      expect(selfVerified.statusCode).toBe(400)
+    })
+
+    it('rejects adding an engaged people group', async () => {
+      const engaged = await submitSuggestion({
+        type: 'add',
+        comments: 'Please add this group',
+        suggested_changes: { name: 'Test Engaged Add Group', engagement_status: 'engaged' }
+      }).catch((e) => e)
+      expect(engaged.statusCode).toBe(400)
     })
 
     it('requires a comment for add and remove suggestions', async () => {
@@ -403,6 +442,20 @@ describe('People Group Suggestions (/updates)', async () => {
         query: { q: 'Test Suggestion Group' }
       })
       expect(res.results.some((r) => r.id === testGroupId)).toBe(true)
+    })
+
+    it('matches doxa groups by IMB alternate name', async () => {
+      await sql`
+        UPDATE people_groups
+        SET metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{imb_alternate_name}', '"Test Alias People"')
+        WHERE id = ${testGroupId}
+      `
+      const res = await $fetch<{ results: { id: number; alternate_name: string | null }[] }>('/api/updates/search-doxa', {
+        query: { q: 'Test Alias People' }
+      })
+      const hit = res.results.find((r) => r.id === testGroupId)
+      expect(hit).toBeDefined()
+      expect(hit!.alternate_name).toBe('Test Alias People')
     })
 
     it('searches the IMB mirror with prefill and in_doxa flag', async () => {

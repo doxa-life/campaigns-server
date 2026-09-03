@@ -5,5 +5,6 @@ export const field: FieldDefinition = {
   labelKey: 'peopleGroups.fields.population',
   type: 'number',
   category: 'population',
-  tableColumn: true
+  tableColumn: true,
+  integer: true
 }

@@ -431,8 +431,10 @@
     "intro": "Welcome, and thank you for helping keep our people group information accurate. This brief form will ask for some basic information about you and the people group. Our team reviews every suggestion before a change is made.",
     "steps": {
       "group": "People group",
+      "eligibility": "Eligibility",
       "engagement": "Engagement",
       "details": "Details",
+      "resources": "Resources",
       "reason": "Reason",
       "about": "About you"
     },
@@ -447,6 +449,8 @@
     "sourceImb": "IMB",
     "sourceJp": "Joshua Project",
     "alreadyInDoxa": "Already on our list",
+    "alsoKnownAs": "also known as {names}",
+    "searchMissingNote": "A group missing from our list may be a diaspora population, or may not meet the DOXA criteria. If you believe it belongs on the list, select it above or add it as a new people group and tell us why.",
     "addNewCta": "Can't find it? Tell us about a new people group",
     "newGroupBadge": "New",
     "actionQuestion": "What would you like to do?",
@@ -468,8 +472,16 @@
     "detailsTitle": "People group details",
     "addNotice": "You're requesting that {name} be added to the DOXA prayer list.",
     "addNoticeNew": "You're requesting that a new people group be added to the DOXA prayer list.",
+    "eligibilityTitle": "Who can be added to the DOXA list",
+    "eligibility": {
+      "indigenous": "Indigenous to their country, rather than a diaspora population",
+      "unengaged": "Unengaged — no church-planting work is underway among them",
+      "notChristian": "Their primary religion is not Christian, and they have not historically been considered Christian",
+      "otherCriteria": "Otherwise eligible under the established DOXA criteria"
+    },
+    "engagedBlockedTitle": "Engaged groups can't be added",
+    "engagedBlockedText": "The DOXA list focuses on unengaged people groups, so an engaged group falls outside its scope. If you believe the engagement information is out of date, select Unengaged and tell us more in the comments.",
     "addManualHint": "This people group isn't in the IMB or Joshua Project lists yet, so please share every detail you can — including their engagement status.",
-    "addJpHint": "This group is listed by Joshua Project but not by the IMB. Please verify their engagement status below, and tell us in the comments why they belong on the DOXA list.",
     "addImbReasonsTitle": "Why this group isn't on the DOXA list",
     "addImbReasonsHint": "If any of this is out of date, correct it below and tell us more in the comments.",
     "addImbEligibleHint": "This group matches DOXA's criteria and simply hasn't been added yet — confirming the details below will help us add them quickly.",
@@ -488,8 +500,8 @@
       "emailHint": "If this is your first time writing to us, we'll send you a link to confirm your email."
     },
     "verifier": {
-      "title": "Verifier (recommended)",
-      "hint": "If someone else can confirm this information, let us know who they are.",
+      "title": "Verifier",
+      "hint": "Every suggestion needs a second person who can independently confirm it — a team member, field leader, or organizational representative with firsthand knowledge of the people group, other than yourself.",
       "name": "Verifier name",
       "entity": "Verifier organization",
       "email": "Verifier email"
@@ -529,7 +541,12 @@
       "reasonRequired": "Please tell us why this group should be removed",
       "changesRequired": "Please suggest at least one change or leave a comment",
       "commentsRequired": "Please add a comment to help us understand your request",
-      "uploadFailed": "We couldn't upload the photo — please try again"
+      "uploadFailed": "We couldn't upload the photo — please try again",
+      "engagementRequired": "Please select the group's engagement status",
+      "engagedBlocked": "Engaged people groups are outside the scope of the DOXA list",
+      "verifierNameRequired": "Please tell us the verifier's name",
+      "verifierEmailRequired": "Please enter a valid verifier email address",
+      "verifierEmailSame": "The verifier must be someone other than you"
     }
   },
   "feedback": {

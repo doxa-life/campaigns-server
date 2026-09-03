@@ -19,6 +19,9 @@ export interface FieldDefinition {
   hidden?: boolean
   description?: string
   showIf?: { field: string; value: string }
+  // Whole-number field (e.g. population): inputs and displays use thousands
+  // separators; fields without it (e.g. coordinates) stay plain numbers.
+  integer?: boolean
 }
 
 export interface FieldCategory {

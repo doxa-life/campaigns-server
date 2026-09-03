@@ -55,6 +55,7 @@ import { field as imbLanguageSpeakers } from './fields/imb-language-speakers'
 
 // Religion fields
 import { field as imbRegOfReligion } from './fields/imb-reg-of-religion'
+export { CHRISTIAN_RELIGION_CODES } from './fields/imb-reg-of-religion'
 import { field as imbRegOfReligion3 } from './fields/imb-reg-of-religion-3'
 import { field as imbRegOfReligion4 } from './fields/imb-reg-of-religion-4'
 
@@ -213,6 +214,7 @@ export const publicDetailFieldKeys = [
   'name',
   'population',
   'country_code',
+  'imb_is_indigenous',
   'latitude',
   'longitude',
   'primary_language',

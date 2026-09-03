@@ -431,8 +431,10 @@
     "intro": "欢迎您，感谢您帮助我们保持族群信息的准确性。这份简短的表单会请您填写关于您本人和该族群的一些基本信息。在做出任何更改之前，我们的团队都会审核每一条建议。",
     "steps": {
       "group": "族群",
+      "eligibility": "资格",
       "engagement": "接触状态",
       "details": "详细信息",
+      "resources": "资源",
       "reason": "原因",
       "about": "关于您"
     },
@@ -447,6 +449,8 @@
     "sourceImb": "IMB",
     "sourceJp": "Joshua Project",
     "alreadyInDoxa": "已在我们的名单中",
+    "alsoKnownAs": "又称 {names}",
+    "searchMissingNote": "未出现在我们名单中的族群可能是散居群体，或不符合 DOXA 的标准。如果您认为它应该在名单中，请在上方选择它，或将其添加为新族群并告诉我们原因。",
     "addNewCta": "找不到？向我们介绍一个新族群",
     "newGroupBadge": "新增",
     "actionQuestion": "您想做什么？",
@@ -468,9 +472,16 @@
     "detailsTitle": "族群详细信息",
     "addNotice": "您正在申请将 {name} 添加到 DOXA 祷告名单中。",
     "addNoticeNew": "您正在申请将一个新族群添加到 DOXA 祷告名单中。",
-    "addManualHint": "该族群尚未列入 IMB 或 Joshua Project 的名单，请尽量提供所有细节——包括其接触状态。",
-    "addJpHint": "该族群已被 Joshua Project 收录，但未被 IMB 收录。请在下方核实其接触状态，并在备注中告诉我们它为何应列入 DOXA 名单。",
-    "addImbReasonsTitle": "该族群未列入 DOXA 名单的原因",
+    "eligibilityTitle": "哪些族群可以加入 DOXA 名单",
+    "eligibility": {
+      "indigenous": "是本国的原住族群，而非散居群体",
+      "unengaged": "未接触的——尚无植堂工作在他们中间开展",
+      "notChristian": "主要宗教不是基督教，历史上也未被视为基督徒群体",
+      "otherCriteria": "在其他方面符合 DOXA 既定标准"
+    },
+    "engagedBlockedTitle": "已接触的族群无法添加",
+    "engagedBlockedText": "DOXA 名单专注于未接触的族群，因此已接触的族群不在其范围内。如果您认为接触状态信息已过时，请选择“未接触的”并在评论中告诉我们更多信息。",
+    "addManualHint": "该族群尚未列入 IMB 或 Joshua Project 的名单，请尽量提供所有细节——包括其接触状态。",    "addImbReasonsTitle": "该族群未列入 DOXA 名单的原因",
     "addImbReasonsHint": "如果其中任何信息已过时，请在下方更正，并在备注中告诉我们更多情况。",
     "addImbEligibleHint": "该族群符合 DOXA 的标准，只是尚未被添加——确认下方的详细信息将帮助我们尽快添加。",
     "exclusionReasons": {
@@ -488,8 +499,8 @@
       "emailHint": "如果这是您第一次给我们写信，我们会向您发送一个确认邮箱的链接。"
     },
     "verifier": {
-      "title": "核实人（建议填写）",
-      "hint": "如果有其他人可以核实这些信息，请告诉我们他们是谁。",
+      "title": "核实人",
+      "hint": "每项建议都需要第二个人能够独立确认——可以是团队成员、工场负责人或对该族群有第一手了解的机构代表，但不能是您本人。",
       "name": "核实人姓名",
       "entity": "核实人所属机构",
       "email": "核实人邮箱"
@@ -529,7 +540,12 @@
       "reasonRequired": "请告诉我们为什么应移除该族群",
       "changesRequired": "请至少建议一项更改或留下备注",
       "commentsRequired": "请添加备注，帮助我们理解您的请求",
-      "uploadFailed": "照片上传失败——请重试"
+      "uploadFailed": "照片上传失败——请重试",
+      "engagementRequired": "请选择该族群的接触状态",
+      "engagedBlocked": "已接触的族群不在 DOXA 名单的范围内",
+      "verifierNameRequired": "请告诉我们核实人的姓名",
+      "verifierEmailRequired": "请输入有效的核实人电子邮箱",
+      "verifierEmailSame": "核实人必须是您以外的人"
     }
   },
   "adoption": {

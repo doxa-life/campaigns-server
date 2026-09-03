@@ -162,6 +162,9 @@ export class PeopleGroupService {
     limit?: number
     offset?: number
     ids?: number[]
+    // Also match the IMB alternate names (metadata.imb_alternate_name), so a
+    // group renamed by IMB is still findable under its other names.
+    searchAlternateNames?: boolean
   }): Promise<PeopleGroup[]> {
     const search = options?.search ? `%${options.search}%` : null
     const limit = options?.limit || null
@@ -169,7 +172,13 @@ export class PeopleGroupService {
     const ids = options?.ids
 
     const conditions = []
-    if (search) conditions.push(this.sql`name ILIKE ${search}`)
+    if (search) {
+      conditions.push(
+        options?.searchAlternateNames
+          ? this.sql`(name ILIKE ${search} OR metadata->>'imb_alternate_name' ILIKE ${search})`
+          : this.sql`name ILIKE ${search}`
+      )
+    }
     if (ids) conditions.push(this.sql`id IN ${this.sql(ids)}`)
 
     const where = conditions.length > 0
