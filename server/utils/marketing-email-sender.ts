@@ -6,15 +6,15 @@
  * identities come from the marketing_senders table; the domain is appended here
  * so From always aligns with that domain's DKIM.
  *
- * Provider: AWS SES (EMAIL_PROVIDER=ses, sends tagged with the marketing
- * configuration set) or Mailgun HTTP API (EMAIL_PROVIDER=mailgun with the
- * marketing Mailgun vars set); otherwise falls back to the base-layer sendEmail
- * (which in dev points at MailHog). That fallback keeps local dev and
- * unconfigured environments working without a separate marketing domain.
+ * Provider: SendGrid v3 API (EMAIL_PROVIDER=sendgrid) or Mailgun HTTP API
+ * (EMAIL_PROVIDER=mailgun with the marketing Mailgun vars set); otherwise falls
+ * back to the base-layer sendEmail (which in dev points at MailHog). That
+ * fallback keeps local dev and unconfigured environments working without a
+ * separate marketing domain.
  *
  * `sendEmail` is auto-imported in the Nitro server context (base layer util).
  */
-import { getSesTransporter, isSesConfigured, sesMessageOptions } from './ses'
+import { sendViaSendgrid, isSendgridConfigured } from './sendgrid'
 export interface MarketingSendOptions {
   // Full address, e.g. '"Doxa Updates" <updates@mail.doxa.life>'. When omitted
   // (no sender / marketing domain not configured), the base transport's default
@@ -71,28 +71,27 @@ export async function sendMarketingEmail(options: MarketingSendOptions): Promise
   const provider = (process.env.EMAIL_PROVIDER || 'smtp').toLowerCase()
   const { apiKey, domain, host } = getMarketingMailgunConfig()
 
-  // AWS SES, tagged with the marketing configuration set so bounce/complaint/
-  // delivery events publish per-stream.
-  if (provider === 'ses' && isSesConfigured() && options.from) {
+  // SendGrid v3 API. Marketing sends carry the RFC 8058 one-click unsubscribe
+  // headers; the From domain comes from the marketing sending domain.
+  if (provider === 'sendgrid' && isSendgridConfigured() && options.from) {
     try {
       const headers: Record<string, string> = {}
       if (options.listUnsubscribeUrl) {
         headers['List-Unsubscribe'] = `<${options.listUnsubscribeUrl}>`
         headers['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click'
       }
-      await getSesTransporter().sendMail({
+      await sendViaSendgrid({
         from: options.from,
         to: options.to,
         subject: options.subject,
         html: options.html,
-        text: options.text || options.html.replace(/<[^>]*>/g, ''),
+        text: options.text,
         replyTo: options.replyTo,
         headers: Object.keys(headers).length ? headers : undefined,
-        ...sesMessageOptions('marketing'),
-      } as any)
+      })
       return true
     } catch (error: any) {
-      console.error('[MarketingEmail] SES send failed:', error?.message || error)
+      console.error('[MarketingEmail] SendGrid send failed:', error?.message || error)
       return false
     }
   }

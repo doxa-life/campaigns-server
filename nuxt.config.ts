@@ -138,17 +138,13 @@ export default defineNuxtConfig({
     smtpSecure: process.env.SMTP_SECURE || 'false',
     smtpRejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED || 'true',
 
-    // AWS SES configuration (base layer)
-    awsRegion: process.env.AWS_REGION || process.env.AWS_SES_REGION || '',
-    awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-    // SES configuration sets (per-stream event publishing); empty = sends untagged
-    sesTransactionalConfigSet: process.env.SES_TRANSACTIONAL_CONFIGURATION_SET || '',
-    sesMarketingConfigSet: process.env.SES_MARKETING_CONFIGURATION_SET || '',
-    // S3 bucket SES inbound receipt rules deliver raw mail into
-    sesInboundBucket: process.env.SES_INBOUND_BUCKET || '',
-    // Comma-separated SNS TopicArns the SES webhooks accept (empty = any verified SNS message)
-    snsAllowedTopicArns: process.env.SNS_ALLOWED_TOPIC_ARNS || '',
+    // SendGrid configuration (EMAIL_PROVIDER=sendgrid; all three send paths)
+    sendgridApiKey: process.env.SENDGRID_API_KEY || '',
+    sendgridHost: process.env.SENDGRID_HOST || 'api.sendgrid.com',
+    // Public key (base64 DER) verifying the ECDSA-signed event webhook
+    sendgridWebhookPublicKey: process.env.SENDGRID_WEBHOOK_PUBLIC_KEY || '',
+    // Shared secret required as ?token= on the Inbound Parse webhook (it has no signing)
+    sendgridInboundToken: process.env.SENDGRID_INBOUND_TOKEN || '',
 
     // S3 configuration (base layer)
     s3Endpoint: process.env.S3_ENDPOINT || '',

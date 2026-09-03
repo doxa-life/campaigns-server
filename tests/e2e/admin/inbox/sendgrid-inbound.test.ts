@@ -6,12 +6,12 @@ import { getTestDatabase, closeTestDatabase, cleanupTestData } from '../../../he
 const INBOX_DOMAIN = process.env.INBOX_DOMAIN || 'doxa.life'
 const CONTACT_ADDRESS = process.env.INBOX_CONTACT_ADDRESS || `contact@${INBOX_DOMAIN}`
 
-describe('SES inbound webhook', async () => {
+describe('SendGrid inbound webhook', async () => {
   const sql = getTestDatabase()
   const createdSubscriberIds: number[] = []
 
-  // A minimal multipart/alternative raw email, the shape SES stores in S3 /
-  // inlines in an SNS-action notification.
+  // A minimal multipart/alternative raw email — what Inbound Parse posts in
+  // raw MIME mode via the `email` field.
   function buildMime(opts: {
     from: string
     fromName?: string
@@ -20,16 +20,14 @@ describe('SES inbound webhook', async () => {
     html?: string
     text?: string
     messageId?: string
-    extraHeaders?: string[]
   }): string {
     const boundary = `b-${uuidv4().slice(0, 8)}`
     return [
-      `Message-ID: ${opts.messageId || `<ses-mime-${uuidv4()}@example.com>`}`,
+      `Message-ID: ${opts.messageId || `<sg-mime-${uuidv4()}@example.com>`}`,
       `From: ${opts.fromName ? `${opts.fromName} <${opts.from}>` : opts.from}`,
       `To: ${opts.to}`,
       `Subject: ${opts.subject}`,
       `Date: ${new Date().toUTCString()}`,
-      ...(opts.extraHeaders || []),
       'MIME-Version: 1.0',
       `Content-Type: multipart/alternative; boundary="${boundary}"`,
       '',
@@ -46,40 +44,27 @@ describe('SES inbound webhook', async () => {
     ].join('\r\n')
   }
 
-  // A Received notification with the raw email inline (SNS-action shape), wrapped
-  // in an SNS envelope. Signature validation is skipped under VITEST.
-  function receivedNotification(
+  // The Inbound Parse form for a raw-mode POST. No signing exists for Inbound
+  // Parse; the token gate is inactive in tests (SENDGRID_INBOUND_TOKEN unset).
+  function parseForm(
     rawMime: string,
     recipient: string,
-    opts: { dmarc?: string; virus?: string } = {}
-  ) {
-    return {
-      Type: 'Notification',
-      MessageId: uuidv4(),
-      TopicArn: 'arn:aws:sns:us-east-1:123456789012:ses-inbound-notify',
-      Timestamp: new Date().toISOString(),
-      SignatureVersion: '1',
-      Signature: 'test-signature',
-      SigningCertURL: 'https://sns.us-east-1.amazonaws.com/SimpleNotificationService-test.pem',
-      Message: JSON.stringify({
-        notificationType: 'Received',
-        receipt: {
-          recipients: [recipient],
-          action: { type: 'SNS', encoding: 'BASE64' },
-          spamVerdict: { status: 'PASS' },
-          virusVerdict: { status: opts.virus || 'PASS' },
-          spfVerdict: { status: 'PASS' },
-          dkimVerdict: { status: 'PASS' },
-          dmarcVerdict: { status: opts.dmarc || 'NONE' },
-        },
-        mail: { messageId: uuidv4().replace(/-/g, '') },
-        content: Buffer.from(rawMime, 'utf-8').toString('base64'),
-      }),
-    }
+    sender: string,
+    opts: { dkim?: string; spf?: string; spamScore?: string } = {}
+  ): URLSearchParams {
+    const params = new URLSearchParams()
+    params.append('email', rawMime)
+    params.append('envelope', JSON.stringify({ to: [recipient], from: sender }))
+    params.append('to', recipient)
+    params.append('from', sender)
+    params.append('dkim', opts.dkim ?? 'none')
+    params.append('SPF', opts.spf ?? 'none')
+    if (opts.spamScore !== undefined) params.append('spam_score', opts.spamScore)
+    return params
   }
 
-  async function postSesInbound(notification: Record<string, any>): Promise<any> {
-    return $fetch('/api/webhooks/ses/inbound', { method: 'POST', body: notification })
+  async function postInbound(params: URLSearchParams): Promise<any> {
+    return $fetch('/api/webhooks/sendgrid/inbound', { method: 'POST', body: params })
   }
 
   async function trackSubscriberOf(conversationId: number) {
@@ -100,19 +85,19 @@ describe('SES inbound webhook', async () => {
   })
 
   it('parses raw MIME into a conversation + inbound message, and dedupes on redelivery', async () => {
-    const email = `ses-inbox-a-${uuidv4().slice(0, 8)}@example.com`
-    const messageId = `<ses-msg-${uuidv4()}@example.com>`
+    const email = `sg-inbox-a-${uuidv4().slice(0, 8)}@example.com`
+    const messageId = `<sg-msg-${uuidv4()}@example.com>`
     const mime = buildMime({
       from: email,
-      fromName: 'SES Tester',
+      fromName: 'SendGrid Tester',
       to: CONTACT_ADDRESS,
-      subject: 'Hello from SES',
+      subject: 'Hello from SendGrid',
       html: '<p>Hi team</p>',
       text: 'Hi team',
       messageId,
     })
 
-    const res = await postSesInbound(receivedNotification(mime, CONTACT_ADDRESS))
+    const res = await postInbound(parseForm(mime, CONTACT_ADDRESS, email, { spamScore: '1.3' }))
     expect(res.status).toBe('contact')
     await trackSubscriberOf(res.conversation_id)
 
@@ -121,24 +106,23 @@ describe('SES inbound webhook', async () => {
     const msg = msgs[0]! as any
     expect(msg.direction).toBe('inbound')
     expect(msg.from_email).toBe(email)
-    expect(msg.from_name).toBe('SES Tester')
-    expect(msg.subject).toBe('Hello from SES')
+    expect(msg.from_name).toBe('SendGrid Tester')
+    expect(msg.subject).toBe('Hello from SendGrid')
     expect(msg.body_html).toContain('Hi team')
-    expect(msg.body_text).toContain('Hi team')
     expect(msg.email_message_id).toBe(messageId)
+    expect(Number(msg.spam_score)).toBeCloseTo(1.3)
 
-    // Same MIME redelivered under a new SNS MessageId → dedupes by email Message-ID.
-    const dup = await postSesInbound(receivedNotification(mime, CONTACT_ADDRESS))
+    const dup = await postInbound(parseForm(mime, CONTACT_ADDRESS, email))
     expect(dup.status).toBe('duplicate')
     const after = await sql`SELECT id FROM conversation_messages WHERE email_message_id = ${messageId}`
     expect(after.length).toBe(1)
   })
 
   it('threads a reply-token recipient into the existing conversation and reopens it', async () => {
-    const email = `ses-reopen-${uuidv4().slice(0, 8)}@example.com`
+    const email = `sg-reopen-${uuidv4().slice(0, 8)}@example.com`
     const [sub] = await sql`
       INSERT INTO subscribers (tracking_id, profile_id, name)
-      VALUES (${uuidv4()}, ${uuidv4()}, ${'Test SES ' + email})
+      VALUES (${uuidv4()}, ${uuidv4()}, ${'Test SendGrid ' + email})
       RETURNING id
     `
     createdSubscriberIds.push(sub!.id)
@@ -153,14 +137,9 @@ describe('SES inbound webhook', async () => {
       RETURNING id
     `
 
-    const mime = buildMime({
-      from: email,
-      to: `contact+${token}@${INBOX_DOMAIN}`,
-      subject: 'Re: Existing thread',
-      html: '<p>Following up</p>',
-      text: 'Following up',
-    })
-    const res = await postSesInbound(receivedNotification(mime, `contact+${token}@${INBOX_DOMAIN}`))
+    const recipient = `contact+${token}@${INBOX_DOMAIN}`
+    const mime = buildMime({ from: email, to: recipient, subject: 'Re: Existing thread', html: '<p>Following up</p>', text: 'Following up' })
+    const res = await postInbound(parseForm(mime, recipient, email))
     expect(res.status).toBe('contact')
     expect(res.conversation_id).toBe(convo!.id)
     const [updated] = await sql`SELECT status FROM conversations WHERE id = ${convo!.id}`
@@ -168,14 +147,14 @@ describe('SES inbound webhook', async () => {
   })
 
   it('derives stripped body variants from quoted-reply content', async () => {
-    const email = `ses-strip-${uuidv4().slice(0, 8)}@example.com`
+    const email = `sg-strip-${uuidv4().slice(0, 8)}@example.com`
     const html =
       '<div dir="ltr"><p>Just the new part</p></div>' +
-      '<div class="gmail_quote">On Mon, Aug 31, 2026 at 3:12 PM Doxa wrote:<blockquote>the old thread</blockquote></div>'
-    const text = 'Just the new part\r\n\r\nOn Mon, Aug 31, 2026 at 3:12 PM Doxa wrote:\r\n> the old thread'
+      '<div class="gmail_quote">On Tue, Sep 1, 2026 at 3:12 PM Doxa wrote:<blockquote>the old thread</blockquote></div>'
+    const text = 'Just the new part\r\n\r\nOn Tue, Sep 1, 2026 at 3:12 PM Doxa wrote:\r\n> the old thread'
     const mime = buildMime({ from: email, to: CONTACT_ADDRESS, subject: 'Stripping', html, text })
 
-    const res = await postSesInbound(receivedNotification(mime, CONTACT_ADDRESS))
+    const res = await postInbound(parseForm(mime, CONTACT_ADDRESS, email))
     expect(res.status).toBe('contact')
     await trackSubscriberOf(res.conversation_id)
 
@@ -188,52 +167,66 @@ describe('SES inbound webhook', async () => {
     expect(row.body_text).not.toContain('the old thread')
   })
 
-  it('marks the inbound authenticated when the SES DMARC verdict passes', async () => {
-    const email = `ses-auth-${uuidv4().slice(0, 8)}@example.com`
+  it('marks the inbound authenticated on an aligned DKIM pass', async () => {
+    const email = `sg-auth-${uuidv4().slice(0, 8)}@example.com`
     const mime = buildMime({ from: email, to: CONTACT_ADDRESS, subject: 'Auth check', html: '<p>hi</p>', text: 'hi' })
 
-    const res = await postSesInbound(receivedNotification(mime, CONTACT_ADDRESS, { dmarc: 'PASS' }))
+    const res = await postInbound(parseForm(mime, CONTACT_ADDRESS, email, { dkim: '{@example.com : pass}', spf: 'pass' }))
     expect(res.status).toBe('contact')
     await trackSubscriberOf(res.conversation_id)
 
     const [msg] = await sql`SELECT authenticated, auth_result FROM conversation_messages WHERE conversation_id = ${res.conversation_id}`
     expect((msg as any).authenticated).toBe(true)
-    expect((msg as any).auth_result).toContain('dmarc=PASS')
+    expect((msg as any).auth_result).toContain('dkim=')
   })
 
-  it('ignores a message SES flagged as a virus', async () => {
-    const email = `ses-virus-${uuidv4().slice(0, 8)}@example.com`
-    const mime = buildMime({ from: email, to: CONTACT_ADDRESS, subject: 'Bad', html: '<p>x</p>', text: 'x' })
+  it('stays unauthenticated on a failing DKIM with unaligned SPF', async () => {
+    const email = `sg-noauth-${uuidv4().slice(0, 8)}@example.com`
+    const mime = buildMime({ from: email, to: CONTACT_ADDRESS, subject: 'No auth', html: '<p>hi</p>', text: 'hi' })
 
-    const res = await postSesInbound(receivedNotification(mime, CONTACT_ADDRESS, { virus: 'FAIL' }))
-    expect(res.status).toBe('ignored')
-    expect(res.reason).toBe('virus')
+    const res = await postInbound(
+      parseForm(mime, CONTACT_ADDRESS, 'bounce@other-domain.com', { dkim: '{@example.com : fail}', spf: 'pass' })
+    )
+    expect(res.status).toBe('contact')
+    await trackSubscriberOf(res.conversation_id)
+
+    const [msg] = await sql`SELECT authenticated FROM conversation_messages WHERE conversation_id = ${res.conversation_id}`
+    expect((msg as any).authenticated).toBe(false)
+  })
+
+  it('enforces the URL token when one is expected', async () => {
+    const email = `sg-token-${uuidv4().slice(0, 8)}@example.com`
+    const mime = buildMime({ from: email, to: CONTACT_ADDRESS, subject: 'Token check', html: '<p>hi</p>', text: 'hi' })
+    const expected = `tok-${uuidv4().replace(/-/g, '')}`
+    const post = (query: string) =>
+      $fetch(`/api/webhooks/sendgrid/inbound${query}`, {
+        method: 'POST',
+        body: parseForm(mime, CONTACT_ADDRESS, email),
+        headers: { 'x-test-inbound-token': expected },
+      })
+
+    for (const query of ['', `?token=wrong-${expected}`]) {
+      let status = 0
+      try {
+        await post(query)
+      } catch (err: any) {
+        status = err?.statusCode || err?.response?.status || 0
+      }
+      expect(status).toBe(401)
+    }
+
+    const ok: any = await post(`?token=${expected}`)
+    expect(ok.status).toBe('contact')
+    await trackSubscriberOf(ok.conversation_id)
   })
 
   it('drops mail addressed to the bounce return-path', async () => {
-    const email = `ses-ooo-${uuidv4().slice(0, 8)}@example.com`
+    const email = `sg-ooo-${uuidv4().slice(0, 8)}@example.com`
     const bounceAddress = `bounce+abc123@${INBOX_DOMAIN}`
     const mime = buildMime({ from: email, to: bounceAddress, subject: 'Out of Office', html: '<p>away</p>', text: 'away' })
 
-    const res = await postSesInbound(receivedNotification(mime, bounceAddress))
+    const res = await postInbound(parseForm(mime, bounceAddress, email))
     expect(res.status).toBe('ignored')
     expect(res.reason).toBe('bounce_address')
-  })
-
-  it('rejects an invalid SNS signature with 406 when verification is exercised', async () => {
-    const mime = buildMime({ from: 'a@example.com', to: CONTACT_ADDRESS, subject: 'x', text: 'x' })
-    const bad = receivedNotification(mime, CONTACT_ADDRESS)
-    bad.SigningCertURL = 'http://evil.example.com/cert.pem'
-    let status = 0
-    try {
-      await $fetch('/api/webhooks/ses/inbound', {
-        method: 'POST',
-        body: bad,
-        headers: { 'x-test-verify-sig': '1' },
-      })
-    } catch (err: any) {
-      status = err?.statusCode || err?.response?.status || 0
-    }
-    expect(status).toBe(406)
   })
 })

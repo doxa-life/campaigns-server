@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer'
 import type { Transporter } from 'nodemailer'
-import { getSesTransporter, sesMessageOptions } from './ses'
+import { sendViaSendgrid } from './sendgrid'
 import { renderEmailTemplate, type EmailTemplateData } from './email-templates'
 
 // Determine environment
@@ -14,13 +14,13 @@ function getEmailConfig() {
   try {
     const config = useRuntimeConfig()
     return {
-      // Provider selection: 'smtp', 'mailgun', or 'ses'
+      // Provider selection: 'smtp', 'mailgun', or 'sendgrid'
       provider: config.emailProvider || process.env.EMAIL_PROVIDER || 'smtp',
       // Mailgun config
       mailgunApiKey: config.mailgunApiKey || process.env.MAILGUN_API_KEY,
       mailgunDomain: config.mailgunDomain || process.env.MAILGUN_DOMAIN,
       mailgunHost: config.mailgunHost || process.env.MAILGUN_HOST, // 'api.eu.mailgun.net' for EU
-      // SES config lives in ./ses (getSesConfig)
+      // SendGrid config lives in ./sendgrid (getSendgridConfig)
       // SMTP config (fallback)
       smtpHost: config.smtpHost || process.env.SMTP_HOST,
       smtpPort: config.smtpPort || process.env.SMTP_PORT || '587',
@@ -75,12 +75,6 @@ function getTransporter(): Transporter {
   const provider = config.provider.toLowerCase()
 
   switch (provider) {
-    case 'ses': {
-      console.log('[Email] Using AWS SES')
-      transporter = getSesTransporter()
-      break
-    }
-
     case 'smtp':
     default: {
       // Validate SMTP config
@@ -195,9 +189,11 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     if (!isDevelopment && provider === 'mailgun') {
       const info = await sendViaMailgunHttp(mailOptions, config)
       messageId = info.messageId
+    } else if (!isDevelopment && provider === 'sendgrid') {
+      const info = await sendViaSendgrid(mailOptions)
+      messageId = info.messageId
     } else {
-      const sesOptions = !isDevelopment && provider === 'ses' ? sesMessageOptions('transactional') : {}
-      const info = await getTransporter().sendMail({ ...mailOptions, ...sesOptions })
+      const info = await getTransporter().sendMail(mailOptions)
       messageId = info.messageId
     }
     console.log('[Email] Sent successfully:', messageId)

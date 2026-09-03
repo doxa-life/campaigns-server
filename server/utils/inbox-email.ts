@@ -5,12 +5,12 @@
  * all of which the inbox needs. This service controls From / Reply-To / In-Reply-To /
  * References and attachment parts directly. Existing emails keep using the base `sendEmail`.
  *
- * Provider is abstracted: AWS SES (EMAIL_PROVIDER=ses) or Mailgun HTTP API
+ * Provider is abstracted: SendGrid v3 API (EMAIL_PROVIDER=sendgrid) or Mailgun HTTP API
  * (EMAIL_PROVIDER=mailgun) in production, and SMTP (nodemailer) otherwise — which in
  * local dev points at MailHog (localhost:1025), so replies show up at http://localhost:8025.
  */
 import nodemailer from 'nodemailer'
-import { getSesTransporter, isSesConfigured, sesMessageOptions } from './ses'
+import { sendViaSendgrid as sendgridSend, isSendgridConfigured } from './sendgrid'
 
 export interface InboxEmailAttachment {
   filename: string
@@ -81,8 +81,8 @@ class InboxEmailService {
 
     try {
       const provider = (process.env.EMAIL_PROVIDER || 'smtp').toLowerCase()
-      if (provider === 'ses' && isSesConfigured()) {
-        return await this.sendViaSes(options)
+      if (provider === 'sendgrid' && isSendgridConfigured()) {
+        return await this.sendViaSendgrid(options)
       }
       const { apiKey, domain } = getMailgunConfig()
       if (provider === 'mailgun' && apiKey && domain) {
@@ -96,27 +96,24 @@ class InboxEmailService {
     }
   }
 
-  private async sendViaSes(options: InboxEmailOptions): Promise<InboxEmailResult> {
-    // nodemailer builds the raw MIME (threading headers, CID inline parts) and the
-    // SES transport submits it via SESv2 SendEmail raw content.
-    const info = await getSesTransporter().sendMail({
+  private async sendViaSendgrid(options: InboxEmailOptions): Promise<InboxEmailResult> {
+    const info = await sendgridSend({
       from: options.from,
-      to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
+      to: options.to,
       subject: options.subject,
       html: options.html,
-      text: options.text || options.html.replace(/<[^>]*>/g, ''),
+      text: options.text,
       replyTo: options.replyTo,
       inReplyTo: options.inReplyTo,
       references: options.references,
       headers: options.autoReply ? { 'Auto-Submitted': 'auto-replied', 'Precedence': 'bulk' } : undefined,
       attachments: (options.attachments || []).map(a => ({
         filename: a.filename,
-        content: a.data,
         contentType: a.contentType,
+        data: a.data,
         ...(a.cid ? { cid: a.cid } : {}),
       })),
-      ...sesMessageOptions('transactional'),
-    } as any)
+    })
     return { success: true, providerMessageId: info.messageId }
   }
 

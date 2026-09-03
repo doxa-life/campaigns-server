@@ -172,31 +172,30 @@ No DNS/Mailgun needed locally. With `EMAIL_PROVIDER` unset (or not `mailgun`), `
 
 ---
 
-## 12. AWS SES variant (`EMAIL_PROVIDER=ses`)
+## 12. SendGrid variant (`EMAIL_PROVIDER=sendgrid`)
 
-The app also runs the whole inbox on Amazon SES. The address scheme, reply signing, and all in-app behavior are identical — only the transport and webhooks differ. Both providers can be live at once (during a migration, keep the Mailgun webhooks registered while any Mailgun sending remains).
+The app also runs the whole inbox on Twilio SendGrid. The address scheme, reply signing, and all in-app behavior are identical — only the transport and webhooks differ. Both providers can be live at once (during a migration, keep the Mailgun webhooks registered while any Mailgun sending remains).
 
 ```
-Contact ──email──▶ doxa.life MX ──▶ SES receipt rule ──▶ S3 (raw MIME) + SNS ──▶ POST /api/webhooks/ses/inbound ──▶ app
-  ▲                                                                                                                │
-  └────────────────── SES SendEmail (raw) ◀── inboxEmailService ◀── reply / auto-ack ◀────────────────────────────┘
-             (config-set events: Bounce/Complaint/Delivery) ──▶ SNS ──▶ POST /api/webhooks/ses/events ──▶ app
+Contact ──email──▶ doxa.life MX (mx.sendgrid.net) ──Inbound Parse (raw MIME)──▶ POST /api/webhooks/sendgrid/inbound?token=… ──▶ app
+  ▲                                                                                                                            │
+  └──────────────── SendGrid v3 mail/send ◀── inboxEmailService ◀── reply / auto-ack ◀────────────────────────────────────────┘
+                    (events: bounce/spamreport/delivered/unsubscribe) ──▶ POST /api/webhooks/sendgrid/events ──▶ app
 ```
 
-- **Sending**: all three transports (base transactional, inbox, marketing) send raw MIME via the SESv2 API (`server/utils/ses.ts`), tagged with a per-stream configuration set so events publish per stream.
-- **Receiving**: the SES receipt rule stores each message in the `SES_INBOUND_BUCKET` S3 bucket and notifies SNS; `server/api/webhooks/ses/inbound.post.ts` fetches and parses the raw MIME (mailparser), derives the stripped "new content" variants (`server/utils/email-reply-stripper.ts`), and runs the same pipeline as Mailgun inbound (`server/utils/inbound-email-processor.ts`).
-- **Events**: `server/api/webhooks/ses/events.post.ts` maps `Bounce` (Permanent) → `hard_bounce` suppression, `Complaint` → `complaint` suppression, `Delivery` → the in-thread delivered flag. Transient bounces are ignored.
-- **Webhook auth**: both SES endpoints verify the SNS X.509 message signature, allow-list topics via `SNS_ALLOWED_TOPIC_ARNS`, guard replays by SNS `MessageId`, and answer the subscription-confirmation handshake automatically (`server/utils/sns-webhook.ts`) — so subscribing the URLs in the SNS console is all that's needed.
-- **Inbound auth**: the receipt's DMARC verdict plus the `Authentication-Results` header SES writes into the stored message feed the same authenticated/held gating.
-- **Return-Path**: with a custom MAIL FROM domain, OOO auto-replies go to Amazon's feedback processor instead of the inbound catch-all; the `bounce@` drop remains as defense-in-depth.
+- **Sending**: all three transports (base transactional, inbox, marketing) POST JSON to the v3 `mail/send` API (`server/utils/sendgrid.ts`); the response's `X-Message-Id` is stored for event correlation.
+- **Receiving**: an Inbound Parse host for the domain posts each message to the inbound webhook. Configure it in **raw MIME mode** (check "POST the raw, full MIME message") — the app parses the MIME itself (mailparser), archives the raw `.eml`, derives the stripped "new content" variants (`server/utils/email-reply-stripper.ts`), and runs the same pipeline as Mailgun inbound (`server/utils/inbound-email-processor.ts`).
+- **Events**: enable the **Signed Event Webhook** for `delivered`, `bounce`, `dropped`, `spamreport`, `unsubscribe`. `server/api/webhooks/sendgrid/events.post.ts` maps hard `bounce` → `hard_bounce` suppression, `spamreport` → `complaint` suppression, `unsubscribe` → marketing consent opt-out (never suppression), `delivered`/`dropped` → the in-thread delivery flag. `blocked` bounces are transient and don't suppress.
+- **Webhook auth**: the event webhook is verified with SendGrid's ECDSA signature (`server/utils/sendgrid-webhook.ts`; public key from Mail Settings → Signed Event Webhook). **Inbound Parse has no signing**, so its URL must carry `?token=<SENDGRID_INBOUND_TOKEN>` — the endpoint fails closed: in production it rejects all requests until that env var is set and matching.
+- **Inbound auth**: Inbound Parse's own SPF/DKIM validation fields approximate the DMARC gate (aligned DKIM pass, or aligned envelope-from SPF pass) — `server/utils/sendgrid-inbound.ts` — feeding the same authenticated/held gating.
+- **Suppression mirror**: SendGrid keeps its own bounce/spam suppression lists that silently block sends; when un-suppressing an address in the admin, also clear it in SendGrid (Suppressions → Bounces / Spam Reports).
 
-AWS-side setup (identities, DKIM, MAIL FROM, configuration sets, topics, bucket, receipt rule, sandbox exit) lives in the SES setup runbook. App env for SES:
+App env for SendGrid:
 
 | Variable | Purpose |
 |---|---|
-| `EMAIL_PROVIDER=ses` | Switch all three send paths to SES |
-| `AWS_REGION` / `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | SES + inbound-bucket credentials |
-| `SES_TRANSACTIONAL_CONFIGURATION_SET` / `SES_MARKETING_CONFIGURATION_SET` | Per-stream event publishing |
-| `SES_INBOUND_BUCKET` | Bucket the receipt rule stores raw mail in |
-| `SNS_ALLOWED_TOPIC_ARNS` | Comma-separated TopicArns the SES webhooks accept |
+| `EMAIL_PROVIDER=sendgrid` | Switch all three send paths to SendGrid |
+| `SENDGRID_API_KEY` | v3 API key with Mail Send permission |
+| `SENDGRID_WEBHOOK_PUBLIC_KEY` | Base64 public key verifying the signed event webhook |
+| `SENDGRID_INBOUND_TOKEN` | Shared secret in the Inbound Parse URL (`?token=…`) |
 | `MARKETING_EMAIL_DOMAIN` | Marketing From domain (e.g. `mail.doxa.life`), provider-neutral |

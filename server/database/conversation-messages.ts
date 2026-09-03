@@ -285,10 +285,10 @@ class MessageService {
   }
 
   // Update delivery state by the provider's message-id (used by the delivery webhooks).
-  // Matches provider_message_id or email_message_id, ignoring angle brackets. SES events
-  // carry the bare SES id while sends store it as <id@region.amazonses.com>, so a bare id
-  // (no '@') also matches the stored id's local part; a full id can never equal a local
-  // part, so the extra clause cannot cross-match.
+  // Matches provider_message_id or email_message_id, ignoring angle brackets. Some
+  // providers' events carry a bare id while the send stored it as <id@host>, so a bare
+  // id (no '@') also matches the stored id's local part; a full id can never equal a
+  // local part, so the extra clause cannot cross-match.
   async markDeliveryByProviderId(
     providerMessageId: string,
     status: 'delivered' | 'failed',
