@@ -165,6 +165,7 @@
                 <span>Processing: {{ dinlProgress.processing }}</span>
                 <span>Pending: {{ dinlProgress.pending }}</span>
               </div>
+              <p v-for="(e, i) in dinlErrors" :key="i" class="text-sm text-red-500">{{ e }}</p>
             </div>
           </UCard>
 
@@ -177,6 +178,7 @@
               <p><strong>Total Jobs:</strong> {{ dinlResults.total }}</p>
               <p><strong>Completed:</strong> {{ dinlResults.completed }}</p>
               <p><strong>Failed:</strong> {{ dinlResults.failed }}</p>
+              <p v-for="(e, i) in dinlErrors" :key="i" class="text-red-500">{{ e }}</p>
             </div>
           </UCard>
 
@@ -320,6 +322,38 @@
               v-if="aiModelMessage"
               :color="aiModelMessage.type === 'success' ? 'success' : 'error'"
               :title="aiModelMessage.text"
+              class="mt-4"
+            />
+          </div>
+
+          <h2 class="text-xl font-semibold mb-2 mt-10">Translation Model</h2>
+          <p class="text-[var(--ui-text-muted)] mb-6">
+            The OpenRouter model used to translate content into other languages.
+            Enter any OpenRouter model id (e.g. <code>google/gemini-3.1-pro-preview</code>); a newly released model can be adopted here without a code change.
+          </p>
+
+          <div class="max-w-md">
+            <label class="block text-sm font-medium mb-1">Model id</label>
+            <UInput
+              v-model="translationModel"
+              placeholder="google/gemini-3.1-pro-preview"
+              class="w-full"
+            />
+
+            <UButton
+              @click="saveTranslationModel"
+              :loading="isSavingTranslationModel"
+              :disabled="!translationModel.trim()"
+              variant="outline"
+              class="mt-4"
+            >
+              {{ isSavingTranslationModel ? 'Saving...' : 'Save Model' }}
+            </UButton>
+
+            <UAlert
+              v-if="translationModelMessage"
+              :color="translationModelMessage.type === 'success' ? 'success' : 'error'"
+              :title="translationModelMessage.text"
               class="mt-4"
             />
           </div>
@@ -508,6 +542,44 @@ async function saveAiModel() {
 
 loadAiModel()
 
+// Translation model setting
+const translationModel = ref('')
+const isSavingTranslationModel = ref(false)
+const translationModelMessage = ref<{ text: string; type: 'success' | 'error' } | null>(null)
+
+async function loadTranslationModel() {
+  try {
+    const data = await $fetch<{ translation_model: string }>('/api/admin/superadmin/translation-model')
+    translationModel.value = data.translation_model || ''
+  } catch (error) {
+    console.error('Failed to load translation model:', error)
+  }
+}
+
+async function saveTranslationModel() {
+  const value = translationModel.value.trim()
+  if (!value) return
+
+  isSavingTranslationModel.value = true
+  translationModelMessage.value = null
+
+  try {
+    const data = await $fetch<{ translation_model: string }>('/api/admin/superadmin/translation-model', {
+      method: 'PUT',
+      body: { translation_model: value }
+    })
+    translationModel.value = data.translation_model
+    translationModelMessage.value = { text: 'Translation model saved.', type: 'success' }
+  } catch (error: any) {
+    console.error('Failed to save translation model:', error)
+    translationModelMessage.value = { text: error.data?.message || 'Failed to save translation model.', type: 'error' }
+  } finally {
+    isSavingTranslationModel.value = false
+  }
+}
+
+loadTranslationModel()
+
 // Translation state
 const selectedTranslateField = ref<string | undefined>(undefined)
 const translateOverwrite = ref(false)
@@ -525,6 +597,7 @@ const isCancellingDinl = ref(false)
 const dinlBatchId = ref<number | null>(null)
 const dinlMessage = ref<{ text: string; type: 'success' | 'error' } | null>(null)
 const dinlProgress = ref({ total: 0, pending: 0, processing: 0, completed: 0, failed: 0 })
+const dinlErrors = ref<string[]>([])
 const dinlResults = ref<{ total: number; completed: number; failed: number } | null>(null)
 let dinlPollTimer: ReturnType<typeof setInterval> | null = null
 
@@ -642,6 +715,7 @@ async function startDinlTranslation() {
   dinlMessage.value = null
   dinlResults.value = null
   dinlProgress.value = { total: 0, pending: 0, processing: 0, completed: 0, failed: 0 }
+  dinlErrors.value = []
 
   try {
     const response = await $fetch<{
@@ -700,6 +774,7 @@ async function pollDinlStatus() {
       completed: number
       failed: number
       isComplete: boolean
+      errors?: string[]
     }>('/api/admin/superadmin/translate-dinl/status', {
       params: { batchId: dinlBatchId.value }
     })
@@ -711,6 +786,7 @@ async function pollDinlStatus() {
       completed: status.completed,
       failed: status.failed
     }
+    dinlErrors.value = status.errors ?? []
 
     if (status.isComplete) {
       stopDinlPolling()
