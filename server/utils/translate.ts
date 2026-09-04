@@ -1,13 +1,12 @@
 /**
  * Translation Utility
  *
- * Translates plain text and Tiptap JSON content between the app's languages.
- * The provider is chosen by TRANSLATION_PROVIDER: 'openrouter' (LLM, the
- * default) or 'deepl'. Verse nodes are never machine-translated — they are
- * fetched from the Bible API in the target language.
+ * Translates plain text and Tiptap JSON content between the app's languages
+ * with an LLM via OpenRouter. Verse nodes are never machine-translated — they
+ * are fetched from the Bible API in the target language.
  */
 
-import { LANGUAGE_CODES, getDeeplTargetCode, getDeeplSourceCode, getBibleId, getBibleLabel, getGlossaryId } from '~/utils/languages'
+import { LANGUAGE_CODES, getBibleId, getBibleLabel } from '~/utils/languages'
 import { parseReference, localizeReference, type ParsedReference } from '../../config/bible-books'
 import { fetchVerseData, isBollsBibleConfigured, BibleUnavailableError } from './app/bolls-bible'
 import { openrouterTranslateTexts, isOpenRouterConfigured } from './openrouter'
@@ -21,21 +20,8 @@ export interface VerseWarning {
   reason: string
 }
 
-interface DeepLTranslation {
-  detected_source_language: string
-  text: string
-}
-
-interface DeepLResponse {
-  translations: DeepLTranslation[]
-}
-
-function getTranslationProvider(): 'openrouter' | 'deepl' {
-  return useRuntimeConfig().translationProvider === 'deepl' ? 'deepl' : 'openrouter'
-}
-
 /**
- * Translate a single text using the active provider
+ * Translate a single text
  */
 export async function translateText(
   text: string,
@@ -58,77 +44,7 @@ export async function translateTexts(
   sourceLanguage?: string
 ): Promise<string[]> {
   if (texts.length === 0) return []
-
-  if (getTranslationProvider() === 'openrouter') {
-    return openrouterTranslateTexts(texts, targetLanguage, sourceLanguage)
-  }
-  return deeplTranslateTexts(texts, targetLanguage, sourceLanguage)
-}
-
-/**
- * Translate multiple texts with the DeepL API (fallback provider)
- */
-async function deeplTranslateTexts(
-  texts: string[],
-  targetLanguage: string,
-  sourceLanguage?: string
-): Promise<string[]> {
-  const config = useRuntimeConfig()
-  const apiKey = config.deeplApiKey
-
-  if (!apiKey) {
-    throw new Error('DEEPL_API_KEY is not configured')
-  }
-
-  const targetLang = getDeeplTargetCode(targetLanguage)
-  const sourceLang = sourceLanguage ? getDeeplSourceCode(sourceLanguage) : undefined
-
-  const params = new URLSearchParams({
-    target_lang: targetLang
-  })
-
-  // Add each text as a separate 'text' parameter
-  for (const text of texts) {
-    params.append('text', text)
-  }
-
-  if (sourceLang) {
-    params.append('source_lang', sourceLang)
-  }
-
-  const glossaryId = getGlossaryId(targetLanguage)
-  if (glossaryId) {
-    params.append('glossary_id', glossaryId)
-  }
-
-  // Use quality_optimized model for best translation quality
-  params.append('model_type', 'quality_optimized')
-
-  const apiUrl = config.deeplApiUrl || 'https://api-free.deepl.com'
-
-  console.log(`[DeepL] Translating ${texts.length} texts → ${targetLang}${sourceLang ? ` from ${sourceLang}` : ''}${glossaryId ? ` (glossary: ${glossaryId})` : ''}`)
-
-  const response = await fetch(`${apiUrl}/v2/translate`, {
-    method: 'POST',
-    headers: {
-      Authorization: `DeepL-Auth-Key ${apiKey}`,
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: params.toString()
-  })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`DeepL API error: ${response.status} - ${errorText}`)
-  }
-
-  const data: DeepLResponse = await response.json()
-
-  if (!data.translations) {
-    throw new Error('No translations returned from DeepL')
-  }
-
-  return data.translations.map(t => t.text)
+  return openrouterTranslateTexts(texts, targetLanguage, sourceLanguage)
 }
 
 /**
@@ -188,7 +104,7 @@ export function setTextAtPath(node: TiptapNode, path: number[], text: string): v
 /**
  * Translate Tiptap JSON content
  * Preserves structure, marks, and attributes while translating text nodes.
- * Verse nodes are never sent to DeepL — they are fetched from the Bible API instead.
+ * Verse nodes are never sent to the translator — they are fetched from the Bible API instead.
  */
 export async function translateTiptapContent(
   contentJson: TiptapNode,
@@ -418,38 +334,8 @@ export async function reconcileVersesFromSource(
 }
 
 /**
- * Check if the active translation provider is configured
+ * Check if the translation service is configured
  */
 export function isTranslationConfigured(): boolean {
-  if (getTranslationProvider() === 'openrouter') {
-    return isOpenRouterConfigured()
-  }
-  return !!useRuntimeConfig().deeplApiKey
-}
-
-/**
- * Get DeepL usage statistics
- */
-export async function getDeepLUsage(): Promise<{ character_count: number; character_limit: number }> {
-  const config = useRuntimeConfig()
-  const apiKey = config.deeplApiKey
-
-  if (!apiKey) {
-    throw new Error('DEEPL_API_KEY is not configured')
-  }
-
-  const apiUrl = config.deeplApiUrl || 'https://api-free.deepl.com'
-
-  const response = await fetch(`${apiUrl}/v2/usage`, {
-    headers: {
-      Authorization: `DeepL-Auth-Key ${apiKey}`
-    }
-  })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`DeepL API error: ${response.status} - ${errorText}`)
-  }
-
-  return await response.json()
+  return isOpenRouterConfigured()
 }

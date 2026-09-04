@@ -191,7 +191,7 @@ Email templates in `server/utils/`: `prayer-reminder-email.ts`, `welcome-email.t
 - URL strategy: `prefix_except_default` (English has no prefix)
 - Use `$t('key')` in templates, `useI18n()` in scripts
 - Use `localePath()` for navigation links
-- **Translation glossaries**: When translating text, follow the DeepL glossaries in `../translation/deepl-glossaries/` to ensure consistent terminology (e.g., "people group" has specific translations per language)
+- **Translation glossaries**: When translating text, follow the glossary TSVs in `../translation/deepl-glossaries/` to ensure consistent terminology (e.g., "people group" has specific translations per language). The app vendors them into `config/glossaries.ts` via `bun scripts/build-glossaries.ts` — re-run it after changing the TSVs
 
 ## Styling
 
