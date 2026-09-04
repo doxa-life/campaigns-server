@@ -1,7 +1,8 @@
-import type { Job, TranslationBatchPayload } from '../../database/job-queue'
+import { jobQueueService, type Job, type TranslationBatchPayload } from '../../database/job-queue'
 import type { ProcessorResult } from './index'
 import { libraryContentService } from '../../database/library-content'
 import { batchTranslateTiptapContents, isTranslationConfigured, reconcileVersesFromSource, translateVerseNodes, type TiptapNode, type VerseWarning } from '../../utils/translate'
+import { OpenRouterError } from '../../utils/openrouter'
 
 /**
  * Check if a verse node has actual text content (not empty).
@@ -51,7 +52,7 @@ export async function processBatchTranslation(job: Job): Promise<ProcessorResult
   const payload = job.payload as TranslationBatchPayload
 
   if (!isTranslationConfigured()) {
-    return { success: false, data: { error: 'Translation service not configured' } }
+    return { success: false, retryable: false, data: { error: 'Translation service not configured' } }
   }
 
   // Get all source content for this library + language
@@ -129,13 +130,27 @@ export async function processBatchTranslation(job: Job): Promise<ProcessorResult
   // Batch translate new (non-existing) days
   const sourceDocs = contentToTranslate.map(c => c.content_json!) as TiptapNode[]
   const skipVerseTranslation = !retranslateVerses
-  const { docs: translatedDocs, verseWarnings: translateVerseWarnings } = await batchTranslateTiptapContents(
-    sourceDocs,
-    payload.target_language,
-    payload.source_language,
-    { skipVerseTranslation }
-  )
-  verseWarnings.push(...translateVerseWarnings)
+  let translatedDocs: TiptapNode[]
+  try {
+    const translated = await batchTranslateTiptapContents(
+      sourceDocs,
+      payload.target_language,
+      payload.source_language,
+      { skipVerseTranslation }
+    )
+    translatedDocs = translated.docs
+    verseWarnings.push(...translated.verseWarnings)
+  } catch (error) {
+    if (error instanceof OpenRouterError && !error.retryable) {
+      // The rest of the batch would hit the same wall; fail it now so the
+      // progress UI shows one reason instead of retrying every language.
+      if (job.reference_type && job.reference_id) {
+        await jobQueueService.failPendingJobs(job.reference_type, job.reference_id, error.message)
+      }
+      return { success: false, retryable: false, data: { error: error.message } }
+    }
+    throw error
+  }
 
   // When skipping verse retranslation: preserve existing target verses, fetch missing ones
   if (skipVerseTranslation) {

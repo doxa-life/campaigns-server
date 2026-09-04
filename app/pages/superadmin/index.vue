@@ -165,6 +165,7 @@
                 <span>Processing: {{ dinlProgress.processing }}</span>
                 <span>Pending: {{ dinlProgress.pending }}</span>
               </div>
+              <p v-for="(e, i) in dinlErrors" :key="i" class="text-sm text-red-500">{{ e }}</p>
             </div>
           </UCard>
 
@@ -177,6 +178,7 @@
               <p><strong>Total Jobs:</strong> {{ dinlResults.total }}</p>
               <p><strong>Completed:</strong> {{ dinlResults.completed }}</p>
               <p><strong>Failed:</strong> {{ dinlResults.failed }}</p>
+              <p v-for="(e, i) in dinlErrors" :key="i" class="text-red-500">{{ e }}</p>
             </div>
           </UCard>
 
@@ -595,6 +597,7 @@ const isCancellingDinl = ref(false)
 const dinlBatchId = ref<number | null>(null)
 const dinlMessage = ref<{ text: string; type: 'success' | 'error' } | null>(null)
 const dinlProgress = ref({ total: 0, pending: 0, processing: 0, completed: 0, failed: 0 })
+const dinlErrors = ref<string[]>([])
 const dinlResults = ref<{ total: number; completed: number; failed: number } | null>(null)
 let dinlPollTimer: ReturnType<typeof setInterval> | null = null
 
@@ -712,6 +715,7 @@ async function startDinlTranslation() {
   dinlMessage.value = null
   dinlResults.value = null
   dinlProgress.value = { total: 0, pending: 0, processing: 0, completed: 0, failed: 0 }
+  dinlErrors.value = []
 
   try {
     const response = await $fetch<{
@@ -770,6 +774,7 @@ async function pollDinlStatus() {
       completed: number
       failed: number
       isComplete: boolean
+      errors?: string[]
     }>('/api/admin/superadmin/translate-dinl/status', {
       params: { batchId: dinlBatchId.value }
     })
@@ -781,6 +786,7 @@ async function pollDinlStatus() {
       completed: status.completed,
       failed: status.failed
     }
+    dinlErrors.value = status.errors ?? []
 
     if (status.isComplete) {
       stopDinlPolling()

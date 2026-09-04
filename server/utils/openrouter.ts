@@ -69,6 +69,43 @@ interface ChatCompletionResponse {
   error?: { message?: string }
 }
 
+/**
+ * Failure of an OpenRouter request. The message is written for the admin UI,
+ * and `retryable` says whether a later attempt could plausibly succeed —
+ * false for anything that needs a human (no credits, bad key, rejected model).
+ */
+export class OpenRouterError extends Error {
+  constructor(message: string, readonly status: number | null, readonly retryable: boolean) {
+    super(message)
+    this.name = 'OpenRouterError'
+  }
+}
+
+function providerMessage(body: string): string {
+  try {
+    const message = JSON.parse(body)?.error?.message
+    if (typeof message === 'string') return message
+  } catch {
+    // error bodies are not always JSON
+  }
+  return body.slice(0, 200)
+}
+
+function toOpenRouterError(status: number, body: string, model: string): OpenRouterError {
+  console.error(`[Translate] OpenRouter ${status} for ${model}: ${body.slice(0, 500)}`)
+
+  if (status === 402) {
+    return new OpenRouterError('OpenRouter account has no credits — add credits at https://openrouter.ai/settings/credits', status, false)
+  }
+  if (status === 401 || status === 403) {
+    return new OpenRouterError('OpenRouter rejected the API key — check OPENROUTER_API_KEY', status, false)
+  }
+  if (status === 400 || status === 404 || status === 422) {
+    return new OpenRouterError(`OpenRouter did not accept the request for model "${model}": ${providerMessage(body)}`, status, false)
+  }
+  return new OpenRouterError(`OpenRouter is temporarily unavailable (HTTP ${status}) — try again in a moment`, status, true)
+}
+
 function parseTranslations(content: string, expectedCount: number): string[] {
   // Some models wrap JSON output in a markdown code fence despite json_object mode
   const raw = content.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '')
@@ -95,7 +132,7 @@ export async function openrouterTranslateTexts(
   const apiKey = config.openrouterApiKey
 
   if (!apiKey) {
-    throw new Error('OPENROUTER_API_KEY is not configured')
+    throw new OpenRouterError('OpenRouter is not configured — set OPENROUTER_API_KEY', null, false)
   }
 
   const model = await getTranslationModel(targetLanguage)
@@ -115,25 +152,30 @@ export async function openrouterTranslateTexts(
   // retry recovers those cases before surfacing an error to the caller.
   let lastError: Error | undefined
   for (let attempt = 1; attempt <= 2; attempt++) {
-    const response = await fetch(OPENROUTER_API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'X-Title': 'DOXA Prayer'
-      },
-      body
-    })
+    let response: Response
+    try {
+      response = await fetch(OPENROUTER_API_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'X-Title': 'DOXA Prayer'
+        },
+        body
+      })
+    } catch (e: any) {
+      console.error(`[Translate] could not reach OpenRouter: ${e?.message}`)
+      throw new OpenRouterError('Could not reach OpenRouter — try again in a moment', null, true)
+    }
 
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`)
+      throw toOpenRouterError(response.status, await response.text(), model)
     }
 
     const data: ChatCompletionResponse = await response.json()
     const content = data.choices?.[0]?.message?.content
     if (!content) {
-      throw new Error(`No translation returned from OpenRouter${data.error?.message ? `: ${data.error.message}` : ''}`)
+      throw new OpenRouterError(`OpenRouter returned no translation${data.error?.message ? `: ${data.error.message}` : ''}`, response.status, true)
     }
 
     try {
@@ -144,5 +186,5 @@ export async function openrouterTranslateTexts(
     }
   }
 
-  throw new Error(`OpenRouter translation failed for "${targetLanguage}": ${lastError?.message}`)
+  throw new OpenRouterError(`Translation into "${targetLanguage}" failed: ${lastError?.message}`, null, true)
 }

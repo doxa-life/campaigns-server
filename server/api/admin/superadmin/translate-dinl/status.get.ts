@@ -33,11 +33,14 @@ export default defineEventHandler(async (event) => {
       }
     }
 
+    const errors = await jobQueueService.getFailureReasons('bulk_dinl', batchId)
+
     return {
       batchId,
       ...stats,
       isComplete,
-      verseWarnings
+      verseWarnings,
+      errors
     }
   } catch (error) {
     handleApiError(error, 'Failed to get translation status')
