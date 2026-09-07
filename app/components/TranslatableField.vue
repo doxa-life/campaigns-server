@@ -30,7 +30,7 @@
       <template #body>
         <div class="p-6 space-y-4">
           <p class="text-[var(--ui-text-muted)]">
-            Translate the English content to all other languages using DeepL.
+            Translate the English content to all other languages using AI translation.
           </p>
 
           <UCheckbox
@@ -160,7 +160,10 @@ async function translateFromEnglish() {
     const translatedCount = Object.keys(response.translations).length
     if (response.errors && response.errors.length > 0) {
       console.error('Translation errors:', response.errors)
-      const errorMessages = response.errors.map(e => `${e.language}: ${e.error}`).join('; ')
+      const distinctErrors = [...new Set(response.errors.map(e => e.error))]
+      const errorMessages = distinctErrors.length === 1
+        ? distinctErrors[0]
+        : response.errors.map(e => `${e.language}: ${e.error}`).join('; ')
       translateError.value = `Translated ${translatedCount} language(s), but ${response.errors.length} failed: ${errorMessages}`
     } else {
       translateSuccess.value = `Translated to ${translatedCount} language(s)`

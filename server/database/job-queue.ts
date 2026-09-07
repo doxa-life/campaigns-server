@@ -152,18 +152,48 @@ class JobQueueService {
    * End a failed attempt in a single statement: re-queue to 'pending' if attempts remain,
    * else mark 'failed'. Atomic so a crash can't strand the job mid-way between the two —
    * which the reaper (it only requeues 'processing') would never recover, silently dropping
-   * the recipient. Returns whether the job was re-queued for another attempt.
+   * the recipient. A non-retryable failure (one that needs a human — no credits, bad
+   * credentials) goes straight to 'failed' with its message, whatever attempts remain.
+   * Returns whether the job was re-queued for another attempt.
    */
-  async failOrRetry(id: number, errorMessage: string): Promise<{ requeued: boolean }> {
+  async failOrRetry(id: number, errorMessage: string, options: { retryable?: boolean } = {}): Promise<{ requeued: boolean }> {
+    const retryable = options.retryable !== false
     const [row] = await this.sql<{ status: JobStatus }[]>`
       UPDATE jobs
-      SET status = CASE WHEN attempts < max_attempts THEN 'pending' ELSE 'failed' END,
-          error_message = CASE WHEN attempts < max_attempts THEN NULL ELSE ${errorMessage} END,
+      SET status = CASE WHEN ${retryable}::boolean AND attempts < max_attempts THEN 'pending' ELSE 'failed' END,
+          error_message = CASE WHEN ${retryable}::boolean AND attempts < max_attempts THEN NULL ELSE ${errorMessage} END,
           updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE id = ${id}
       RETURNING status
     `
     return { requeued: row?.status === 'pending' }
+  }
+
+  /**
+   * Fail every still-pending job of a batch with the same reason, for when one job hit a
+   * failure the rest are certain to repeat (e.g. the translation account has no credits).
+   * Jobs already claimed by an instance are left to finish on their own.
+   */
+  async failPendingJobs(referenceType: string, referenceId: number, errorMessage: string): Promise<number> {
+    const result = await this.sql`
+      UPDATE jobs
+      SET status = 'failed',
+          error_message = ${errorMessage},
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE reference_type = ${referenceType} AND reference_id = ${referenceId} AND status = 'pending'
+    `
+    return result.count
+  }
+
+  /** Distinct error messages of a batch's failed jobs, for the progress UI. */
+  async getFailureReasons(referenceType: string, referenceId: number): Promise<string[]> {
+    const rows = await this.sql<{ error_message: string }[]>`
+      SELECT DISTINCT error_message FROM jobs
+      WHERE reference_type = ${referenceType} AND reference_id = ${referenceId}
+        AND status = 'failed' AND error_message IS NOT NULL
+      ORDER BY error_message
+    `
+    return rows.map(r => r.error_message)
   }
 
   /**

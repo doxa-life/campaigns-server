@@ -1,6 +1,6 @@
 import { libraryContentService } from '#server/database/library-content'
 import { jobQueueService, type TranslationBatchPayload } from '#server/database/job-queue'
-import { isDeepLConfigured, SUPPORTED_LANGUAGES } from '#server/utils/deepl'
+import { isTranslationConfigured, SUPPORTED_LANGUAGES } from '#server/utils/translate'
 import { getIntParam } from '#server/utils/api-helpers'
 
 /**
@@ -18,10 +18,10 @@ export default defineEventHandler(async (event) => {
 
   const libraryId = getIntParam(event, 'libraryId')
 
-  if (!isDeepLConfigured()) {
+  if (!isTranslationConfigured()) {
     throw createError({
       statusCode: 503,
-      statusMessage: 'Translation service not configured. Please add DEEPL_API_KEY to environment.'
+      statusMessage: 'Translation service not configured. Please add OPENROUTER_API_KEY to environment.'
     })
   }
 

@@ -1,4 +1,4 @@
-import { translateVerseNodes, type TiptapNode, type VerseWarning } from '#server/utils/deepl'
+import { translateVerseNodes, type TiptapNode, type VerseWarning } from '#server/utils/translate'
 import { getBibleId } from '~/utils/languages'
 import { getSql } from '#server/database/db'
 import { getErrorMessage } from '#server/utils/api-helpers'
