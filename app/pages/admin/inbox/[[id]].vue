@@ -1460,7 +1460,7 @@ a.contact-name:hover { text-decoration: underline; }
 .msg-addr .addr-label { font-weight: 500; }
 .msg-meta { display: flex; align-items: center; gap: 0.4rem; }
 .msg-time { font-size: 0.7rem; color: var(--ui-text-muted); }
-.msg-body { font-size: 0.875rem; line-height: 1.5; word-break: break-word; }
+.msg-body { font-size: 0.875rem; line-height: 1.5; word-break: break-word; overflow-x: auto; }
 .msg-body :deep(p) { margin: 0.25rem 0; }
 .msg-body :deep(img) { max-width: 100%; max-height: 480px; height: auto; }
 .msg-attachments { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
