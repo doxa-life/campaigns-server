@@ -294,7 +294,32 @@
 
         <!-- Settings Tab -->
         <div v-if="item.value === 'settings'" class="py-6">
-          <h2 class="text-xl font-semibold mb-2">AI Model</h2>
+          <h2 class="text-xl font-semibold mb-2">OpenRouter API Key</h2>
+          <p class="text-[var(--ui-text-muted)] mb-6">
+            Translation and every AI feature call OpenRouter with the <code>OPENROUTER_API_KEY</code> environment variable.
+            This checks the key the server is running with; it does not spend credits.
+          </p>
+
+          <div class="max-w-md">
+            <UAlert
+              v-if="openrouterKeyAlert"
+              :color="openrouterKeyAlert.color"
+              :icon="openrouterKeyAlert.icon"
+              :title="openrouterKeyAlert.title"
+              :description="openrouterKeyAlert.description"
+            />
+
+            <UButton
+              @click="checkOpenrouterKey"
+              :loading="isCheckingOpenrouterKey"
+              variant="outline"
+              class="mt-4"
+            >
+              {{ isCheckingOpenrouterKey ? 'Checking...' : 'Check Key' }}
+            </UButton>
+          </div>
+
+          <h2 class="text-xl font-semibold mb-2 mt-10">AI Model</h2>
           <p class="text-[var(--ui-text-muted)] mb-6">
             The OpenRouter model used for every AI feature — inbox draft replies, knowledge capture, and report parsing.
             Enter any OpenRouter model id (e.g. <code>anthropic/claude-sonnet-4.6</code>); a newly released model can be adopted here without a code change.
@@ -503,6 +528,51 @@ const lastBackup = ref<{ filename: string; size: number; location: string } | nu
 
 const isUpdatingPrayerCounts = ref(false)
 const prayerCountsMessage = ref<{ text: string; type: 'success' | 'error' } | null>(null)
+
+// OpenRouter API key check
+type OpenRouterKeyStatus =
+  | { status: 'missing' }
+  | { status: 'invalid' | 'unreachable'; message: string }
+  | { status: 'valid'; label: string; limit: number | null; limit_remaining: number | null; usage_monthly: number; is_free_tier: boolean }
+
+const openrouterKey = ref<OpenRouterKeyStatus | null>(null)
+const isCheckingOpenrouterKey = ref(false)
+
+const usd = (amount: number) => `$${amount.toFixed(2)}`
+
+const openrouterKeyAlert = computed(() => {
+  const key = openrouterKey.value
+  switch (key?.status) {
+    case 'valid': {
+      const credits = key.limit === null
+        ? `${usd(key.usage_monthly)} used this month, no credit limit on this key.`
+        : `${usd(key.limit_remaining ?? 0)} of ${usd(key.limit)} remaining, ${usd(key.usage_monthly)} used this month.`
+      return { color: 'success' as const, icon: 'i-lucide-circle-check', title: `Key "${key.label}" is valid`, description: credits }
+    }
+    case 'invalid':
+      return { color: 'error' as const, icon: 'i-lucide-circle-x', title: 'OpenRouter rejected the key', description: key.message }
+    case 'unreachable':
+      return { color: 'warning' as const, icon: 'i-lucide-triangle-alert', title: 'Could not verify the key', description: key.message }
+    case 'missing':
+      return { color: 'error' as const, icon: 'i-lucide-circle-x', title: 'OPENROUTER_API_KEY is not set', description: 'Translation and AI features are disabled until the server has a key.' }
+    default:
+      return null
+  }
+})
+
+async function checkOpenrouterKey() {
+  isCheckingOpenrouterKey.value = true
+  try {
+    openrouterKey.value = await $fetch<OpenRouterKeyStatus>('/api/admin/superadmin/openrouter-key')
+  } catch (error: any) {
+    console.error('Failed to check OpenRouter key:', error)
+    openrouterKey.value = { status: 'unreachable', message: error.data?.message || 'Failed to check the OpenRouter API key.' }
+  } finally {
+    isCheckingOpenrouterKey.value = false
+  }
+}
+
+checkOpenrouterKey()
 
 // AI model setting
 const aiModel = ref('')

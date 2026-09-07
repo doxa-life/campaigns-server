@@ -27,6 +27,59 @@ export function isOpenRouterConfigured(): boolean {
   return !!useRuntimeConfig().openrouterApiKey
 }
 
+const OPENROUTER_KEY_URL = 'https://openrouter.ai/api/v1/key'
+
+/** What OpenRouter says about the API key the server is running with. */
+export type OpenRouterKeyStatus =
+  | { status: 'missing' }
+  | { status: 'invalid'; message: string }
+  | { status: 'unreachable'; message: string }
+  | {
+      status: 'valid'
+      label: string
+      limit: number | null
+      limit_remaining: number | null
+      usage_monthly: number
+      is_free_tier: boolean
+    }
+
+/**
+ * Check the configured API key against OpenRouter without spending credits.
+ * The key-info endpoint answers with the key's label and credit balance, so a
+ * missing, mistyped, or revoked key is caught here instead of on the next
+ * translation or AI call.
+ */
+export async function openrouterKeyStatus(): Promise<OpenRouterKeyStatus> {
+  const apiKey = useRuntimeConfig().openrouterApiKey
+  if (!apiKey) return { status: 'missing' }
+
+  let response: Response
+  try {
+    response = await fetch(OPENROUTER_KEY_URL, { headers: { Authorization: `Bearer ${apiKey}` } })
+  } catch (e: any) {
+    return { status: 'unreachable', message: e?.message || 'Could not reach OpenRouter' }
+  }
+
+  const body = await response.text()
+  if (!response.ok) {
+    const message = providerMessage(body)
+    if (response.status === 401 || response.status === 403) {
+      return { status: 'invalid', message }
+    }
+    return { status: 'unreachable', message: `OpenRouter returned ${response.status}: ${message}` }
+  }
+
+  const data = JSON.parse(body)?.data ?? {}
+  return {
+    status: 'valid',
+    label: String(data.label ?? ''),
+    limit: typeof data.limit === 'number' ? data.limit : null,
+    limit_remaining: typeof data.limit_remaining === 'number' ? data.limit_remaining : null,
+    usage_monthly: Number(data.usage_monthly ?? 0),
+    is_free_tier: Boolean(data.is_free_tier)
+  }
+}
+
 /**
  * The OpenRouter model used to translate into a language. A per-language
  * override in config/languages.ts wins; then the superadmin-managed app_config
