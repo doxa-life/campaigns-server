@@ -1,11 +1,11 @@
-import { isAnthropicConfigured } from '#server/utils/anthropic'
+import { isAiConfigured } from '#server/utils/ai'
 import { parseReportText } from '#server/utils/app/report-parser'
 
 export default defineEventHandler(async (event) => {
   await requirePermission(event, 'people_groups.edit')
 
-  if (!isAnthropicConfigured()) {
-    throw createError({ statusCode: 503, statusMessage: 'AI parsing is not configured. ANTHROPIC_API_KEY is missing.' })
+  if (!isAiConfigured()) {
+    throw createError({ statusCode: 503, statusMessage: 'AI parsing is not configured. OPENROUTER_API_KEY is missing.' })
   }
 
   const body = await readBody<{ text: string }>(event)

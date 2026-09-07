@@ -1,4 +1,4 @@
-import { getAnthropicClient, getAiModel, temperatureFor } from '../anthropic'
+import { getAiModel, callAiTool, toAiHttpError, type AiTool } from '../ai'
 
 export interface ParsedReportResult {
   people_group_name: string | null
@@ -32,10 +32,10 @@ const SYSTEM_PROMPT = `You are a data extraction assistant for a people group da
 - Only include a field in suggested_changes if the report provides clear evidence for it. Do not guess.
 - Put qualitative details, missionary names, and contextual information in the notes field.`
 
-const REPORT_TOOL = {
+const REPORT_TOOL: AiTool = {
   name: 'submit_parsed_report',
   description: 'Submit the extracted report data',
-  input_schema: {
+  parameters: {
     type: 'object' as const,
     properties: {
       people_group_name: { type: ['string', 'null'] as const, description: 'Name of the people group' },
@@ -64,27 +64,20 @@ const REPORT_TOOL = {
 }
 
 export async function parseReportText(text: string): Promise<ParsedReportResult> {
-  const client = getAnthropicClient()
-  const model = await getAiModel()
-
-  const response = await client.messages.create({
-    model,
-    max_tokens: 1024,
-    ...temperatureFor(model, 0),
-    system: SYSTEM_PROMPT,
-    messages: [
-      { role: 'user', content: text }
-    ],
-    tools: [REPORT_TOOL],
-    tool_choice: { type: 'tool', name: 'submit_parsed_report' }
-  })
-
-  const toolBlock = response.content.find(b => b.type === 'tool_use')
-  if (!toolBlock || toolBlock.type !== 'tool_use') {
-    throw new Error('Unexpected response from AI — no tool use block')
+  let parsed: Partial<ParsedReportResult>
+  try {
+    parsed = await callAiTool<ParsedReportResult>({
+      model: await getAiModel(),
+      system: [{ text: SYSTEM_PROMPT }],
+      user: text,
+      tool: REPORT_TOOL,
+      maxTokens: 1024,
+      temperature: 0,
+      label: 'Report parse'
+    })
+  } catch (error) {
+    throw toAiHttpError(error, 'AI report-parse call failed')
   }
-
-  const parsed = toolBlock.input as ParsedReportResult
 
   return {
     people_group_name: parsed.people_group_name ?? null,

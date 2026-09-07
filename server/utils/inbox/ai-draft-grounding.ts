@@ -57,7 +57,7 @@ export function resetGroundingCache(): void {
 /**
  * The static grounding pack: tone guide + cached doxa.life CMS pages + the app's
  * feature descriptions. This block is identical across requests, so it's the part
- * we mark cacheable on the Anthropic call.
+ * we mark cacheable on the AI call.
  */
 export async function getStaticPack(): Promise<string> {
   if (staticPackCache && Date.now() - staticPackCache.builtAt < STATIC_PACK_TTL_MS) {

@@ -1,10 +1,15 @@
 /**
- * OpenRouter Translation Client
+ * OpenRouter Client
  *
- * Translates text fragments with an LLM via the OpenRouter chat-completions
- * API. Each request carries the language's glossary and every fragment of the
- * batch, and the model must return exactly one translation per fragment so the
- * caller can map results back into structured content.
+ * Every LLM request in the app goes through OpenRouter's chat-completions API.
+ * `openrouterChat` is the shared transport; the helpers in ai.ts layer forced
+ * tool calls on top of it for inbox drafting, knowledge capture, and report
+ * parsing.
+ *
+ * Translation lives here too: each request carries the language's glossary and
+ * every fragment of the batch, and the model must return exactly one
+ * translation per fragment so the caller can map results back into structured
+ * content.
  */
 
 import { getLanguageByCode, getLanguageName } from '~/utils/languages'
@@ -64,8 +69,15 @@ ${glossaryBlock}
 Respond with a JSON object of the form {"translations": ["...", "..."]} containing exactly ${fragmentCount} strings.`
 }
 
-interface ChatCompletionResponse {
-  choices?: Array<{ message?: { content?: string } }>
+export interface ChatCompletionToolCall {
+  function?: { name?: string; arguments?: string }
+}
+
+export interface ChatCompletionResponse {
+  choices?: Array<{
+    finish_reason?: string
+    message?: { content?: string; tool_calls?: ChatCompletionToolCall[] }
+  }>
   error?: { message?: string }
 }
 
@@ -91,8 +103,8 @@ function providerMessage(body: string): string {
   return body.slice(0, 200)
 }
 
-function toOpenRouterError(status: number, body: string, model: string): OpenRouterError {
-  console.error(`[Translate] OpenRouter ${status} for ${model}: ${body.slice(0, 500)}`)
+function toOpenRouterError(status: number, body: string, model: string, label: string): OpenRouterError {
+  console.error(`[${label}] OpenRouter ${status} for ${model}: ${body.slice(0, 500)}`)
 
   if (status === 402) {
     return new OpenRouterError('OpenRouter account has no credits — add credits at https://openrouter.ai/settings/credits', status, false)
@@ -104,6 +116,40 @@ function toOpenRouterError(status: number, body: string, model: string): OpenRou
     return new OpenRouterError(`OpenRouter did not accept the request for model "${model}": ${providerMessage(body)}`, status, false)
   }
   return new OpenRouterError(`OpenRouter is temporarily unavailable (HTTP ${status}) — try again in a moment`, status, true)
+}
+
+/**
+ * Send one chat-completions request and return the parsed response body.
+ * Throws an OpenRouterError for transport and HTTP failures; `label` prefixes
+ * the server logs so a failure names the feature that made the call.
+ */
+export async function openrouterChat(body: Record<string, unknown>, label: string): Promise<ChatCompletionResponse> {
+  const apiKey = useRuntimeConfig().openrouterApiKey
+  if (!apiKey) {
+    throw new OpenRouterError('OpenRouter is not configured — set OPENROUTER_API_KEY', null, false)
+  }
+
+  let response: Response
+  try {
+    response = await fetch(OPENROUTER_API_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'X-Title': 'DOXA Prayer'
+      },
+      body: JSON.stringify(body)
+    })
+  } catch (e: any) {
+    console.error(`[${label}] could not reach OpenRouter: ${e?.message}`)
+    throw new OpenRouterError('Could not reach OpenRouter — try again in a moment', null, true)
+  }
+
+  if (!response.ok) {
+    throw toOpenRouterError(response.status, await response.text(), String(body.model), label)
+  }
+
+  return await response.json()
 }
 
 function parseTranslations(content: string, expectedCount: number): string[] {
@@ -128,23 +174,16 @@ export async function openrouterTranslateTexts(
 ): Promise<string[]> {
   if (texts.length === 0) return []
 
-  const config = useRuntimeConfig()
-  const apiKey = config.openrouterApiKey
-
-  if (!apiKey) {
-    throw new OpenRouterError('OpenRouter is not configured — set OPENROUTER_API_KEY', null, false)
-  }
-
   const model = await getTranslationModel(targetLanguage)
 
-  const body = JSON.stringify({
+  const body = {
     model,
     messages: [
       { role: 'system', content: buildSystemPrompt(targetLanguage, sourceLanguage, texts.length) },
       { role: 'user', content: JSON.stringify({ fragments: texts }) }
     ],
     response_format: { type: 'json_object' }
-  })
+  }
 
   console.log(`[Translate] ${model}: ${texts.length} fragments → ${targetLanguage}`)
 
@@ -152,30 +191,10 @@ export async function openrouterTranslateTexts(
   // retry recovers those cases before surfacing an error to the caller.
   let lastError: Error | undefined
   for (let attempt = 1; attempt <= 2; attempt++) {
-    let response: Response
-    try {
-      response = await fetch(OPENROUTER_API_URL, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-          'X-Title': 'DOXA Prayer'
-        },
-        body
-      })
-    } catch (e: any) {
-      console.error(`[Translate] could not reach OpenRouter: ${e?.message}`)
-      throw new OpenRouterError('Could not reach OpenRouter — try again in a moment', null, true)
-    }
-
-    if (!response.ok) {
-      throw toOpenRouterError(response.status, await response.text(), model)
-    }
-
-    const data: ChatCompletionResponse = await response.json()
+    const data = await openrouterChat(body, 'Translate')
     const content = data.choices?.[0]?.message?.content
     if (!content) {
-      throw new OpenRouterError(`OpenRouter returned no translation${data.error?.message ? `: ${data.error.message}` : ''}`, response.status, true)
+      throw new OpenRouterError(`OpenRouter returned no translation${data.error?.message ? `: ${data.error.message}` : ''}`, null, true)
     }
 
     try {

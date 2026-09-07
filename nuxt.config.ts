@@ -150,8 +150,9 @@ export default defineNuxtConfig({
     s3SecretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
     s3BucketName: process.env.S3_BUCKET_NAME || process.env.S3_BACKUP_BUCKET || '',
 
-    // OpenRouter — LLM content translation. TRANSLATION_MODEL overrides the
-    // default model when no app_config value is set.
+    // OpenRouter — every LLM call (content translation, inbox drafting, knowledge
+    // capture, report parsing). TRANSLATION_MODEL overrides the default
+    // translation model when no app_config value is set.
     openrouterApiKey: process.env.OPENROUTER_API_KEY || '',
     translationModel: process.env.TRANSLATION_MODEL || '',
 
@@ -163,11 +164,9 @@ export default defineNuxtConfig({
     // marketing site's convention.
     turnstileSecretKey: process.env.NUXT_TURNSTILE_SECRET_KEY || '',
 
-    // Anthropic AI API
-    anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
-    // Fallback Claude model for all AI calls (inbox drafting, knowledge capture,
-    // report parsing) when the superadmin app_config 'ai_model' setting is unset
-    inboxAiModel: process.env.INBOX_AI_MODEL || 'claude-sonnet-4-6',
+    // Fallback model for all AI calls (inbox drafting, knowledge capture, report
+    // parsing) when the superadmin app_config 'ai_model' setting is unset
+    inboxAiModel: process.env.INBOX_AI_MODEL || '',
     // Marketing site (doxa.life) base URL — source of grounding CMS pages (FAQ, about, …)
     marketingSiteUrl: process.env.MARKETING_SITE_URL || 'https://doxa.life',
 

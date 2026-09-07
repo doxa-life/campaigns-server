@@ -296,15 +296,15 @@
         <div v-if="item.value === 'settings'" class="py-6">
           <h2 class="text-xl font-semibold mb-2">AI Model</h2>
           <p class="text-[var(--ui-text-muted)] mb-6">
-            The Claude model used for every AI feature — inbox draft replies, knowledge capture, and report parsing.
-            Enter any current Anthropic model id (e.g. <code>claude-sonnet-4-6</code>); a newly released model can be adopted here without a code change.
+            The OpenRouter model used for every AI feature — inbox draft replies, knowledge capture, and report parsing.
+            Enter any OpenRouter model id (e.g. <code>anthropic/claude-sonnet-4.6</code>); a newly released model can be adopted here without a code change.
           </p>
 
           <div class="max-w-md">
             <label class="block text-sm font-medium mb-1">Model id</label>
             <UInput
               v-model="aiModel"
-              placeholder="claude-sonnet-4-6"
+              placeholder="anthropic/claude-sonnet-4.6"
               class="w-full"
             />
 
