@@ -15,7 +15,7 @@ export const AI_MODEL_CONFIG_KEY = 'ai_model'
 
 const DEFAULT_AI_MODEL = 'anthropic/claude-sonnet-4.6'
 
-/** Transient failures are retried this many times in total before surfacing. */
+/** Attempts per call, the first included, before a transient failure surfaces. */
 const MAX_ATTEMPTS = 3
 
 export function isAiConfigured(): boolean {
@@ -98,10 +98,10 @@ export async function callAiTool<T>(opts: AiToolCallOptions): Promise<Partial<T>
   // can be sent without checking which models support one.
   if (temperature !== undefined) body.temperature = temperature
 
-  let response
+  let result
   for (let attempt = 1; ; attempt++) {
     try {
-      response = await openrouterChat(body, label)
+      result = await openrouterChat(body, label)
       break
     } catch (error) {
       const retryable = error instanceof OpenRouterError && error.retryable
@@ -110,11 +110,12 @@ export async function callAiTool<T>(opts: AiToolCallOptions): Promise<Partial<T>
     }
   }
 
-  const choice = response.choices?.[0]
+  const choice = result.data.choices?.[0]
   if (choice?.finish_reason === 'length') {
     throw new Error('The AI response was cut off before completion — try again')
   }
-  if (choice?.finish_reason === 'content_filter') {
+  // A model that declines is reported as either reason depending on the provider.
+  if (choice?.finish_reason === 'content_filter' || choice?.finish_reason === 'refusal') {
     throw new Error('The AI declined to complete this request')
   }
 

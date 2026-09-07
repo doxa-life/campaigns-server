@@ -1,5 +1,6 @@
 import { isAiConfigured } from '#server/utils/ai'
 import { parseReportText } from '#server/utils/app/report-parser'
+import { handleApiError } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
   await requirePermission(event, 'people_groups.edit')
@@ -21,7 +22,7 @@ export default defineEventHandler(async (event) => {
   try {
     const parsed = await parseReportText(body.text)
     return { parsed }
-  } catch (error: any) {
-    throw createError({ statusCode: 500, statusMessage: error.message || 'Failed to parse report' })
+  } catch (error) {
+    handleApiError(error, 'Failed to parse report')
   }
 })

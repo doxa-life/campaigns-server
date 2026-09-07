@@ -9,8 +9,9 @@ import { handleApiError } from '#server/utils/api-helpers'
  * Body: { translation_model: "google/gemini-3.1-pro-preview" }
  *
  * Free-text on purpose: the value is passed straight to the OpenRouter API, so a
- * newly released model can be adopted by typing its id — no code change. An
- * invalid id surfaces as an API error on the next translation.
+ * newly released model can be adopted by typing its id — no code change. Only the
+ * `provider/model` shape is checked here; an id that no provider serves surfaces
+ * as an API error on the next translation.
  */
 export default defineEventHandler(async (event) => {
   await requireSuperAdmin(event)
@@ -21,6 +22,10 @@ export default defineEventHandler(async (event) => {
 
     if (!value) {
       throw createError({ statusCode: 400, statusMessage: 'translation_model is required' })
+    }
+
+    if (!value.includes('/')) {
+      throw createError({ statusCode: 400, statusMessage: 'translation_model must be an OpenRouter id in the form provider/model' })
     }
 
     await appConfigService.setConfig(TRANSLATION_MODEL_CONFIG_KEY, value)

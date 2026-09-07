@@ -38,10 +38,10 @@ const REPORT_TOOL: AiTool = {
   parameters: {
     type: 'object' as const,
     properties: {
-      people_group_name: { type: ['string', 'null'] as const, description: 'Name of the people group' },
-      people_group_uid: { type: ['string', 'null'] as const, description: 'Master UID, ROP3_PEID, or similar identifier' },
-      reporter_name: { type: ['string', 'null'] as const, description: 'Name of the person submitting the report' },
-      reporter_email: { type: ['string', 'null'] as const, description: 'Email of the reporter' },
+      people_group_name: { type: 'string' as const, description: 'Name of the people group' },
+      people_group_uid: { type: 'string' as const, description: 'Master UID, ROP3_PEID, or similar identifier' },
+      reporter_name: { type: 'string' as const, description: 'Name of the person submitting the report' },
+      reporter_email: { type: 'string' as const, description: 'Email of the reporter' },
       suggested_changes: {
         type: 'object' as const,
         description: 'Field updates extracted from the report',
@@ -57,7 +57,7 @@ const REPORT_TOOL: AiTool = {
           imb_church_planting: { type: 'string' as const, enum: ['0', '1', '2'], description: '0 = None, 1 = Dispersed, 2 = Concentrated' },
         },
       },
-      notes: { type: ['string', 'null'] as const, description: 'Qualitative details, missionary names, and contextual information' },
+      notes: { type: 'string' as const, description: 'Qualitative details, missionary names, and contextual information' },
     },
     required: ['people_group_name', 'suggested_changes'],
   },

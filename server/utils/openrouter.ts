@@ -118,12 +118,18 @@ function toOpenRouterError(status: number, body: string, model: string, label: s
   return new OpenRouterError(`OpenRouter is temporarily unavailable (HTTP ${status}) — try again in a moment`, status, true)
 }
 
+export interface OpenRouterResult {
+  status: number
+  data: ChatCompletionResponse
+}
+
 /**
- * Send one chat-completions request and return the parsed response body.
- * Throws an OpenRouterError for transport and HTTP failures; `label` prefixes
- * the server logs so a failure names the feature that made the call.
+ * Send one chat-completions request and return the parsed response body with the
+ * HTTP status that carried it. Throws an OpenRouterError for transport failures,
+ * HTTP failures, and upstream errors; `label` prefixes the server logs so a
+ * failure names the feature that made the call.
  */
-export async function openrouterChat(body: Record<string, unknown>, label: string): Promise<ChatCompletionResponse> {
+export async function openrouterChat(body: Record<string, unknown>, label: string): Promise<OpenRouterResult> {
   const apiKey = useRuntimeConfig().openrouterApiKey
   if (!apiKey) {
     throw new OpenRouterError('OpenRouter is not configured — set OPENROUTER_API_KEY', null, false)
@@ -149,7 +155,16 @@ export async function openrouterChat(body: Record<string, unknown>, label: strin
     throw toOpenRouterError(response.status, await response.text(), String(body.model), label)
   }
 
-  return await response.json()
+  const data: ChatCompletionResponse = await response.json()
+
+  // A provider that fails part-way through answers 200 with an error body, so a
+  // success status alone does not mean there is a usable result.
+  if (data.error?.message) {
+    console.error(`[${label}] OpenRouter upstream error for ${String(body.model)}: ${data.error.message}`)
+    throw new OpenRouterError(`OpenRouter upstream error: ${data.error.message}`, response.status, true)
+  }
+
+  return { status: response.status, data }
 }
 
 function parseTranslations(content: string, expectedCount: number): string[] {
@@ -191,10 +206,10 @@ export async function openrouterTranslateTexts(
   // retry recovers those cases before surfacing an error to the caller.
   let lastError: Error | undefined
   for (let attempt = 1; attempt <= 2; attempt++) {
-    const data = await openrouterChat(body, 'Translate')
+    const { status, data } = await openrouterChat(body, 'Translate')
     const content = data.choices?.[0]?.message?.content
     if (!content) {
-      throw new OpenRouterError(`OpenRouter returned no translation${data.error?.message ? `: ${data.error.message}` : ''}`, null, true)
+      throw new OpenRouterError('OpenRouter returned no translation', status, true)
     }
 
     try {
