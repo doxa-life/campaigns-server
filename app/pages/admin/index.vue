@@ -164,6 +164,36 @@
               </div>
             </div>
           </UCard>
+
+          <UCard v-if="data.signupsBySource?.length" class="mt-6">
+            <template #header>
+              <div class="flex items-center gap-2">
+                <UIcon name="i-lucide-link" class="text-[var(--ui-primary)] text-lg" />
+                <span class="font-semibold">Signups by Source</span>
+              </div>
+            </template>
+            <div class="flex flex-col gap-2">
+              <div
+                v-for="entry in data.signupsBySource"
+                :key="entry.source"
+                class="flex items-center gap-3"
+              >
+                <span
+                  class="text-xs text-[var(--ui-text-dimmed)] w-28 text-right shrink-0 truncate"
+                  :title="entry.source"
+                >
+                  {{ entry.source }}
+                </span>
+                <div class="flex-1">
+                  <div
+                    class="h-6 rounded bg-[var(--ui-primary)] opacity-80 transition-all duration-500"
+                    :style="{ width: sourceBarWidth(entry.count) }"
+                  />
+                </div>
+                <span class="text-xs font-semibold w-10 shrink-0 tabular-nums">{{ entry.count }}</span>
+              </div>
+            </div>
+          </UCard>
         </div>
       </div>
     </template>
@@ -687,6 +717,17 @@ const maxLanguageCount = computed(() => {
 function languageBarWidth(count: number): string {
   if (count === 0) return '0%'
   const pct = (count / maxLanguageCount.value) * 100
+  return `${Math.max(pct, 2)}%`
+}
+
+const maxSourceCount = computed(() => {
+  if (!data.value?.signupsBySource?.length) return 1
+  return Math.max(1, data.value.signupsBySource[0]?.count ?? 1)
+})
+
+function sourceBarWidth(count: number): string {
+  if (count === 0) return '0%'
+  const pct = (count / maxSourceCount.value) * 100
   return `${Math.max(pct, 2)}%`
 }
 

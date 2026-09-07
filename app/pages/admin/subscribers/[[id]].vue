@@ -381,6 +381,14 @@
                       <div class="field-display">{{ subscription.timezone }}</div>
                     </UFormField>
 
+                    <UFormField v-if="formatSignupSource(subscription)" :label="getSubscriberFieldLabel('utm_source')">
+                      <div class="field-display">{{ formatSignupSource(subscription) }}</div>
+                    </UFormField>
+
+                    <UFormField v-if="subscription.referrer" :label="getSubscriberFieldLabel('referrer')">
+                      <div class="field-display break-all">{{ formatReferrer(subscription.referrer) }}</div>
+                    </UFormField>
+
                     <UFormField :label="getSubscriberFieldLabel('prayer_duration')">
                       <div class="field-display">{{ formatDuration(subscription.prayer_duration) }}</div>
                     </UFormField>
@@ -724,6 +732,10 @@ interface Subscription {
   prayer_duration: number
   next_reminder_utc: string | null
   status: 'active' | 'inactive' | 'unsubscribed' | 'pending'
+  utm_source: string | null
+  utm_medium: string | null
+  utm_campaign: string | null
+  referrer: string | null
   created_at: string
   updated_at: string
 }
@@ -1592,6 +1604,17 @@ function formatDaysOfWeek(days: number[] | string | null): string {
   } catch {
     return ''
   }
+}
+
+// The utm_source / utm_medium / utm_campaign of the link the signup arrived through.
+function formatSignupSource(subscription: Subscription): string {
+  return [subscription.utm_source, subscription.utm_medium, subscription.utm_campaign]
+    .filter(Boolean)
+    .join(' / ')
+}
+
+function formatReferrer(referrer: string): string {
+  return referrer.replace(/^https?:\/\//, '')
 }
 
 function formatDuration(minutes: number | null): string {

@@ -247,6 +247,29 @@ paths:
                   type: string
                   description: Preferred reminder time (HH:MM format)
                   example: "09:00"
+                utm_source:
+                  type: string
+                  maxLength: 200
+                  description: >
+                    Signup attribution: the utm_source on the link the visitor arrived
+                    through (captured by the browser on landing). Stored on the
+                    subscription and reported as signups by source in the admin.
+                  example: doxa.life
+                utm_medium:
+                  type: string
+                  maxLength: 200
+                  description: Signup attribution; utm_medium on the arriving link
+                  example: website
+                utm_campaign:
+                  type: string
+                  maxLength: 200
+                  description: Signup attribution; utm_campaign on the arriving link
+                  example: spring-prayer-push
+                referrer:
+                  type: string
+                  maxLength: 2048
+                  description: Signup attribution; URL of the external page that referred the visitor
+                  example: https://doxa.life/people-groups/example/
       responses:
         '200':
           description: Successfully signed up
@@ -346,6 +369,29 @@ paths:
                 consent_people_group_updates:
                   type: boolean
                   description: Optional; only applied when an email is supplied
+                utm_source:
+                  type: string
+                  maxLength: 200
+                  description: >
+                    Signup attribution: the utm_source on the link the visitor arrived
+                    through (captured by the browser on landing). Stored on the
+                    subscription and reported as signups by source in the admin.
+                  example: doxa.life
+                utm_medium:
+                  type: string
+                  maxLength: 200
+                  description: Signup attribution; utm_medium on the arriving link
+                  example: website
+                utm_campaign:
+                  type: string
+                  maxLength: 200
+                  description: Signup attribution; utm_campaign on the arriving link
+                  example: spring-prayer-push
+                referrer:
+                  type: string
+                  maxLength: 2048
+                  description: Signup attribution; URL of the external page that referred the visitor
+                  example: https://doxa.life/people-groups/example/
       responses:
         '200':
           description: Signup recorded

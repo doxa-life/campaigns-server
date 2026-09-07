@@ -11,6 +11,7 @@ import { sendWelcomeEmail } from '#server/utils/welcome-email'
 import { isValidTimezone } from '#server/utils/next-reminder-calculator'
 import { handleApiError } from '#server/utils/api-helpers'
 import { trackEventInBackground, userHashFromEmail } from '#server/utils/tracking'
+import { readSignupAttribution, hasAttribution, attributionFields } from '#server/utils/signup-attribution'
 import { ENABLED_LANGUAGE_CODES } from '../../../../config/languages'
 
 export default defineEventHandler(async (event) => {
@@ -81,6 +82,9 @@ export default defineEventHandler(async (event) => {
 
   // Normalize language (default to 'en' if invalid or missing)
   const language = body.language && ENABLED_LANGUAGE_CODES.includes(body.language) ? body.language : 'en'
+
+  // Where the visitor came from (utm parameters and referrer captured on landing).
+  const attribution = readSignupAttribution(body)
 
   try {
     // Find or create subscriber
@@ -199,11 +203,14 @@ export default defineEventHandler(async (event) => {
 
     if (unsubscribedMatch) {
       // Reactivate the matching unsubscribed subscription
+      // A re-signup through a tagged link re-attributes the subscription; a
+      // direct re-signup keeps the original attribution.
       await peopleGroupSubscriptionService.updateSubscription(unsubscribedMatch.id, {
         delivery_method: body.delivery_method,
         days_of_week: body.days_of_week,
         timezone,
-        prayer_duration: body.prayer_duration
+        prayer_duration: body.prayer_duration,
+        ...(hasAttribution(attribution) ? attribution : {})
       })
 
       // For email delivery, check verification to determine status
@@ -242,7 +249,8 @@ export default defineEventHandler(async (event) => {
             frequency: body.frequency,
             delivery_method: body.delivery_method,
             prayer_duration: body.prayer_duration,
-            source: 'signup_form'
+            source: 'signup_form',
+            ...attributionFields(attribution)
           }
         })
       }
@@ -261,7 +269,8 @@ export default defineEventHandler(async (event) => {
           timezone,
           prayer_duration: body.prayer_duration,
           people_group_updates: body.consent_people_group_updates ?? false,
-          doxa_general_updates: body.consent_doxa_general ?? false
+          doxa_general_updates: body.consent_doxa_general ?? false,
+          ...attributionFields(attribution)
         }
       })
 
@@ -291,7 +300,8 @@ export default defineEventHandler(async (event) => {
       time_preference: body.reminder_time,
       timezone,
       prayer_duration: body.prayer_duration,
-      status: subscriptionStatus
+      status: subscriptionStatus,
+      ...attribution
     })
 
     logCreate('subscribers', String(subscriber.id), event, {
@@ -310,7 +320,8 @@ export default defineEventHandler(async (event) => {
         timezone,
         prayer_duration: body.prayer_duration,
         people_group_updates: body.consent_people_group_updates ?? false,
-        doxa_general_updates: body.consent_doxa_general ?? false
+        doxa_general_updates: body.consent_doxa_general ?? false,
+        ...attributionFields(attribution)
       }
     })
 
@@ -326,7 +337,8 @@ export default defineEventHandler(async (event) => {
           subscription_id: subscription.id,
           frequency: body.frequency,
           delivery_method: body.delivery_method,
-          prayer_duration: body.prayer_duration
+          prayer_duration: body.prayer_duration,
+          ...attributionFields(attribution)
         }
       })
     }

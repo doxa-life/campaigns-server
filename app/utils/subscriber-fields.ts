@@ -39,6 +39,10 @@ export const subscriberFields: SubscriberFieldDefinition[] = [
   { key: 'prayer_duration', label: 'Prayer Duration', type: 'number', category: 'subscription', readOnly: true, description: 'Committed prayer time in minutes' },
   { key: 'next_reminder_utc', label: 'Next Reminder', type: 'text', category: 'subscription', readOnly: true, description: 'When the next reminder email will be sent' },
   { key: 'status', label: 'Status', type: 'select', category: 'subscription', description: 'Subscription status (active, pending, inactive, unsubscribed)' },
+  { key: 'utm_source', label: 'Signup Source', type: 'text', category: 'subscription', readOnly: true, description: 'utm_source on the link the subscriber arrived through' },
+  { key: 'utm_medium', label: 'Signup Medium', type: 'text', category: 'subscription', readOnly: true, description: 'utm_medium on the link the subscriber arrived through' },
+  { key: 'utm_campaign', label: 'Signup Campaign', type: 'text', category: 'subscription', readOnly: true, description: 'utm_campaign on the link the subscriber arrived through' },
+  { key: 'referrer', label: 'Referrer', type: 'text', category: 'subscription', readOnly: true, description: 'External page that referred the subscriber before signing up' },
 
   // Consent fields
   { key: 'people_group_updates', label: 'People Group Updates', type: 'boolean', category: 'consent', description: 'Consent to receive marketing updates about their adopted people group' },

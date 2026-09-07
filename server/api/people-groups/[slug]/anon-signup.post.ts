@@ -12,6 +12,7 @@ import { requireAnonSignupSecret } from '#server/utils/anon-signup-secret'
 import { applyEmailConsents } from '#server/utils/email-consents'
 import { handleApiError } from '#server/utils/api-helpers'
 import { trackEventInBackground, userHashFromEmail } from '#server/utils/tracking'
+import { readSignupAttribution, hasAttribution, attributionFields } from '#server/utils/signup-attribution'
 import { ENABLED_LANGUAGE_CODES } from '../../../../config/languages'
 
 const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/
@@ -56,6 +57,9 @@ export default defineEventHandler(async (event) => {
   const timezone = body.timezone && isValidTimezone(body.timezone) ? body.timezone : 'UTC'
   const language = body.language && ENABLED_LANGUAGE_CODES.includes(body.language) ? body.language : 'en'
 
+  // Where the signup came from (utm parameters on a deep link, for example).
+  const attribution = readSignupAttribution(body)
+
   // Email is optional. When provided, it lets us dedup against an existing
   // (e.g. web) subscriber so the app subscription lands on the same record.
   const email = typeof body.email === 'string' && body.email.trim() ? body.email.trim().toLowerCase() : null
@@ -85,7 +89,8 @@ export default defineEventHandler(async (event) => {
         days_of_week,
         time_preference,
         timezone,
-        prayer_duration
+        prayer_duration,
+        ...(hasAttribution(attribution) ? attribution : {})
       })
       if (status !== 'active') {
         await peopleGroupSubscriptionService.resubscribe(id)
@@ -113,7 +118,8 @@ export default defineEventHandler(async (event) => {
           time_preference,
           timezone,
           prayer_duration,
-          status: 'active'
+          status: 'active',
+          ...attribution
         })
       } catch (err: any) {
         if (err?.code !== '23505') throw err
@@ -149,7 +155,8 @@ export default defineEventHandler(async (event) => {
         subscription_id: subscription.id,
         frequency,
         delivery_method: 'app',
-        source: 'mobile_app'
+        source: 'mobile_app',
+        ...attributionFields(attribution)
       }
     })
 
@@ -163,7 +170,8 @@ export default defineEventHandler(async (event) => {
         days_of_week,
         time: time_preference ?? null,
         timezone,
-        language
+        language,
+        ...attributionFields(attribution)
       }
     })
 

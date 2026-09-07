@@ -292,4 +292,31 @@ describe('POST /api/people-groups/[slug]/anon-signup', async () => {
       expect(appSubs.length).toBe(1)
     })
   })
+
+  describe('signup attribution', () => {
+    it('stores utm parameters on the app subscription and keeps them on a direct re-signup', async () => {
+      const pg = await createTestPeopleGroup(sql)
+      const first = await $fetch<any>(`/api/people-groups/${pg.slug}/anon-signup`, {
+        method: 'POST',
+        headers,
+        body: { frequency: 'daily', time: '08:00', utm_source: 'qr-flyer', utm_campaign: 'conference' }
+      })
+
+      const [afterFirst] = await sql`SELECT * FROM campaign_subscriptions WHERE id = ${first.subscription_id}`
+      expect(afterFirst.utm_source).toBe('qr-flyer')
+      expect(afterFirst.utm_campaign).toBe('conference')
+      expect(afterFirst.utm_medium).toBeNull()
+
+      const second = await $fetch<any>(`/api/people-groups/${pg.slug}/anon-signup`, {
+        method: 'POST',
+        headers,
+        body: { tracking_id: first.tracking_id, frequency: 'daily', time: '09:00' }
+      })
+      expect(second.subscription_id).toBe(first.subscription_id)
+
+      const [afterSecond] = await sql`SELECT * FROM campaign_subscriptions WHERE id = ${first.subscription_id}`
+      expect(afterSecond.time_preference).toBe('09:00')
+      expect(afterSecond.utm_source).toBe('qr-flyer')
+    })
+  })
 })

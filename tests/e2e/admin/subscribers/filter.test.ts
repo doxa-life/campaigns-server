@@ -35,6 +35,7 @@ describe('Subscribers filter builder', async () => {
     await createTestContactMethod(sql, a.id, { value: `a-${Date.now()}@x.test`, verified: true })
     await sql`UPDATE contact_methods SET consent_doxa_general = TRUE WHERE subscriber_id = ${a.id}`
     await createTestPeopleGroupSubscription(sql, pg1.id, a.id)
+    await sql`UPDATE campaign_subscriptions SET utm_source = 'doxa.life' WHERE subscriber_id = ${a.id}`
     created.push(a.id)
 
     // Subscriber B: name "Filter Bob", unverified email, no consent, sub to pg2
@@ -250,6 +251,21 @@ describe('Subscribers filter builder', async () => {
         { field: 'subscribed_to_people_group', op: 'is', value: pg1.id },
       ])
       expect(names).toEqual(['Filter Alice'])
+    })
+
+    it('utm_source is matches subscribers who signed up through that source', async () => {
+      const names = await fetchWithFilter([
+        { field: 'utm_source', op: 'is', value: 'doxa.life' },
+      ])
+      expect(names).toEqual(['Filter Alice'])
+    })
+
+    it('utm_source is_not excludes subscribers who signed up through that source', async () => {
+      const names = await fetchWithFilter([
+        { field: 'utm_source', op: 'is_not', value: 'doxa.life' },
+      ])
+      expect(names).not.toContain('Filter Alice')
+      expect(names).toContain('Filter Bob')
     })
   })
 

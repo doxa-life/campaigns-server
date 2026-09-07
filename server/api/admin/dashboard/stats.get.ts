@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   const now = new Date()
   const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
 
-  const [engagementRow, totalRow, prayerRow, prayerTimeAllRow, prayerTime24hRow, prayerCommittedRow, dailyCommittedRow, adoptedRow, languageRows, prayerSignupsRow] = await Promise.all([
+  const [engagementRow, totalRow, prayerRow, prayerTimeAllRow, prayerTime24hRow, prayerCommittedRow, dailyCommittedRow, adoptedRow, languageRows, prayerSignupsRow, sourceRows] = await Promise.all([
     sql`SELECT COUNT(*) as count FROM people_groups WHERE engagement_status = 'engaged' AND status != 'archived'`.then(rows => rows[0]),
     sql`SELECT COUNT(*) as count FROM people_groups WHERE status != 'archived'`.then(rows => rows[0]),
     sql`
@@ -66,6 +66,16 @@ export default defineEventHandler(async (event) => {
       FROM campaign_subscriptions cs
       WHERE cs.status = 'active'
     `.then(rows => rows[0]),
+    // Signups by the utm_source on the link they arrived through. Counts every
+    // signup, whatever its current status: a later unsubscribe does not undo
+    // the fact that the source produced it.
+    sql`
+      SELECT cs.utm_source as source, COUNT(*) as count
+      FROM campaign_subscriptions cs
+      WHERE cs.utm_source IS NOT NULL
+      GROUP BY cs.utm_source
+      ORDER BY count DESC, cs.utm_source ASC
+    `,
   ])
 
   const total = Number(totalRow?.count ?? 0)
@@ -75,6 +85,11 @@ export default defineEventHandler(async (event) => {
 
   const signupsByLanguage = languageRows.map((row: any) => ({
     language: row.language as string,
+    count: Number(row.count),
+  }))
+
+  const signupsBySource = sourceRows.map((row: any) => ({
+    source: row.source as string,
     count: Number(row.count),
   }))
 
@@ -89,6 +104,7 @@ export default defineEventHandler(async (event) => {
       last24h: Number(prayerTime24hRow?.total ?? 0),
     },
     signupsByLanguage,
+    signupsBySource,
     prayerSignups: Number(prayerSignupsRow?.count ?? 0),
   }
 })

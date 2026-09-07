@@ -21,6 +21,12 @@ export interface PeopleGroupSubscription {
   // active: the person is still praying and still receives the monthly follow-up
   // check-in. Orthogonal to status — mute the emails without ending the commitment.
   reminders_paused: boolean
+  // Where the signup came from: utm_* parameters on the arriving link and the
+  // referring page. NULL for direct or untagged visits.
+  utm_source: string | null
+  utm_medium: string | null
+  utm_campaign: string | null
+  referrer: string | null
   created_at: string
   updated_at: string
 }
@@ -59,6 +65,10 @@ export interface CreateSubscriptionInput {
   time_preference?: string | null
   timezone?: string
   prayer_duration?: number
+  utm_source?: string | null
+  utm_medium?: string | null
+  utm_campaign?: string | null
+  referrer?: string | null
 }
 
 class PeopleGroupSubscriptionService {
@@ -73,12 +83,15 @@ class PeopleGroupSubscriptionService {
     const [row] = await this.sql`
       INSERT INTO campaign_subscriptions (
         people_group_id, subscriber_id, delivery_method, frequency, days_of_week,
-        time_preference, timezone, prayer_duration, status
+        time_preference, timezone, prayer_duration, status,
+        utm_source, utm_medium, utm_campaign, referrer
       )
       VALUES (
         ${input.people_group_id}, ${input.subscriber_id}, ${input.delivery_method},
         ${input.frequency}, ${days_of_week_json}, ${time_preference},
-        ${timezone}, ${input.prayer_duration || 10}, ${status}
+        ${timezone}, ${input.prayer_duration || 10}, ${status},
+        ${input.utm_source ?? null}, ${input.utm_medium ?? null},
+        ${input.utm_campaign ?? null}, ${input.referrer ?? null}
       )
       RETURNING *
     `
@@ -258,6 +271,10 @@ class PeopleGroupSubscriptionService {
       time_preference?: string
       timezone?: string
       prayer_duration?: number
+      utm_source?: string | null
+      utm_medium?: string | null
+      utm_campaign?: string | null
+      referrer?: string | null
     }
   ): Promise<PeopleGroupSubscription | null> {
     const fields: Fragment[] = []
@@ -272,6 +289,10 @@ class PeopleGroupSubscriptionService {
     if (updates.time_preference !== undefined) { fields.push(this.sql`time_preference = ${updates.time_preference}`); scheduleChanged = true }
     if (updates.timezone !== undefined) { fields.push(this.sql`timezone = ${updates.timezone}`); scheduleChanged = true }
     if (updates.prayer_duration !== undefined) fields.push(this.sql`prayer_duration = ${updates.prayer_duration}`)
+    if (updates.utm_source !== undefined) fields.push(this.sql`utm_source = ${updates.utm_source}`)
+    if (updates.utm_medium !== undefined) fields.push(this.sql`utm_medium = ${updates.utm_medium}`)
+    if (updates.utm_campaign !== undefined) fields.push(this.sql`utm_campaign = ${updates.utm_campaign}`)
+    if (updates.referrer !== undefined) fields.push(this.sql`referrer = ${updates.referrer}`)
 
     if (fields.length === 0) return this.getById(id)
 
