@@ -908,7 +908,10 @@
       "greeting": "Bonjour,",
       "greetingNamed": "Bonjour {name},",
       "body": "Merci d’avoir contacté {appName}. Nous avons bien reçu votre message et un membre de notre équipe vous répondra bientôt.",
-      "signoff": "En Christ,\nL’équipe {appName}"
+      "signoff": "En Christ,\nL’équipe {appName}",
+      "subjectVerify": "Nous avons bien reçu votre message, veuillez vérifier votre e-mail",
+      "verifyPrompt": "Veuillez vérifier votre adresse e-mail afin que nous puissions vous répondre :",
+      "verifyButton": "Vérifier mon e-mail"
     },
     "ai": {
       "draft": "Rédiger une réponse (IA)",

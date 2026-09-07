@@ -874,7 +874,10 @@
       "greeting": "Ciao,",
       "greetingNamed": "Ciao {name},",
       "body": "Grazie per aver contattato {appName}. Abbiamo ricevuto il tuo messaggio e un membro del nostro team ti risponderà presto.",
-      "signoff": "In Cristo,\nIl team di {appName}"
+      "signoff": "In Cristo,\nIl team di {appName}",
+      "subjectVerify": "Abbiamo ricevuto il tuo messaggio, verifica la tua email",
+      "verifyPrompt": "Verifica il tuo indirizzo email così potremo risponderti:",
+      "verifyButton": "Verifica la mia email"
     },
     "ai": {
       "draft": "Bozza di risposta (IA)",

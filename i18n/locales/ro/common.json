@@ -870,7 +870,10 @@
       "greeting": "Bună,",
       "greetingNamed": "Bună {name},",
       "body": "Îți mulțumim că ai contactat {appName}. Am primit mesajul tău și un membru al echipei noastre îți va răspunde în curând.",
-      "signoff": "În Hristos,\nEchipa {appName}"
+      "signoff": "În Hristos,\nEchipa {appName}",
+      "subjectVerify": "Am primit mesajul tău, te rugăm să verifici emailul",
+      "verifyPrompt": "Te rugăm să verifici adresa de email ca să îți putem răspunde:",
+      "verifyButton": "Verifică emailul meu"
     },
     "ai": {
       "draft": "Redactează răspuns (IA)",

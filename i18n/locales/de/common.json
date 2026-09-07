@@ -874,7 +874,10 @@
       "greeting": "Hallo,",
       "greetingNamed": "Hallo {name},",
       "body": "Vielen Dank, dass Sie sich an {appName} gewandt haben. Wir haben Ihre Nachricht erhalten und ein Mitglied unseres Teams wird sich bald bei Ihnen melden.",
-      "signoff": "In Christus,\nIhr {appName}-Team"
+      "signoff": "In Christus,\nIhr {appName}-Team",
+      "subjectVerify": "Wir haben Ihre Nachricht erhalten, bitte bestätigen Sie Ihre E-Mail",
+      "verifyPrompt": "Bitte bestätigen Sie Ihre E-Mail-Adresse, damit wir Ihnen antworten können:",
+      "verifyButton": "Meine E-Mail bestätigen"
     },
     "ai": {
       "draft": "Antwort entwerfen (KI)",

@@ -908,7 +908,10 @@
       "greeting": "Hola:",
       "greetingNamed": "Hola {name}:",
       "body": "Gracias por escribir a {appName}. Hemos recibido tu mensaje y un miembro de nuestro equipo te responderá pronto.",
-      "signoff": "En Cristo,\nEl equipo de {appName}"
+      "signoff": "En Cristo,\nEl equipo de {appName}",
+      "subjectVerify": "Hemos recibido tu mensaje, por favor verifica tu correo electrónico",
+      "verifyPrompt": "Por favor, verifica tu dirección de correo electrónico para que podamos responderte:",
+      "verifyButton": "Verificar mi correo electrónico"
     },
     "ai": {
       "draft": "Redactar respuesta (IA)",

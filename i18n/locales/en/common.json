@@ -925,7 +925,10 @@
       "greeting": "Hello,",
       "greetingNamed": "Hello {name},",
       "body": "Thanks for reaching out to {appName}. We have received your message and a member of our team will get back to you soon.",
-      "signoff": "In Christ,\nThe {appName} Team"
+      "signoff": "In Christ,\nThe {appName} Team",
+      "subjectVerify": "We received your message, please confirm your email",
+      "verifyPrompt": "Please confirm your email address so we can reply to you:",
+      "verifyButton": "Confirm my email"
     },
     "ai": {
       "draft": "Draft reply (AI)",

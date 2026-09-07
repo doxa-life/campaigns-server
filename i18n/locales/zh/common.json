@@ -874,7 +874,10 @@
       "greeting": "您好，",
       "greetingNamed": "您好 {name}，",
       "body": "感谢您联系 {appName}。我们已收到您的消息，我们团队的成员将很快回复您。",
-      "signoff": "靠主同行，\n{appName} 团队"
+      "signoff": "靠主同行，\n{appName} 团队",
+      "subjectVerify": "我们已收到您的消息，请验证您的邮箱",
+      "verifyPrompt": "请验证您的邮箱地址，以便我们回复您：",
+      "verifyButton": "验证我的邮箱"
     },
     "ai": {
       "draft": "AI 草拟回复",
