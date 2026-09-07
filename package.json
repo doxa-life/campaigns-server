@@ -21,7 +21,6 @@
     "mailhog:open": "open http://localhost:8025"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.99.0",
     "@aws-sdk/client-s3": "^3.1054.0",
     "@aws-sdk/client-ses": "^3.1054.0",
     "@aws-sdk/s3-request-presigner": "^3.1054.0",

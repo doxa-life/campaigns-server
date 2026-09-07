@@ -1,5 +1,4 @@
-import type Anthropic from '@anthropic-ai/sdk'
-import { getAnthropicClient, getAiModel, temperatureFor, toAnthropicHttpError } from '#server/utils/anthropic'
+import { getAiModel, callAiTool, toAiHttpError, type AiTool } from '#server/utils/ai'
 import { conversationService } from '#server/database/conversations'
 import { messageService, type ConversationMessage } from '#server/database/conversation-messages'
 
@@ -20,10 +19,10 @@ Produce, via the submit_knowledge_entry tool:
 
 Strip ALL personally identifying information: names, email addresses, phone numbers, postal addresses, church/organisation names, specific locations, and any personal circumstances that could identify someone. When in doubt, generalise.`
 
-const KNOWLEDGE_TOOL = {
+const KNOWLEDGE_TOOL: AiTool = {
   name: 'submit_knowledge_entry',
   description: 'Submit the anonymised knowledge-base entry',
-  input_schema: {
+  parameters: {
     type: 'object' as const,
     properties: {
       question: { type: 'string' as const, description: 'Generalised, anonymised question' },
@@ -72,36 +71,20 @@ export async function extractKnowledgeEntry(conversationId: number): Promise<Kno
   // above and skip only the API call.
   if (process.env.VITEST) return stubEntry()
 
-  const client = getAnthropicClient()
-
-  const model = await getAiModel()
-  let response: Anthropic.Message
+  let parsed: Partial<KnowledgeExtractResult>
   try {
-    response = await client.messages.create({
-      model,
-      max_tokens: 2048,
-      ...temperatureFor(model, 0),
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: `SUBJECT: ${conversation.subject || '(none)'}\n\nTHREAD:\n${thread}` }],
-      tools: [KNOWLEDGE_TOOL],
-      tool_choice: { type: 'tool', name: 'submit_knowledge_entry' },
+    parsed = await callAiTool<KnowledgeExtractResult>({
+      model: await getAiModel(),
+      system: [{ text: SYSTEM_PROMPT }],
+      user: `SUBJECT: ${conversation.subject || '(none)'}\n\nTHREAD:\n${thread}`,
+      tool: KNOWLEDGE_TOOL,
+      maxTokens: 2048,
+      temperature: 0,
+      label: 'Inbox knowledge extract',
     })
   } catch (error) {
-    throw toAnthropicHttpError(error, 'AI knowledge-extract call failed')
+    throw toAiHttpError(error, 'AI knowledge-extract call failed')
   }
-
-  if (response.stop_reason === 'max_tokens') {
-    throw new Error('AI entry was cut off before completion — try again')
-  }
-  if (response.stop_reason === 'refusal') {
-    throw new Error('AI declined to extract an entry from this conversation')
-  }
-
-  const toolBlock = response.content.find(b => b.type === 'tool_use')
-  if (!toolBlock || toolBlock.type !== 'tool_use') {
-    throw new Error('Unexpected response from AI — no tool use block')
-  }
-  const parsed = toolBlock.input as Partial<KnowledgeExtractResult>
 
   const question = (parsed.question || '').trim()
   const answer = (parsed.answer || '').trim()

@@ -1,5 +1,4 @@
-import type Anthropic from '@anthropic-ai/sdk'
-import { getAnthropicClient, getAiModel, temperatureFor, toAnthropicHttpError } from '#server/utils/anthropic'
+import { getAiModel, callAiTool, toAiHttpError, type AiSystemBlock, type AiTool } from '#server/utils/ai'
 import { conversationService } from '#server/database/conversations'
 import { messageService, type ConversationMessage } from '#server/database/conversation-messages'
 import { getStaticPack, getKnowledgeBlock, formatContactRecord } from './ai-draft-grounding'
@@ -17,7 +16,7 @@ const INSTRUCTIONS = `You draft email replies for the DOXA team. A human teammat
 
 Follow the VOICE & TONE GUIDE below exactly. Ground every DOXA-specific fact in the provided material (the website content, feature reference, and past team answers). Never invent giving amounts, dates, definitions, counts, or policies — if a needed fact is absent, leave a bracketed placeholder in the body and record it in uncertainty.
 
-When a contact asks about people groups in a specific country, point them to that country's page using its full https://doxa.life/countries/<slug> URL from the country list in the website content. Only link a country that appears in that list.
+When a contact asks about people groups in a specific country, point them to that country's page using its full https://doxa.life/regions/<slug> URL from the country list in the website content. Only link a country that appears in that list.
 
 Language:
 - Write the reply in the language the contact is using (infer it from their most recent message; fall back to their preferred language from the contact record). Put that language code in draft_language.
@@ -25,10 +24,10 @@ Language:
 
 Output ONLY by calling the submit_draft tool.`
 
-const DRAFT_TOOL = {
+const DRAFT_TOOL: AiTool = {
   name: 'submit_draft',
   description: 'Submit the drafted reply for human review',
-  input_schema: {
+  parameters: {
     type: 'object' as const,
     properties: {
       draft_language: {
@@ -129,16 +128,12 @@ export async function generateInboxDraft(
   ])
 
   // System = cacheable prefix. Block 1 (instructions + tone + static pack) and block 2
-  // (knowledge base) get cache_control so repeated drafts in a burst reuse them cheaply.
-  const system: Anthropic.TextBlockParam[] = [
-    {
-      type: 'text',
-      text: `${INSTRUCTIONS}\n\n${staticPack}`,
-      cache_control: { type: 'ephemeral' },
-    },
+  // (knowledge base) are marked cacheable so repeated drafts in a burst reuse them cheaply.
+  const system: AiSystemBlock[] = [
+    { text: `${INSTRUCTIONS}\n\n${staticPack}`, cache: true },
   ]
   if (knowledgeBlock) {
-    system.push({ type: 'text', text: knowledgeBlock, cache_control: { type: 'ephemeral' } })
+    system.push({ text: knowledgeBlock, cache: true })
   }
 
   const userContent = [
@@ -160,39 +155,23 @@ export async function generateInboxDraft(
   // building, prompt assembly) and skip only the API call.
   if (process.env.VITEST) return stubDraft()
 
-  const client = getAnthropicClient()
-
   // The tool input carries the reply roughly three times over (html + text + gloss),
   // so the cap needs generous headroom — a truncated forced-tool response yields
   // partial JSON, not an error.
-  const model = await getAiModel()
-  let response: Anthropic.Message
+  let parsed: Partial<InboxDraftResult>
   try {
-    response = await client.messages.create({
-      model,
-      max_tokens: 8192,
-      ...temperatureFor(model, 0.4),
+    parsed = await callAiTool<InboxDraftResult>({
+      model: await getAiModel(),
       system,
-      messages: [{ role: 'user', content: userContent }],
-      tools: [DRAFT_TOOL],
-      tool_choice: { type: 'tool', name: 'submit_draft' },
+      user: userContent,
+      tool: DRAFT_TOOL,
+      maxTokens: 8192,
+      temperature: 0.4,
+      label: 'Inbox draft',
     })
   } catch (error) {
-    throw toAnthropicHttpError(error, 'AI draft call failed')
+    throw toAiHttpError(error, 'AI draft call failed')
   }
-
-  if (response.stop_reason === 'max_tokens') {
-    throw new Error('AI draft was cut off before completion — try again')
-  }
-  if (response.stop_reason === 'refusal') {
-    throw new Error('AI declined to draft a reply for this conversation')
-  }
-
-  const toolBlock = response.content.find(b => b.type === 'tool_use')
-  if (!toolBlock || toolBlock.type !== 'tool_use') {
-    throw new Error('Unexpected response from AI — no tool use block')
-  }
-  const parsed = toolBlock.input as Partial<InboxDraftResult>
 
   const draftHtml = (parsed.draft_html || '').trim()
   const draftText = (parsed.draft_text || '').trim()
