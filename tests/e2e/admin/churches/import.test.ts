@@ -85,6 +85,7 @@ describe('Church CSV import API', async () => {
 
     expect(response.total).toBe(4)
     expect(response.imported).toBe(3)
+    expect(response.queued).toBe(2)
     expect(response.skipped).toBe(1)
     expect(response.errors).toEqual([{ row: 4, message: 'Name is required' }])
 
@@ -113,6 +114,7 @@ describe('Church CSV import API', async () => {
       ...csvUpload(csv, { Church: 'name', Village: 'town' }, undefined, adminAuth)
     })
     expect(response.imported).toBe(2)
+    expect(response.queued).toBe(0)
     const rows = await sql`SELECT id FROM churches WHERE name = 'Test Church Twice'`
     expect(rows).toHaveLength(2)
   })

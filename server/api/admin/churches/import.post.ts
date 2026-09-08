@@ -1,4 +1,4 @@
-import { churchService, type ChurchData } from '../../../database/churches'
+import { churchService, type Church, type ChurchData } from '../../../database/churches'
 import { normalizeChurchInput, normalizeCountry, initialLocationStatus, type ChurchInput } from '../../../utils/app/church-input'
 import { kickChurchGeocoding } from '../../../utils/app/church-geocoder'
 import { parseCsv } from '#shared/csv'
@@ -75,18 +75,20 @@ export default defineEventHandler(async (event) => {
     toInsert.push({ ...data, name: data.name!, location_status: initialLocationStatus(data) })
   })
 
-  const created: { id: number }[] = []
+  const created: Church[] = []
   for (let i = 0; i < toInsert.length; i += INSERT_CHUNK) {
     created.push(...await churchService.createMany(toInsert.slice(i, i + INSERT_CHUNK)))
   }
   for (const church of created) {
     logCreate('churches', String(church.id), event, { import: true })
   }
-  if (toInsert.some(c => c.location_status === 'pending')) kickChurchGeocoding()
+  const queued = created.filter(c => c.location_status === 'pending').length
+  if (queued > 0) kickChurchGeocoding()
 
   return {
     total: rows.length,
     imported: created.length,
+    queued,
     skipped: errors.length,
     errors: errors.slice(0, 200)
   }

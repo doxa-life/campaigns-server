@@ -261,7 +261,6 @@
 
   <AdminChurchImportModal
     v-model:open="showImportModal"
-    :default-country="lastCountry"
     @imported="onImported"
   />
 </template>

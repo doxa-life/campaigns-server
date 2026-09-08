@@ -23,7 +23,7 @@
               <UTable :data="columnRows" :columns="columns" class="mapping-table">
                 <template #field-cell="{ row }">
                   <USelect
-                    :model-value="mapping[row.original.header] ?? ''"
+                    :model-value="mapping[row.original.header] ?? SKIP_COLUMN"
                     :items="fieldOptions"
                     value-key="value"
                     size="sm"
@@ -36,13 +36,15 @@
 
             <UFormField
               label="Country for rows without one"
-              :description="countryMapped ? 'Used when the mapped country column is blank' : 'No column is mapped to country, so every row gets this'"
+              hint="Optional"
+              :description="countryMapped ? 'Fills in rows whose country cell is blank.' : 'Churches without a country are imported but their location is not looked up.'"
             >
               <USelectMenu
                 v-model="defaultCountry"
                 :items="countryOptions"
                 value-key="value"
-                placeholder="Select country..."
+                placeholder="No default country"
+                clear
                 virtualize
                 class="w-full"
               />
@@ -64,7 +66,7 @@
             :color="result.imported > 0 ? 'success' : 'warning'"
             variant="subtle"
             :title="`${result.imported} of ${result.total} ${result.total === 1 ? 'row' : 'rows'} imported`"
-            :description="result.imported > 0 ? 'Locations are being looked up in the background.' : undefined"
+            :description="queuedMessage"
           />
           <div v-if="result.errors.length > 0">
             <p class="text-sm font-medium mb-1">Skipped rows</p>
@@ -92,7 +94,6 @@ import { CHURCH_FIELDS, guessChurchField } from '#shared/churches'
 
 const props = defineProps<{
   open: boolean
-  defaultCountry?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -103,6 +104,7 @@ const emit = defineEmits<{
 interface ImportResult {
   total: number
   imported: number
+  queued: number
   skipped: number
   errors: { row: number; message: string }[]
 }
@@ -125,7 +127,7 @@ const headers = ref<string[]>([])
 const samples = ref<Record<string, string>>({})
 const rowCount = ref(0)
 const mapping = ref<Record<string, string>>({})
-const defaultCountry = ref<string | undefined>(props.defaultCountry ?? undefined)
+const defaultCountry = ref<string | undefined>(undefined)
 const parseError = ref('')
 const importing = ref(false)
 const result = ref<ImportResult | null>(null)
@@ -136,8 +138,11 @@ const columns: TableColumn<ColumnRow>[] = [
   { id: 'field', header: 'Church field' }
 ]
 
+// The select rejects an empty string as an option value, so skipping gets its own key.
+const SKIP_COLUMN = '__skip__'
+
 const fieldOptions = [
-  { label: 'Skip this column', value: '' },
+  { label: 'Skip this column', value: SKIP_COLUMN },
   ...CHURCH_FIELDS.map(f => ({ label: f.label, value: f.key }))
 ]
 
@@ -159,6 +164,14 @@ const mappingError = computed(() => {
 })
 
 const canImport = computed(() => !!file.value && headers.value.length > 0 && !mappingError.value && !importing.value)
+
+const queuedMessage = computed(() => {
+  const r = result.value
+  if (!r || r.imported === 0) return undefined
+  if (r.queued === 0) return 'No locations to look up: the imported rows have no town and country.'
+  if (r.queued === r.imported) return 'Locations are being looked up in the background.'
+  return `${r.queued} of the imported churches have a town and country; their locations are being looked up in the background.`
+})
 
 watch(file, async (selected) => {
   headers.value = []
@@ -199,14 +212,11 @@ watch(file, async (selected) => {
 })
 
 watch(() => props.open, (open) => {
-  if (open) {
-    reset()
-    defaultCountry.value = props.defaultCountry ?? undefined
-  }
+  if (open) reset()
 })
 
 function setMapping(header: string, field: string) {
-  if (field) mapping.value = { ...mapping.value, [header]: field }
+  if (field && field !== SKIP_COLUMN) mapping.value = { ...mapping.value, [header]: field }
   else {
     const next = { ...mapping.value }
     delete next[header]
@@ -224,6 +234,7 @@ function reset() {
   samples.value = {}
   rowCount.value = 0
   mapping.value = {}
+  defaultCountry.value = undefined
   parseError.value = ''
   result.value = null
 }

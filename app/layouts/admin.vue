@@ -51,12 +51,6 @@
             <span v-if="showExpanded" class="nav-label">Groups</span>
           </NuxtLink>
         </li>
-        <li v-if="canAccess('churches.view')">
-          <NuxtLink to="/admin/churches" class="nav-link" :title="!showExpanded ? 'Churches' : undefined">
-            <UIcon name="i-lucide-church" />
-            <span v-if="showExpanded" class="nav-label">Churches</span>
-          </NuxtLink>
-        </li>
         <li v-if="canAccessUnscoped('content.view')">
           <NuxtLink to="/admin/libraries" class="nav-link" :title="!showExpanded ? 'Libraries' : undefined">
             <UIcon name="i-lucide-book-open" />
@@ -91,6 +85,12 @@
           <NuxtLink to="/admin/onboarding" class="nav-link" :title="!showExpanded ? 'Onboarding' : undefined">
             <UIcon name="i-lucide-clipboard-list" />
             <span v-if="showExpanded" class="nav-label">Onboarding</span>
+          </NuxtLink>
+        </li>
+        <li v-if="canAccess('churches.view')">
+          <NuxtLink to="/admin/churches" class="nav-link" :title="!showExpanded ? 'Churches' : undefined">
+            <UIcon name="i-lucide-church" />
+            <span v-if="showExpanded" class="nav-label">Churches</span>
           </NuxtLink>
         </li>
       </ul>
