@@ -25,9 +25,13 @@ export const useAuthUser = () => {
     return perms
   })
 
+  // Languages the user may edit when a role scopes content by language; empty otherwise.
+  const assignedLanguages = computed<string[]>(() => baseAuth.user.value?.languages || [])
+
   function canAccess(permission: string): boolean {
     if (isAdmin.value) return true
-    return userPermissions.value.has(permission) || userPermissions.value.has(permission + '_scoped')
+    const perms = userPermissions.value
+    return perms.has(permission) || perms.has(permission + '_scoped') || perms.has(permission + '_language_scoped')
   }
 
   function canAccessUnscoped(permission: string): boolean {
@@ -35,12 +39,31 @@ export const useAuthUser = () => {
     return userPermissions.value.has(permission)
   }
 
+  // True when the only route to the permission is through assigned languages
+  // (no bare form and no people-group-scoped form).
+  function isLanguageScopedOnly(permission: string): boolean {
+    if (isAdmin.value) return false
+    const perms = userPermissions.value
+    return perms.has(permission + '_language_scoped') && !perms.has(permission) && !perms.has(permission + '_scoped')
+  }
+
+  // Whether the permission may be applied to content in the given language. People-group scope
+  // counts as allowed here; the server still checks the library's people group.
+  function canAccessLanguage(permission: string, languageCode: string): boolean {
+    if (!canAccess(permission)) return false
+    if (!isLanguageScopedOnly(permission)) return true
+    return assignedLanguages.value.includes(languageCode)
+  }
+
   return {
     ...baseAuth,
     isAdmin,
     isSuperAdmin,
     hasRole,
+    assignedLanguages,
     canAccess,
-    canAccessUnscoped
+    canAccessUnscoped,
+    isLanguageScopedOnly,
+    canAccessLanguage
   }
 }

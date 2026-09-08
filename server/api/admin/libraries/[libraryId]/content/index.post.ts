@@ -1,7 +1,6 @@
 import { libraryContentService } from '#server/database/library-content'
 import { libraryService } from '#server/database/libraries'
-import { roleService } from '#server/database/roles'
-import { peopleGroupService } from '#server/database/people-groups'
+import { requireContentAccess } from '#server/utils/content-access'
 import { handleApiError, getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
@@ -9,14 +8,6 @@ export default defineEventHandler(async (event) => {
   const user = await requirePermission(event, 'content.create')
 
   const libraryId = getIntParam(event, 'libraryId')
-
-  const scoped = await roleService.isPermissionScoped(user.userId, 'content.view')
-  if (scoped) {
-    const library = await libraryService.getLibraryById(libraryId)
-    if (!library || !library.people_group_id || !(await peopleGroupService.userCanAccessPeopleGroup(user.userId, library.people_group_id))) {
-      throw createError({ statusCode: 403, statusMessage: 'You do not have access to this library' })
-    }
-  }
 
   const body = await readBody(event)
 
@@ -27,6 +18,12 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Day number and language code are required'
     })
   }
+
+  const library = await libraryService.getLibraryById(libraryId)
+  await requireContentAccess(user.userId, 'content.create', {
+    peopleGroupId: library?.people_group_id,
+    languageCodes: [body.language_code]
+  })
 
   try {
     const content = await libraryContentService.createLibraryContent({

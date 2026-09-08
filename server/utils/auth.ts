@@ -1,6 +1,7 @@
 import type { H3Event } from 'h3'
 import jwt from 'jsonwebtoken'
-import { roleService } from '#server/database/roles'
+import { roleService, rolesUseLanguageScope } from '#server/database/roles'
+import { userLanguageService } from '#server/database/user-languages'
 
 export interface JWTPayload {
   userId: string
@@ -14,6 +15,8 @@ export interface UserWithRoles {
   display_name: string
   verified: boolean
   roles: string[]
+  // Languages the user may edit when a role scopes content by language; empty otherwise.
+  languages: string[]
   isAdmin: boolean
   isSuperAdmin: boolean
 }
@@ -135,6 +138,7 @@ export function setAuthCookie(event: H3Event, token: string) {
 export async function getUserWithRoles(userId: string, userEmail: string, displayName: string, verified: boolean, superadmin: boolean): Promise<UserWithRoles> {
   const roles = await roleService.getUserRoles(userId)
   const isAdmin = roles.includes('admin')
+  const languages = rolesUseLanguageScope(roles) ? await userLanguageService.getUserLanguages(userId) : []
 
   return {
     id: userId as any, // Keep as any for backward compatibility
@@ -142,6 +146,7 @@ export async function getUserWithRoles(userId: string, userEmail: string, displa
     display_name: displayName,
     verified,
     roles,
+    languages,
     isAdmin,
     isSuperAdmin: superadmin
   }

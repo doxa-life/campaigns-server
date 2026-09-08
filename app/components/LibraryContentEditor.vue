@@ -39,9 +39,9 @@
           </UButton>
           <div class="mx-2 h-6 w-px bg-(--ui-border)" />
           <UButton @click="cancel" variant="outline">
-            Cancel
+            {{ readOnly ? 'Back' : 'Cancel' }}
           </UButton>
-          <UButton @click="saveContent" :loading="saving" :disabled="!isValid">
+          <UButton v-if="!readOnly" @click="saveContent" :loading="saving" :disabled="!isValid">
             {{ mode === 'edit' ? 'Save Changes' : 'Save' }}
           </UButton>
         </div>
@@ -52,7 +52,7 @@
           <div class="editor-details">
             Day {{ dayNumber }} • {{ selectedLanguage?.flag }} {{ selectedLanguage?.name }} ({{ selectedLanguage?.nativeName }})
           </div>
-          <RichTextEditor v-model="form.content_json" />
+          <RichTextEditor v-model="form.content_json" :readonly="readOnly" />
         </div>
       </div>
     </template>
@@ -120,6 +120,11 @@ const effectiveLanguageCode = computed(() =>
   props.mode === 'edit' ? loadedLanguageCode.value : (props.languageCode || 'en')
 )
 const selectedLanguage = computed(() => getLanguageByCode(effectiveLanguageCode.value))
+
+const { canAccessLanguage } = useAuthUser()
+const readOnly = computed(() =>
+  !canAccessLanguage(props.mode === 'edit' ? 'content.edit' : 'content.create', effectiveLanguageCode.value)
+)
 
 provide('editorLanguage', effectiveLanguageCode)
 

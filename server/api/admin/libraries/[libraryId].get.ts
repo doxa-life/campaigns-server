@@ -1,6 +1,5 @@
 import { libraryService } from '#server/database/libraries'
-import { roleService } from '#server/database/roles'
-import { peopleGroupService } from '#server/database/people-groups'
+import { requireContentAccess } from '#server/utils/content-access'
 import { getIntParam } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
@@ -17,12 +16,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const scoped = await roleService.isPermissionScoped(user.userId, 'content.view')
-  if (scoped) {
-    if (!library.people_group_id || !(await peopleGroupService.userCanAccessPeopleGroup(user.userId, library.people_group_id))) {
-      throw createError({ statusCode: 403, statusMessage: 'You do not have access to this library' })
-    }
-  }
+  await requireContentAccess(user.userId, 'content.view', { peopleGroupId: library.people_group_id })
 
   // Get stats
   const stats = await libraryService.getLibraryStats(id)

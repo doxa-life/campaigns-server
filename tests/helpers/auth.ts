@@ -16,6 +16,8 @@ export interface TestUser {
   roles: string[]
 }
 
+export type TestRole = 'admin' | 'people_group_editor' | 'progress_admin' | 'content_editor' | 'language_editor'
+
 const SALT_ROUNDS = 10
 const JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret-for-testing'
 
@@ -28,7 +30,7 @@ export async function createTestUser(
     email?: string
     display_name?: string
     password?: string
-    role?: 'admin' | 'people_group_editor' | 'progress_admin' | null
+    role?: TestRole | null
     verified?: boolean
     superadmin?: boolean
   } = {}
@@ -88,7 +90,7 @@ export function getAuthHeaders(user: TestUser): AuthHeaders {
  */
 export async function createAndLoginUser(
   sql: ReturnType<typeof postgres>,
-  role: 'admin' | 'people_group_editor' | 'progress_admin' | null = null,
+  role: TestRole | null = null,
   options: {
     email?: string
     display_name?: string
@@ -138,6 +140,19 @@ export async function createProgressAdminUser(
   } = {}
 ): Promise<{ user: TestUser; auth: AuthHeaders }> {
   return createAndLoginUser(sql, 'progress_admin', options)
+}
+
+/**
+ * Create a translator (language_editor) user and return auth headers
+ */
+export async function createTranslatorUser(
+  sql: ReturnType<typeof postgres>,
+  options: {
+    email?: string
+    display_name?: string
+  } = {}
+): Promise<{ user: TestUser; auth: AuthHeaders }> {
+  return createAndLoginUser(sql, 'language_editor', options)
 }
 
 /**

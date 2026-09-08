@@ -1,6 +1,6 @@
 import { libraryService, type LibraryExportData } from '#server/database/libraries'
 import { libraryContentService } from '#server/database/library-content'
-import { peopleGroupService } from '#server/database/people-groups'
+import { requireContentAccess, requireNonLanguageScopedPermission } from '#server/utils/content-access'
 import { getSql } from '#server/database/db'
 import { sanitizeImportContent } from '#server/utils/sanitize-tiptap'
 import { LANGUAGE_CODES } from '~/utils/languages'
@@ -63,7 +63,6 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  let user
   let targetPeopleGroupId: number | null = null
 
   if (body.target_library_id) {
@@ -75,17 +74,12 @@ export default defineEventHandler(async (event) => {
     targetPeopleGroupId = body.people_group_id
   }
 
+  // An import writes every language in the file, so language scope never covers it.
   if (targetPeopleGroupId) {
-    user = await requirePermission(event, 'content.edit')
-    const hasAccess = await peopleGroupService.userCanAccessPeopleGroup(user.userId, targetPeopleGroupId)
-    if (!hasAccess) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'You do not have access to this people group'
-      })
-    }
+    const user = await requirePermission(event, 'content.edit')
+    await requireContentAccess(user.userId, 'content.edit', { peopleGroupId: targetPeopleGroupId })
   } else {
-    user = await requirePermission(event, 'content.edit')
+    await requireNonLanguageScopedPermission(event, 'content.edit')
   }
 
   const validation = validateExportData(body.data)

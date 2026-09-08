@@ -410,6 +410,17 @@ export async function assignUserToPeopleGroup(
   `
 }
 
+export async function assignUserLanguages(
+  sql: ReturnType<typeof postgres>,
+  userId: string,
+  languageCodes: string[]
+): Promise<void> {
+  await sql`DELETE FROM user_languages WHERE user_id = ${userId}`
+  for (const code of languageCodes) {
+    await sql`INSERT INTO user_languages (user_id, language_code) VALUES (${userId}, ${code})`
+  }
+}
+
 export async function removeUserFromPeopleGroup(
   sql: ReturnType<typeof postgres>,
   userId: string,

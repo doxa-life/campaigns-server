@@ -1,4 +1,6 @@
 import { libraryContentService } from '#server/database/library-content'
+import { libraryService } from '#server/database/libraries'
+import { requireContentAccess } from '#server/utils/content-access'
 import { translateTiptapContent, reconcileVersesFromSource, isTranslationConfigured, type TiptapNode, type VerseWarning } from '#server/utils/translate'
 import { getErrorMessage, getIntParam } from '#server/utils/api-helpers'
 
@@ -15,18 +17,10 @@ import { getErrorMessage, getIntParam } from '#server/utils/api-helpers'
  * Returns array of created/updated content records
  */
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'content.create')
+  const user = await requirePermission(event, 'content.create')
 
   const libraryId = getIntParam(event, 'libraryId')
   const contentId = getIntParam(event, 'id')
-
-  // Check if the translation service is configured
-  if (!isTranslationConfigured()) {
-    throw createError({
-      statusCode: 503,
-      statusMessage: 'Translation service not configured. Please add OPENROUTER_API_KEY to environment.'
-    })
-  }
 
   const body = await readBody(event)
 
@@ -78,6 +72,21 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 400,
       statusMessage: 'Source content is empty'
+    })
+  }
+
+  // Translating writes every target language, so each one must be within the user's scope.
+  const library = await libraryService.getLibraryById(libraryId)
+  await requireContentAccess(user.userId, 'content.create', {
+    peopleGroupId: library?.people_group_id,
+    languageCodes: targetLanguages
+  })
+
+  // Check if the translation service is configured
+  if (!isTranslationConfigured()) {
+    throw createError({
+      statusCode: 503,
+      statusMessage: 'Translation service not configured. Please add OPENROUTER_API_KEY to environment.'
     })
   }
 

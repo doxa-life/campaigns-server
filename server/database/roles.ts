@@ -3,6 +3,32 @@ import { ROLES, type RoleName } from '../../app/utils/role-definitions'
 
 export { ROLES, type RoleName }
 
+export const PEOPLE_GROUP_SCOPE_SUFFIX = '_scoped'
+export const LANGUAGE_SCOPE_SUFFIX = '_language_scoped'
+
+export interface PermissionScopes {
+  unscoped: boolean
+  peopleGroup: boolean
+  language: boolean
+}
+
+export function getPermissionScopesForRoles(roles: RoleName[], permissionName: string): PermissionScopes {
+  const scopes: PermissionScopes = { unscoped: false, peopleGroup: false, language: false }
+  for (const roleName of roles) {
+    const permissions = ROLES[roleName]?.permissions
+    if (!permissions) continue
+    if (permissions.includes(permissionName)) scopes.unscoped = true
+    if (permissions.includes(permissionName + PEOPLE_GROUP_SCOPE_SUFFIX)) scopes.peopleGroup = true
+    if (permissions.includes(permissionName + LANGUAGE_SCOPE_SUFFIX)) scopes.language = true
+  }
+  return scopes
+}
+
+/** Whether any of the roles carries a language-scoped permission, i.e. the user works with assigned languages. */
+export function rolesUseLanguageScope(roles: RoleName[]): boolean {
+  return roles.some(r => ROLES[r]?.permissions.some(p => p.endsWith(LANGUAGE_SCOPE_SUFFIX)))
+}
+
 export class RoleService {
   private sql = getSql()
 
@@ -16,43 +42,32 @@ export class RoleService {
   }
 
   /**
-   * Check if user has a permission. Also accepts the _scoped variant.
-   * e.g. checking 'people_groups.view' passes if user has 'people_groups.view' OR 'people_groups.view_scoped'
+   * How the user's roles grant a permission: `unscoped` for the bare permission,
+   * `peopleGroup` for the `_scoped` variant, `language` for the `_language_scoped` variant.
+   * All false when no role grants it in any form.
    */
-  async userHasPermission(userId: string, permissionName: string): Promise<boolean> {
+  async getPermissionScopes(userId: string, permissionName: string): Promise<PermissionScopes> {
     const roles = await this.getUserRoles(userId)
-    if (roles.length === 0) return false
-
-    const scopedVariant = permissionName + '_scoped'
-    for (const roleName of roles) {
-      const roleConfig = ROLES[roleName]
-      if (roleConfig && (roleConfig.permissions.includes(permissionName) || roleConfig.permissions.includes(scopedVariant))) {
-        return true
-      }
-    }
-    return false
+    return getPermissionScopesForRoles(roles, permissionName)
   }
 
   /**
-   * Check if the user's access to a permission is scoped (i.e. they only have the _scoped variant, not the full one).
-   * Returns true if the user has 'foo_scoped' but NOT 'foo'.
+   * Check if user has a permission in any form: bare, `_scoped` or `_language_scoped`.
+   * e.g. checking 'people_groups.view' passes if user has 'people_groups.view' OR 'people_groups.view_scoped'
+   */
+  async userHasPermission(userId: string, permissionName: string): Promise<boolean> {
+    const scopes = await this.getPermissionScopes(userId, permissionName)
+    return scopes.unscoped || scopes.peopleGroup || scopes.language
+  }
+
+  /**
+   * Check if the user's access to a permission is restricted to a scope (people group or language)
+   * without also holding the full permission. Returns true if the user has 'foo_scoped' or
+   * 'foo_language_scoped' but NOT 'foo'.
    */
   async isPermissionScoped(userId: string, permissionName: string): Promise<boolean> {
-    const roles = await this.getUserRoles(userId)
-    if (roles.length === 0) return false
-
-    let hasUnscoped = false
-    let hasScoped = false
-    const scopedVariant = permissionName + '_scoped'
-
-    for (const roleName of roles) {
-      const roleConfig = ROLES[roleName]
-      if (!roleConfig) continue
-      if (roleConfig.permissions.includes(permissionName)) hasUnscoped = true
-      if (roleConfig.permissions.includes(scopedVariant)) hasScoped = true
-    }
-
-    return hasScoped && !hasUnscoped
+    const scopes = await this.getPermissionScopes(userId, permissionName)
+    return !scopes.unscoped && (scopes.peopleGroup || scopes.language)
   }
 
   async userHasRole(userId: string, roleName: RoleName): Promise<boolean> {
@@ -65,21 +80,21 @@ export class RoleService {
     return roles.includes('admin')
   }
 
-  private hiddenRoles: RoleName[] = ['language_editor']
-
   getAllRoles() {
-    return Object.values(ROLES).filter(r => !this.hiddenRoles.includes(r.name))
+    return Object.values(ROLES)
   }
 
   getRoleByName(name: string) {
     return ROLES[name as RoleName] || null
   }
 
-  /** Role names that grant the given permission (or its _scoped variant). */
+  /** Role names that grant the given permission in any form (bare or scoped). */
   getRoleNamesWithPermission(permission: string): RoleName[] {
-    const scoped = permission + '_scoped'
     return Object.values(ROLES)
-      .filter(r => r.permissions.includes(permission) || r.permissions.includes(scoped))
+      .filter(r => {
+        const scopes = getPermissionScopesForRoles([r.name], permission)
+        return scopes.unscoped || scopes.peopleGroup || scopes.language
+      })
       .map(r => r.name)
   }
 }
