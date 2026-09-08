@@ -21,6 +21,8 @@ export function useSubscriberFilterManifest() {
       label: 'Status',
       type: 'enum',
       values: Object.entries(SUBSCRIBER_STATUS_LABELS).map(([value, label]) => ({ label, value })),
+      // Derived status always resolves to a value, so the empty operators never apply.
+      operators: ['is', 'is_not'],
     },
     {
       key: 'preferred_language',

@@ -79,13 +79,15 @@ export function mapCsvRow(row: Record<string, string>): UpsertImbPeopleGroup | n
   const name = row['DisplayName'] || row['NmDisp'] || row['Name']
   if (!peid || !name) return null
   const engagement = row['EngagementStatus'] || row['EngStat']
+  // IMB capitalizes region names; the region field's option keys are lowercase.
+  const region = row['UNm49RegionName'] || row['Regn']
   return {
     peid,
     pgid: row['PGID'] ?? null,
     name,
     country: row['CountryDisplayName'] || row['CountryName'] || row['Ctry'] || null,
     country_code: row['ISOAlpha3'] || row['ISOalpha3'] || null,
-    region: row['UNm49RegionName'] || row['Regn'] || null,
+    region: region ? region.toLowerCase() : null,
     subregion: row['UNm49SubRegionName'] || row['RegnSub'] || null,
     population: parseIntOrNull(row['Population'] || row['Pop']),
     latitude: parseFloatOrNull(row['Lat'] || row['Latitude']),

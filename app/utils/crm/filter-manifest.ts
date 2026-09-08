@@ -52,6 +52,8 @@ const OPERATORS_BY_TYPE: Record<FieldType, OperatorChoice[]> = {
   enum: [
     { value: 'is', label: 'is' },
     { value: 'is_not', label: 'is not' },
+    { value: 'empty', label: 'is empty', noValue: true },
+    { value: 'not_empty', label: 'is not empty', noValue: true },
   ],
   'enum-multi': [
     { value: 'includes_any', label: 'includes any of' },

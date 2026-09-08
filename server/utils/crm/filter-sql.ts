@@ -42,6 +42,8 @@ export function textColumn(column: string) {
 
 export function enumColumn(column: string) {
   return (op: Operator, value: unknown, sql: Sql): Fragment | null => {
+    if (op === 'empty') return sql`(${sql(column)} IS NULL OR ${sql(column)} = '')`
+    if (op === 'not_empty') return sql`(${sql(column)} IS NOT NULL AND ${sql(column)} <> '')`
     if (value === null || value === undefined || value === '') return null
     if (op === 'is') return sql`${sql(column)} = ${value as any}`
     if (op === 'is_not') return sql`(${sql(column)} IS DISTINCT FROM ${value as any})`

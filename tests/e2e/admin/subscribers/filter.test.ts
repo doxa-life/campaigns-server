@@ -45,9 +45,9 @@ describe('Subscribers filter builder', async () => {
     await createTestPeopleGroupSubscription(sql, pg2.id, b.id)
     created.push(b.id)
 
-    // Subscriber C: name "Other Carol", no contact methods, no subs (orphan)
+    // Subscriber C: name "Other Carol", no contact methods, no subs (orphan), no language
     const c = await createTestSubscriber(sql, { name: 'Other Carol' })
-    await sql`UPDATE subscribers SET country = 'NP' WHERE id = ${c.id}`
+    await sql`UPDATE subscribers SET country = 'NP', preferred_language = NULL WHERE id = ${c.id}`
     created.push(c.id)
 
     // Subscriber D: only an inactive (auto-lapsed) sub
@@ -142,6 +142,24 @@ describe('Subscribers filter builder', async () => {
       expect(names).toContain('Filter Alice')
       expect(names).toContain('Other Carol')
       expect(names).not.toContain('Filter Bob')
+    })
+
+    it('enum empty matches subscribers without a preferred language', async () => {
+      const names = await fetchWithFilter([
+        { field: 'preferred_language', op: 'empty', value: null },
+      ])
+      expect(names).toContain('Other Carol')
+      expect(names).not.toContain('Filter Alice')
+      expect(names).not.toContain('Filter Bob')
+    })
+
+    it('enum not_empty matches subscribers with a preferred language', async () => {
+      const names = await fetchWithFilter([
+        { field: 'preferred_language', op: 'not_empty', value: null },
+      ])
+      expect(names).toContain('Filter Alice')
+      expect(names).toContain('Filter Bob')
+      expect(names).not.toContain('Other Carol')
     })
 
     it('enum-multi includes_any matches subscribers with any of the sources', async () => {

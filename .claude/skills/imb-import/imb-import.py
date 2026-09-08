@@ -614,7 +614,7 @@ def build_payload(row):
     peid = row.get('PEID', '').strip()
     description = (row.get('PeopleDesc') or '').strip() or None
     country_code = (row.get('ISOalpha3') or '').strip() or None
-    region = (row.get('Regn') or '').strip() or None
+    region = (row.get('Regn') or '').strip().lower() or None
     image_url = (row.get('PicURL') or '').strip() or None
 
     if image_url and any(m.lower() in image_url.lower() for m in IMB_NO_PHOTO_MARKERS):

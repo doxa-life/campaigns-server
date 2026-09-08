@@ -55,6 +55,14 @@ describe('matchesFilter', () => {
     expect(matchesFilter({ status: null }, state({ field: 'status', op: 'is_not', value: 'active' }), manifest)).toBe(true)
   })
 
+  it('enum empty/not_empty treat null and "" the same', () => {
+    expect(matchesFilter({ status: null }, state({ field: 'status', op: 'empty', value: undefined }), manifest)).toBe(true)
+    expect(matchesFilter({ status: '' }, state({ field: 'status', op: 'empty', value: undefined }), manifest)).toBe(true)
+    expect(matchesFilter(group, state({ field: 'status', op: 'empty', value: undefined }), manifest)).toBe(false)
+    expect(matchesFilter(group, state({ field: 'status', op: 'not_empty', value: undefined }), manifest)).toBe(true)
+    expect(matchesFilter({ status: null }, state({ field: 'status', op: 'not_empty', value: undefined }), manifest)).toBe(false)
+  })
+
   it('number ops coerce string values from the wire', () => {
     expect(matchesFilter({ population: '12000' }, state({ field: 'population', op: 'eq', value: 12000 }), manifest)).toBe(true)
     expect(matchesFilter(group, state({ field: 'population', op: 'gt', value: 10000 }), manifest)).toBe(true)
