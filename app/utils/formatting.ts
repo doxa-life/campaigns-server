@@ -16,6 +16,7 @@ export function formatMinutes(minutes: number): string {
 
 import { getSubscriberFieldLabel } from './subscriber-fields'
 import { getGroupFieldLabel } from './group-fields'
+import { getChurchFieldLabel } from '#shared/churches'
 import countries from 'i18n-iso-countries'
 import countriesEn from 'i18n-iso-countries/langs/en.json'
 countries.registerLocale(countriesEn)
@@ -26,6 +27,9 @@ export function formatFormKey(key: string): string {
 
   const groupLabel = getGroupFieldLabel(key)
   if (groupLabel !== key) return groupLabel
+
+  const churchLabel = getChurchFieldLabel(key)
+  if (churchLabel !== key) return churchLabel
 
   return key
 }

@@ -87,6 +87,12 @@
             <span v-if="showExpanded" class="nav-label">Onboarding</span>
           </NuxtLink>
         </li>
+        <li v-if="canAccess('churches.view')">
+          <NuxtLink to="/admin/churches" class="nav-link" :title="!showExpanded ? 'Churches' : undefined">
+            <UIcon name="i-lucide-church" />
+            <span v-if="showExpanded" class="nav-label">Churches</span>
+          </NuxtLink>
+        </li>
       </ul>
       <div v-if="!hasRole" class="nav-menu"></div>
 
