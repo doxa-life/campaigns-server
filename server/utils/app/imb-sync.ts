@@ -1,62 +1,9 @@
 import { imbPeopleGroupService, type UpsertImbPeopleGroup } from '../../database/imb-people-groups'
+// The IMB export has quoted fields containing commas and newlines (e.g.
+// PeopleDesc), so naive line splitting is not enough.
+import { parseCsv } from '#shared/csv'
 
 export const IMB_CSV_URL = 'https://peoplegroups.org/wp-content/uploads/people_groups.csv'
-
-/**
- * RFC 4180 CSV parser. The IMB export has quoted fields containing commas and
- * newlines (e.g. PeopleDesc), so naive line splitting is not enough.
- */
-export function parseCsv(text: string): Record<string, string>[] {
-  const rows: string[][] = []
-  let field = ''
-  let row: string[] = []
-  let inQuotes = false
-
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i]
-    if (inQuotes) {
-      if (char === '"') {
-        if (text[i + 1] === '"') {
-          field += '"'
-          i++
-        } else {
-          inQuotes = false
-        }
-      } else {
-        field += char
-      }
-    } else if (char === '"') {
-      inQuotes = true
-    } else if (char === ',') {
-      row.push(field)
-      field = ''
-    } else if (char === '\n' || char === '\r') {
-      if (char === '\r' && text[i + 1] === '\n') i++
-      row.push(field)
-      field = ''
-      if (row.length > 1 || row[0] !== '') rows.push(row)
-      row = []
-    } else {
-      field += char
-    }
-  }
-  if (field !== '' || row.length > 0) {
-    row.push(field)
-    if (row.length > 1 || row[0] !== '') rows.push(row)
-  }
-
-  const header = rows.shift()
-  if (!header) return []
-  return rows.map((r) => {
-    const obj: Record<string, string> = {}
-    header.forEach((col, idx) => {
-      const value = (r[idx] ?? '').trim()
-      // Skip empties to keep the stored raw jsonb small.
-      if (value !== '') obj[col.trim()] = value
-    })
-    return obj
-  })
-}
 
 function parseIntOrNull(v: string | undefined): number | null {
   if (!v) return null

@@ -52,6 +52,10 @@ export async function cleanupTestData(sql: ReturnType<typeof postgres>) {
   // Clean groups
   await sql`DELETE FROM groups WHERE name LIKE 'Test %'`
 
+  // Clean churches and their comments
+  await sql`DELETE FROM comments WHERE record_type = 'church' AND record_id IN (SELECT id FROM churches WHERE name LIKE 'Test %')`
+  await sql`DELETE FROM churches WHERE name LIKE 'Test %'`
+
   // Clean library content and libraries (both test-named and people-group-linked)
   await sql`DELETE FROM library_content WHERE library_id IN (SELECT id FROM libraries WHERE name LIKE 'Test Library %' OR people_group_id IN (SELECT id FROM people_groups WHERE slug LIKE 'test-%'))`
   await sql`DELETE FROM campaign_library_config WHERE people_group_id IN (SELECT id FROM people_groups WHERE slug LIKE 'test-%')`
@@ -697,4 +701,41 @@ export async function createTestAdoptionReport(
   `
 
   return result[0] as TestAdoptionReport
+}
+
+export interface TestChurch {
+  id: number
+  name: string
+  town: string | null
+  country: string | null
+  latitude: number | null
+  longitude: number | null
+  location_status: string | null
+}
+
+export async function createTestChurch(
+  sql: ReturnType<typeof postgres>,
+  options: {
+    name?: string
+    town?: string | null
+    country?: string | null
+    pastor_name?: string | null
+    congregation_size?: number | null
+    service_language?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    location_status?: string | null
+  } = {}
+): Promise<TestChurch> {
+  const name = options.name || `Test Church ${uuidv4().slice(0, 8)}`
+  const result = await sql`
+    INSERT INTO churches (name, town, country, pastor_name, congregation_size, service_language, latitude, longitude, location_status)
+    VALUES (
+      ${name}, ${options.town ?? null}, ${options.country ?? null}, ${options.pastor_name ?? null},
+      ${options.congregation_size ?? null}, ${options.service_language ?? null},
+      ${options.latitude ?? null}, ${options.longitude ?? null}, ${options.location_status ?? null}
+    )
+    RETURNING id, name, town, country, latitude, longitude, location_status
+  `
+  return result[0] as TestChurch
 }
