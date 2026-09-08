@@ -1,6 +1,6 @@
 <template>
   <div class="filter-row">
-    <USelect
+    <USelectMenu
       :model-value="row.field"
       :items="fieldOptions"
       value-key="value"
