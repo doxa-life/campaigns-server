@@ -603,6 +603,51 @@
         </UCard>
       </div>
     </template>
+
+    <template v-if="activeTab === 'map'">
+      <UCard>
+        <template #header>
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <UIcon name="i-lucide-map" class="text-[var(--ui-primary)] text-lg" />
+              <span class="font-semibold">Where People Are Praying</span>
+              <span v-if="prayerLocations" class="text-xs text-[var(--ui-text-dimmed)]">
+                {{ prayerLocations.located }} of {{ prayerLocations.total }} people located
+              </span>
+            </div>
+            <div class="flex gap-1">
+              <UButton
+                v-for="w in mapWindows"
+                :key="w.value"
+                :label="w.label"
+                size="xs"
+                :color="mapWindow === w.value ? 'primary' : 'neutral'"
+                :variant="mapWindow === w.value ? 'subtle' : 'soft'"
+                @click="setMapWindow(w.value)"
+              />
+            </div>
+          </div>
+        </template>
+
+        <UAlert
+          v-if="!mapboxToken"
+          color="neutral"
+          variant="subtle"
+          icon="i-lucide-map-pin-off"
+          title="Map not configured"
+          description="Set NUXT_PUBLIC_MAPBOX_TOKEN to show the map."
+        />
+        <div v-else class="relative h-[480px]">
+          <LazyAdminPrayerMap :points="prayerLocations?.points ?? []" :token="mapboxToken" />
+          <div
+            v-if="prayerLocationsStatus === 'pending'"
+            class="absolute inset-0 flex items-center justify-center bg-[var(--ui-bg)]/50"
+          >
+            <UIcon name="i-lucide-loader-2" class="animate-spin text-3xl text-[var(--ui-text-dimmed)]" />
+          </div>
+        </div>
+      </UCard>
+    </template>
   </div>
 </template>
 
@@ -635,7 +680,8 @@ const activeTab = ref('general')
 const tabs = [
   { label: 'General', value: 'general', icon: 'i-lucide-layout-dashboard' },
   { label: 'Prayer', value: 'prayer', icon: 'i-lucide-clock' },
-  { label: 'Subscribers', value: 'subscribers', icon: 'i-lucide-users' }
+  { label: 'Subscribers', value: 'subscribers', icon: 'i-lucide-users' },
+  { label: 'Map', value: 'map', icon: 'i-lucide-map' }
 ]
 
 const { data, status } = useFetch('/api/admin/dashboard/stats')
@@ -644,6 +690,37 @@ const { data: subscribersData, status: subscribersStatus } = useFetch('/api/admi
 const { data: subscribersDaily } = useFetch<{ date: string; subscribed: number; unsubscribed: number }[]>('/api/admin/dashboard/subscribers-daily')
 const { data: pgSubscribers } = useFetch<{ id: number; name: string; slug: string; subscriber_count: number }[]>('/api/admin/dashboard/people-group-subscribers')
 const { data: prayerEngagement } = useFetch('/api/admin/dashboard/prayer-engagement')
+
+interface PrayerLocations {
+  window: string
+  points: { latitude: number; longitude: number; city: string | null; country: string | null; label: string; count: number }[]
+  located: number
+  total: number
+}
+
+const mapboxToken = useRuntimeConfig().public.mapboxToken as string
+const mapWindows = [
+  { label: '24h', value: '24h' },
+  { label: '7 days', value: '7d' },
+  { label: '30 days', value: '30d' },
+  { label: 'All time', value: 'all' }
+]
+const mapWindow = ref('7d')
+
+function setMapWindow(value: string) {
+  mapWindow.value = value
+}
+
+// The map is the only tab whose data is not fetched on page load: this query
+// (and the Mapbox bundle) load the first time the tab is opened.
+const { data: prayerLocations, status: prayerLocationsStatus, execute: loadPrayerLocations } = useFetch<PrayerLocations>(
+  '/api/admin/dashboard/prayer-locations',
+  { query: { window: mapWindow }, immediate: false }
+)
+
+watch(activeTab, tab => {
+  if (tab === 'map' && prayerLocationsStatus.value === 'idle') loadPrayerLocations()
+})
 
 const maxPgSubscribers = computed(() =>
   Math.max(1, ...(pgSubscribers.value?.map(p => p.subscriber_count) ?? [1]))

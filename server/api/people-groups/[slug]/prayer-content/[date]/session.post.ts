@@ -6,6 +6,7 @@ import { peopleGroupService } from '#server/database/people-groups'
 import { getSql } from '#server/database/db'
 import { handleApiError } from '#server/utils/api-helpers'
 import { trackEventInBackground } from '#server/utils/tracking'
+import { getRequestGeo } from '#server/utils/request-geo'
 
 // When the client sets `body.track_event` to one of these values, the session
 // save also fires the corresponding event to Statinator via the server-side
@@ -68,13 +69,22 @@ export default defineEventHandler(async (event) => {
 
   const sql = getSql()
 
+  // Where the pray-er is, from Cloudflare's visitor-location headers (already
+  // coarsened to ~11 km). Pinned on the session's first save; later pings for
+  // the same session never move it.
+  const geo = getRequestGeo(event)
+
   try {
     // Upsert: Insert or update based on session_id
     await sql`
-      INSERT INTO prayer_activity (people_group_id, session_id, tracking_id, duration, timestamp, content_date)
-      VALUES (${peopleGroup.id}, ${sessionId}, ${trackingId || null}, ${duration}, ${timestamp}, ${dateParam})
+      INSERT INTO prayer_activity (people_group_id, session_id, tracking_id, duration, timestamp, content_date, latitude, longitude, city, country)
+      VALUES (${peopleGroup.id}, ${sessionId}, ${trackingId || null}, ${duration}, ${timestamp}, ${dateParam}, ${geo.latitude}, ${geo.longitude}, ${geo.city}, ${geo.country})
       ON CONFLICT (session_id) WHERE session_id IS NOT NULL
-      DO UPDATE SET duration = EXCLUDED.duration, timestamp = EXCLUDED.timestamp, content_date = EXCLUDED.content_date
+      DO UPDATE SET duration = EXCLUDED.duration, timestamp = EXCLUDED.timestamp, content_date = EXCLUDED.content_date,
+        latitude = COALESCE(prayer_activity.latitude, EXCLUDED.latitude),
+        longitude = COALESCE(prayer_activity.longitude, EXCLUDED.longitude),
+        city = COALESCE(prayer_activity.city, EXCLUDED.city),
+        country = COALESCE(prayer_activity.country, EXCLUDED.country)
     `
 
     // Optional Statinator forward. The browser sets `track_event` only on saves
