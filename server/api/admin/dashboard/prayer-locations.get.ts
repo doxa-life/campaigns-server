@@ -1,10 +1,10 @@
 /**
  * GET /api/admin/dashboard/prayer-locations?window=24h|7d|30d|all
  *
- * Where people prayed from, for the dashboard map. One point per stored
- * location cell (coordinates are already rounded to ~11 km at write time)
- * plus city and country, counting distinct people the same way the
- * "Unique People Praying" chart does: by tracking_id, falling back to the row.
+ * How many people prayed from each country, for the dashboard map. The
+ * country is the pray-er's, captured from Cloudflare on the prayer session.
+ * People are counted the same way the "Unique People Praying" chart does:
+ * by tracking_id, falling back to the row.
  */
 import { getSql } from '#server/database/db'
 import countries from 'i18n-iso-countries'
@@ -31,23 +31,20 @@ export default defineEventHandler(async (event) => {
     ? sql`pa.timestamp >= (NOW() AT TIME ZONE 'UTC') - ${interval}::interval`
     : sql`TRUE`
 
-  const [points, [totals]] = await Promise.all([
+  const [rows, [totals]] = await Promise.all([
     sql`
       SELECT
-        pa.latitude,
-        pa.longitude,
-        pa.city,
         pa.country,
         COUNT(DISTINCT COALESCE(pa.tracking_id, pa.id::text))::int AS count
       FROM prayer_activity pa
-      WHERE pa.latitude IS NOT NULL AND pa.longitude IS NOT NULL AND ${inWindow}
-      GROUP BY pa.latitude, pa.longitude, pa.city, pa.country
-      ORDER BY count DESC
+      WHERE pa.country IS NOT NULL AND ${inWindow}
+      GROUP BY pa.country
+      ORDER BY count DESC, pa.country ASC
     `,
     sql`
       SELECT
         COUNT(DISTINCT COALESCE(pa.tracking_id, pa.id::text))::int AS total,
-        COUNT(DISTINCT COALESCE(pa.tracking_id, pa.id::text)) FILTER (WHERE pa.latitude IS NOT NULL)::int AS located
+        COUNT(DISTINCT COALESCE(pa.tracking_id, pa.id::text)) FILTER (WHERE pa.country IS NOT NULL)::int AS located
       FROM prayer_activity pa
       WHERE ${inWindow}
     `
@@ -55,13 +52,10 @@ export default defineEventHandler(async (event) => {
 
   return {
     window,
-    points: points.map(p => ({
-      latitude: p.latitude as number,
-      longitude: p.longitude as number,
-      city: (p.city as string | null) ?? null,
-      country: (p.country as string | null) ?? null,
-      label: [p.city, p.country ? countries.getName(p.country, 'en') ?? p.country : null].filter(Boolean).join(', '),
-      count: p.count as number
+    countries: rows.map(r => ({
+      country: r.country as string,
+      name: countries.getName(r.country, 'en') ?? (r.country as string),
+      count: r.count as number
     })),
     located: totals?.located ?? 0,
     total: totals?.total ?? 0

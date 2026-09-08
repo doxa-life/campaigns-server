@@ -638,7 +638,7 @@
           description="Set NUXT_PUBLIC_MAPBOX_TOKEN to show the map."
         />
         <div v-else class="relative h-[480px]">
-          <LazyAdminPrayerMap :points="prayerLocations?.points ?? []" :token="mapboxToken" />
+          <LazyAdminPrayerMap :countries="prayerLocations?.countries ?? []" :token="mapboxToken" />
           <div
             v-if="prayerLocationsStatus === 'pending'"
             class="absolute inset-0 flex items-center justify-center bg-[var(--ui-bg)]/50"
@@ -693,7 +693,7 @@ const { data: prayerEngagement } = useFetch('/api/admin/dashboard/prayer-engagem
 
 interface PrayerLocations {
   window: string
-  points: { latitude: number; longitude: number; city: string | null; country: string | null; label: string; count: number }[]
+  countries: { country: string; name: string; count: number }[]
   located: number
   total: number
 }
