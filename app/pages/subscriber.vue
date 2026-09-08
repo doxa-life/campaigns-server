@@ -321,7 +321,7 @@
               variant="ghost"
               color="neutral"
               :disabled="resumeProcessing"
-              @click="resumeModalOpen = false"
+              @click="() => { resumeModalOpen = false }"
             >
               {{ $t('common.cancel') }}
             </UButton>

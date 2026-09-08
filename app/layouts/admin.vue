@@ -5,7 +5,7 @@
       <UButton
         icon="i-lucide-menu"
         variant="ghost"
-        @click="sidebarOpen = true"
+        @click="() => { sidebarOpen = true }"
       />
       <span class="mobile-title">{{ config.public.appName || 'Base' }} Admin</span>
     </div>

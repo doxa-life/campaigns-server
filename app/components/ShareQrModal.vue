@@ -12,7 +12,7 @@
     </template>
     <template #footer>
       <div class="flex justify-end w-full">
-        <UButton variant="outline" @click="isOpen = false">
+        <UButton variant="outline" @click="() => { isOpen = false }">
           {{ $t('campaign.share.close') }}
         </UButton>
       </div>

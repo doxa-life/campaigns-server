@@ -9,7 +9,7 @@
         />
         <UButton
           v-if="showTranslateButton"
-          @click="showTranslateModal = true"
+          @click="() => { showTranslateModal = true }"
           :disabled="!hasEnglishContent"
           variant="outline"
           size="sm"
@@ -53,7 +53,7 @@
           />
 
           <div class="flex gap-2 justify-end pt-4">
-            <UButton variant="outline" @click="showTranslateModal = false">
+            <UButton variant="outline" @click="() => { showTranslateModal = false }">
               Cancel
             </UButton>
             <UButton

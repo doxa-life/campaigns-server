@@ -103,7 +103,7 @@
       <template #header>
         <div class="flex justify-between items-center">
           <h2 class="text-lg font-semibold">API Keys</h2>
-          <UButton @click="showCreateModal = true" icon="i-lucide-plus" size="sm">
+          <UButton @click="() => { showCreateModal = true }" icon="i-lucide-plus" size="sm">
             Create Key
           </UButton>
         </div>
@@ -137,7 +137,7 @@
             variant="ghost"
             size="xs"
             icon="i-lucide-trash-2"
-            @click="keyToRevoke = row.original"
+            @click="() => { keyToRevoke = row.original }"
           >
             Revoke
           </UButton>
@@ -184,7 +184,7 @@
             />
           </UFormField>
           <div class="flex gap-2 justify-end">
-            <UButton variant="outline" @click="showCreateModal = false">Cancel</UButton>
+            <UButton variant="outline" @click="() => { showCreateModal = false }">Cancel</UButton>
             <UButton :loading="createKeyLoading" :disabled="!newKeyName.trim()" @click="handleCreateKey">
               Create
             </UButton>

@@ -23,7 +23,7 @@
         size="xs"
         :variant="activeFilter === f.key ? 'solid' : 'outline'"
         :color="activeFilter === f.key ? 'primary' : 'neutral'"
-        @click="activeFilter = activeFilter === f.key ? null : f.key"
+        @click="() => { activeFilter = activeFilter === f.key ? null : f.key }"
       >
         {{ f.label }} ({{ f.count }})
       </UButton>

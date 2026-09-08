@@ -279,7 +279,7 @@
     <template #body>
       <p>This will apply the suggested changes to <strong>{{ selectedReport?.people_group_name }}</strong>. Continue?</p>
       <div class="flex justify-end gap-2 mt-4">
-        <UButton variant="outline" @click="showAcceptModal = false">Cancel</UButton>
+        <UButton variant="outline" @click="() => { showAcceptModal = false }">Cancel</UButton>
         <UButton color="success" :loading="accepting" @click="acceptReport">Accept</UButton>
       </div>
     </template>
@@ -340,7 +340,7 @@
     <template #body>
       <p>Are you sure you want to delete this report?</p>
       <div class="flex justify-end gap-2 mt-4">
-        <UButton variant="outline" @click="showDeleteModal = false">Cancel</UButton>
+        <UButton variant="outline" @click="() => { showDeleteModal = false }">Cancel</UButton>
         <UButton color="error" :loading="deleting" @click="deleteReport">Delete</UButton>
       </div>
     </template>
@@ -363,7 +363,7 @@
           />
         </UFormField>
         <div class="flex justify-end gap-2">
-          <UButton variant="outline" @click="showLinkModal = false">Cancel</UButton>
+          <UButton variant="outline" @click="() => { showLinkModal = false }">Cancel</UButton>
           <UButton color="primary" :loading="linking" :disabled="!linkPeopleGroupId" @click="linkReport">Link</UButton>
         </div>
       </div>
@@ -503,7 +503,7 @@
             variant="outline"
             size="sm"
             label="Add Field"
-            @click="showFieldPicker = !showFieldPicker"
+            @click="() => { showFieldPicker = !showFieldPicker }"
           />
 
           <USelectMenu
@@ -522,7 +522,7 @@
         </UFormField>
 
         <div class="flex justify-end gap-2 mt-2">
-          <UButton variant="outline" @click="showCreateModal = false">Cancel</UButton>
+          <UButton variant="outline" @click="() => { showCreateModal = false }">Cancel</UButton>
           <UButton type="submit" :loading="creating" :disabled="!canSubmit">Submit Report</UButton>
         </div>
       </form>
