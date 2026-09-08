@@ -73,7 +73,7 @@
               />
 
               <UButton
-                @click="showTranslateConfirmModal = true"
+                @click="() => { showTranslateConfirmModal = true }"
                 :disabled="!selectedTranslateField"
                 variant="outline"
                 icon="i-lucide-languages"
@@ -118,7 +118,7 @@
             />
 
             <UButton
-              @click="showDinlConfirmModal = true"
+              @click="() => { showDinlConfirmModal = true }"
               :disabled="isDinlTranslating"
               variant="outline"
               icon="i-lucide-languages"
@@ -209,7 +209,7 @@
             </div>
 
             <UButton
-              @click="showRebuildConfirmModal = true"
+              @click="() => { showRebuildConfirmModal = true }"
               :disabled="rebuildLanguages.length === 0 || isRebuilding"
               variant="outline"
               icon="i-lucide-refresh-cw"
@@ -402,7 +402,7 @@
           <div class="flex gap-2 justify-end pt-4">
             <UButton
               variant="outline"
-              @click="showDinlConfirmModal = false"
+              @click="() => { showDinlConfirmModal = false }"
             >
               Cancel
             </UButton>
@@ -430,7 +430,7 @@
           <div class="flex gap-2 justify-end pt-4">
             <UButton
               variant="outline"
-              @click="showRebuildConfirmModal = false"
+              @click="() => { showRebuildConfirmModal = false }"
             >
               Cancel
             </UButton>
@@ -486,7 +486,7 @@
             <UButton
               v-if="!isTranslating"
               variant="outline"
-              @click="showTranslateConfirmModal = false"
+              @click="() => { showTranslateConfirmModal = false }"
             >
               Cancel
             </UButton>

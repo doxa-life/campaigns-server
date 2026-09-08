@@ -85,7 +85,7 @@
 
     <template #footer>
       <div class="flex justify-end gap-2 w-full">
-        <UButton variant="outline" color="neutral" @click="isOpen = false">{{ $t('common.cancel') }}</UButton>
+        <UButton variant="outline" color="neutral" @click="() => { isOpen = false }">{{ $t('common.cancel') }}</UButton>
         <UButton color="primary" icon="i-lucide-check" :disabled="!result || generating" @click="use">
           {{ $t('inbox.ai.useResponse') }}
         </UButton>

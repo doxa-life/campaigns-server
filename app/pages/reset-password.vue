@@ -88,7 +88,7 @@ async function handleResetPassword() {
             color="primary"
             size="lg"
             block
-            @click="router.push('/login')"
+            @click="() => { router.push('/login') }"
           >
             Back to Login
           </UButton>

@@ -40,14 +40,14 @@
             <UButton
               :variant="view === 'summary' ? 'solid' : 'outline'"
               :color="view === 'summary' ? 'primary' : 'neutral'"
-              @click="view = 'summary'"
+              @click="() => { view = 'summary' }"
             >
               {{ $t('survey.admin.summaryTab') }}
             </UButton>
             <UButton
               :variant="view === 'responses' ? 'solid' : 'outline'"
               :color="view === 'responses' ? 'primary' : 'neutral'"
-              @click="view = 'responses'"
+              @click="() => { view = 'responses' }"
             >
               {{ $t('survey.admin.responsesTab') }}
             </UButton>

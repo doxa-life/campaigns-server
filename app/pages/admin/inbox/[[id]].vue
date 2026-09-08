@@ -12,7 +12,7 @@
             icon="i-lucide-pen-line"
             color="primary"
             size="sm"
-            @click="showCompose = true"
+            @click="() => { showCompose = true }"
           >{{ $t('inbox.compose.newEmail') }}</UButton>
           <UButton
             v-if="canSend"
@@ -20,7 +20,7 @@
             variant="outline"
             color="neutral"
             size="sm"
-            @click="showCanned = true"
+            @click="() => { showCanned = true }"
           >{{ $t('inbox.canned.title') }}</UButton>
           <UButton
             v-if="canSend"
@@ -274,7 +274,7 @@
           variant="ghost"
           color="neutral"
           size="xs"
-          @click="kbModalOpen = true"
+          @click="() => { kbModalOpen = true }"
         >{{ $t('inbox.actions.addKnowledgeBase') }}</UButton>
       </template>
     </template>
@@ -444,7 +444,7 @@
               <template v-if="signatureState === 'attach'">
                 <UIcon name="i-lucide-pen-line" class="sig-icon" />
                 <span>{{ $t('inbox.compose.signatureWillAttach') }}</span>
-                <UButton variant="link" color="neutral" size="xs" @click="showSignaturePreview = !showSignaturePreview">
+                <UButton variant="link" color="neutral" size="xs" @click="() => { showSignaturePreview = !showSignaturePreview }">
                   {{ showSignaturePreview ? $t('inbox.compose.signatureHide') : $t('inbox.compose.signaturePreview') }}
                 </UButton>
               </template>
@@ -464,7 +464,7 @@
               <UButton icon="i-lucide-paperclip" variant="ghost" color="neutral" size="sm" @click="fileInput?.click()">
                 {{ $t('inbox.compose.attach') }}
               </UButton>
-              <UButton icon="i-lucide-sparkles" variant="ghost" color="info" size="sm" @click="aiDraftModalOpen = true">
+              <UButton icon="i-lucide-sparkles" variant="ghost" color="info" size="sm" @click="() => { aiDraftModalOpen = true }">
                 {{ $t('inbox.ai.draft') }}
               </UButton>
               <span v-if="pendingFiles.length" class="pending-files">{{ pendingFiles.map(f => f.name).join(', ') }}</span>

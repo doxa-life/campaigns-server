@@ -75,7 +75,7 @@
       </template>
       <template #footer>
         <div class="flex justify-between items-center gap-3 w-full">
-          <UButton @click="showDayNavModal = false" variant="outline">
+          <UButton @click="() => { showDayNavModal = false }" variant="outline">
             Cancel
           </UButton>
           <div class="flex gap-2">

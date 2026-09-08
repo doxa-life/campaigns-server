@@ -45,7 +45,7 @@
 
               <template v-if="confirmingDelete === tag.slug">
                 <span class="tag-pop-confirm">
-                  <UButton variant="ghost" color="neutral" size="xs" @click="confirmingDelete = null">
+                  <UButton variant="ghost" color="neutral" size="xs" @click="() => { confirmingDelete = null }">
                     {{ $t('common.cancel') }}
                   </UButton>
                   <UButton variant="soft" color="error" size="xs" :loading="busy" @click="remove(tag.slug)">
@@ -60,7 +60,7 @@
                 color="neutral"
                 size="xs"
                 :aria-label="$t('inbox.tags.delete')"
-                @click="confirmingDelete = tag.slug"
+                @click="() => { confirmingDelete = tag.slug }"
               />
             </li>
           </ul>

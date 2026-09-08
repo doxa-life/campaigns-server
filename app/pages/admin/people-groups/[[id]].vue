@@ -314,7 +314,7 @@
           />
         </UFormField>
         <div class="flex justify-end gap-2 mt-2">
-          <UButton variant="outline" @click="showAddAdoptionModal = false">Cancel</UButton>
+          <UButton variant="outline" @click="() => { showAddAdoptionModal = false }">Cancel</UButton>
           <UButton type="submit" :disabled="!addAdoptionGroupId">Add</UButton>
         </div>
       </form>

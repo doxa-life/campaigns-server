@@ -9,10 +9,10 @@
         <UButton v-if="canAccessUnscoped('content.edit')" to="/admin/prayer-fuel-order" variant="outline" icon="i-lucide-list-ordered">
           Prayer Fuel Order
         </UButton>
-        <UButton v-if="canAccessUnscoped('content.edit')" @click="showImportModal = true" variant="outline" icon="i-lucide-upload">
+        <UButton v-if="canAccessUnscoped('content.edit')" @click="() => { showImportModal = true }" variant="outline" icon="i-lucide-upload">
           Import
         </UButton>
-        <UButton v-if="canAccessUnscoped('content.create')" @click="showCreateModal = true" size="lg">
+        <UButton v-if="canAccessUnscoped('content.create')" @click="() => { showCreateModal = true }" size="lg">
           + Create Library
         </UButton>
       </div>
@@ -24,7 +24,7 @@
 
     <div v-else-if="libraries.length === 0" class="empty-state">
       <p>No libraries yet. Create your first content library to get started.</p>
-      <UButton v-if="canAccessUnscoped('content.create')" @click="showCreateModal = true" size="lg">
+      <UButton v-if="canAccessUnscoped('content.create')" @click="() => { showCreateModal = true }" size="lg">
         Create Library
       </UButton>
     </div>

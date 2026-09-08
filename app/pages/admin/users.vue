@@ -2,7 +2,7 @@
   <div class="max-w-6xl">
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-2xl font-bold">User Management</h1>
-      <UButton @click="showInviteModal = true" icon="i-lucide-user-plus">
+      <UButton @click="() => { showInviteModal = true }" icon="i-lucide-user-plus">
         Invite User
       </UButton>
     </div>
@@ -212,7 +212,7 @@
           </div>
           <div class="slideover-header-actions">
             <CrmSaveStatus :saving="anySaving" :saved="anySaved" />
-            <UButton size="sm" color="error" variant="outline" @click="showDeleteUserConfirm = true">Delete</UButton>
+            <UButton size="sm" color="error" variant="outline" @click="() => { showDeleteUserConfirm = true }">Delete</UButton>
           </div>
           <div class="slideover-close">
             <UButton
@@ -220,7 +220,7 @@
               variant="ghost"
               color="neutral"
               size="sm"
-              @click="slideoverOpen = false"
+              @click="() => { slideoverOpen = false }"
             />
           </div>
         </DialogTitle>
@@ -447,7 +447,7 @@
           <UAlert v-if="inviteSuccess" color="success" title="Invitation sent successfully!" />
 
           <div class="flex justify-end gap-2 pt-4">
-            <UButton @click="showInviteModal = false" variant="outline" type="button">
+            <UButton @click="() => { showInviteModal = false }" variant="outline" type="button">
               Cancel
             </UButton>
             <UButton type="submit" :loading="inviteSubmitting">

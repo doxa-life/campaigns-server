@@ -9,27 +9,17 @@ import {
 } from '../../../helpers/db'
 import { createAdminUser } from '../../../helpers/auth'
 
-interface Point {
-  latitude: number
-  longitude: number
-  city: string | null
-  country: string | null
-  label: string
+interface CountryCount {
+  country: string
+  name: string
   count: number
 }
 
 interface PrayerLocations {
   window: string
-  points: Point[]
+  countries: CountryCount[]
   located: number
   total: number
-}
-
-interface Geo {
-  latitude: number
-  longitude: number
-  city: string
-  country: string
 }
 
 describe('GET /api/admin/dashboard/prayer-locations', async () => {
@@ -48,16 +38,12 @@ describe('GET /api/admin/dashboard/prayer-locations', async () => {
 
   async function insertActivity(
     peopleGroupId: number,
-    options: { trackingId?: string | null; daysAgo?: number; geo?: Geo | null } = {}
+    options: { trackingId?: string | null; daysAgo?: number; country?: string | null } = {}
   ) {
     const timestamp = new Date(Date.now() - (options.daysAgo ?? 0) * 24 * 60 * 60 * 1000).toISOString()
-    const geo = options.geo ?? null
     await sql`
-      INSERT INTO prayer_activity (people_group_id, session_id, tracking_id, duration, timestamp, latitude, longitude, city, country)
-      VALUES (
-        ${peopleGroupId}, ${`test-loc-${uuidv4()}`}, ${options.trackingId ?? null}, 60, ${timestamp},
-        ${geo?.latitude ?? null}, ${geo?.longitude ?? null}, ${geo?.city ?? null}, ${geo?.country ?? null}
-      )
+      INSERT INTO prayer_activity (people_group_id, session_id, tracking_id, duration, timestamp, country)
+      VALUES (${peopleGroupId}, ${`test-loc-${uuidv4()}`}, ${options.trackingId ?? null}, 60, ${timestamp}, ${options.country ?? null})
     `
   }
 
@@ -68,71 +54,65 @@ describe('GET /api/admin/dashboard/prayer-locations', async () => {
     })
   }
 
+  const countFor = (res: PrayerLocations, code: string) => res.countries.find(c => c.country === code)?.count ?? 0
+
   it('requires authentication', async () => {
     const error = await $fetch('/api/admin/dashboard/prayer-locations').catch(e => e)
     expect(error.statusCode).toBe(401)
   })
 
-  it('counts distinct people per location cell', async () => {
+  it('counts distinct people per country', async () => {
     const pg = await createTestPeopleGroup(sql)
     const stamp = Date.now()
-    const city = `Test City ${stamp}`
-    const geo = { latitude: 0.4, longitude: -0.4, city, country: 'KE' }
+    // Bouvet Island: uninhabited, so no other row in the test DB can carry it.
+    const country = 'BV'
 
     const before = await fetchLocations('all')
 
-    await insertActivity(pg.id, { trackingId: `test-person-a-${stamp}`, geo })
-    await insertActivity(pg.id, { trackingId: `test-person-a-${stamp}`, geo })
-    await insertActivity(pg.id, { trackingId: `test-person-b-${stamp}`, geo })
-    await insertActivity(pg.id, { trackingId: null, geo })
-    await insertActivity(pg.id, { trackingId: `test-person-c-${stamp}`, geo: null })
+    await insertActivity(pg.id, { trackingId: `test-person-a-${stamp}`, country })
+    await insertActivity(pg.id, { trackingId: `test-person-a-${stamp}`, country })
+    await insertActivity(pg.id, { trackingId: `test-person-b-${stamp}`, country })
+    await insertActivity(pg.id, { trackingId: null, country })
+    await insertActivity(pg.id, { trackingId: `test-person-c-${stamp}`, country: null })
 
     const after = await fetchLocations('all')
-    const point = after.points.find(p => p.city === city)
+    const entry = after.countries.find(c => c.country === country)
 
-    expect(point).toMatchObject({
-      latitude: 0.4,
-      longitude: -0.4,
-      country: 'KE',
-      label: `${city}, Kenya`,
-      count: 3
-    })
+    expect(entry).toMatchObject({ country, name: 'Bouvet Island', count: countFor(before, country) + 3 })
     expect(after.located - before.located).toBe(3)
     expect(after.total - before.total).toBe(4)
   })
 
-  it('limits points to the requested window and defaults to 7 days', async () => {
+  it('limits counts to the requested window and defaults to 7 days', async () => {
     const pg = await createTestPeopleGroup(sql)
     const stamp = Date.now()
-    const recentCity = `Test Recent ${stamp}`
-    const oldCity = `Test Old ${stamp}`
+    // Heard Island and Antarctica: uninhabited, so these counts are ours alone.
+    const recent = 'HM'
+    const old = 'AQ'
 
-    await insertActivity(pg.id, {
-      trackingId: `test-recent-${stamp}`,
-      geo: { latitude: 10.1, longitude: 10.1, city: recentCity, country: 'US' }
-    })
-    await insertActivity(pg.id, {
-      trackingId: `test-old-${stamp}`,
-      daysAgo: 10,
-      geo: { latitude: 20.2, longitude: 20.2, city: oldCity, country: 'US' }
-    })
-
-    const hasCity = (res: PrayerLocations, name: string) => res.points.some(p => p.city === name)
+    await insertActivity(pg.id, { trackingId: `test-recent-${stamp}`, country: recent })
+    await insertActivity(pg.id, { trackingId: `test-old-${stamp}`, daysAgo: 10, country: old })
 
     const week = await fetchLocations()
     expect(week.window).toBe('7d')
-    expect(hasCity(week, recentCity)).toBe(true)
-    expect(hasCity(week, oldCity)).toBe(false)
+    expect(countFor(week, recent)).toBe(1)
+    expect(countFor(week, old)).toBe(0)
 
     const day = await fetchLocations('24h')
-    expect(hasCity(day, recentCity)).toBe(true)
-    expect(hasCity(day, oldCity)).toBe(false)
+    expect(countFor(day, recent)).toBe(1)
+    expect(countFor(day, old)).toBe(0)
 
     const month = await fetchLocations('30d')
-    expect(hasCity(month, recentCity)).toBe(true)
-    expect(hasCity(month, oldCity)).toBe(true)
+    expect(countFor(month, recent)).toBe(1)
+    expect(countFor(month, old)).toBe(1)
 
     const bogus = await fetchLocations('bogus')
     expect(bogus.window).toBe('7d')
+  })
+
+  it('orders countries by count, busiest first', async () => {
+    const res = await fetchLocations('all')
+    const counts = res.countries.map(c => c.count)
+    expect(counts).toEqual([...counts].sort((a, b) => b - a))
   })
 })

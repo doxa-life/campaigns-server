@@ -42,7 +42,7 @@
               variant="ghost"
               color="neutral"
               size="sm"
-              @click="slideoverOpen = false"
+              @click="() => { slideoverOpen = false }"
             />
           </div>
         </DialogTitle>

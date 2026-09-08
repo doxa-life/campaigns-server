@@ -95,7 +95,7 @@
 
             <CrmFormSection title="Contacts">
               <template #header-extra>
-                <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="showAddSubscriberModal = true">
+                <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="() => { showAddSubscriberModal = true }">
                   Add
                 </UButton>
               </template>
@@ -124,7 +124,7 @@
 
             <CrmFormSection title="Adoptions">
               <template #header-extra>
-                <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="showAddAdoptionModal = true">
+                <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="() => { showAddAdoptionModal = true }">
                   Add
                 </UButton>
               </template>
@@ -174,7 +174,7 @@
           <UInput v-model="createGroupForm.name" type="text" class="w-full" />
         </UFormField>
         <div class="flex justify-end gap-2 mt-2">
-          <UButton variant="outline" @click="showCreateModal = false">Cancel</UButton>
+          <UButton variant="outline" @click="() => { showCreateModal = false }">Cancel</UButton>
           <UButton type="submit" :loading="creating">Create</UButton>
         </div>
       </form>
@@ -195,7 +195,7 @@
           />
         </UFormField>
         <div class="flex justify-end gap-2 mt-2">
-          <UButton variant="outline" @click="showAddSubscriberModal = false">Cancel</UButton>
+          <UButton variant="outline" @click="() => { showAddSubscriberModal = false }">Cancel</UButton>
           <UButton type="submit" :disabled="!addSubscriberId">Add</UButton>
         </div>
       </form>
@@ -217,7 +217,7 @@
           />
         </UFormField>
         <div class="flex justify-end gap-2 mt-2">
-          <UButton variant="outline" @click="showAddAdoptionModal = false">Cancel</UButton>
+          <UButton variant="outline" @click="() => { showAddAdoptionModal = false }">Cancel</UButton>
           <UButton type="submit" :disabled="!addAdoptionPeopleGroupId">Add</UButton>
         </div>
       </form>

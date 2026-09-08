@@ -10,7 +10,7 @@
           ← Back to Emails
         </NuxtLink>
         <div class="flex gap-2" v-if="isDraft">
-          <UButton @click="navigateTo('/admin/marketing/emails')" variant="outline">
+          <UButton @click="() => { navigateTo('/admin/marketing/emails') }" variant="outline">
             Cancel
           </UButton>
           <UButton @click="previewEmail" variant="outline" :disabled="!canPreview">
@@ -19,7 +19,7 @@
           <UButton @click="saveEmail" :loading="saving" :disabled="!canSave">
             Save Draft
           </UButton>
-          <UButton @click="showSendModal = true" :loading="sending" :disabled="!canSend" color="primary">
+          <UButton @click="() => { showSendModal = true }" :loading="sending" :disabled="!canSend" color="primary">
             Send Now
           </UButton>
         </div>
@@ -35,7 +35,7 @@
             variant="soft"
             icon="i-lucide-octagon-x"
             :loading="stopping"
-            @click="showStopModal = true"
+            @click="() => { showStopModal = true }"
           >
             Stop sending
           </UButton>
@@ -229,7 +229,7 @@
         </div>
       </template>
       <template #footer>
-        <UButton @click="showPreview = false">Close</UButton>
+        <UButton @click="() => { showPreview = false }">Close</UButton>
       </template>
     </UModal>
 

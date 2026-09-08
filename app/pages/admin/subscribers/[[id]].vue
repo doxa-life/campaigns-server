@@ -240,7 +240,7 @@
 
             <CrmFormSection title="Groups">
               <template #header-extra>
-                <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="showAddGroupModal = true">
+                <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="() => { showAddGroupModal = true }">
                   Add
                 </UButton>
               </template>
@@ -470,7 +470,7 @@
                 color="primary"
                 variant="soft"
                 icon="i-lucide-pen-line"
-                @click="showCompose = true"
+                @click="() => { showCompose = true }"
               >{{ $t('inbox.compose.newEmail') }}</UButton>
             </template>
             <div v-if="loadingConversations" class="activity-loading">
@@ -522,7 +522,7 @@
                     <UTextarea v-model="quickReplyText" :rows="2" :placeholder="$t('inbox.compose.placeholder')" class="w-full" />
                     <div class="qr-actions">
                       <UButton size="xs" color="primary" :loading="quickReplySending" :disabled="!quickReplyText.trim()" @click="sendQuickReply(conversation.id)">{{ $t('inbox.compose.send') }}</UButton>
-                      <UButton size="xs" variant="ghost" color="neutral" @click="quickReplyFor = null">{{ $t('common.cancel') }}</UButton>
+                      <UButton size="xs" variant="ghost" color="neutral" @click="() => { quickReplyFor = null }">{{ $t('common.cancel') }}</UButton>
                     </div>
                   </template>
                 </div>
@@ -640,7 +640,7 @@
           />
         </UFormField>
         <div class="flex justify-end gap-2 mt-2">
-          <UButton variant="outline" @click="showAddGroupModal = false">Cancel</UButton>
+          <UButton variant="outline" @click="() => { showAddGroupModal = false }">Cancel</UButton>
           <UButton type="submit" :disabled="!addGroupId">Add</UButton>
         </div>
       </form>
@@ -661,7 +661,7 @@
           <UInput v-model="createPersonForm.phone" type="tel" class="w-full" />
         </UFormField>
         <div class="flex justify-end gap-2 mt-2">
-          <UButton variant="outline" @click="showCreatePersonModal = false">Cancel</UButton>
+          <UButton variant="outline" @click="() => { showCreatePersonModal = false }">Cancel</UButton>
           <UButton type="submit" :loading="creatingPerson">Create</UButton>
         </div>
       </form>
