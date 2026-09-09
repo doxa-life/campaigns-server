@@ -339,6 +339,27 @@
         "notFound": "Subscription not found.",
         "failed": "Failed to save changes. Please try again."
       }
+    },
+    "optOutReason": {
+      "title": "Would you tell us why?",
+      "subtitle": "It helps us do better. You can skip this.",
+      "stoppedTitle": "Your {time} prayer time has been stopped",
+      "stoppedAllTitle": "Your reminders for {campaign} have been stopped",
+      "stoppedGenericTitle": "This prayer time has been stopped",
+      "skip": "Skip",
+      "send": "Send",
+      "sending": "Sending…",
+      "thanks": "Thank you, that helps.",
+      "otherPlaceholder": "Tell us more (optional)",
+      "charactersLeft": "{count} characters left",
+      "reason": {
+        "wrong_time": "The time didn't work for me",
+        "life_busy": "Life became busy",
+        "no_longer_praying": "I'm no longer praying",
+        "different_people_group": "I'm praying for a different people group",
+        "emails_only": "I'm still praying, I just don't want the emails",
+        "other": "Something else"
+      }
     }
   },
   "prayerFuel": {

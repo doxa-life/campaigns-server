@@ -407,6 +407,18 @@
                       />
                     </UFormField>
 
+                    <UFormField v-if="subscription.opt_out_reason" :label="getSubscriberFieldLabel('opt_out_reason')">
+                      <div class="field-display">
+                        {{ optOutReasonLabel(subscription.opt_out_reason) }}
+                        <span v-if="subscription.opt_out_reason_at" class="text-[var(--ui-text-dimmed)]">
+                          — {{ formatDateTime(subscription.opt_out_reason_at) }}
+                        </span>
+                      </div>
+                      <div v-if="subscription.opt_out_reason_text" class="field-display italic mt-1">
+                        “{{ subscription.opt_out_reason_text }}”
+                      </div>
+                    </UFormField>
+
                     <div class="subscription-actions">
                       <UButton
                         size="xs"
@@ -699,6 +711,8 @@ import type { FilterState } from '#shared/crm/filter-types'
 import { EMPTY_FILTER } from '#shared/crm/filter-types'
 import { decodeFilter, encodeFilter } from '#shared/crm/filter-codec'
 import { deriveSubscriberStatus, SUBSCRIBER_STATUS_LABELS, SUBSCRIBER_STATUS_COLORS } from '#shared/subscriber-status'
+
+const { optOutReasonLabel } = useOptOutReasonLabel()
 import { useSubscriberFilterManifest } from '~/utils/crm/subscriber-manifest'
 
 definePageMeta({
@@ -736,6 +750,9 @@ interface Subscription {
   utm_medium: string | null
   utm_campaign: string | null
   referrer: string | null
+  opt_out_reason: string | null
+  opt_out_reason_text: string | null
+  opt_out_reason_at: string | null
   created_at: string
   updated_at: string
 }

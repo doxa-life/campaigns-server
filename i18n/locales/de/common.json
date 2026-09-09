@@ -339,6 +339,27 @@
       "stopAllSuccess": "Alle Erinnerungen für {campaign} wurden gestoppt. Sie können sie jederzeit wieder starten.",
       "resumeRemindersButton": "Erinnerungen starten",
       "resumeSuccess": "Erinnerungen gestartet."
+    },
+    "optOutReason": {
+      "title": "Verraten Sie uns, warum?",
+      "subtitle": "Das hilft uns, besser zu werden. Sie können das überspringen.",
+      "stoppedTitle": "Ihre Gebetszeit um {time} wurde gestoppt",
+      "stoppedAllTitle": "Ihre Erinnerungen für {campaign} wurden gestoppt",
+      "stoppedGenericTitle": "Diese Gebetszeit wurde gestoppt",
+      "skip": "Überspringen",
+      "send": "Senden",
+      "sending": "Wird gesendet…",
+      "thanks": "Danke, das hilft uns.",
+      "otherPlaceholder": "Erzählen Sie uns mehr (optional)",
+      "charactersLeft": "Noch {count} Zeichen",
+      "reason": {
+        "wrong_time": "Die Uhrzeit hat für mich nicht gepasst",
+        "life_busy": "Der Alltag wurde zu voll",
+        "no_longer_praying": "Ich bete nicht mehr",
+        "different_people_group": "Ich bete für eine andere Volksgruppe",
+        "emails_only": "Ich bete weiterhin, ich möchte nur die E-Mails nicht",
+        "other": "Etwas anderes"
+      }
     }
   },
   "prayerFuel": {

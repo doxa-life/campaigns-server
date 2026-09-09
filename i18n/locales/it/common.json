@@ -339,6 +339,27 @@
       "stopAllSuccess": "Tutti i promemoria per {campaign} sono stati interrotti. Puoi riattivarli in qualsiasi momento.",
       "resumeRemindersButton": "Attiva promemoria",
       "resumeSuccess": "Promemoria attivati."
+    },
+    "optOutReason": {
+      "title": "Ci dici perché?",
+      "subtitle": "Ci aiuta a fare meglio. Puoi saltare questo passaggio.",
+      "stoppedTitle": "Il tuo orario di preghiera delle {time} è stato interrotto",
+      "stoppedAllTitle": "I tuoi promemoria per {campaign} sono stati interrotti",
+      "stoppedGenericTitle": "Questo orario di preghiera è stato interrotto",
+      "skip": "Salta",
+      "send": "Invia",
+      "sending": "Invio…",
+      "thanks": "Grazie, ci aiuta.",
+      "otherPlaceholder": "Raccontaci di più (facoltativo)",
+      "charactersLeft": "Restano {count} caratteri",
+      "reason": {
+        "wrong_time": "L'orario non andava bene per me",
+        "life_busy": "La vita è diventata troppo piena",
+        "no_longer_praying": "Non prego più",
+        "different_people_group": "Prego per un altro gruppo etnico",
+        "emails_only": "Prego ancora, semplicemente non voglio le email",
+        "other": "Altro"
+      }
     }
   },
   "prayerFuel": {

@@ -1337,6 +1337,84 @@ paths:
         '404':
           description: Subscriber, subscription, or people group not found
 
+  /api/subscriptions/opt-out-reason:
+    post:
+      tags:
+        - Profile
+      summary: Record why prayer times were muted or stopped
+      description: >
+        Records the reason a subscriber gave after muting or stopping one or more
+        prayer times. Always a follow-up to the opt-out itself, never a
+        precondition for it: the change has already been saved by the time this is
+        called, so answering is optional and a failure here can never leave someone
+        subscribed against their wish.
+
+
+        Identified by the subscriber's `profile_id` (UUID), the same self-service
+        token the stop endpoints use. Every id in `subscription_ids` is checked
+        against that subscriber before anything is written, and ids belonging to
+        anyone else are ignored.
+
+
+        `reason` is a key, not display text; the wording shown to people lives in
+        the app's translation files. `reason_text` is only stored alongside the
+        `other` key and is dropped for any fixed choice.
+      operationId: recordOptOutReason
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [profile_id, subscription_ids, reason]
+              properties:
+                profile_id:
+                  type: string
+                  format: uuid
+                  description: Subscriber profile_id
+                subscription_ids:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: integer
+                  description: >
+                    Prayer times the answer applies to. Stopping every prayer time
+                    for a people group at once records one answer against them all.
+                  example: [12, 13]
+                reason:
+                  type: string
+                  enum: [wrong_time, life_busy, no_longer_praying, different_people_group, emails_only, other]
+                  description: Reason key
+                  example: wrong_time
+                reason_text:
+                  type: string
+                  nullable: true
+                  maxLength: 300
+                  description: Free-text detail. Stored only when `reason` is `other`.
+      responses:
+        '200':
+          description: Reason recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  reason:
+                    type: string
+                  subscription_ids:
+                    type: array
+                    items:
+                      type: integer
+                    description: The prayer times the reason was written to
+        '400':
+          description: Missing profile id, unknown reason, no subscription ids, or reason text too long
+        '403':
+          description: None of the given subscriptions belong to this profile
+        '404':
+          description: Subscriber not found
+
   /api/collect/app:
     post:
       tags:

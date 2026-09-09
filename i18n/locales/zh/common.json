@@ -339,6 +339,27 @@
       "stopAllSuccess": "{campaign}的所有提醒已停止。您可以随时重新开启。",
       "resumeRemindersButton": "开启提醒",
       "resumeSuccess": "提醒已开启。"
+    },
+    "optOutReason": {
+      "title": "愿意告诉我们原因吗？",
+      "subtitle": "这有助于我们做得更好。您可以跳过。",
+      "stoppedTitle": "您{time}的祷告时间已停止",
+      "stoppedAllTitle": "您关于{campaign}的提醒已停止",
+      "stoppedGenericTitle": "此祷告时间已停止",
+      "skip": "跳过",
+      "send": "发送",
+      "sending": "发送中…",
+      "thanks": "谢谢，这对我们很有帮助。",
+      "otherPlaceholder": "告诉我们更多（选填）",
+      "charactersLeft": "还可输入 {count} 个字符",
+      "reason": {
+        "wrong_time": "这个时间不适合我",
+        "life_busy": "生活变得忙碌",
+        "no_longer_praying": "我不再祷告了",
+        "different_people_group": "我在为另一个族群祷告",
+        "emails_only": "我仍在祷告，只是不想收到邮件",
+        "other": "其他原因"
+      }
     }
   },
   "prayerFuel": {

@@ -339,6 +339,27 @@
       "stopAllSuccess": "Tous les rappels pour {campaign} ont été arrêtés. Vous pouvez les reprendre à tout moment.",
       "resumeRemindersButton": "Démarrer les rappels",
       "resumeSuccess": "Rappels démarrés."
+    },
+    "optOutReason": {
+      "title": "Voulez-vous nous dire pourquoi ?",
+      "subtitle": "Cela nous aide à faire mieux. Vous pouvez passer cette étape.",
+      "stoppedTitle": "Votre temps de prière de {time} a été arrêté",
+      "stoppedAllTitle": "Vos rappels pour {campaign} ont été arrêtés",
+      "stoppedGenericTitle": "Ce temps de prière a été arrêté",
+      "skip": "Passer",
+      "send": "Envoyer",
+      "sending": "Envoi…",
+      "thanks": "Merci, cela nous aide.",
+      "otherPlaceholder": "Dites-nous en plus (facultatif)",
+      "charactersLeft": "Il reste {count} caractères",
+      "reason": {
+        "wrong_time": "L'horaire ne me convenait pas",
+        "life_busy": "La vie est devenue trop chargée",
+        "no_longer_praying": "Je ne prie plus",
+        "different_people_group": "Je prie pour un autre peuple",
+        "emails_only": "Je prie toujours, je ne veux simplement plus les e-mails",
+        "other": "Autre chose"
+      }
     }
   },
   "prayerFuel": {

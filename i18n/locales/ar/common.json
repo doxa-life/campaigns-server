@@ -339,6 +339,27 @@
       "stopAllSuccess": "تم إيقاف جميع تذكيرات {campaign}. يمكنك تشغيلها مجدداً في أي وقت.",
       "resumeRemindersButton": "تشغيل التذكيرات",
       "resumeSuccess": "تم تشغيل التذكيرات."
+    },
+    "optOutReason": {
+      "title": "هل تخبرنا بالسبب؟",
+      "subtitle": "هذا يساعدنا على التحسّن. يمكنك تخطّي هذا.",
+      "stoppedTitle": "تم إيقاف وقت صلاتك في الساعة {time}",
+      "stoppedAllTitle": "تم إيقاف تذكيراتك الخاصة بـ {campaign}",
+      "stoppedGenericTitle": "تم إيقاف وقت الصلاة هذا",
+      "skip": "تخطّي",
+      "send": "إرسال",
+      "sending": "جارٍ الإرسال…",
+      "thanks": "شكراً لك، هذا يساعدنا.",
+      "otherPlaceholder": "أخبرنا المزيد (اختياري)",
+      "charactersLeft": "بقي {count} حرفاً",
+      "reason": {
+        "wrong_time": "لم يكن الوقت مناسباً لي",
+        "life_busy": "أصبحت الحياة مزدحمة",
+        "no_longer_praying": "لم أعد أصلّي",
+        "different_people_group": "أصلّي من أجل جماعة عرقية أخرى",
+        "emails_only": "ما زلت أصلّي، لكنني لا أريد رسائل البريد",
+        "other": "سبب آخر"
+      }
     }
   },
   "prayerFuel": {

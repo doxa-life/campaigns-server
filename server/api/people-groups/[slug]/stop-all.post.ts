@@ -32,10 +32,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Subscriber not found' })
   }
 
-  const stoppedCount = await peopleGroupSubscriptionService.stopPrayerForPeopleGroup(
+  const stoppedIds = await peopleGroupSubscriptionService.stopPrayerForPeopleGroup(
     subscriber.id,
     peopleGroup.id
   )
+  const stoppedCount = stoppedIds.length
 
   if (stoppedCount > 0) {
     logCreate('subscribers', String(subscriber.id), event, {
@@ -64,6 +65,9 @@ export default defineEventHandler(async (event) => {
   return {
     success: true,
     stopped_count: stoppedCount,
+    // The prayer times this stopped, so the caller can record one opt-out reason
+    // against exactly them.
+    stopped_subscription_ids: stoppedIds,
     people_group: { id: peopleGroup.id, title: peopleGroup.name, slug }
   }
 })

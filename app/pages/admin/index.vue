@@ -194,6 +194,55 @@
               </div>
             </div>
           </UCard>
+
+          <UCard v-if="optOutReasonRows.length" class="mt-6">
+            <template #header>
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <UIcon name="i-lucide-message-circle-question" class="text-[var(--ui-primary)] text-lg" />
+                  <span class="font-semibold">Why people stop</span>
+                </div>
+                <div class="flex gap-1">
+                  <UButton
+                    v-for="range in optOutRanges"
+                    :key="range.value"
+                    size="xs"
+                    :variant="optOutRange === range.value ? 'solid' : 'ghost'"
+                    color="neutral"
+                    @click="() => { optOutRange = range.value }"
+                  >
+                    {{ range.label }}
+                  </UButton>
+                </div>
+              </div>
+            </template>
+            <div class="flex flex-col gap-2">
+              <div
+                v-for="entry in optOutReasonRows"
+                :key="entry.reason"
+                class="flex items-center gap-3"
+              >
+                <span
+                  class="text-xs text-[var(--ui-text-dimmed)] w-28 text-right shrink-0 truncate"
+                  :title="optOutReasonLabel(entry.reason)"
+                >
+                  {{ optOutReasonLabel(entry.reason) }}
+                </span>
+                <div class="flex-1">
+                  <div
+                    class="h-6 rounded bg-[var(--ui-primary)] opacity-80 transition-all duration-500"
+                    :style="{ width: optOutBarWidth(entry.people) }"
+                  />
+                </div>
+                <span class="text-xs font-semibold w-10 shrink-0 tabular-nums">{{ entry.people }}</span>
+              </div>
+            </div>
+            <p class="text-xs text-[var(--ui-text-dimmed)] mt-3">
+              People, not prayer times. Muting records its own reason every time, while
+              the rest are answered only when someone chooses to, so the muting bar
+              reflects fuller data than the others rather than a larger group.
+            </p>
+          </UCard>
         </div>
       </div>
     </template>
@@ -690,6 +739,34 @@ const { data: subscribersData, status: subscribersStatus } = useFetch('/api/admi
 const { data: subscribersDaily } = useFetch<{ date: string; subscribed: number; unsubscribed: number }[]>('/api/admin/dashboard/subscribers-daily')
 const { data: pgSubscribers } = useFetch<{ id: number; name: string; slug: string; subscriber_count: number }[]>('/api/admin/dashboard/people-group-subscribers')
 const { data: prayerEngagement } = useFetch('/api/admin/dashboard/prayer-engagement')
+
+interface OptOutReasonRow { reason: string; people: number }
+const { data: optOutReasons } = useFetch<{
+  last_30_days: OptOutReasonRow[]
+  since_launch: OptOutReasonRow[]
+}>('/api/admin/dashboard/opt-out-reasons')
+
+const { optOutReasonLabel } = useOptOutReasonLabel()
+
+// "Since launch" rather than all time: prayer times stopped before opt-out reasons
+// shipped carry none and are absent from both ranges.
+const optOutRanges = [
+  { label: '30 days', value: '30d' },
+  { label: 'Since launch', value: 'launch' }
+]
+const optOutRange = ref('30d')
+
+const optOutReasonRows = computed<OptOutReasonRow[]>(() =>
+  (optOutRange.value === '30d'
+    ? optOutReasons.value?.last_30_days
+    : optOutReasons.value?.since_launch) || []
+)
+
+function optOutBarWidth(people: number): string {
+  const max = Math.max(1, optOutReasonRows.value[0]?.people ?? 1)
+  if (people === 0) return '0%'
+  return `${Math.max((people / max) * 100, 2)}%`
+}
 
 interface PrayerLocations {
   window: string
