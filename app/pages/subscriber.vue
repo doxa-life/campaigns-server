@@ -261,15 +261,6 @@
               </UFormField>
             </div>
 
-            <UFormField :label="$t('campaign.signup.form.duration.label')">
-              <USelect
-                v-model="reminderForms[item.reminder.id]!.prayer_duration"
-                :items="durationOptions"
-                required
-                class="w-full"
-              />
-            </UFormField>
-
             <!-- Add to Calendar -->
             <AddToCalendar
               v-if="item.reminder.calendar_urls"
@@ -456,7 +447,6 @@ interface ReminderFormState {
   days_of_week: number[]
   time_preference: string
   timezone: string
-  prayer_duration: number
 }
 const reminderForms = ref<Record<number, ReminderFormState>>({})
 
@@ -496,8 +486,7 @@ watch(data, (newData) => {
         frequency: reminder.frequency,
         days_of_week: [...(reminder.days_of_week || [])],
         time_preference: reminder.time_preference,
-        timezone: reminder.timezone,
-        prayer_duration: reminder.prayer_duration
+        timezone: reminder.timezone
       }
     }
   }
@@ -508,15 +497,6 @@ watch(data, (newData) => {
 const frequencyOptions = computed(() => [
   { value: 'daily', label: t('campaign.signup.form.frequency.daily') },
   { value: 'weekly', label: t('campaign.signup.form.frequency.weekly') }
-])
-
-// Prayer duration options
-const durationOptions = computed(() => [
-  { value: 5, label: t('campaign.signup.form.duration.5min') },
-  { value: 10, label: t('campaign.signup.form.duration.10min') },
-  { value: 15, label: t('campaign.signup.form.duration.15min') },
-  { value: 30, label: t('campaign.signup.form.duration.30min') },
-  { value: 60, label: t('campaign.signup.form.duration.60min') }
 ])
 
 // Days of week
@@ -619,8 +599,7 @@ async function saveReminder(reminder: any, pgGroup: any) {
         frequency: form.frequency,
         days_of_week: form.days_of_week,
         time_preference: form.time_preference,
-        timezone: form.timezone,
-        prayer_duration: form.prayer_duration
+        timezone: form.timezone
       }
     })
 
