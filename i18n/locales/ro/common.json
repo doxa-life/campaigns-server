@@ -788,7 +788,8 @@
     "source": {
       "contact_form": "Formular de contact",
       "inbound_email": "E-mail",
-      "staff": "Echipă"
+      "staff": "Echipă",
+      "feedback": "Feedback"
     },
     "unassigned": "Neatribuită",
     "assignedTo": "Atribuită lui {name}",

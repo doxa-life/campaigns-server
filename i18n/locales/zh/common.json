@@ -787,7 +787,8 @@
     "source": {
       "contact_form": "联系表单",
       "inbound_email": "电子邮件",
-      "staff": "团队"
+      "staff": "团队",
+      "feedback": "反馈"
     },
     "unassigned": "未分配",
     "assignedTo": "已分配给 {name}",

@@ -8,7 +8,7 @@ Each people group has a public-facing page where visitors learn about the group 
 
 The page is a long-form layout with several sections:
 
-**People group information** — A large image, the group's name, and a description. A "Find Out More" link leads to external research resources.
+**People group information** — A large image, the group's name, and a description. A "See full profile" link leads to external research resources. Next to the main signup button sits a **Share this page** button offering the same sharing tools as the header.
 
 **Key statistics** — A grid showing the group's country, population, language, religion, engagement status, and existing churches. An interactive map shows the geographic location.
 
@@ -48,7 +48,13 @@ Returning subscribers who have already verified their email skip this step — t
 
 ## Sharing
 
-The page includes sharing tools in the header:
+The page includes sharing tools in the header and beside the signup button:
 
 - **QR Code** — Opens a modal with a QR code for the page URL. Useful for printing on flyers, bulletins, or prayer guides so people can scan and sign up.
 - **Share link** — On mobile, opens the device's native share sheet. On desktop, copies the page URL to the clipboard.
+
+## Where Signups Come From
+
+Nothing on the form changes for the visitor, but each signup records where the person came from. When someone arrives through a link carrying campaign tags (the standard "utm" parameters) or from another website, that first touch is remembered in their browser for 90 days and attached to any signup they make. Direct visits and browsing within the site do not overwrite it. Signing up again through a tagged link re-attributes the subscription; a direct re-signup keeps the original.
+
+In the admin, the source appears on each subscription in the contact's detail panel, as a **Signup Source** filter on the Contacts page, and as the **Signups by Source** chart on the dashboard.

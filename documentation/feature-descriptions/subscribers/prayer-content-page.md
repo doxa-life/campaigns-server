@@ -8,6 +8,8 @@ The prayer content page is where subscribers go to pray. They reach it by clicki
 
 **Date navigation** — The current date is shown at the top with arrows to browse previous days. You cannot navigate to future dates.
 
+**People praying with you** — Under the date, a line such as "12 people praying with you now" shows how many people are praying on the platform at that moment. See below for how it is counted.
+
 **Prayer content** — The main body displays content from the libraries assigned to the people group. Each section has a title and rich text content (scripture, prayer points, reflections). Sections end with a "Pause and Pray" prompt encouraging the reader to stop and pray before continuing.
 
 Content types that may appear:
@@ -29,7 +31,14 @@ Prayer time is also saved automatically in the background while the visitor is o
 
 Below the main content, a row of date buttons shows the previous 7 days. Clicking any date loads that day's prayer content, allowing subscribers to catch up on days they missed.
 
+## People Praying With You Now
+
+The count is site-wide: it includes everyone with a prayer content page open anywhere on the platform, for any people group, on the web or in the mobile app, whether or not they are a known subscriber. A person is counted while their page has reported activity in the last five minutes. Because the page reports automatically for the first fifteen minutes, someone who stays longer drops out of the count after that, and someone who leaves is still counted for up to five minutes.
+
+The figure is a snapshot that can be up to five minutes old and does not refresh while the page is open. The viewer is not subtracted from it. When nobody is praying, or the figure cannot be loaded, the line is hidden rather than showing zero.
+
 ## Current Limitations
 
 - No way to view content more than 7 days in the past from the page itself
 - Content language is determined by the site language setting, not the subscriber's preference
+- The "praying with you" count is global, not specific to the people group being prayed for

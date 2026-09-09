@@ -787,7 +787,8 @@
     "source": {
       "contact_form": "نموذج الاتصال",
       "inbound_email": "بريد إلكتروني",
-      "staff": "الفريق"
+      "staff": "الفريق",
+      "feedback": "ملاحظات"
     },
     "unassigned": "غير مُسندة",
     "assignedTo": "مُسندة إلى {name}",

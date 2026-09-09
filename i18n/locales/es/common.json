@@ -787,7 +787,8 @@
     "source": {
       "contact_form": "Formulario de contacto",
       "inbound_email": "Correo electrónico",
-      "staff": "Equipo"
+      "staff": "Equipo",
+      "feedback": "Comentarios"
     },
     "unassigned": "Sin asignar",
     "assignedTo": "Asignada a {name}",

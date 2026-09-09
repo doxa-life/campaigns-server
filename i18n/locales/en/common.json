@@ -788,7 +788,8 @@
     "source": {
       "contact_form": "Contact form",
       "inbound_email": "Email",
-      "staff": "Staff"
+      "staff": "Staff",
+      "feedback": "Feedback"
     },
     "unassigned": "Unassigned",
     "assignedTo": "Assigned to {name}",

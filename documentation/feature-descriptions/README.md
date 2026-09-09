@@ -39,17 +39,27 @@ If someone needs those details, they can look at the code directly.
 ### adoption/ — People group adoption
 - [People Group Adoption](adoption/adoption.md) — Adoption forms, groups, reports, and reminders
 
+### suggestions/ — Field-sourced corrections to the people group list
+- [People Group Suggestions](suggestions/people-group-suggestions.md) — The public /updates form, reporter verification, two-approver review, and applying changes
+
 ### admin/ — Admin tools and team management
-- [Admin Dashboard](admin/admin-dashboard.md) — Landing page stats and charts
+- [Admin Dashboard](admin/admin-dashboard.md) — Landing page stats, charts, and the prayer map
 - [People Groups](admin/people-groups-admin.md) — Managing people group records
 - [Groups](admin/groups-admin.md) — Managing churches and organizations
 - [Subscribers](admin/subscribers-admin.md) — Managing contacts and subscriptions
+- [Churches](admin/churches.md) — Directory of congregations, CSV import, location lookup, and map
+- [Shared Inbox](admin/inbox.md) — Two-way email inbox, triage, AI draft replies, and knowledge base
 - [Comments & Mentions](admin/comments-and-mentions.md) — Team collaboration on records
 - [User Management](admin/user-management.md) — Inviting users and assigning roles
-- [Permissions](admin/permissions.md) — Roles and access control
+- [Permissions](admin/permissions.md) — Roles, scoping, and access control
 - [Activity Summary Emails](admin/activity-summary-emails.md) — Periodic platform metrics reports
 - [Contact Form](admin/contact-form.md) — Processing submissions from doxa.life
 
 ### campaign-setup/ — Campaign configuration
 - [People Group Start Date](campaign-setup/people-group-start-date.md) — Global launch date for prayer campaigns
-- [Marketing](campaign-setup/marketing.md) — Marketing consent system
+- [Marketing](campaign-setup/marketing.md) — Marketing consent, audiences, senders, and sending emails
+- [Surveys](campaign-setup/surveys.md) — Subscriber surveys, responses, and export
+
+### integrations/ — Other systems that talk to this server
+- [Mobile App Integration](integrations/mobile-app.md) — Anonymous signup, content, sessions, version check, push, analytics, and deep links
+- [Public API & API Keys](integrations/public-api.md) — What the API offers, how callers authenticate, and managing keys

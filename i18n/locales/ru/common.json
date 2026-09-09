@@ -787,7 +787,8 @@
     "source": {
       "contact_form": "Контактная форма",
       "inbound_email": "Эл. почта",
-      "staff": "Команда"
+      "staff": "Команда",
+      "feedback": "Отзыв"
     },
     "unassigned": "Не назначено",
     "assignedTo": "Назначено: {name}",
