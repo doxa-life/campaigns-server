@@ -146,12 +146,14 @@ useContextChatScript()
 
 const contextChatEnabled = computed(() => !!config.public.contextWidgetClientId)
 
+const contextChatAppName = computed(() => String(config.public.appName || 'us'))
+
 const contextChatConfig = computed(() => JSON.stringify({
   clientId: config.public.contextWidgetClientId,
   apiBase: config.public.contextApiBase,
   tokenUrl: '/api/context-widget/token',
-  title: 'Ask about Doxa',
-  greeting: 'Ask a question about how Doxa works and I\'ll answer from the team\'s context.'
+  title: `Ask about ${contextChatAppName.value}`,
+  greeting: `Ask a question about how ${contextChatAppName.value} works and I'll answer from the team's context.`
 }))
 
 const route = useRoute()
