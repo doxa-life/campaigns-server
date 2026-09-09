@@ -45,7 +45,6 @@ All active reminders are grouped by people group. For each reminder, subscribers
 - Which days (for weekly reminders)
 - What time reminders arrive
 - Their timezone
-- Their chosen prayer duration
 
 Clicking "Edit" on any reminder opens a form to change these settings. Changes save when clicking "Save Changes" or are discarded with "Cancel."
 
@@ -73,7 +72,7 @@ Each people group section includes a "View Campaign" link that goes to the peopl
 
 **Contact-level settings** (marketing consent) are tied to the email address. If someone has verified multiple email addresses, each has its own consent settings.
 
-**Subscription-level settings** (frequency, time, timezone, duration) are specific to each reminder. A subscriber can have different settings for different reminders, even within the same people group.
+**Subscription-level settings** (frequency, time, timezone) are specific to each reminder. A subscriber can have different settings for different reminders, even within the same people group.
 
 ## Design Decisions
 

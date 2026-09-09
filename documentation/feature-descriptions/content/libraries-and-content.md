@@ -73,7 +73,7 @@ In addition to regular libraries that contain authored content, the system has b
 
 **Daily People Group** — Rotates through all people groups in the system, showing a different one each day. Each people group's subscribers see a different rotation based on an offset, ensuring variety. The rotation order is deterministic so everyone sees the same group on the same day.
 
-**Day in the Life** — Displays contextual content about daily life in the region of the people group being prayed for.
+**Day in the Life** — Displays the day's entry from the people group's own 365-day Day in the Life library. Each group has one, produced by the Day in the Life pipeline and attached to that group, so this row shows different content on every people group's page.
 
 Virtual libraries cannot be edited, exported, or imported — their content is generated automatically.
 

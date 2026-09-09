@@ -40,7 +40,7 @@ This counts active subscriptions—people who signed up to receive prayer remind
 
 #### Committed Duration
 
-This shows the total daily prayer time pledged by all active subscribers combined. When someone signs up, they choose how long they'll pray (e.g., 10 minutes). This metric sums all those commitments.
+This shows the total daily prayer time pledged by all active subscribers combined. Each subscription carries a prayer duration: five minutes for a web signup, ten minutes for an app signup with a reminder time. Subscribers cannot change it. This metric sums all those commitments.
 
 For example, if 5 people each committed to pray 10 minutes daily, this shows "50m pledged."
 

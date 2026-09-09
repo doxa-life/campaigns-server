@@ -19,6 +19,10 @@ These documents should not include:
 
 If someone needs those details, they can look at the code directly.
 
+## Keeping the portfolio in sync
+
+These files are the source of truth and are mirrored in the DOXA FEATURES portfolio at https://apps.gospelambition.org/@doxa/context/, one page per file, each opening with a line that names its source file. When you change a document here, update its portfolio page with the same text. Edit here first, never only in the portfolio.
+
 ## Contents
 
 ### content/ — Creating and managing prayer content

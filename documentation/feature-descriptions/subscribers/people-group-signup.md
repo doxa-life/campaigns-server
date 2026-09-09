@@ -25,9 +25,10 @@ The form has two sections:
 ### Prayer preferences
 
 - **Frequency** — Daily or weekly. Weekly subscribers choose which days of the week.
-- **Duration** — How long they plan to pray: 5, 10, 15, 30 minutes, or 1 hour.
 - **Reminder time** — What time of day they want their reminder.
 - **Timezone** — Auto-detected, with a searchable dropdown to change it.
+
+The form does not ask how long they will pray. Every signup is recorded as a five-minute daily commitment.
 
 ### Contact information
 

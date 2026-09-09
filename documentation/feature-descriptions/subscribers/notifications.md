@@ -20,7 +20,7 @@ Users sign up for reminders through a people-group-specific signup form. They pr
 
 **Timezone** - Automatically detected but can be changed. The system converts their preferred time to UTC for scheduling.
 
-**Prayer Duration** - How long they intend to pray (5, 10, 15, 30, or 60 minutes). This is shown in the reminder email.
+**Prayer Duration** - Not asked on the form and not editable on the profile page. Every web signup is recorded as five minutes. It feeds the commitment statistics and the calendar event; the reminder email does not mention it.
 
 Users can have up to 5 active reminders per people group, allowing different schedules for different days or times.
 
@@ -74,7 +74,7 @@ Each reminder email includes:
 
 - Personalized greeting with the subscriber's name
 - The people group title
-- Their chosen prayer duration ("It's time for your 15-minute prayer session")
+- A line saying it is time for their prayer session
 - A button linking to the people group's prayer content
 - Links to manage preferences or unsubscribe
 
@@ -95,7 +95,7 @@ This serves two purposes: preventing duplicate sends on the same day, and provid
 **Profile Page** - Accessible via a personalized link in their emails, users can:
 - View all their subscriptions across people groups
 - Update their name or email (email change triggers re-verification)
-- Modify any subscription's frequency, time, timezone, or prayer duration
+- Modify any subscription's frequency, time, or timezone
 - Delete individual subscriptions
 
 **Unsubscribe Page** - When clicking unsubscribe in an email:

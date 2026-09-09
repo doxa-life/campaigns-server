@@ -15,7 +15,7 @@ The prayer content page is where subscribers go to pray. They reach it by clicki
 Content types that may appear:
 
 - **People Group card** — Information about a featured people group, including image, name, country, population, language, religion, and an interactive map.
-- **Day in the Life** — A section describing daily life for people in the region.
+- **Day in the Life** — The day's prompt from the people group's own 365-day Day in the Life library, pairing a detail of the group's daily life with something to pray.
 - **Scripture** — Bible verses displayed in a highlighted block.
 - **Prayer points** — Guided prompts for prayer.
 

@@ -1,5 +1,7 @@
 # Onboarding New People Groups
 
+*This file is the source of truth. It is mirrored as the "Onboarding New People Groups" page of the DOXA TECH portfolio at https://apps.gospelambition.org/@doxa/context/. After editing here, update that page with the same text.*
+
 A developer runs this about once a month. It takes a new people group from "someone told us about it" or "IMB published it" to a live prayer campaign with a description in every language, a 365-day Day in the Life library, and the adoption assets queued for the designer.
 
 New groups arrive two ways:

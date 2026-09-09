@@ -283,3 +283,5 @@ Reference documentation in `documentation/` folder:
 - `nuxt-ui-modals.md` - Modal implementation patterns
 - `wysiwyg-editor.md` - Tiptap editor implementation
 - `nuxt-4x-*.md` - Nuxt 4.x framework documentation
+
+Team-facing docs are written here and mirrored to the Doxa context portfolios (apps-context MCP, org `doxa`). The repo copy is the source of truth because it is publicly shareable. After editing a file in `documentation/feature-descriptions/`, push the same text to its section in the DOXA FEATURES portfolio; after editing `documentation/onboarding-new-people-groups.md`, push it to the page of the same name in DOXA TECH. Each portfolio page opens with a line naming its source file. Use `update_section` so the two stay in sync.
