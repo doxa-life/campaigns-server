@@ -22,13 +22,13 @@ export const LANGUAGES: Language[] = [
   { code: 'es', name: 'Spanish', nativeName: 'Español', flag: '🇪🇸', bibleId: 'NVI' }, //RV1960
   { code: 'fr', name: 'French', nativeName: 'Français', flag: '🇫🇷', bibleId: 'FRLSG', bibleLabel: 'LSG' }, //maybe BDS
   { code: 'pt', name: 'Portuguese', nativeName: 'Português', flag: '🇵🇹', bibleId: 'NAA', translationName: 'Brazilian Portuguese' },
-  { code: 'de', name: 'German', nativeName: 'Deutsch', flag: '🇩🇪', bibleId: 'S00', bibleLabel: 'SCH2000', enabled: false },
-  { code: 'it', name: 'Italian', nativeName: 'Italiano', flag: '🇮🇹', bibleId: 'NR06', enabled: false },
-  { code: 'zh', name: 'Chinese', nativeName: '中文', flag: '🇨🇳', bibleId: 'CUNPS', translationName: 'Simplified Chinese', enabled: false },
+  { code: 'de', name: 'German', nativeName: 'Deutsch', flag: '🇩🇪', bibleId: 'S00', bibleLabel: 'SCH2000' },
+  { code: 'it', name: 'Italian', nativeName: 'Italiano', flag: '🇮🇹', bibleId: 'NR06' },
+  { code: 'zh', name: 'Chinese', nativeName: '中文', flag: '🇨🇳', bibleId: 'CUNPS', translationName: 'Simplified Chinese' },
   { code: 'ar', name: 'Arabic', nativeName: 'العربية', flag: '🇸🇦', dir: 'rtl', bibleId: 'SVD', translationName: 'Modern Standard Arabic' }, // NAV (New Arabic Version) would be better but not on Bolls
   { code: 'ru', name: 'Russian', nativeName: 'Русский', flag: '🇷🇺', bibleId: 'SYNOD' }, // NRT (New Russian Translation) is a modern alternative
-  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', flag: '🇮🇳', bibleId: 'HIOV', bibleLabel: 'OV', enabled: false },
-  { code: 'ro', name: 'Romanian', nativeName: 'Română', flag: '🇷🇴', bibleId: 'NTR', enabled: false },
+  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', flag: '🇮🇳', bibleId: 'HIOV', bibleLabel: 'OV' },
+  { code: 'ro', name: 'Romanian', nativeName: 'Română', flag: '🇷🇴', bibleId: 'NTR' },
 ]
 
 // All language codes

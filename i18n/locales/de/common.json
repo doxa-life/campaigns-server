@@ -548,6 +548,40 @@
       "verifierEmailSame": "Die bestätigende Person muss jemand anderes sein als Sie"
     }
   },
+  "feedback": {
+    "pageTitle": "Feedback senden",
+    "heading": "Senden Sie uns Ihr Feedback",
+    "intro": "Wir freuen uns, von Ihnen zu hören — erzählen Sie uns, was Ihnen gefällt, teilen Sie einen Vorschlag mit oder melden Sie ein Problem.",
+    "typeLabel": "Um welche Art von Feedback handelt es sich?",
+    "type": {
+      "compliment": "Lob",
+      "suggestion": "Vorschlag",
+      "problem": "Problem"
+    },
+    "nameLabel": "Name",
+    "namePlaceholder": "Ihr Name (optional)",
+    "emailLabel": "E-Mail",
+    "emailPlaceholder": "Geben Sie Ihre E-Mail-Adresse ein",
+    "messageLabel": "Nachricht",
+    "messagePlaceholder": "Erzählen Sie uns mehr…",
+    "consentLabel": "Ich möchte E-Mail-Updates von der DOXA-Partnerschaft erhalten.",
+    "submit": "Feedback senden",
+    "submitting": "Wird gesendet…",
+    "success": {
+      "title": "Vielen Dank!",
+      "message": "Ihr Feedback ist bei uns eingegangen. Wir wissen es sehr zu schätzen, dass Sie sich die Zeit genommen haben."
+    },
+    "error": {
+      "title": "Etwas ist schiefgelaufen",
+      "message": "Wir konnten Ihr Feedback nicht senden. Bitte versuchen Sie es erneut.",
+      "rateLimited": "Sie haben vor Kurzem Feedback gesendet. Bitte versuchen Sie es etwas später noch einmal."
+    },
+    "validation": {
+      "email": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+      "message": "Bitte geben Sie eine Nachricht ein.",
+      "type": "Bitte wählen Sie eine Feedback-Art."
+    }
+  },
   "adoption": {
     "verify": {
       "pageTitle": "Adoption Bestätigen",

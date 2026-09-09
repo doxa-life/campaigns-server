@@ -24,7 +24,7 @@ If someone needs those details, they can look at the code directly.
 ### content/ — Creating and managing prayer content
 - [Libraries & Content](content/libraries-and-content.md) — How libraries work, content editing, Bible verses, virtual libraries
 - [Library Import & Export](content/library-import-export.md) — Moving libraries between environments
-- [Content Translation](content/content-translation.md) — Translating content with DeepL
+- [Content Translation](content/content-translation.md) — Translating content with an AI model through OpenRouter
 - [Prayer Fuel: People Groups](content/prayer-fuel-people-groups.md) — Virtual libraries that display people group info
 
 ### subscribers/ — Subscriber lifecycle and communication

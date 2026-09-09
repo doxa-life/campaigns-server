@@ -2,7 +2,7 @@
 
 ## Overview
 
-The translation feature lets you automatically translate prayer content into multiple languages using DeepL, a professional translation service. Rather than manually translating each day's content, you can translate individual items or entire libraries with a few clicks.
+The translation feature lets you automatically translate prayer content into multiple languages using an AI language model accessed through OpenRouter. Rather than manually translating each day's content, you can translate individual items or entire libraries with a few clicks.
 
 This dramatically reduces the effort needed to make content available in all eleven supported languages: English, Spanish, French, Portuguese, German, Italian, Chinese, Arabic, Russian, Hindi, and Romanian.
 
@@ -38,7 +38,7 @@ When you click any translate button, a dialog opens asking you to choose options
 
 **Translate from** - Select which language to use as the source. The dropdown only shows languages that have content available.
 
-**Translate to** - Shows which language or languages will receive translations. For individual translations, this might be one language. For bulk translations, it's all nine other languages.
+**Translate to** - Shows which language or languages will receive translations. For individual translations, this might be one language. For bulk translations, it's all ten other languages.
 
 **Overwrite existing translations** - If the target language already has content, this checkbox appears. Check it to replace existing translations with fresh ones. Leave it unchecked to skip languages that already have translations.
 
@@ -63,7 +63,7 @@ If you start a bulk translation and change your mind, click Cancel in the progre
 
 The translator handles rich text content intelligently:
 
-**Text is translated** - All paragraphs, headings, list items, and other text content goes through DeepL's translation service.
+**Text is translated** - All paragraphs, headings, list items, and other text content is sent to the translation model through OpenRouter, together with the target language's glossary.
 
 **Formatting is preserved** - Bold, italic, links, lists, headings, and other formatting carry over to the translated version. The structure of your content stays intact.
 
@@ -73,21 +73,21 @@ The translator handles rich text content intelligently:
 
 ## Translation Quality
 
-Translations use DeepL's quality-optimized model, which prioritizes accuracy over speed. DeepL is known for producing natural-sounding translations that read well, though as with any automated translation, the results may occasionally need minor adjustments for context or terminology specific to prayer content.
+Translations are produced by a large language model. A superadmin chooses which model in the superadmin settings, and every request carries the language's glossary so terminology stays consistent. As with any automated translation, the results may occasionally need minor adjustments for context or terminology specific to prayer content.
 
 We recommend having a native speaker review important translations, especially for content that will reach many subscribers.
 
 ## When Translations Happen
 
-**Individual translations** run immediately. The system calls DeepL's API directly and returns results within seconds. You'll see a confirmation message showing how many languages were translated successfully.
+**Individual translations** run immediately. The system calls OpenRouter directly and returns results within seconds. You'll see a confirmation message showing how many languages were translated successfully.
 
-**Bulk translations** are queued and processed in the background. The system works through translations steadily, with small pauses between each to respect DeepL's rate limits. A library with 365 days translating to 9 languages means over 3,000 individual translations, which can take a few hours to complete.
+**Bulk translations** are queued and processed in the background. The system works through translations steadily, with small pauses between each to respect the provider's rate limits. A library with 365 days translating to 10 languages means over 3,000 individual translations, which can take a few hours to complete.
 
 You don't need to keep the page open for bulk translations to continue. They'll process in the background and be ready when you return.
 
 ## Handling Failures
 
-Sometimes translations fail—DeepL might be temporarily unavailable, or there could be an issue with specific content. The system handles this gracefully:
+Sometimes translations fail: OpenRouter or the model might be temporarily unavailable, or there could be an issue with specific content. The system handles this gracefully:
 
 **Automatic retries** - Failed translations are retried up to three times before being marked as failed.
 
@@ -95,7 +95,7 @@ Sometimes translations fail—DeepL might be temporarily unavailable, or there c
 
 **Clear reporting** - The progress window shows exactly how many translations failed. For individual translations, you'll see which specific languages had issues.
 
-If translations consistently fail, check that DeepL is configured correctly in the system settings or contact your administrator.
+If translations consistently fail, check that the OpenRouter key and translation model are configured correctly in the superadmin settings or contact your administrator.
 
 ## Who Can Translate
 
@@ -103,7 +103,7 @@ Translation requires content editing permissions. Admins can translate any libra
 
 ## Design Decisions
 
-**DeepL for quality** - We chose DeepL over other translation services because it consistently produces more natural, readable translations, especially for the kind of reflective content found in prayer materials.
+**One AI provider** - Translation goes through the same OpenRouter connection as every other AI feature in the app, so one key covers everything and the model can be switched in settings without a code change. The glossary travels with every request rather than living in a provider-specific glossary feature.
 
 **Background processing for bulk** - Translating an entire library synchronously would time out and block the interface. Running translations as background jobs lets you continue working and handles large libraries reliably.
 
@@ -113,10 +113,10 @@ Translation requires content editing permissions. Admins can translate any libra
 
 ## Current Limitations
 
-- DeepL must be configured by an administrator before translations work
+- An OpenRouter key must be configured by an administrator before translations work
 - Cannot translate from multiple source languages at once (pick one source language per translation)
 - No way to edit translations inline during the translation process—translate first, then edit if needed
 - Bulk translation progress is lost if you navigate away and return (translations continue, but you won't see the progress window)
 - Cannot resume or retry specific failed translations from the progress window—close and start a new translation
 - Very large content items may time out on individual translation (use bulk translation instead)
-- Translation uses DeepL glossaries for consistent terminology, but custom glossary edits require updating the glossary files manually
+- Translation uses the built-in per-language glossaries for consistent terminology, but glossary edits require updating the glossary files in code

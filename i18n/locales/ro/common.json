@@ -548,6 +548,40 @@
       "verifierEmailSame": "Verificatorul trebuie să fie altcineva decât tine"
     }
   },
+  "feedback": {
+    "pageTitle": "Trimite feedback",
+    "heading": "Trimite-ne feedbackul tău",
+    "intro": "Ne-ar plăcea să auzim de la tine — spune-ne ce îți place, împărtășește o sugestie sau semnalează o problemă.",
+    "typeLabel": "Ce fel de feedback este acesta?",
+    "type": {
+      "compliment": "Apreciere",
+      "suggestion": "Sugestie",
+      "problem": "Problemă"
+    },
+    "nameLabel": "Nume",
+    "namePlaceholder": "Numele tău (opțional)",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Introdu emailul tău",
+    "messageLabel": "Mesaj",
+    "messagePlaceholder": "Spune-ne mai multe…",
+    "consentLabel": "Aș dori să primesc noutăți prin email de la parteneriatul DOXA.",
+    "submit": "Trimite feedback",
+    "submitting": "Se trimite…",
+    "success": {
+      "title": "Mulțumim!",
+      "message": "Am primit feedbackul tău. Apreciem cu adevărat timpul pe care ni l-ai acordat."
+    },
+    "error": {
+      "title": "Ceva nu a mers bine",
+      "message": "Nu am putut trimite feedbackul tău. Te rugăm să încerci din nou.",
+      "rateLimited": "Ai trimis feedback recent. Te rugăm să încerci din nou puțin mai târziu."
+    },
+    "validation": {
+      "email": "Te rugăm să introduci o adresă de email validă.",
+      "message": "Te rugăm să introduci un mesaj.",
+      "type": "Te rugăm să alegi un tip de feedback."
+    }
+  },
   "adoption": {
     "verify": {
       "pageTitle": "Verifică adoptarea",
@@ -623,6 +657,11 @@
     "welcome": {
       "subject": "Bun venit la {appName} - {campaign}",
       "header": "Bun venit la {appName}",
+      "doxaMeaning": "În greacă, doxa înseamnă „slavă”, și exact asta oferim atunci când ne unim în rugăciune pentru milioanele de oameni care trăiesc cu puțină sau nicio mărturie a Evangheliei. Împreună, Îi aducem slavă lui Dumnezeu printr-o rugăciune credincioasă și plină de așteptare.",
+      "reminderExplanation": "Ca parte a acestei campanii de rugăciune, vei începe în curând să primești emailuri memento cu linkuri către conținutul zilnic de rugăciune. Fiecare link va include subiecte de rugăciune ghidate și alte materiale care te vor ajuta să te rogi strategic și cu credincioșie pentru grupul etnic neangajat pe care l-ai ales.",
+      "sharedGoal": "Prin această mișcare, scopul nostru comun este să vedem peste 100 de oameni rugându-se zilnic pentru fiecare dintre cele peste 2.000 de grupuri etnice neangajate, bărbați și femei trimiși să ajungă la aceste grupuri etnice cu Evanghelia până în anul 2033, și dăruire susținută pentru a sprijini acest efort.",
+      "closing": "Suntem profund recunoscători să ne alăturăm întregii Biserici în efortul de a duce întreaga Evanghelie în întreaga lume.",
+      "reminderTimeNote": "Memento-ul tău zilnic este setat pentru {time}.",
       "thankYou": "Mulțumim că te-ai înscris pentru rugăciune. Emailul tău a fost verificat și ești pregătit să primești memento-uri de rugăciune pentru {campaign}.",
       "startPraying": "Începe rugăciunea",
       "profileInstructions": "Poți actualiza detaliile profilului și notificările aici:",

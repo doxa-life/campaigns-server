@@ -548,6 +548,40 @@
       "verifierEmailSame": "核实人必须是您以外的人"
     }
   },
+  "feedback": {
+    "pageTitle": "发送反馈",
+    "heading": "向我们发送您的反馈",
+    "intro": "我们很想听听您的意见——告诉我们您喜欢什么、分享您的建议，或报告问题。",
+    "typeLabel": "这是哪种类型的反馈？",
+    "type": {
+      "compliment": "表扬",
+      "suggestion": "建议",
+      "problem": "问题"
+    },
+    "nameLabel": "姓名",
+    "namePlaceholder": "您的姓名（选填）",
+    "emailLabel": "邮箱",
+    "emailPlaceholder": "请输入您的邮箱",
+    "messageLabel": "留言",
+    "messagePlaceholder": "请告诉我们更多……",
+    "consentLabel": "我希望收到来自DOXA伙伴关系的邮件更新。",
+    "submit": "发送反馈",
+    "submitting": "正在发送……",
+    "success": {
+      "title": "谢谢您！",
+      "message": "我们已收到您的反馈。非常感谢您抽出时间。"
+    },
+    "error": {
+      "title": "出了点问题",
+      "message": "我们无法发送您的反馈。请重试。",
+      "rateLimited": "您最近已发送过反馈，请稍后再试。"
+    },
+    "validation": {
+      "email": "请输入有效的邮箱地址。",
+      "message": "请输入留言内容。",
+      "type": "请选择反馈类型。"
+    }
+  },
   "adoption": {
     "verify": {
       "pageTitle": "验证认领",

@@ -28,7 +28,7 @@ The skill:
 - Downloads the latest IMB CSV (cached in `data/tmp/`)
 - Filters for groups that should be added (filter rules in the [skill SKILL.md](../.claude/skills/imb-import/SKILL.md))
 - Creates each new people group via `POST /api/admin/people-groups` with description, IMB metadata, and seed `needs:X` tags
-- Fires batch DeepL translation on descriptions and streams progress to stdout
+- Fires batch AI translation on descriptions and streams progress to stdout
 
 For production runs, add `--base-url https://pray.doxa.life`.
 

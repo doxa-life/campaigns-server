@@ -548,6 +548,40 @@
       "verifierEmailSame": "Il verificatore deve essere una persona diversa da te"
     }
   },
+  "feedback": {
+    "pageTitle": "Invia feedback",
+    "heading": "Inviaci il tuo feedback",
+    "intro": "Ci farebbe piacere sentirti — raccontaci cosa ti piace, condividi un suggerimento o segnala un problema.",
+    "typeLabel": "Che tipo di feedback è?",
+    "type": {
+      "compliment": "Complimento",
+      "suggestion": "Suggerimento",
+      "problem": "Problema"
+    },
+    "nameLabel": "Nome",
+    "namePlaceholder": "Il tuo nome (facoltativo)",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Inserisci la tua email",
+    "messageLabel": "Messaggio",
+    "messagePlaceholder": "Raccontaci di più…",
+    "consentLabel": "Vorrei ricevere aggiornamenti via email dalla partnership DOXA.",
+    "submit": "Invia feedback",
+    "submitting": "Invio in corso…",
+    "success": {
+      "title": "Grazie!",
+      "message": "Il tuo feedback è stato ricevuto. Ti ringraziamo davvero per il tempo che ci hai dedicato."
+    },
+    "error": {
+      "title": "Qualcosa è andato storto",
+      "message": "Non siamo riusciti a inviare il tuo feedback. Riprova.",
+      "rateLimited": "Hai inviato un feedback di recente. Riprova tra poco."
+    },
+    "validation": {
+      "email": "Inserisci un indirizzo email valido.",
+      "message": "Inserisci un messaggio.",
+      "type": "Scegli un tipo di feedback."
+    }
+  },
   "adoption": {
     "verify": {
       "pageTitle": "Verifica Adozione",
