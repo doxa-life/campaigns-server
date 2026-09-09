@@ -339,6 +339,27 @@
       "stopAllSuccess": "Toate memento-urile pentru {campaign} au fost oprite. Le poți porni din nou oricând.",
       "resumeRemindersButton": "Pornește memento-urile",
       "resumeSuccess": "Memento-uri pornite."
+    },
+    "optOutReason": {
+      "title": "Ne spui de ce?",
+      "subtitle": "Ne ajută să facem mai bine. Poți sări peste acest pas.",
+      "stoppedTitle": "Timpul tău de rugăciune de la ora {time} a fost oprit",
+      "stoppedAllTitle": "Memento-urile tale pentru {campaign} au fost oprite",
+      "stoppedGenericTitle": "Acest timp de rugăciune a fost oprit",
+      "skip": "Sari peste",
+      "send": "Trimite",
+      "sending": "Se trimite…",
+      "thanks": "Mulțumim, ne ajută.",
+      "otherPlaceholder": "Spune-ne mai multe (opțional)",
+      "charactersLeft": "Au mai rămas {count} caractere",
+      "reason": {
+        "wrong_time": "Ora nu mi s-a potrivit",
+        "life_busy": "Viața a devenit prea aglomerată",
+        "no_longer_praying": "Nu mă mai rog",
+        "different_people_group": "Mă rog pentru un alt grup etnic",
+        "emails_only": "Încă mă rog, doar că nu vreau e-mailurile",
+        "other": "Altceva"
+      }
     }
   },
   "prayerFuel": {

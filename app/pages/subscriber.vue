@@ -338,9 +338,19 @@
     </UModal>
 
     <!-- Stop reminders: mute this time, stop praying at this time, or stop everything -->
-    <UModal v-model:open="stopModalOpen" :title="stopModalTitle">
+    <UModal v-model:open="stopModalOpen" :title="stopReasonOpen ? '' : stopModalTitle">
       <template #body>
-        <div class="space-y-3">
+        <OptOutReasonPrompt
+          v-if="stopReasonOpen"
+          :profile-id="profileId"
+          :subscription-ids="stopReasonSubscriptionIds"
+          :already-said-stopped="stopReasonWholePeopleGroup"
+          :time="stopTime"
+          :campaign="stopTarget?.peopleGroup.title"
+          :whole-people-group="stopReasonWholePeopleGroup"
+          @done="closeStopModal"
+        />
+        <div v-else class="space-y-3">
           <p class="text-sm text-[var(--ui-text-muted)]">
             {{ $t('campaign.profile.stopRemindersQuestion') }}
           </p>
@@ -645,6 +655,17 @@ const stopModalOpen = ref(false)
 const stopTarget = ref<{ reminder: any; peopleGroup: any } | null>(null)
 const stopProcessing = ref(false)
 
+// Second step of the same modal, shown after a stop is saved. Muting skips it:
+// that button already states the reason, which is recorded server-side.
+const stopReasonOpen = ref(false)
+const stopReasonSubscriptionIds = ref<number[]>([])
+const stopReasonWholePeopleGroup = ref(false)
+
+function closeStopModal() {
+  stopReasonOpen.value = false
+  stopModalOpen.value = false
+}
+
 // Format a "HH:MM" preference as a friendly clock time (e.g. "9:00 AM").
 function formatTime(value: string | null): string {
   if (!value) return ''
@@ -670,6 +691,9 @@ const stopHasMultiple = computed(() =>
 
 function openStopModal(reminder: any, peopleGroup: any) {
   stopTarget.value = { reminder, peopleGroup }
+  stopReasonOpen.value = false
+  stopReasonSubscriptionIds.value = []
+  stopReasonWholePeopleGroup.value = false
   stopModalOpen.value = true
 }
 
@@ -691,8 +715,15 @@ async function chooseStop(action: 'mute' | 'not_praying') {
       color: 'success'
     })
 
-    stopModalOpen.value = false
     await refresh()
+
+    if (action === 'mute') {
+      stopModalOpen.value = false
+    } else {
+      stopReasonSubscriptionIds.value = [reminder.id]
+      stopReasonWholePeopleGroup.value = false
+      stopReasonOpen.value = true
+    }
   } catch (err: any) {
     toast.add({
       title: err.data?.statusMessage || t('campaign.profile.error.failed'),
@@ -709,7 +740,7 @@ async function chooseStopAll() {
   stopProcessing.value = true
 
   try {
-    await $fetch(`/api/people-groups/${peopleGroup.slug}/stop-all`, {
+    const result = await $fetch<{ stopped_subscription_ids?: number[] }>(`/api/people-groups/${peopleGroup.slug}/stop-all`, {
       method: 'POST',
       body: { profile_id: profileId }
     })
@@ -719,8 +750,12 @@ async function chooseStopAll() {
       color: 'success'
     })
 
-    stopModalOpen.value = false
     await refresh()
+
+    stopReasonSubscriptionIds.value = result.stopped_subscription_ids || []
+    stopReasonWholePeopleGroup.value = true
+    stopReasonOpen.value = stopReasonSubscriptionIds.value.length > 0
+    if (!stopReasonOpen.value) stopModalOpen.value = false
   } catch (err: any) {
     toast.add({
       title: err.data?.statusMessage || t('campaign.profile.error.failed'),

@@ -39,6 +39,8 @@ export const subscriberFields: SubscriberFieldDefinition[] = [
   { key: 'prayer_duration', label: 'Prayer Duration', type: 'number', category: 'subscription', readOnly: true, description: 'Committed prayer time in minutes' },
   { key: 'next_reminder_utc', label: 'Next Reminder', type: 'text', category: 'subscription', readOnly: true, description: 'When the next reminder email will be sent' },
   { key: 'status', label: 'Status', type: 'select', category: 'subscription', description: 'Subscription status (active, pending, inactive, unsubscribed)' },
+  { key: 'opt_out_reason', label: 'Stop Reason', type: 'text', category: 'subscription', readOnly: true, description: 'Why the subscriber last muted or stopped this prayer time' },
+  { key: 'opt_out_reason_text', label: 'Stop Reason Notes', type: 'text', category: 'subscription', readOnly: true, description: 'Free-text detail the subscriber gave alongside their stop reason' },
   { key: 'utm_source', label: 'Signup Source', type: 'text', category: 'subscription', readOnly: true, description: 'utm_source on the link the subscriber arrived through' },
   { key: 'utm_medium', label: 'Signup Medium', type: 'text', category: 'subscription', readOnly: true, description: 'utm_medium on the link the subscriber arrived through' },
   { key: 'utm_campaign', label: 'Signup Campaign', type: 'text', category: 'subscription', readOnly: true, description: 'utm_campaign on the link the subscriber arrived through' },

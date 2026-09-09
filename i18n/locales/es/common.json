@@ -339,6 +339,27 @@
       "stopAllSuccess": "Todos los recordatorios de los {campaign} han sido detenidos. Puedes volver a activarlos cuando quieras.",
       "resumeRemindersButton": "Activar recordatorios",
       "resumeSuccess": "Recordatorios activados."
+    },
+    "optOutReason": {
+      "title": "¿Nos cuentas por qué?",
+      "subtitle": "Nos ayuda a mejorar. Puedes omitir esto.",
+      "stoppedTitle": "Tu horario de oración de las {time} ha sido detenido",
+      "stoppedAllTitle": "Tus recordatorios de {campaign} han sido detenidos",
+      "stoppedGenericTitle": "Este horario de oración ha sido detenido",
+      "skip": "Omitir",
+      "send": "Enviar",
+      "sending": "Enviando…",
+      "thanks": "Gracias, eso nos ayuda.",
+      "otherPlaceholder": "Cuéntanos más (opcional)",
+      "charactersLeft": "Quedan {count} caracteres",
+      "reason": {
+        "wrong_time": "La hora no me funcionaba",
+        "life_busy": "La vida se volvió ajetreada",
+        "no_longer_praying": "Ya no estoy orando",
+        "different_people_group": "Estoy orando por otro grupo étnico",
+        "emails_only": "Sigo orando, solo que no quiero los correos",
+        "other": "Otra cosa"
+      }
     }
   },
   "prayerFuel": {

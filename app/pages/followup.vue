@@ -59,6 +59,18 @@
       </UCard>
     </div>
 
+    <!-- Not Praying Response: ask why before showing the confirmation -->
+    <div v-else-if="response === 'not_praying' && askReason" class="flex items-center justify-center min-h-[50vh]">
+      <UCard class="max-w-md w-full">
+        <OptOutReasonPrompt
+          :profile-id="profileId!"
+          :subscription-ids="[Number(subscriptionId)]"
+          already-said-stopped
+          @done="askReason = false"
+        />
+      </UCard>
+    </div>
+
     <!-- Not Praying Response -->
     <div v-else-if="response === 'not_praying'" class="flex items-center justify-center min-h-[50vh]">
       <UCard class="max-w-md w-full text-center">
@@ -102,6 +114,10 @@ const response = ref<string | null>(null)
 const profileId = ref<string | null>(null)
 const peopleGroupSlug = ref<string | null>(null)
 
+// Stopping is already recorded by the time this page renders; the reason step only
+// asks why, and skipping it leaves the stop exactly as it is.
+const askReason = ref(false)
+
 async function recordResponse() {
   if (!subscriptionId || !responseParam || !idParam) {
     error.value = t('followupPage.error.invalidLink')
@@ -130,6 +146,7 @@ async function recordResponse() {
     response.value = responseParam
     profileId.value = result.profile_id
     peopleGroupSlug.value = result.people_group_slug
+    askReason.value = responseParam === 'not_praying'
   } catch (err: any) {
     error.value = err.data?.statusMessage || t('followupPage.error.failed')
   } finally {

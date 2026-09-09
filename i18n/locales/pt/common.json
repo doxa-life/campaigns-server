@@ -339,6 +339,27 @@
       "stopAllSuccess": "Todos os lembretes de {campaign} foram parados. Você pode reativá-los quando quiser.",
       "resumeRemindersButton": "Iniciar lembretes",
       "resumeSuccess": "Lembretes iniciados."
+    },
+    "optOutReason": {
+      "title": "Você nos conta por quê?",
+      "subtitle": "Isso nos ajuda a melhorar. Você pode pular esta etapa.",
+      "stoppedTitle": "Seu horário de oração das {time} foi parado",
+      "stoppedAllTitle": "Seus lembretes de {campaign} foram parados",
+      "stoppedGenericTitle": "Este horário de oração foi parado",
+      "skip": "Pular",
+      "send": "Enviar",
+      "sending": "Enviando…",
+      "thanks": "Obrigado, isso nos ajuda.",
+      "otherPlaceholder": "Conte-nos mais (opcional)",
+      "charactersLeft": "Restam {count} caracteres",
+      "reason": {
+        "wrong_time": "O horário não funcionou para mim",
+        "life_busy": "A vida ficou corrida",
+        "no_longer_praying": "Não estou mais orando",
+        "different_people_group": "Estou orando por outro grupo étnico",
+        "emails_only": "Continuo orando, só não quero os e-mails",
+        "other": "Outro motivo"
+      }
     }
   },
   "prayerFuel": {

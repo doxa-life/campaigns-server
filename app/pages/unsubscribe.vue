@@ -144,37 +144,47 @@
             </template>
 
             <div class="space-y-2">
-              <div
-                v-for="reminder in pg.reminders"
-                :key="reminder.id"
-                class="flex items-center justify-between p-3 border border-[var(--ui-border)] rounded-lg"
-                :class="{ 'opacity-60': reminder.status === 'unsubscribed' }"
-              >
-                <div class="flex items-center gap-2">
-                  <span class="text-sm">{{ formatReminderSchedule(reminder) }}</span>
-                  <UBadge v-if="reminder.status === 'unsubscribed'" color="neutral" size="md">
-                    {{ $t('campaign.profile.unsubscribed') }}
-                  </UBadge>
+              <div v-for="reminder in pg.reminders" :key="reminder.id" class="space-y-2">
+                <div
+                  class="flex items-center justify-between p-3 border border-[var(--ui-border)] rounded-lg"
+                  :class="{ 'opacity-60': reminder.status === 'unsubscribed' }"
+                >
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm">{{ formatReminderSchedule(reminder) }}</span>
+                    <UBadge v-if="reminder.status === 'unsubscribed'" color="neutral" size="md">
+                      {{ $t('campaign.profile.unsubscribed') }}
+                    </UBadge>
+                  </div>
+                  <UButton
+                    v-if="reminder.status === 'active'"
+                    size="md"
+                    variant="ghost"
+                    color="error"
+                    :loading="doxaUnsubscribingId === reminder.id"
+                    @click="doxaUnsubscribeFromReminder(pg.slug, pg.id, reminder.id)"
+                  >
+                    {{ $t('campaign.unsubscribe.unsubscribeButton') }}
+                  </UButton>
+                  <UButton
+                    v-else
+                    size="md"
+                    variant="ghost"
+                    :loading="doxaResubscribingId === reminder.id"
+                    @click="doxaResubscribeReminder(pg.slug, reminder.id)"
+                  >
+                    {{ $t('campaign.profile.resubscribeButton') }}
+                  </UButton>
                 </div>
-                <UButton
-                  v-if="reminder.status === 'active'"
-                  size="md"
-                  variant="ghost"
-                  color="error"
-                  :loading="doxaUnsubscribingId === reminder.id"
-                  @click="doxaUnsubscribeFromReminder(pg.slug, pg.id, reminder.id)"
-                >
-                  {{ $t('campaign.unsubscribe.unsubscribeButton') }}
-                </UButton>
-                <UButton
-                  v-else
-                  size="md"
-                  variant="ghost"
-                  :loading="doxaResubscribingId === reminder.id"
-                  @click="doxaResubscribeReminder(pg.slug, reminder.id)"
-                >
-                  {{ $t('campaign.profile.resubscribeButton') }}
-                </UButton>
+
+                <OptOutReasonPrompt
+                  v-if="reasonAnchor?.type === 'reminder' && reasonAnchor.id === reminder.id"
+                  :profile-id="profileId"
+                  :subscription-ids="reasonSubscriptionIds"
+                  :whole-people-group="false"
+                  class="p-4 border border-[var(--ui-border)] rounded-lg"
+                  @answered="rememberReason"
+                  @done="reasonAnchor = null"
+                />
               </div>
             </div>
 
@@ -191,6 +201,16 @@
                 {{ $t('campaign.unsubscribe.unsubscribeFromAll', { campaign: pg.title }) }}
               </UButton>
             </div>
+            <OptOutReasonPrompt
+              v-if="reasonAnchor?.type === 'people_group' && reasonAnchor.id === pg.id"
+              :profile-id="profileId"
+              :subscription-ids="reasonSubscriptionIds"
+              :campaign="pg.title"
+              whole-people-group
+              class="mt-4 p-4 border border-[var(--ui-border)] rounded-lg"
+              @answered="rememberReason"
+              @done="reasonAnchor = null"
+            />
           </UCard>
         </div>
       </div>
@@ -262,37 +282,47 @@
             </template>
 
             <div class="space-y-2">
-              <div
-                v-for="reminder in pg.reminders"
-                :key="reminder.id"
-                class="flex items-center justify-between p-3 border border-[var(--ui-border)] rounded-lg"
-                :class="{ 'opacity-60': reminder.status === 'unsubscribed' }"
-              >
-                <div class="flex items-center gap-2">
-                  <span class="text-sm">{{ formatReminderSchedule(reminder) }}</span>
-                  <UBadge v-if="reminder.status === 'unsubscribed'" color="neutral" size="md">
-                    {{ $t('campaign.profile.unsubscribed') }}
-                  </UBadge>
+              <div v-for="reminder in pg.reminders" :key="reminder.id" class="space-y-2">
+                <div
+                  class="flex items-center justify-between p-3 border border-[var(--ui-border)] rounded-lg"
+                  :class="{ 'opacity-60': reminder.status === 'unsubscribed' }"
+                >
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm">{{ formatReminderSchedule(reminder) }}</span>
+                    <UBadge v-if="reminder.status === 'unsubscribed'" color="neutral" size="md">
+                      {{ $t('campaign.profile.unsubscribed') }}
+                    </UBadge>
+                  </div>
+                  <UButton
+                    v-if="reminder.status === 'active'"
+                    size="md"
+                    variant="ghost"
+                    color="error"
+                    :loading="unsubscribingId === reminder.id"
+                    @click="unsubscribeFromReminder(pg.slug, pg.id, reminder.id)"
+                  >
+                    {{ $t('campaign.unsubscribe.unsubscribeButton') }}
+                  </UButton>
+                  <UButton
+                    v-else
+                    size="md"
+                    variant="ghost"
+                    :loading="resubscribingId === reminder.id"
+                    @click="resubscribeReminder(pg.slug, reminder.id)"
+                  >
+                    {{ $t('campaign.profile.resubscribeButton') }}
+                  </UButton>
                 </div>
-                <UButton
-                  v-if="reminder.status === 'active'"
-                  size="md"
-                  variant="ghost"
-                  color="error"
-                  :loading="unsubscribingId === reminder.id"
-                  @click="unsubscribeFromReminder(pg.slug, pg.id, reminder.id)"
-                >
-                  {{ $t('campaign.unsubscribe.unsubscribeButton') }}
-                </UButton>
-                <UButton
-                  v-else
-                  size="md"
-                  variant="ghost"
-                  :loading="resubscribingId === reminder.id"
-                  @click="resubscribeReminder(pg.slug, reminder.id)"
-                >
-                  {{ $t('campaign.profile.resubscribeButton') }}
-                </UButton>
+
+                <OptOutReasonPrompt
+                  v-if="reasonAnchor?.type === 'reminder' && reasonAnchor.id === reminder.id"
+                  :profile-id="profileId"
+                  :subscription-ids="reasonSubscriptionIds"
+                  :whole-people-group="false"
+                  class="p-4 border border-[var(--ui-border)] rounded-lg"
+                  @answered="rememberReason"
+                  @done="reasonAnchor = null"
+                />
               </div>
             </div>
 
@@ -309,6 +339,16 @@
                 {{ $t('campaign.unsubscribe.unsubscribeFromAll', { campaign: pg.title }) }}
               </UButton>
             </div>
+            <OptOutReasonPrompt
+              v-if="reasonAnchor?.type === 'people_group' && reasonAnchor.id === pg.id"
+              :profile-id="profileId"
+              :subscription-ids="reasonSubscriptionIds"
+              :campaign="pg.title"
+              whole-people-group
+              class="mt-4 p-4 border border-[var(--ui-border)] rounded-lg"
+              @answered="rememberReason"
+              @done="reasonAnchor = null"
+            />
           </UCard>
         </div>
       </div>
@@ -651,6 +691,53 @@ async function confirmUnsubscribe() {
   }
 }
 
+// Prayer times stopped from this page ask for a reason once per visit: the prompt
+// appears under the row that was stopped, and the answer is applied to any further
+// prayer times stopped before the page is reloaded.
+const reasonAnchor = ref<{ type: 'reminder' | 'people_group', id: number } | null>(null)
+const reasonSubscriptionIds = ref<number[]>([])
+const reasonWholePeopleGroup = ref(false)
+const reasonAsked = ref(false)
+const rememberedReason = ref<{ reason: string, reason_text: string | null } | null>(null)
+
+// Show the prompt for the first stop of the visit; apply the remembered answer
+// silently to every stop after it.
+async function handleStopped(
+  anchor: { type: 'reminder' | 'people_group', id: number },
+  subscriptionIds: number[],
+  wholePeopleGroup: boolean
+) {
+  if (subscriptionIds.length === 0) return
+
+  if (!reasonAsked.value) {
+    reasonAsked.value = true
+    reasonAnchor.value = anchor
+    reasonSubscriptionIds.value = subscriptionIds
+    reasonWholePeopleGroup.value = wholePeopleGroup
+    return
+  }
+
+  if (!rememberedReason.value) return
+
+  try {
+    await $fetch('/api/subscriptions/opt-out-reason', {
+      method: 'POST',
+      body: {
+        profile_id: profileId,
+        subscription_ids: subscriptionIds,
+        reason: rememberedReason.value.reason,
+        reason_text: rememberedReason.value.reason_text
+      }
+    })
+  } catch {
+    // Recording a reason is never worth surfacing: the opt-out itself succeeded.
+  }
+}
+
+function rememberReason(payload: { reason: string, reason_text: string | null }) {
+  rememberedReason.value = payload
+}
+
 // Consent form state for people group view
 const consentForm = ref({
   doxa_general: false,
@@ -720,7 +807,7 @@ function formatReminderSchedule(reminder: Reminder) {
 async function unsubscribeFromReminder(peopleGroupSlug: string, peopleGroupId: number, reminderId: number) {
   try {
     unsubscribingId.value = reminderId
-    await $fetch(`/api/people-groups/${peopleGroupSlug}/unsubscribe`, {
+    const result = await $fetch<{ stopped_subscription_ids?: number[] }>(`/api/people-groups/${peopleGroupSlug}/unsubscribe`, {
       method: 'POST',
       query: { id: profileId, sid: reminderId }
     })
@@ -735,6 +822,7 @@ async function unsubscribeFromReminder(peopleGroupSlug: string, peopleGroupId: n
     }
 
     toast.add({ title: 'Unsubscribed', description: 'Successfully unsubscribed from this reminder', color: 'success' })
+    await handleStopped({ type: 'reminder', id: reminderId }, result.stopped_subscription_ids || [reminderId], false)
   } catch (err: any) {
     toast.add({ title: 'Error', description: 'Failed to unsubscribe', color: 'error' })
   } finally {
@@ -746,7 +834,7 @@ async function unsubscribeFromReminder(peopleGroupSlug: string, peopleGroupId: n
 async function unsubscribeFromEntirePeopleGroup(pg: PeopleGroupWithReminders) {
   try {
     unsubscribingFromPeopleGroupId.value = pg.id
-    await $fetch(`/api/people-groups/${pg.slug}/unsubscribe`, {
+    const result = await $fetch<{ stopped_subscription_ids?: number[] }>(`/api/people-groups/${pg.slug}/unsubscribe`, {
       method: 'POST',
       query: { id: profileId, all: 'true' }
     })
@@ -760,6 +848,7 @@ async function unsubscribeFromEntirePeopleGroup(pg: PeopleGroupWithReminders) {
     }
 
     toast.add({ title: 'Unsubscribed', description: `Unsubscribed from all ${pg.title} reminders`, color: 'success' })
+    await handleStopped({ type: 'people_group', id: pg.id }, result.stopped_subscription_ids || [], true)
   } catch (err: any) {
     toast.add({ title: 'Error', description: 'Failed to unsubscribe', color: 'error' })
   } finally {
@@ -900,7 +989,7 @@ function doxaActiveRemindersCount(pg: PeopleGroupWithReminders): number {
 async function doxaUnsubscribeFromReminder(peopleGroupSlug: string, peopleGroupId: number, reminderId: number) {
   try {
     doxaUnsubscribingId.value = reminderId
-    await $fetch(`/api/people-groups/${peopleGroupSlug}/unsubscribe`, {
+    const result = await $fetch<{ stopped_subscription_ids?: number[] }>(`/api/people-groups/${peopleGroupSlug}/unsubscribe`, {
       method: 'POST',
       query: { id: profileId, sid: reminderId }
     })
@@ -915,6 +1004,7 @@ async function doxaUnsubscribeFromReminder(peopleGroupSlug: string, peopleGroupI
     }
 
     toast.add({ title: 'Unsubscribed', description: 'Successfully unsubscribed from this reminder', color: 'success' })
+    await handleStopped({ type: 'reminder', id: reminderId }, result.stopped_subscription_ids || [reminderId], false)
   } catch (err: any) {
     toast.add({ title: 'Error', description: 'Failed to unsubscribe', color: 'error' })
   } finally {
@@ -952,7 +1042,7 @@ async function doxaResubscribeReminder(peopleGroupSlug: string, reminderId: numb
 async function doxaUnsubscribeFromEntirePeopleGroup(pg: PeopleGroupWithReminders) {
   try {
     doxaUnsubscribingFromPeopleGroupId.value = pg.id
-    await $fetch(`/api/people-groups/${pg.slug}/unsubscribe`, {
+    const result = await $fetch<{ stopped_subscription_ids?: number[] }>(`/api/people-groups/${pg.slug}/unsubscribe`, {
       method: 'POST',
       query: { id: profileId, all: 'true' }
     })
@@ -966,6 +1056,7 @@ async function doxaUnsubscribeFromEntirePeopleGroup(pg: PeopleGroupWithReminders
     }
 
     toast.add({ title: 'Unsubscribed', description: `Unsubscribed from all ${pg.title} reminders`, color: 'success' })
+    await handleStopped({ type: 'people_group', id: pg.id }, result.stopped_subscription_ids || [], true)
   } catch (err: any) {
     toast.add({ title: 'Error', description: 'Failed to unsubscribe', color: 'error' })
   } finally {

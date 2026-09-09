@@ -14,6 +14,7 @@ import { peopleGroupService } from '#server/database/people-groups'
 import { subscriberService } from '#server/database/subscribers'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
 import { trackEventInBackground } from '#server/utils/tracking'
+import { MUTE_OPT_OUT_REASON } from '../../../../../../config/opt-out-reasons'
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
@@ -62,6 +63,14 @@ export default defineEventHandler(async (event) => {
 
   if (action === 'mute') {
     await peopleGroupSubscriptionService.muteReminder(subscription.id)
+    // The mute button already says the person still prays and only wants the email
+    // to stop, so that reason is recorded without asking them anything.
+    await peopleGroupSubscriptionService.recordOptOutReason(
+      subscriber.id,
+      [subscription.id],
+      MUTE_OPT_OUT_REASON,
+      null
+    )
     logCreate('subscribers', String(subscriber.id), event, {
       source: 'self_service',
       badge: 'Muted Reminder',
