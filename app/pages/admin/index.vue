@@ -612,7 +612,7 @@
               <UIcon name="i-lucide-map" class="text-[var(--ui-primary)] text-lg" />
               <span class="font-semibold">Where People Are Praying</span>
               <span v-if="prayerLocations" class="text-xs text-[var(--ui-text-dimmed)]">
-                {{ prayerLocations.located }} of {{ prayerLocations.total }} people located
+                {{ prayerLocations.located }} people located
               </span>
             </div>
             <div class="flex gap-1">
