@@ -119,6 +119,12 @@
         <slot />
       </main>
     </div>
+
+    <ClientOnly>
+      <div v-if="contextChatEnabled" class="context-chat-slot">
+        <context-chat-web-component :config="contextChatConfig" />
+      </div>
+    </ClientOnly>
   </div>
 </template>
 
@@ -131,6 +137,22 @@ if (config.public.feedbackProjectId && config.public.feedbackApiBase) {
     link: [{ rel: 'preconnect', href: String(config.public.feedbackApiBase) }]
   })
 }
+
+// Read-only chat against the Context workspace, admin pages only. The widget
+// mints its own token from /api/context-widget/token, so it shows for whoever
+// is logged in here. Its bundle positions .context-chat-slot bottom-right,
+// raised to clear the site-wide feedback bubble in the same corner.
+useContextChatScript()
+
+const contextChatEnabled = computed(() => !!config.public.contextWidgetClientId)
+
+const contextChatConfig = computed(() => JSON.stringify({
+  clientId: config.public.contextWidgetClientId,
+  apiBase: config.public.contextApiBase,
+  tokenUrl: '/api/context-widget/token',
+  title: 'Ask about Doxa',
+  greeting: 'Ask a question about how Doxa works and I\'ll answer from the team\'s context.'
+}))
 
 const route = useRoute()
 const sidebarOpen = ref(false)

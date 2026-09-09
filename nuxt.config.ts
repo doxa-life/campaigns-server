@@ -25,7 +25,8 @@ export default defineNuxtConfig({
 
   vue: {
     compilerOptions: {
-      isCustomElement: (tag: string) => tag === 'feedback-web-component'
+      isCustomElement: (tag: string) =>
+        tag === 'feedback-web-component' || tag === 'context-chat-web-component'
     }
   },
 
@@ -159,6 +160,12 @@ export default defineNuxtConfig({
     // Joshua Project API — external people group search on /updates
     joshuaProjectApiKey: process.env.JOSHUA_PROJECT_API_KEY || '',
 
+    // Signing secret for the embedded Context chat widget. Server-only: it
+    // signs the short-lived handoff tokens /api/context-widget/token issues,
+    // and the Context host verifies them with the same secret. It must never
+    // reach the browser.
+    contextWidgetSecret: process.env.CONTEXT_WIDGET_SECRET || '',
+
     // Cloudflare Turnstile — spam protection on the public /updates form.
     // Both keys empty = verification skipped (dev/test). Key names match the
     // marketing site's convention.
@@ -227,7 +234,13 @@ export default defineNuxtConfig({
 
       // Feedback widget (external chat bubble → support.gospelambition.org)
       feedbackApiBase: process.env.NUXT_PUBLIC_FEEDBACK_API_BASE || 'https://support.gospelambition.org',
-      feedbackProjectId: process.env.NUXT_PUBLIC_FEEDBACK_PROJECT_ID || ''
+      feedbackProjectId: process.env.NUXT_PUBLIC_FEEDBACK_PROJECT_ID || '',
+
+      // Read-only Context chat widget on /admin. The client id is public — it
+      // identifies the embed; the signing secret above is what authenticates
+      // it. Empty client id = widget hidden.
+      contextApiBase: process.env.NUXT_PUBLIC_CONTEXT_API_BASE || 'https://apps.gospelambition.org',
+      contextWidgetClientId: process.env.NUXT_PUBLIC_CONTEXT_WIDGET_CLIENT_ID || ''
     }
   }
 })
