@@ -3,6 +3,7 @@ import { sanitizeTiptapContent } from '#server/utils/sanitize-tiptap'
 import { extractMentions } from '#server/utils/extract-mentions'
 import { sendCommentMentionEmails } from '#server/utils/comment-mention-email'
 import { handleApiError } from '#server/utils/api-helpers'
+import { requireConversationVisible } from '#server/utils/inbox-access'
 
 const RECORD_TYPE_PERMISSIONS: Record<string, string> = {
   people_group: 'people_groups.view',
@@ -30,6 +31,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const user = await requirePermission(event, permission)
+  if (body.record_type === 'conversation') {
+    await requireConversationVisible(user.userId, Number(body.record_id))
+  }
 
   const sanitized = sanitizeTiptapContent(body.content)
   if (!sanitized) {

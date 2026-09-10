@@ -31,7 +31,7 @@ export const useAuthUser = () => {
   function canAccess(permission: string): boolean {
     if (isAdmin.value) return true
     const perms = userPermissions.value
-    return perms.has(permission) || perms.has(permission + '_scoped') || perms.has(permission + '_language_scoped')
+    return perms.has(permission) || perms.has(permission + '_scoped') || perms.has(permission + '_language_scoped') || perms.has(permission + '_assigned_scoped')
   }
 
   function canAccessUnscoped(permission: string): boolean {
@@ -45,6 +45,15 @@ export const useAuthUser = () => {
     if (isAdmin.value) return false
     const perms = userPermissions.value
     return perms.has(permission + '_language_scoped') && !perms.has(permission) && !perms.has(permission + '_scoped')
+  }
+
+  // True when the only route to the permission is through records assigned to the user
+  // (no bare form and no other scoped form) — e.g. an inbox limited to their own conversations.
+  function isAssignedScopedOnly(permission: string): boolean {
+    if (isAdmin.value) return false
+    const perms = userPermissions.value
+    return perms.has(permission + '_assigned_scoped')
+      && !perms.has(permission) && !perms.has(permission + '_scoped') && !perms.has(permission + '_language_scoped')
   }
 
   // Whether the permission may be applied to content in the given language. People-group scope
@@ -64,6 +73,7 @@ export const useAuthUser = () => {
     canAccess,
     canAccessUnscoped,
     isLanguageScopedOnly,
+    isAssignedScopedOnly,
     canAccessLanguage
   }
 }

@@ -2,21 +2,20 @@ import { conversationService } from '#server/database/conversations'
 import { contactMethodService } from '#server/database/contact-methods'
 import { spamSenderService } from '#server/database/spam-senders'
 import { getIntParam, handleApiError } from '#server/utils/api-helpers'
+import { requireInboxAccess, requireAccessibleConversation } from '#server/utils/inbox-access'
 
 /**
  * Mark a conversation's sender as spam (blocklists the address, sets Spam, auto-closes their
  * conversations) or un-spam (removes from blocklist, reopens). This globally blocklists a
- * sender and auto-closes their threads, so it requires inbox.send (not just view).
+ * sender and auto-closes their threads, so it requires inbox.send (not just view). An
+ * assigned-only agent may do this on their own conversations; the blocklist effect stays global.
  * Body: { spam: boolean }
  */
 export default defineEventHandler(async (event) => {
-  const user = await requirePermission(event, 'inbox.send')
+  const user = await requireInboxAccess(event, 'inbox.send')
 
   const id = getIntParam(event, 'id')
-  const conversation = await conversationService.getById(id)
-  if (!conversation) {
-    throw createError({ statusCode: 404, statusMessage: 'Conversation not found' })
-  }
+  const conversation = await requireAccessibleConversation(user, id)
 
   const body = await readBody<{ spam?: boolean }>(event)
   const markSpam = body.spam !== false // default true

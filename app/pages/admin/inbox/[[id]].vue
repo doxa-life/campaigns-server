@@ -12,10 +12,11 @@
             icon="i-lucide-pen-line"
             color="primary"
             size="sm"
+            :disabled="sendBlockedNoAlias"
             @click="() => { showCompose = true }"
           >{{ $t('inbox.compose.newEmail') }}</UButton>
           <UButton
-            v-if="canSend"
+            v-if="canManageInbox"
             icon="i-lucide-message-square-text"
             variant="outline"
             color="neutral"
@@ -235,6 +236,7 @@
           :conversation-id="selected.conversation.id"
           :model-value="selected.conversation.tags"
           :palette="tagPalette"
+          :manageable="canManageInbox"
           class="detail-tags"
           @update:model-value="onTagsUpdated"
           @palette-changed="onPaletteChanged"
@@ -269,7 +271,7 @@
           @click="toggleNeedsReview"
         >{{ selected.conversation.needs_review ? $t('inbox.actions.unflagReview') : $t('inbox.actions.flagReview') }}</UButton>
         <UButton
-          v-if="canSend && ['pending', 'closed'].includes(selected.conversation.status)"
+          v-if="canManageInbox && ['pending', 'closed'].includes(selected.conversation.status)"
           icon="i-lucide-book-plus"
           variant="ghost"
           color="neutral"
@@ -340,6 +342,14 @@
 
           <!-- Composer -->
           <div v-if="canSend && selected.conversation.status !== 'spam'" class="composer">
+            <UAlert
+              v-if="sendBlockedNoAlias"
+              color="warning"
+              variant="subtle"
+              icon="i-lucide-at-sign"
+              :title="$t('inbox.compose.aliasRequired')"
+              class="composer-alert"
+            />
             <div v-if="replyStatus?.email" class="composer-to">
               <span class="from-label">{{ $t('inbox.compose.to') }}:</span>
               <span class="to-address">{{ replyStatus.email }}</span>
@@ -469,10 +479,10 @@
               </UButton>
               <span v-if="pendingFiles.length" class="pending-files">{{ pendingFiles.map(f => f.name).join(', ') }}</span>
               <div class="composer-spacer" />
-              <UButton variant="outline" color="neutral" size="sm" :loading="savingDraft" @click="saveDraft">
+              <UButton variant="outline" color="neutral" size="sm" :loading="savingDraft" :disabled="sendBlockedNoAlias" @click="saveDraft">
                 {{ $t('inbox.compose.saveDraft') }}
               </UButton>
-              <UButton color="primary" size="sm" :loading="sending" @click="sendReply">
+              <UButton color="primary" size="sm" :loading="sending" :disabled="sendBlockedNoAlias" @click="sendReply">
                 {{ $t('inbox.compose.send') }}
               </UButton>
             </div>
@@ -554,7 +564,7 @@ definePageMeta({ layout: 'admin', middleware: 'auth' })
 const { t } = useI18n()
 const toast = useToast()
 const route = useRoute()
-const { user, canAccess } = useAuthUser()
+const { user, canAccess, canAccessUnscoped, isAssignedScopedOnly } = useAuthUser()
 
 interface InboxTag {
   slug: string
@@ -634,6 +644,12 @@ interface SelectedConversation {
 }
 
 const canSend = computed(() => canAccess('inbox.send'))
+// Shared inbox resources (tags, canned responses, knowledge base) are managed only by full
+// agents; an agent limited to their own conversations uses them but cannot change them.
+const canManageInbox = computed(() => canAccessUnscoped('inbox.send'))
+// A Personal Inbox Agent sees just the conversations assigned to them and sends only from
+// their alias, so the scope folders and the From selector collapse for them.
+const assignedOnly = computed(() => isAssignedScopedOnly('inbox.view'))
 
 const loading = ref(false)
 const conversations = ref<ConversationListItem[]>([])
@@ -686,6 +702,8 @@ const fromIdentity = ref<'personal' | 'contact'>('contact')
 const meAlias = ref<string | null>(null)
 const meSignature = ref<string | null>(null)
 const myAlias = computed(() => meAlias.value || users.value.find(u => String(u.id) === String(user.value?.id))?.email_alias || null)
+// The server refuses a send from an assigned-only agent without an alias; block it up front.
+const sendBlockedNoAlias = computed(() => assignedOnly.value && !myAlias.value)
 const showSignaturePreview = ref(false)
 // The signature is appended by the server only on a personal send, so it attaches exactly
 // when the effective From is the agent's alias and they have a signature set. Surfaced in
@@ -703,7 +721,9 @@ const fromOptions = computed(() => {
     const first = (user.value?.display_name || '').trim().split(/\s+/)[0] || 'You'
     opts.push({ label: `"${first} with Doxa" <${myAlias.value}@${inboxDomain}>`, value: 'personal' })
   }
-  opts.push({ label: `"Doxa Prayer" <${contactAddress}>`, value: 'contact' })
+  if (!assignedOnly.value) {
+    opts.push({ label: `"Doxa Prayer" <${contactAddress}>`, value: 'contact' })
+  }
   return opts
 })
 
@@ -785,11 +805,14 @@ async function onComposed(id: number) {
   await selectConversation(id)
 }
 
-const scopeViews = computed(() => [
-  { key: 'all' as const, label: t('inbox.filters.all'), icon: 'i-lucide-inbox' },
-  { key: 'unassigned' as const, label: t('inbox.filters.unassigned'), icon: 'i-lucide-circle-dashed' },
-  { key: 'mine' as const, label: t('inbox.filters.mine'), icon: 'i-lucide-user' },
-])
+// For an assigned-only agent Unassigned is always empty and Mine equals All, so only All remains.
+const scopeViews = computed(() => assignedOnly.value
+  ? [{ key: 'all' as const, label: t('inbox.filters.all'), icon: 'i-lucide-inbox' }]
+  : [
+      { key: 'all' as const, label: t('inbox.filters.all'), icon: 'i-lucide-inbox' },
+      { key: 'unassigned' as const, label: t('inbox.filters.unassigned'), icon: 'i-lucide-circle-dashed' },
+      { key: 'mine' as const, label: t('inbox.filters.mine'), icon: 'i-lucide-user' },
+    ])
 const statusOptions = computed(() => [
   { key: 'open' as const, label: t('inbox.filters.open') },
   { key: 'pending' as const, label: t('inbox.filters.pending') },
@@ -1183,8 +1206,10 @@ function htmlToText(html: string): string {
   return html.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '').trim()
 }
 
-// Falls back to the contact address when the agent has no personal alias.
+// Falls back to the contact address when the agent has no personal alias. An assigned-only
+// agent has no choice: they always send from their alias.
 function effectiveFromIdentity(): 'personal' | 'contact' {
+  if (assignedOnly.value) return 'personal'
   return myAlias.value ? fromIdentity.value : 'contact'
 }
 

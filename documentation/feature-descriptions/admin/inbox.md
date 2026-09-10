@@ -148,8 +148,8 @@ The same page has a **Refresh site content** button that re-fetches the doxa.lif
 
 ## Staff Notifications
 
-- **New conversation** (email, contact form, or feedback) with no assignee: emailed to every user who has turned on contact-us notifications in their user settings
-- **Held message**: the same recipients, with a "[Review]" subject
+- **New conversation** (email, contact form, or feedback) with no assignee: emailed to every user who has turned on contact-us notifications in their user settings (Personal Inbox Agents are left out, since they cannot open it)
+- **Held message**: the same recipients plus the conversation's assignee if it has one, with a "[Review]" subject
 - **Reply on an assigned conversation**: emailed to the assignee only
 - **@-mention in a note**: emailed to the mentioned users
 
@@ -160,6 +160,8 @@ Notification emails include the message, any attachment names, and a link to the
 Two permissions control the inbox. **View** allows reading, assigning, changing status, tagging, bulk actions, notes, and reading the knowledge base. **Send** additionally allows composing and replying, drafts, attachments, canned responses, AI drafting, marking spam, editing knowledge entries, and refreshing site content. Marking spam requires send permission because it blocks a sender everywhere.
 
 Admins, Progress Admins, and Inbox Agents hold both. Conversations can only be assigned to users with inbox access.
+
+**Personal Inbox Agents** hold both permissions in a narrower form. They see only the conversations assigned to them, which covers everything sent to their own alias and anything a colleague hands them; a conversation they cannot see behaves as if it did not exist. On their own conversations they can reply, change status, tag, add notes, use AI drafting, mark spam (which still blocks the sender everywhere), and hand the conversation to any other inbox user, after which it leaves their view. They always send from their alias, and cannot send until an admin has set one; the composer says so. They can apply tags, insert canned responses, and read the knowledge base, but cannot create or delete tags, manage canned responses, add or edit knowledge entries, or refresh site content. Their rail shows only the Needs review and All folders.
 
 Each user's sending identity (alias and signature) is set on the Users page. A user may edit their own signature; changing an alias or another user's identity requires user management permission.
 

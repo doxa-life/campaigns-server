@@ -1,4 +1,5 @@
 import { handleApiError } from '#server/utils/api-helpers'
+import { requireConversationVisible } from '#server/utils/inbox-access'
 
 const TABLE_PERMISSIONS: Record<string, string> = {
   people_groups: 'people_groups.view',
@@ -23,7 +24,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Record ID is required' })
   }
 
-  await requirePermission(event, TABLE_PERMISSIONS[tableName])
+  const user = await requirePermission(event, TABLE_PERMISSIONS[tableName])
+  if (tableName === 'conversations') {
+    await requireConversationVisible(user.userId, Number(recordId))
+  }
 
   try {
     const activities = await sql`

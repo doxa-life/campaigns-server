@@ -846,6 +846,7 @@
       "draft": "Ciornă",
       "sending": "Se trimite…",
       "cannedResponse": "Răspuns predefinit",
+      "aliasRequired": "Trimiterea este dezactivată până când un administrator îți setează aliasul de e-mail.",
       "attach": "Atașează fișier",
       "placeholder": "Scrie răspunsul tău…",
       "language": "Limbă",

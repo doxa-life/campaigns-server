@@ -1,15 +1,16 @@
 import { conversationService } from '#server/database/conversations'
 import { messageService } from '#server/database/conversation-messages'
 import { jobQueueService, type OutboundEmailPayload } from '#server/database/job-queue'
-import { userService } from '#server/database/users'
 import { getIntParam, handleApiError } from '#server/utils/api-helpers'
+import { requireInboxAccess, requireAccessibleConversation, resolveSendIdentity } from '#server/utils/inbox-access'
 
 /**
  * Compose / reply on a conversation (requires inbox.send).
  *
  * Body: { body_html, body_text?, from_identity?, saveDraft?, draft_id? }
  *  - from_identity: 'personal' (the sender's alias) | 'contact' (the general address).
- *    Defaults to 'personal' when the sender has an alias, otherwise 'contact'.
+ *    Defaults to 'personal' when the sender has an alias, otherwise 'contact'. An
+ *    assigned-only agent always sends as 'personal' (see resolveSendIdentity).
  *  - saveDraft + no draft_id  → create a shared draft
  *  - saveDraft + draft_id     → update an existing draft
  *  - !saveDraft + draft_id    → send that draft (mark queued + enqueue)
@@ -18,13 +19,10 @@ import { getIntParam, handleApiError } from '#server/utils/api-helpers'
  * Sending auto-assigns the conversation to the sender (if unassigned) and sets Pending.
  */
 export default defineEventHandler(async (event) => {
-  const auth = await requirePermission(event, 'inbox.send')
+  const auth = await requireInboxAccess(event, 'inbox.send')
 
   const id = getIntParam(event, 'id')
-  const conversation = await conversationService.getById(id)
-  if (!conversation) {
-    throw createError({ statusCode: 404, statusMessage: 'Conversation not found' })
-  }
+  const conversation = await requireAccessibleConversation(auth, id)
 
   const body = await readBody<{
     body_html?: string
@@ -43,12 +41,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Resolve the chosen From address: the sender's alias (personal) or the general contact address.
-  const config = useRuntimeConfig()
-  const contactAddress = config.inboxContactAddress || 'contact@doxa.life'
-  const inboxDomain = (config.inboxDomain || 'doxa.life').toLowerCase()
-  const sender = await userService.getUserById(auth.userId)
-  const useContact = body.from_identity === 'contact' || !sender?.email_alias
-  const fromEmail = useContact ? contactAddress : `${sender!.email_alias}@${inboxDomain}`
+  const { sender, useContact, fromEmail } = await resolveSendIdentity(auth, body.from_identity)
 
   try {
     // A provided draft must belong to this conversation (mirrors the attachments endpoint),

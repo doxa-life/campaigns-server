@@ -845,6 +845,7 @@
       "draft": "Rascunho",
       "sending": "Enviando…",
       "cannedResponse": "Resposta padrão",
+      "aliasRequired": "O envio está desativado até que um administrador defina o seu alias de e-mail.",
       "attach": "Anexar arquivo",
       "placeholder": "Escreva sua resposta…",
       "language": "Idioma",

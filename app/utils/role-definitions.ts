@@ -1,7 +1,8 @@
 // Permission scopes: a bare permission is unrestricted. The `_scoped` suffix limits it to the
 // user's assigned people groups; the `_language_scoped` suffix limits it to the user's assigned
-// languages. A user holding several roles gets the union of what each role's scope allows.
-export type RoleName = 'admin' | 'progress_admin' | 'content_editor' | 'language_editor' | 'people_group_editor' | 'inbox_agent'
+// languages; the `_assigned_scoped` suffix limits it to records assigned to the user (inbox
+// conversations). A user holding several roles gets the union of what each role's scope allows.
+export type RoleName = 'admin' | 'progress_admin' | 'content_editor' | 'language_editor' | 'people_group_editor' | 'inbox_agent' | 'personal_inbox_agent'
 
 export const ROLES: Record<RoleName, { name: RoleName; label: string; description: string; permissions: string[] }> = {
   admin: {
@@ -105,6 +106,16 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
     permissions: [
       'inbox.view',
       'inbox.send',
+      'context.view'
+    ]
+  },
+  personal_inbox_agent: {
+    name: 'personal_inbox_agent',
+    label: 'Personal Inbox Agent',
+    description: 'Handles mail to their own doxa.life alias and conversations assigned to them — sends only from that alias',
+    permissions: [
+      'inbox.view_assigned_scoped',
+      'inbox.send_assigned_scoped',
       'context.view'
     ]
   }

@@ -845,6 +845,7 @@
       "draft": "Brouillon",
       "sending": "Envoi…",
       "cannedResponse": "Réponse type",
+      "aliasRequired": "L'envoi est désactivé jusqu'à ce qu'un administrateur définisse votre alias e-mail.",
       "attach": "Joindre un fichier",
       "placeholder": "Rédigez votre réponse…",
       "language": "Langue",

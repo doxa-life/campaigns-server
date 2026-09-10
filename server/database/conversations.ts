@@ -220,6 +220,8 @@ class ConversationService {
     status?: ConversationStatus
     mine?: string
     scope?: 'all' | 'unassigned' | 'mine' | 'held'
+    // Restrict every tally to conversations assigned to this user (assigned-only agents).
+    assignedTo?: string
   } = {}): Promise<{
     all: number
     unassigned: number
@@ -244,6 +246,7 @@ class ConversationService {
       if (opts.scope === 'held') return this.sql`c.needs_review = true`
       return this.sql`TRUE`
     }
+    const visibleCond = opts.assignedTo ? this.sql`c.assigned_user_id = ${opts.assignedTo}` : this.sql`TRUE`
     const [row] = await this.sql<{
       all: string; unassigned: string; mine: string; held: string; open: string; pending: string
     }[]>`
@@ -255,6 +258,7 @@ class ConversationService {
         COUNT(*) FILTER (WHERE c.status = 'open' AND ${scopeCond()}) AS open,
         COUNT(*) FILTER (WHERE c.status = 'pending' AND ${scopeCond()}) AS pending
       FROM conversations c
+      WHERE ${visibleCond}
     `
     return {
       all: Number(row?.all ?? 0),
@@ -327,6 +331,15 @@ class ConversationService {
     await this.sql`UPDATE conversations SET tags = ${this.sql.json(slugs)}, updated_at = NOW() WHERE id = ${id}`
   }
 
+  // The subset of ids assigned to the user, so a bulk action from an assigned-only agent
+  // can be narrowed to their own conversations before anything is changed.
+  async filterAssignedTo(ids: number[], userId: string): Promise<number[]> {
+    const rows = await this.sql<{ id: number }[]>`
+      SELECT id FROM conversations WHERE id = ANY(${ids}) AND assigned_user_id = ${userId}
+    `
+    return rows.map(r => r.id)
+  }
+
   // Bulk triage over a set of conversation ids. Each method returns the ids it actually
   // updated (missing ids are skipped) so callers can log per conversation.
   async bulkUpdateStatus(ids: number[], status: ConversationStatus): Promise<number[]> {
@@ -372,12 +385,14 @@ class ConversationService {
 
   // Per-tag count of non-spam conversations, for the rail's clickable tag list. Each
   // tag acts as a cross-status folder, so spam is the only status excluded (it's noise).
-  async tagCounts(): Promise<Record<string, number>> {
+  // `assignedTo` limits the tally to one user's conversations (assigned-only agents).
+  async tagCounts(assignedTo?: string): Promise<Record<string, number>> {
+    const visibleCond = assignedTo ? this.sql`c.assigned_user_id = ${assignedTo}` : this.sql`TRUE`
     const rows = await this.sql<{ slug: string; count: number }[]>`
       SELECT t.tag AS slug, COUNT(*)::int AS count
       FROM conversations c
       CROSS JOIN LATERAL jsonb_array_elements_text(c.tags) AS t(tag)
-      WHERE c.status <> 'spam'
+      WHERE c.status <> 'spam' AND ${visibleCond}
       GROUP BY t.tag
     `
     const out: Record<string, number> = {}

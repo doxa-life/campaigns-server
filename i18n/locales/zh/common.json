@@ -845,6 +845,7 @@
       "draft": "草稿",
       "sending": "发送中…",
       "cannedResponse": "常用回复",
+      "aliasRequired": "在管理员设置您的邮箱别名之前，无法发送邮件。",
       "attach": "添加附件",
       "placeholder": "写下你的回复…",
       "language": "语言",

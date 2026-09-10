@@ -186,7 +186,7 @@
                       :class="granted ? 'size-4 text-[var(--ui-color-success-500)]' : 'size-4 text-[var(--ui-text-muted)]'"
                     />
                     <span class="text-sm" :class="{ 'text-[var(--ui-text-muted)]': !granted }">{{ permissionDetails[perm]?.title || perm }}</span>
-                    <UBadge v-if="scope" color="warning" variant="subtle" size="xs">{{ scope === 'languages' ? 'Language-scoped' : 'Scoped' }}</UBadge>
+                    <UBadge v-if="scope" color="warning" variant="subtle" size="xs">{{ scopeBadgeLabels[scope] }}</UBadge>
                     <span class="text-xs text-[var(--ui-text-muted)]">
                       — {{ scopeDescription(perm, scope) || permissionDetails[perm]?.description }}
                     </span>
@@ -563,7 +563,8 @@ const roleIcons: Record<string, string> = {
   content_editor: 'i-lucide-book-open',
   language_editor: 'i-lucide-languages',
   people_group_editor: 'i-lucide-users',
-  inbox_agent: 'i-lucide-inbox'
+  inbox_agent: 'i-lucide-inbox',
+  personal_inbox_agent: 'i-lucide-at-sign'
 }
 
 const permissionGroupLabels: Record<string, string> = {
@@ -606,7 +607,7 @@ const permissionDetails: Record<string, { title: string; description: string }> 
 
 const allPermissions = Object.keys(permissionDetails)
 
-type PermissionScope = 'people_groups' | 'languages' | null
+type PermissionScope = 'people_groups' | 'languages' | 'assigned' | null
 
 function getPermissionGroups(rolePermissions: string[]) {
   const groups: Record<string, { perm: string; granted: boolean; scope: PermissionScope }[]> = {}
@@ -616,8 +617,9 @@ function getPermissionGroups(rolePermissions: string[]) {
     const hasExact = rolePermissions.includes(perm)
     const hasScoped = rolePermissions.includes(perm + '_scoped')
     const hasLanguageScoped = rolePermissions.includes(perm + '_language_scoped')
-    const scope: PermissionScope = hasExact ? null : hasScoped ? 'people_groups' : hasLanguageScoped ? 'languages' : null
-    groups[prefix].push({ perm, granted: hasExact || hasScoped || hasLanguageScoped, scope })
+    const hasAssignedScoped = rolePermissions.includes(perm + '_assigned_scoped')
+    const scope: PermissionScope = hasExact ? null : hasScoped ? 'people_groups' : hasLanguageScoped ? 'languages' : hasAssignedScoped ? 'assigned' : null
+    groups[prefix].push({ perm, granted: hasExact || hasScoped || hasLanguageScoped || hasAssignedScoped, scope })
   }
   return Object.entries(groups).map(([key, perms]) => ({
     label: permissionGroupLabels[key] || key,
@@ -628,7 +630,19 @@ function getPermissionGroups(rolePermissions: string[]) {
 function scopeDescription(perm: string, scope: PermissionScope): string | undefined {
   if (scope === 'people_groups') return scopedDescriptions[perm]
   if (scope === 'languages') return languageScopedDescriptions[perm]
+  if (scope === 'assigned') return assignedScopedDescriptions[perm]
   return undefined
+}
+
+const scopeBadgeLabels: Record<Exclude<PermissionScope, null>, string> = {
+  people_groups: 'Scoped',
+  languages: 'Language-scoped',
+  assigned: 'Own conversations'
+}
+
+const assignedScopedDescriptions: Record<string, string> = {
+  'inbox.view': 'Only conversations assigned to them',
+  'inbox.send': 'Only on their own conversations, always from their alias'
 }
 
 const languageScopedDescriptions: Record<string, string> = {

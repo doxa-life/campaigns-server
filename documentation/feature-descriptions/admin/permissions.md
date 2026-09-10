@@ -6,7 +6,7 @@ The permissions system controls what logged-in users can see and do. Each user h
 
 ## Roles
 
-Six roles are available, shown in this order on the Users page.
+Seven roles are available, shown in this order on the Users page.
 
 **Admin** has full access to everything: all people groups, groups, churches, contacts, content, the inbox, marketing, and user management. Admins see the complete admin interface and need no assignments. Only Admins can manage churches, create API keys, manage marketing senders, or send to the broadest marketing audiences.
 
@@ -19,6 +19,8 @@ Six roles are available, shown in this order on the Users page.
 **Translator** can read library content in every language but can only create, edit, or delete content in the languages they have been assigned. They cannot create or delete libraries, import libraries, change the prayer fuel order, or run bulk translations. Inside a library, days in their languages show an Edit button and days in other languages show View, with the editor read-only. Translation tools only offer their assigned languages as targets. They see only the Dashboard and Libraries.
 
 **Inbox Agent** handles the shared email inbox: triage, reply, and send. They see only the Dashboard and Inbox.
+
+**Personal Inbox Agent** handles only the conversations assigned to them: mail sent to their own alias (for example a first name at doxa.life) and anything a colleague hands them. They reply from that alias only, can pass a conversation to another inbox user, and can use but not manage tags, canned responses, and the knowledge base. They see only the Dashboard and Inbox.
 
 **No role** is the state of a newly registered user. They can log in but see an "Account Pending Approval" page with a **Check Status** button until an admin assigns a role. Users who registered through an invitation may already have roles pre-assigned.
 
@@ -34,6 +36,7 @@ Roles are assigned when inviting a user or afterwards from the Users page. Scope
 
 - **People Group Access** appears in a user's settings when they hold a scoped role. Pick the people groups they may work on. The Users list shows a "People Groups (N)" badge for each such user.
 - **Language Access** appears when they hold the Translator role. Tick the languages they may edit from the site's supported languages.
+- **Email alias** is what routes mail to a Personal Inbox Agent and is the only address they send from. Set it in the user's inbox identity; until then they can read what is assigned to them but not reply.
 
 Assignments save immediately. Admins and Progress Admins need no assignments; their access is global.
 
@@ -51,6 +54,7 @@ To set up a new team member:
 - **Content Editor** for writers who work on libraries in every language
 - **Translator** for reviewers who work in particular languages only
 - **Inbox Agent** for people whose whole job is answering email
+- **Personal Inbox Agent** for people who answer mail sent to their own doxa.life address and should not see the rest of the inbox
 
 ## Subscriber Access
 
@@ -66,7 +70,7 @@ If a subscriber has subscriptions to multiple people groups, a People Group Edit
 
 ## The Roles Tab
 
-The Users page has a Roles tab that lists every role with its description and a matrix of what it can view, create, edit, and delete in each area. Permissions limited to assigned people groups carry a "Scoped" badge, and those limited to assigned languages carry a "Language-scoped" badge. It is the quickest reference when deciding which role to give someone.
+The Users page has a Roles tab that lists every role with its description and a matrix of what it can view, create, edit, and delete in each area. Permissions limited to assigned people groups carry a "Scoped" badge, those limited to assigned languages carry a "Language-scoped" badge, and those limited to the user's own conversations carry an "Own conversations" badge. It is the quickest reference when deciding which role to give someone.
 
 ## Current Limitations
 

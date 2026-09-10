@@ -2,13 +2,13 @@ import { inboxKnowledgeService } from '#server/database/inbox-knowledge'
 import { handleApiError } from '#server/utils/api-helpers'
 
 /**
- * Create a knowledge-base entry (requires inbox.send). The human has reviewed the
+ * Create a knowledge-base entry (requires the full inbox.send). The human has reviewed the
  * (anonymised) question/answer before this is called.
  *
  * Body: { question, answer, language?, source_conversation_id? }
  */
 export default defineEventHandler(async (event) => {
-  const auth = await requirePermission(event, 'inbox.send')
+  const auth = await requireUnscopedPermission(event, 'inbox.send')
 
   const body = await readBody<{
     question?: string

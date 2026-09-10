@@ -43,7 +43,7 @@
                 <UBadge :color="badgeColor(tag.color)" variant="subtle" size="xs">{{ tag.name }}</UBadge>
               </button>
 
-              <template v-if="confirmingDelete === tag.slug">
+              <template v-if="manageable && confirmingDelete === tag.slug">
                 <span class="tag-pop-confirm">
                   <UButton variant="ghost" color="neutral" size="xs" @click="() => { confirmingDelete = null }">
                     {{ $t('common.cancel') }}
@@ -54,7 +54,7 @@
                 </span>
               </template>
               <UButton
-                v-else
+                v-else-if="manageable"
                 icon="i-lucide-trash-2"
                 variant="ghost"
                 color="neutral"
@@ -65,10 +65,10 @@
             </li>
           </ul>
 
-          <div class="tag-pop-divider" />
+          <div v-if="manageable" class="tag-pop-divider" />
 
           <!-- Inline create -->
-          <div class="tag-pop-create">
+          <div v-if="manageable" class="tag-pop-create">
             <UInput
               v-model="newName"
               :placeholder="$t('inbox.tags.newPlaceholder')"
@@ -108,11 +108,14 @@ import { ref } from 'vue'
 
 interface InboxTag { slug: string; name: string; color: string }
 
-const props = defineProps<{
+// `manageable` controls the shared-palette actions (create / delete); an agent whose inbox
+// access is limited to their own conversations can apply tags but not change the palette.
+const props = withDefaults(defineProps<{
   conversationId: number
   modelValue: string[]
   palette: InboxTag[]
-}>()
+  manageable?: boolean
+}>(), { manageable: true })
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string[]): void

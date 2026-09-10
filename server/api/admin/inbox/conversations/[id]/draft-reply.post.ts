@@ -1,9 +1,9 @@
 import { conversationService } from '#server/database/conversations'
 import { messageService, type AiDraftMetadata } from '#server/database/conversation-messages'
-import { userService } from '#server/database/users'
 import { isAiConfigured, getAiModel } from '#server/utils/ai'
 import { generateInboxDraft } from '#server/utils/inbox/ai-draft'
 import { getIntParam, handleApiError } from '#server/utils/api-helpers'
+import { requireInboxAccess, requireAccessibleConversation, resolveSendIdentity } from '#server/utils/inbox-access'
 
 /**
  * Generate an AI draft reply for a conversation (requires inbox.send).
@@ -20,13 +20,10 @@ import { getIntParam, handleApiError } from '#server/utils/api-helpers'
  * metadata (English gloss, sources, uncertainty) in ai_metadata. Never sends — a human reviews + sends.
  */
 export default defineEventHandler(async (event) => {
-  const auth = await requirePermission(event, 'inbox.send')
+  const auth = await requireInboxAccess(event, 'inbox.send')
 
   const id = getIntParam(event, 'id')
-  const conversation = await conversationService.getById(id)
-  if (!conversation) {
-    throw createError({ statusCode: 404, statusMessage: 'Conversation not found' })
-  }
+  const conversation = await requireAccessibleConversation(auth, id)
 
   // Under VITEST the generator returns a deterministic stub, so no key is required.
   if (!isAiConfigured() && !process.env.VITEST) {
@@ -47,12 +44,7 @@ export default defineEventHandler(async (event) => {
   const baseDraft = typeof body.base_draft === 'string' ? body.base_draft.trim().slice(0, 20000) : ''
 
   // Resolve the From address the same way messages.post.ts does.
-  const config = useRuntimeConfig()
-  const contactAddress = config.inboxContactAddress || 'contact@doxa.life'
-  const inboxDomain = (config.inboxDomain || 'doxa.life').toLowerCase()
-  const sender = await userService.getUserById(auth.userId)
-  const useContact = body.from_identity === 'contact' || !sender?.email_alias
-  const fromEmail = useContact ? contactAddress : `${sender!.email_alias}@${inboxDomain}`
+  const { fromEmail } = await resolveSendIdentity(auth, body.from_identity)
 
   try {
     const draft = await generateInboxDraft(id, {

@@ -845,6 +845,7 @@
       "draft": "Borrador",
       "sending": "Enviando…",
       "cannedResponse": "Respuesta predefinida",
+      "aliasRequired": "El envío está desactivado hasta que un administrador configure tu alias de correo.",
       "attach": "Adjuntar archivo",
       "placeholder": "Escribe tu respuesta…",
       "language": "Idioma",

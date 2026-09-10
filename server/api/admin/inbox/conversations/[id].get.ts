@@ -3,11 +3,13 @@ import { messageService } from '#server/database/conversation-messages'
 import { conversationAttachmentService } from '#server/database/conversation-attachments'
 import { getIntParam, handleApiError } from '#server/utils/api-helpers'
 import { getReplyEmailStatus } from '#server/utils/inbox-reply-target'
+import { requireInboxAccess, requireAccessibleConversation } from '#server/utils/inbox-access'
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'inbox.view')
+  const access = await requireInboxAccess(event, 'inbox.view')
 
   const id = getIntParam(event, 'id')
+  await requireAccessibleConversation(access, id)
 
   try {
     const conversation = await conversationService.getByIdWithDetails(id)

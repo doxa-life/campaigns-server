@@ -1,5 +1,6 @@
 import { commentService } from '#server/database/comments'
 import { handleApiError } from '#server/utils/api-helpers'
+import { requireConversationVisible } from '#server/utils/inbox-access'
 
 const RECORD_TYPE_PERMISSIONS: Record<string, string> = {
   people_group: 'people_groups.view',
@@ -24,7 +25,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Invalid record type' })
   }
 
-  await requirePermission(event, permission)
+  const user = await requirePermission(event, permission)
+  if (recordType === 'conversation') {
+    await requireConversationVisible(user.userId, recordId)
+  }
 
   try {
     const comments = await commentService.getForRecord(recordType, recordId)

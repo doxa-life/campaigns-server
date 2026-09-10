@@ -82,10 +82,11 @@ definePageMeta({ layout: 'admin', middleware: 'auth' })
 const { t } = useI18n()
 const toast = useToast()
 
-// Mutations (edit/archive/delete/refresh) require inbox.send; the server enforces it
+// Mutations (edit/archive/delete/refresh) require the full inbox.send — an agent limited to
+// their own conversations can read entries but not change them. The server enforces it
 // too, this just hides controls a viewer can't use.
-const { canAccess } = useAuthUser()
-const canSend = computed(() => canAccess('inbox.send'))
+const { canAccessUnscoped } = useAuthUser()
+const canSend = computed(() => canAccessUnscoped('inbox.send'))
 
 const entries = ref<KnowledgeEntry[]>([])
 // Starts true so the first paint shows the spinner — the fetch only begins in

@@ -1,6 +1,7 @@
 import { messageService } from '#server/database/conversation-messages'
 import { conversationAttachmentService } from '#server/database/conversation-attachments'
 import { getIntParam, handleApiError } from '#server/utils/api-helpers'
+import { requireInboxAccess, requireAccessibleConversation } from '#server/utils/inbox-access'
 
 const BLOCKED = /\.(exe|bat|cmd|com|scr|js|jar|vbs|ps1|sh|msi|dll)$/i
 const MAX_BYTES = 25 * 1024 * 1024
@@ -10,9 +11,10 @@ const MAX_BYTES = 25 * 1024 * 1024
  * The draft must exist first (Save Draft); files are re-attached when the draft is sent.
  */
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'inbox.send')
+  const access = await requireInboxAccess(event, 'inbox.send')
 
   const conversationId = getIntParam(event, 'id')
+  await requireAccessibleConversation(access, conversationId)
   const parts = await readMultipartFormData(event)
   if (!parts) {
     throw createError({ statusCode: 400, statusMessage: 'No file uploaded' })

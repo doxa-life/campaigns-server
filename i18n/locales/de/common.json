@@ -845,6 +845,7 @@
       "draft": "Entwurf",
       "sending": "Senden…",
       "cannedResponse": "Vorlage",
+      "aliasRequired": "Das Senden ist deaktiviert, bis ein Admin deinen E-Mail-Alias festlegt.",
       "attach": "Datei anhängen",
       "placeholder": "Schreiben Sie Ihre Antwort…",
       "language": "Sprache",

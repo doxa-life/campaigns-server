@@ -861,6 +861,7 @@
       "signatureHide": "Hide",
       "signatureNoneSet": "No signature will be added — set one in your inbox identity settings.",
       "signatureNoneContact": "No signature will be added (sending from the general contact address).",
+      "aliasRequired": "Sending is disabled until an admin sets your email alias.",
       "placeholder": "Write your reply…",
       "language": "Language",
       "newEmail": "New email",

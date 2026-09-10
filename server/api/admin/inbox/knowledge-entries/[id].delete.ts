@@ -2,10 +2,10 @@ import { inboxKnowledgeService } from '#server/database/inbox-knowledge'
 import { getIntParam, handleApiError } from '#server/utils/api-helpers'
 
 /**
- * Delete a knowledge-base entry (requires inbox.send).
+ * Delete a knowledge-base entry (requires the full inbox.send).
  */
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'inbox.send')
+  await requireUnscopedPermission(event, 'inbox.send')
 
   const id = getIntParam(event, 'id')
   try {

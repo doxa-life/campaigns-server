@@ -2,11 +2,11 @@ import { inboxKnowledgeService, type KnowledgeEntryStatus } from '#server/databa
 import { getIntParam, handleApiError } from '#server/utils/api-helpers'
 
 /**
- * Update a knowledge-base entry (requires inbox.send).
+ * Update a knowledge-base entry (requires the full inbox.send).
  * Body: { question?, answer?, language?, status? }
  */
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'inbox.send')
+  await requireUnscopedPermission(event, 'inbox.send')
 
   const id = getIntParam(event, 'id')
   const body = await readBody<{

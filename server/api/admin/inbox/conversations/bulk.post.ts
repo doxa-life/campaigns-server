@@ -2,6 +2,7 @@ import { conversationService, type ConversationStatus } from '#server/database/c
 import { inboxTagService } from '#server/database/inbox-tags'
 import { roleService } from '#server/database/roles'
 import { handleApiError } from '#server/utils/api-helpers'
+import { requireInboxAccess } from '#server/utils/inbox-access'
 
 // Spam is excluded: marking spam blocklists the sender globally, so it stays a
 // deliberate per-conversation action.
@@ -15,7 +16,7 @@ const MAX_IDS = 100
  */
 export default defineEventHandler(async (event) => {
   // Triage actions require only inbox.view, like the single-conversation endpoints.
-  await requirePermission(event, 'inbox.view')
+  const access = await requireInboxAccess(event, 'inbox.view')
 
   const body = await readBody<{
     ids?: unknown
@@ -24,13 +25,13 @@ export default defineEventHandler(async (event) => {
     add_tags?: string[]
   }>(event)
 
-  const ids = Array.isArray(body.ids)
+  const requestedIds = Array.isArray(body.ids)
     ? ([...new Set(body.ids.filter(v => Number.isInteger(v) && v > 0))] as number[])
     : []
-  if (ids.length === 0) {
+  if (requestedIds.length === 0) {
     throw createError({ statusCode: 400, statusMessage: 'ids is required' })
   }
-  if (ids.length > MAX_IDS) {
+  if (requestedIds.length > MAX_IDS) {
     throw createError({ statusCode: 400, statusMessage: `At most ${MAX_IDS} ids per request` })
   }
   if (body.status === undefined && body.assigned_user_id === undefined && body.add_tags === undefined) {
@@ -38,6 +39,13 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    // An assigned-only agent can only act on their own conversations; other ids are
+    // skipped like ids that don't exist.
+    const ids = access.assignedOnly
+      ? await conversationService.filterAssignedTo(requestedIds, access.userId)
+      : requestedIds
+    if (ids.length === 0) return { updated: 0 }
+
     const updated = new Set<number>()
 
     if (body.status !== undefined) {

@@ -845,6 +845,7 @@
       "draft": "Bozza",
       "sending": "Invio…",
       "cannedResponse": "Risposta predefinita",
+      "aliasRequired": "L'invio è disattivato finché un amministratore non imposta il tuo alias e-mail.",
       "attach": "Allega file",
       "placeholder": "Scrivi la tua risposta…",
       "language": "Lingua",

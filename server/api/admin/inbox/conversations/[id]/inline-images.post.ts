@@ -1,5 +1,6 @@
 import { uploadInlineImage } from '#server/utils/app/inbox-inline-images'
 import { getIntParam, handleApiError } from '#server/utils/api-helpers'
+import { requireInboxAccess, requireAccessibleConversation } from '#server/utils/inbox-access'
 
 /**
  * Upload an inline image for the composer (multipart: image).
@@ -8,9 +9,10 @@ import { getIntParam, handleApiError } from '#server/utils/api-helpers'
  * leaves the system on a public URL.
  */
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'inbox.send')
+  const access = await requireInboxAccess(event, 'inbox.send')
 
   const conversationId = getIntParam(event, 'id')
+  await requireAccessibleConversation(access, conversationId)
 
   const parts = await readMultipartFormData(event)
   const file = parts?.find(p => p.name === 'image' && p.filename)

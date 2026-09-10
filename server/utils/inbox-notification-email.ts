@@ -1,5 +1,5 @@
 import { userService, type User } from '../database/users'
-import { roleService } from '../database/roles'
+import { roleService, isAssignedScopedForRoles, type RoleName } from '../database/roles'
 import { conversationAttachmentService, type ConversationAttachment } from '../database/conversation-attachments'
 import type { Conversation } from '../database/conversations'
 import type { ConversationMessage } from '../database/conversation-messages'
@@ -95,10 +95,20 @@ function renderNotification(opts: {
   return { html, text }
 }
 
-/** Notify the configured contact_us recipient list about a new/unassigned/held conversation. */
+/**
+ * Notify the configured contact_us recipient list about a new/unassigned/held conversation.
+ * Assigned-only agents can't open a conversation that isn't theirs, so they are left out of
+ * the broadcast even when opted in. A held message on an assigned conversation also goes to
+ * its assignee, who is otherwise only told about replies.
+ */
 export async function notifyNewConversation(conversation: Conversation, message: ConversationMessage, opts: { held?: boolean } = {}): Promise<boolean> {
   const cfg = getConfig()
-  const users = await userService.getUsersOptedIntoContactUs()
+  const users = (await userService.getUsersOptedIntoContactUs())
+    .filter(u => !isAssignedScopedForRoles((u.roles || []) as RoleName[], 'inbox.view'))
+  if (opts.held && conversation.assigned_user_id && !users.some(u => u.id === conversation.assigned_user_id)) {
+    const assignee = await userService.getUserById(conversation.assigned_user_id)
+    if (assignee?.email) users.push(assignee)
+  }
   if (users.length === 0) return true
 
   const conversationUrl = `${cfg.siteUrl}/admin/inbox/${conversation.id}`

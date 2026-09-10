@@ -4,11 +4,12 @@ import { extractKnowledgeEntry } from '#server/utils/inbox/ai-knowledge-extract'
 import { getIntParam, handleApiError } from '#server/utils/api-helpers'
 
 /**
- * Suggest an anonymised knowledge-base entry from a conversation (requires inbox.send).
+ * Suggest an anonymised knowledge-base entry from a conversation. Feeding the shared knowledge
+ * base is inbox management, so it needs the full inbox.send (not the assigned-only form).
  * Returns a proposal { question, answer, language, removed } for human review — does NOT save.
  */
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'inbox.send')
+  await requireUnscopedPermission(event, 'inbox.send')
 
   const id = getIntParam(event, 'id')
   const conversation = await conversationService.getById(id)

@@ -2,7 +2,7 @@ import { cannedResponseService } from '#server/database/canned-responses'
 import { handleApiError } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  const user = await requirePermission(event, 'inbox.send')
+  const user = await requireUnscopedPermission(event, 'inbox.send')
 
   const body = await readBody<{
     title: string

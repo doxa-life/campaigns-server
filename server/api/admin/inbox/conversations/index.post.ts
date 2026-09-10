@@ -3,8 +3,8 @@ import { messageService } from '#server/database/conversation-messages'
 import { subscriberService } from '#server/database/subscribers'
 import { contactMethodService } from '#server/database/contact-methods'
 import { jobQueueService, type OutboundEmailPayload } from '#server/database/job-queue'
-import { userService } from '#server/database/users'
 import { handleApiError } from '#server/utils/api-helpers'
+import { requireInboxAccess, resolveSendIdentity } from '#server/utils/inbox-access'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -17,10 +17,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
  *
  * Body: { to_email?, subscriber_id?, to_name?, subject, body_html, body_text?, from_identity? }
  *  - from_identity: 'personal' (sender's alias) | 'contact' (general address); defaults to
- *    'personal' when the sender has an alias, otherwise 'contact'.
+ *    'personal' when the sender has an alias, otherwise 'contact'. An assigned-only agent
+ *    always sends as 'personal' (see resolveSendIdentity).
  */
 export default defineEventHandler(async (event) => {
-  const auth = await requirePermission(event, 'inbox.send')
+  const auth = await requireInboxAccess(event, 'inbox.send')
 
   const body = await readBody<{
     to_email?: string
@@ -42,6 +43,10 @@ export default defineEventHandler(async (event) => {
   if (!bodyHtml) {
     throw createError({ statusCode: 400, statusMessage: 'Message body is required' })
   }
+
+  // --- Resolve the chosen From address (mirrors conversations/[id]/messages) ---
+  // Done before the recipient so a sender who can't send yet leaves no contact record behind.
+  const { sender, useContact, fromEmail } = await resolveSendIdentity(auth, body.from_identity)
 
   try {
     // --- Resolve the subscriber + recipient address ---
@@ -81,14 +86,6 @@ export default defineEventHandler(async (event) => {
     } else {
       throw createError({ statusCode: 400, statusMessage: 'A recipient is required' })
     }
-
-    // --- Resolve the chosen From address (mirrors conversations/[id]/messages) ---
-    const config = useRuntimeConfig()
-    const contactAddress = config.inboxContactAddress || 'contact@doxa.life'
-    const inboxDomain = (config.inboxDomain || 'doxa.life').toLowerCase()
-    const sender = await userService.getUserById(auth.userId)
-    const useContact = body.from_identity === 'contact' || !sender?.email_alias
-    const fromEmail = useContact ? contactAddress : `${sender!.email_alias}@${inboxDomain}`
 
     // --- Create the conversation, assigned to the sender + Pending (as a sent reply does) ---
     const conversation = await conversationService.create({

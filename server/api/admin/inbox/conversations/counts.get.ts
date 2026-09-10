@@ -1,8 +1,9 @@
 import { conversationService, type ConversationStatus } from '#server/database/conversations'
 import { handleApiError } from '#server/utils/api-helpers'
+import { requireInboxAccess } from '#server/utils/inbox-access'
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'inbox.view')
+  const access = await requireInboxAccess(event, 'inbox.view')
 
   const query = getQuery(event)
   const status = query.status as ConversationStatus | undefined
@@ -10,7 +11,12 @@ export default defineEventHandler(async (event) => {
   const scope = query.scope as 'all' | 'unassigned' | 'mine' | 'held' | undefined
 
   try {
-    return await conversationService.counts({ status, mine, scope })
+    return await conversationService.counts({
+      status,
+      mine,
+      scope,
+      assignedTo: access.assignedOnly ? access.userId : undefined,
+    })
   } catch (error) {
     handleApiError(error, 'Failed to count conversations')
   }

@@ -2,8 +2,9 @@ import { inboxTagService } from '#server/database/inbox-tags'
 import { handleApiError } from '#server/utils/api-helpers'
 
 // Delete a tag from the palette and strip it off every conversation that carries it.
+// The palette is shared, so this needs the full inbox.view (not the assigned-only form).
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'inbox.view')
+  await requireUnscopedPermission(event, 'inbox.view')
 
   const slug = getRouterParam(event, 'slug')
   if (!slug) {
