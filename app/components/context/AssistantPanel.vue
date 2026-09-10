@@ -7,7 +7,7 @@ import type {
 } from '~/composables/useContextAssistant'
 
 const {
-  open, scope, conversationId, routeSlug, routeKey, availableScopes, target, targetKey
+  open, scope, picking, conversationId, routeSlug, routeKey, availableScopes, target, targetKey, chooseScope
 } = useContextAssistant()
 const { turn, inFlight, display, start: startTurn, clear: clearTurn } = useContextAssistantTurn()
 
@@ -33,6 +33,43 @@ const conversationItems = computed(() =>
   conversations.value.map(c => ({ value: c.id, label: c.title || 'Untitled chat' }))
 )
 
+// The route carries only the portfolio slug and section key; the picker and
+// the empty-state hint show the display names instead.
+const portfolioName = ref<string | null>(null)
+const sectionTitle = ref<string | null>(null)
+
+async function loadNames() {
+  const slug = routeSlug.value
+  const key = routeKey.value
+  portfolioName.value = null
+  sectionTitle.value = null
+  if (!slug) return
+  const [portfolio, section] = await Promise.all([
+    $fetch<{ name: string }>(`/api/admin/context/portfolios/${slug}`).catch(() => null),
+    key
+      ? $fetch<{ title: string }>(`/api/admin/context/portfolios/${slug}/sections/${key}`).catch(() => null)
+      : null
+  ])
+  if (routeSlug.value !== slug || routeKey.value !== key) return
+  portfolioName.value = portfolio?.name ?? null
+  sectionTitle.value = section?.title ?? null
+}
+
+watch([open, routeSlug, routeKey], () => {
+  if (open.value) loadNames()
+}, { immediate: true })
+
+const scopeOptions = computed(() => {
+  const portfolio = portfolioName.value ?? routeSlug.value ?? ''
+  const section = sectionTitle.value ?? routeKey.value ?? ''
+  const options: Record<AssistantScopeKind, { icon: string, label: string, description: string }> = {
+    section: { icon: 'i-lucide-file-text', label: section, description: `Only this section of ${portfolio}` },
+    portfolio: { icon: 'i-lucide-book-open-text', label: portfolio, description: 'The whole portfolio, every section' },
+    all: { icon: 'i-lucide-library', label: 'All portfolios', description: 'All Doxa context on this server' }
+  }
+  return availableScopes.value.map(kind => ({ kind, ...options[kind] }))
+})
+
 function errorMessage(e: unknown): string {
   const err = e as { data?: { statusMessage?: string }, statusMessage?: string, message?: string } | null
   return err?.data?.statusMessage || err?.statusMessage || err?.message || 'Something went wrong.'
@@ -53,7 +90,7 @@ async function loadConversations() {
   )
   conversations.value = data.conversations
   if (!conversations.value.some(c => c.id === conversationId.value)) {
-    conversationId.value = conversations.value[0]?.id ?? null
+    conversationId.value = null
   }
 }
 
@@ -83,14 +120,15 @@ async function refreshAll() {
   }
 }
 
-watch(targetKey, () => {
-  if (open.value) refreshAll()
-})
-watch(open, (isOpen) => {
-  if (isOpen) refreshAll()
+// Conversations belong to the chosen target, so nothing loads while the
+// scope picker is still showing.
+const ready = computed(() => open.value && !picking.value)
+
+watch(() => (ready.value ? targetKey.value : null), (key) => {
+  if (key !== null) refreshAll()
 })
 watch(conversationId, () => {
-  if (open.value && !sending.value) loadMessages().catch(e => (error.value = errorMessage(e)))
+  if (ready.value && !sending.value) loadMessages().catch(e => (error.value = errorMessage(e)))
 })
 
 function newChat() {
@@ -212,8 +250,10 @@ async function decide(message: AssistantMessage, index: number, action: 'apply' 
 }
 
 const emptyHint = computed(() => {
-  if (scope.value === 'section') return `Focused on the "${routeKey.value}" section of ${routeSlug.value}.`
-  if (scope.value === 'portfolio') return `Using the full "${routeSlug.value}" portfolio.`
+  const portfolio = portfolioName.value ?? routeSlug.value
+  const section = sectionTitle.value ?? routeKey.value
+  if (scope.value === 'section') return `Focused on the "${section}" section of ${portfolio}.`
+  if (scope.value === 'portfolio') return `Using the full "${portfolio}" portfolio.`
   return 'Using every context portfolio on this server.'
 })
 </script>
@@ -225,7 +265,7 @@ const emptyHint = computed(() => {
     title="Context assistant"
     :ui="{ content: 'w-full sm:max-w-xl', body: 'p-0 flex flex-col' }"
   >
-    <template #description>
+    <template v-if="!picking" #description>
       <div class="flex flex-wrap items-center gap-2 mt-2">
         <UFieldGroup size="xs">
           <UButton
@@ -275,7 +315,34 @@ const emptyHint = computed(() => {
     </template>
 
     <template #body>
-      <div ref="listEl" class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div v-if="picking" class="flex-1 flex flex-col justify-center px-6 py-6">
+        <UIcon name="i-lucide-sparkles" class="size-6 mb-3 text-(--ui-text-muted)" />
+        <p class="text-sm font-medium">
+          What should this chat work with?
+        </p>
+        <p class="text-xs text-(--ui-text-muted) mt-1 mb-4">
+          The assistant only reads and proposes updates within the context you pick. You can switch later from the top of the chat.
+        </p>
+        <div class="space-y-2">
+          <UButton
+            v-for="option in scopeOptions"
+            :key="option.kind"
+            block
+            variant="outline"
+            color="neutral"
+            :icon="option.icon"
+            class="justify-start text-left py-3"
+            @click="chooseScope(option.kind)"
+          >
+            <span class="flex flex-col min-w-0">
+              <span class="font-medium truncate">{{ option.label }}</span>
+              <span class="text-xs text-(--ui-text-muted) whitespace-normal">{{ option.description }}</span>
+            </span>
+          </UButton>
+        </div>
+      </div>
+
+      <div v-else ref="listEl" class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         <div v-if="loading" class="text-sm text-(--ui-text-muted)">
           Loading…
         </div>
@@ -358,7 +425,7 @@ const emptyHint = computed(() => {
       </div>
     </template>
 
-    <template #footer>
+    <template v-if="!picking" #footer>
       <div class="w-full space-y-2">
         <UAlert
           v-if="error"

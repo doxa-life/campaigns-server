@@ -1,11 +1,15 @@
 // Shared state for the portfolio assistant: whether the panel is open, which
-// scope it works in, and which conversation is selected. The launcher and the
-// panel both read it, so it lives in `useState` rather than component state.
+// scope it works in, whether the scope is still being chosen, and which
+// conversation is selected. The launcher and the panel both read it, so it
+// lives in `useState` rather than component state.
 //
 // The scope is derived from the route: a section page offers section,
 // portfolio, and all; a portfolio page offers portfolio and all; anywhere else
-// in the admin only all. When navigation removes the current scope, the most
-// specific one still available is selected.
+// in the admin only all. Opening the panel where more than one scope is
+// offered asks the user to pick one before the chat shows; with a single
+// scope the chat opens directly. When navigation removes the current scope,
+// the most specific one still available is selected. Each open starts a new
+// chat; earlier chats stay reachable from the panel's selector.
 
 export type AssistantScopeKind = 'section' | 'portfolio' | 'all'
 
@@ -68,7 +72,9 @@ export function useContextAssistant() {
   const route = useRoute()
   const open = useState<boolean>('context-assistant.open', () => false)
   const scope = useState<AssistantScopeKind>('context-assistant.scope', () => 'all')
+  const picking = useState<boolean>('context-assistant.picking', () => false)
   const conversationId = useState<string | null>('context-assistant.conversation', () => null)
+  const { inFlight } = useContextAssistantTurn()
 
   const routeTarget = computed(() => contextRouteTarget(route.path))
   const routeSlug = computed(() => routeTarget.value.portfolio)
@@ -85,6 +91,7 @@ export function useContextAssistant() {
 
   watch(availableScopes, (available) => {
     if (!available.includes(scope.value)) scope.value = defaultScope.value
+    if (available.length < 2) picking.value = false
   })
 
   const target = computed<AssistantScopeTarget>(() => ({
@@ -95,12 +102,20 @@ export function useContextAssistant() {
 
   function openPanel() {
     scope.value = defaultScope.value
+    picking.value = availableScopes.value.length > 1
+    // A turn still streaming keeps its chat so the reply lands in view.
+    if (!inFlight.value) conversationId.value = null
     open.value = true
   }
 
+  function chooseScope(kind: AssistantScopeKind) {
+    scope.value = kind
+    picking.value = false
+  }
+
   return {
-    open, scope, conversationId, routeSlug, routeKey,
-    availableScopes, defaultScope, target, targetKey, openPanel
+    open, scope, picking, conversationId, routeSlug, routeKey,
+    availableScopes, defaultScope, target, targetKey, openPanel, chooseScope
   }
 }
 
