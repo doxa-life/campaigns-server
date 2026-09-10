@@ -2308,8 +2308,8 @@ components:
           example: 58
         adopted_by_churches:
           type: integer
-          description: Number of churches that have adopted this group (always 0)
-          example: 0
+          description: Number of active adoptions of this group by churches and other groups
+          example: 1
 
     PeopleGroupDetail:
       type: object
@@ -2345,6 +2345,15 @@ components:
           type: integer
         adopted_by_churches:
           type: integer
+          description: Number of active adoptions of this group
+        adopted_by_count:
+          type: integer
+          description: Number of active adoptions of this group (same value as adopted_by_churches)
+        adopted_by_names:
+          type: array
+          items:
+            type: string
+          description: Names of the adopting groups that chose to be listed publicly
         people_committed:
           type: integer
           description: Total number of active prayer commitments
@@ -2423,8 +2432,8 @@ components:
           example: 312
         total_adopted:
           type: integer
-          description: Number of people groups adopted by churches (always 0)
-          example: 0
+          description: Number of people groups with at least one active adoption
+          example: 15
         people_committed:
           type: integer
           description: Total number of active prayer commitments (subscriptions)
