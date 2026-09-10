@@ -573,7 +573,8 @@ const permissionGroupLabels: Record<string, string> = {
   content: 'Content',
   users: 'Users',
   inbox: 'Inbox',
-  marketing: 'Marketing'
+  marketing: 'Marketing',
+  context: 'Context'
 }
 
 const permissionDetails: Record<string, { title: string; description: string }> = {
@@ -597,7 +598,10 @@ const permissionDetails: Record<string, { title: string; description: string }> 
   'inbox.view': { title: 'View Inbox', description: 'View the shared email inbox and conversations' },
   'inbox.send': { title: 'Send from Inbox', description: 'Reply to and send messages from the shared inbox' },
   'marketing.view': { title: 'View Marketing', description: 'View marketing emails, senders, and survey results' },
-  'marketing.send': { title: 'Manage & Send Marketing', description: 'Create/send marketing emails and delete survey responses' }
+  'marketing.send': { title: 'Manage & Send Marketing', description: 'Create/send marketing emails and delete survey responses' },
+  'context.view': { title: 'View Context', description: 'Read context portfolios and chat with the portfolio assistant' },
+  'context.edit': { title: 'Edit Context', description: 'Save section content, comment, and apply assistant updates' },
+  'context.manage': { title: 'Manage Context', description: 'Create and delete portfolios, manage sections, resolve comments' }
 }
 
 const allPermissions = Object.keys(permissionDetails)

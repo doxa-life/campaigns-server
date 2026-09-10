@@ -220,6 +220,89 @@ export async function openrouterChat(body: Record<string, unknown>, label: strin
   return { status: response.status, data }
 }
 
+/**
+ * Send one chat-completions request with `stream: true` and yield each JSON
+ * chunk of the response as it arrives. Failures map the same way as
+ * `openrouterChat`; the terminating `[DONE]` sentinel and OpenRouter's
+ * keep-alive comment lines are consumed here and never yielded.
+ */
+export async function* openrouterChatStream(
+  body: Record<string, unknown>,
+  label: string
+): AsyncGenerator<Record<string, any>> {
+  const apiKey = useRuntimeConfig().openrouterApiKey
+  if (!apiKey) {
+    throw new OpenRouterError('OpenRouter is not configured — set OPENROUTER_API_KEY', null, false)
+  }
+
+  let response: Response
+  try {
+    response = await fetch(OPENROUTER_API_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'X-Title': 'DOXA Prayer'
+      },
+      body: JSON.stringify({ ...body, stream: true })
+    })
+  } catch (e: any) {
+    console.error(`[${label}] could not reach OpenRouter: ${e?.message}`)
+    throw new OpenRouterError('Could not reach OpenRouter — try again in a moment', null, true)
+  }
+
+  if (!response.ok) {
+    throw toOpenRouterError(response.status, await response.text(), String(body.model), label)
+  }
+  if (!response.body) {
+    throw new OpenRouterError('OpenRouter returned an empty stream — try again in a moment', response.status, true)
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+
+      // Frames are separated by a blank line; a partial trailing frame stays
+      // in the buffer until the rest of it arrives.
+      let boundary = buffer.indexOf('\n\n')
+      while (boundary !== -1) {
+        const frame = buffer.slice(0, boundary)
+        buffer = buffer.slice(boundary + 2)
+        boundary = buffer.indexOf('\n\n')
+
+        for (const line of frame.split('\n')) {
+          const trimmed = line.trim()
+          if (!trimmed.startsWith('data:')) continue
+          const payload = trimmed.slice(5).trim()
+          if (!payload || payload === '[DONE]') continue
+
+          let chunk: Record<string, any>
+          try {
+            chunk = JSON.parse(payload)
+          } catch {
+            continue
+          }
+          // A provider that fails part-way through streams an error object
+          // rather than closing with an HTTP failure.
+          if (chunk.error?.message) {
+            console.error(`[${label}] OpenRouter stream error for ${String(body.model)}: ${chunk.error.message}`)
+            throw new OpenRouterError(`OpenRouter upstream error: ${chunk.error.message}`, response.status, true)
+          }
+          yield chunk
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock()
+    await response.body.cancel().catch(() => {})
+  }
+}
+
 function parseTranslations(content: string, expectedCount: number): string[] {
   // Some models wrap JSON output in a markdown code fence despite json_object mode
   const raw = content.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '')

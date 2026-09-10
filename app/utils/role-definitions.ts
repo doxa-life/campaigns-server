@@ -33,7 +33,10 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
       'inbox.view',
       'inbox.send',
       'marketing.view',
-      'marketing.send'
+      'marketing.send',
+      'context.view',
+      'context.edit',
+      'context.manage'
     ]
   },
   progress_admin: {
@@ -48,7 +51,9 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
       'inbox.view',
       'inbox.send',
       'marketing.view',
-      'marketing.send'
+      'marketing.send',
+      'context.view',
+      'context.edit'
     ]
   },
   people_group_editor: {
@@ -65,7 +70,8 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
       'content.view_scoped',
       'content.create_scoped',
       'content.edit_scoped',
-      'content.delete_scoped'
+      'content.delete_scoped',
+      'context.view'
     ]
   },
   content_editor: {
@@ -76,7 +82,8 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
       'content.view',
       'content.create',
       'content.edit',
-      'content.delete'
+      'content.delete',
+      'context.view'
     ]
   },
   language_editor: {
@@ -87,7 +94,8 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
       'content.view',
       'content.create_language_scoped',
       'content.edit_language_scoped',
-      'content.delete_language_scoped'
+      'content.delete_language_scoped',
+      'context.view'
     ]
   },
   inbox_agent: {
@@ -96,7 +104,8 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
     description: 'Handles the shared email inbox — triage and reply to contacts',
     permissions: [
       'inbox.view',
-      'inbox.send'
+      'inbox.send',
+      'context.view'
     ]
   }
 }
