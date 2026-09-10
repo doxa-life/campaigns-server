@@ -95,6 +95,9 @@ export async function cleanupTestData(sql: ReturnType<typeof postgres>) {
   // Clean API keys
   await sql`DELETE FROM api_keys WHERE user_id IN (SELECT id FROM users WHERE email LIKE 'test-%@example.com')`
 
+  // Clean context portfolios (sections, versions, comments, and chats cascade)
+  await sql`DELETE FROM context_portfolios WHERE slug LIKE 'test-context-%'`
+
   // Clean users last
   await sql`DELETE FROM users WHERE email LIKE 'test-%@example.com'`
 }
