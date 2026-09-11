@@ -714,14 +714,17 @@ const newGroupMode = ref(false)
 const peopleGroups = ref<PeopleGroupSummary[]>([])
 const createPeopleGroup = ref<PeopleGroupSummary | null>(null)
 
-const statusOptions = [
-  { label: 'All Statuses', value: null },
+// 'awaiting_mine' is a per-viewer view of the pending queue, offered only to the
+// designated approvers. The monthly summary email links straight to it.
+const statusOptions = computed(() => [
+  { label: 'All Statuses', value: null as string | null },
+  ...(isCurrentUserApprover.value ? [{ label: 'Awaiting My Approval', value: 'awaiting_mine' }] : []),
   { label: 'Awaiting Verification', value: 'awaiting_verification' },
   { label: 'Pending', value: 'pending' },
   { label: 'Approved', value: 'approved' },
   { label: 'Accepted', value: 'accepted' },
   { label: 'Denied', value: 'denied' }
-]
+])
 
 const detailTabs = [
   { label: 'Changes', slot: 'changes', icon: 'i-lucide-file-diff' }
@@ -767,7 +770,13 @@ const canSubmit = computed(() => {
 // Filter
 const filteredReports = computed(() => {
   let filtered = reports.value
-  if (filterStatus.value) {
+  if (filterStatus.value === 'awaiting_mine') {
+    filtered = filtered.filter(r =>
+      r.status === 'pending' &&
+      r.source === 'public' &&
+      !r.approvals?.some(a => a.user_id === currentUserId.value)
+    )
+  } else if (filterStatus.value) {
     filtered = filtered.filter(r => r.status === filterStatus.value)
   }
   if (searchQuery.value) {
@@ -1244,6 +1253,13 @@ async function loadPeopleGroups() {
 
 onMounted(async () => {
   await Promise.all([loadReports(), loadPeopleGroups(), loadApprovers()])
+
+  // Preselect the filter from the link that brought the reviewer here. Approvers
+  // are loaded first so 'awaiting_mine' is a valid option for the ones who have it.
+  const statusParam = route.query.status
+  if (typeof statusParam === 'string' && statusOptions.value.some(o => o.value === statusParam)) {
+    filterStatus.value = statusParam
+  }
 
   const idParam = route.query.id as string | undefined
   if (idParam) {
