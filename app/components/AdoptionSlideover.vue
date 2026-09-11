@@ -104,7 +104,7 @@
 
     <template #footer>
       <div class="slideover-footer">
-        <UButton variant="outline" color="error" @click="showDeleteConfirm = true">
+        <UButton variant="outline" color="error" @click="() => { showDeleteConfirm = true }">
           Remove Adoption
         </UButton>
       </div>
@@ -120,7 +120,7 @@
     </template>
     <template #footer>
       <div class="confirm-actions">
-        <UButton variant="outline" @click="showDeleteConfirm = false">Cancel</UButton>
+        <UButton variant="outline" @click="() => { showDeleteConfirm = false }">Cancel</UButton>
         <UButton variant="outline" @click="makeInactive">Make Inactive</UButton>
         <UButton color="error" @click="handleDelete">Remove</UButton>
       </div>

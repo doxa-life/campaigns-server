@@ -1,20 +1,37 @@
 import type { Ref } from 'vue'
-import { getField } from '~/utils/people-group-fields'
-import type { ClientManifest } from './filter-manifest'
+import { allFields, getField, type FieldDefinition, type FieldType } from '~/utils/people-group-fields'
+import type { ClientFieldDef, ClientManifest } from './filter-manifest'
 
-// Resolves derived filter keys that aren't plain columns on the record.
+// Registry field types that have a filter operator set. Textarea, translatable
+// and picture-credit fields are not filterable.
+const FILTER_TYPES: Partial<Record<FieldType, ClientFieldDef['type']>> = {
+  text: 'text',
+  number: 'number',
+  select: 'enum',
+  boolean: 'boolean',
+}
+
+// Boolean flags in metadata are stored as true/false or as '1'/'' strings.
+function isFlagSet(value: unknown): boolean {
+  return value === true || value === '1' || value === 'true'
+}
+
+// Resolves filter keys to record values: derived keys, registry fields stored
+// in metadata, and everything else as a plain column on the record.
 export function getPeopleGroupFilterValue(group: Record<string, any>, key: string): unknown {
   if (key === 'adopted') return (Number(group.adoption_count) || 0) > 0
   if (key === 'prayer_commitments') return (Number(group.people_committed) || 0) > 0
-  return group[key]
+  const field = getField(key)
+  const raw = field && !field.tableColumn ? group.metadata?.[key] : group[key]
+  return field?.type === 'boolean' ? isFlagSet(raw) : raw
 }
 
 export function usePeopleGroupFilterManifest(peopleGroups: Ref<Record<string, any>[]>) {
   const { t, te } = useI18n()
   const { getCountryName } = useLocalizedOptions()
 
-  function fieldEnumValues(key: string): { label: string; value: unknown }[] {
-    return (getField(key)?.options || []).map(opt => ({
+  function optionValues(field: FieldDefinition): { label: string; value: unknown }[] {
+    return (field.options || []).map(opt => ({
       label: opt.label || (opt.labelKey ? t(opt.labelKey) : opt.value),
       value: opt.value,
     }))
@@ -49,21 +66,28 @@ export function usePeopleGroupFilterManifest(peopleGroups: Ref<Record<string, an
     return [...tags].sort().map(tag => ({ label: tag, value: tag as unknown }))
   })
 
-  const manifest = computed<ClientManifest>(() => [
-    { key: 'name', label: 'Name', type: 'text' },
-    { key: 'status', label: 'Status', type: 'enum', values: fieldEnumValues('status') },
-    { key: 'engagement_status', label: 'Engagement', type: 'enum', values: fieldEnumValues('engagement_status') },
-    { key: 'adopted', label: 'Adopted', type: 'boolean' },
-    { key: 'prayer_commitments', label: 'Prayer Commitments', type: 'boolean' },
-    { key: 'country_code', label: 'Country', type: 'enum', values: countryValues.value },
-    { key: 'region', label: 'Region', type: 'enum', values: fieldEnumValues('region') },
-    { key: 'primary_religion', label: 'Religion', type: 'enum', values: fieldEnumValues('primary_religion') },
-    { key: 'primary_language', label: 'Language', type: 'enum', values: languageValues.value },
-    { key: 'population', label: 'Population', type: 'number' },
-    { key: 'evangelical_pct', label: 'Evangelical %', type: 'number' },
-    { key: 'tags', label: 'Tags', type: 'enum-multi', values: tagValues.value },
-    { key: 'created_at', label: 'Created', type: 'date' },
-  ])
+  function enumValues(field: FieldDefinition): { label: string; value: unknown }[] {
+    if (field.optionsSource === 'countries') return countryValues.value
+    if (field.key === 'primary_language') return languageValues.value
+    return optionValues(field)
+  }
+
+  const manifest = computed<ClientManifest>(() => {
+    const registryFields = allFields.flatMap((field): ClientFieldDef[] => {
+      const type = FILTER_TYPES[field.type]
+      if (!type || field.hidden) return []
+      const def: ClientFieldDef = { key: field.key, label: t(field.labelKey), type }
+      if (type === 'enum') def.values = enumValues(field)
+      return [def]
+    })
+    return [
+      ...registryFields,
+      { key: 'adopted', label: 'Adopted', type: 'boolean' },
+      { key: 'prayer_commitments', label: 'Prayer Commitments', type: 'boolean' },
+      { key: 'tags', label: 'Tags', type: 'enum-multi', values: tagValues.value },
+      { key: 'created_at', label: 'Created', type: 'date' },
+    ]
+  })
 
   return manifest
 }

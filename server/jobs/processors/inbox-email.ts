@@ -2,7 +2,8 @@ import type { Job, InboxEmailPayload } from '../../database/job-queue'
 import type { ProcessorResult } from './index'
 import { conversationService } from '../../database/conversations'
 import { messageService } from '../../database/conversation-messages'
-import { sendInboxAutoAck } from '../../utils/inbox-auto-ack-email'
+import { contactMethodService } from '../../database/contact-methods'
+import { sendInboxAutoAck, buildContactVerificationUrl } from '../../utils/inbox-auto-ack-email'
 import { notifyNewConversation, notifyAssignee, notifyHeldSender } from '../../utils/inbox-notification-email'
 
 /**
@@ -23,11 +24,20 @@ export async function processInboxEmail(job: Job): Promise<ProcessorResult> {
       if (!payload.to || !payload.conversation_id) return { success: true, data: { skipped: 'missing fields' } }
       const conversation = await conversationService.getById(payload.conversation_id)
       if (!conversation) return { success: true, data: { skipped: 'conversation gone' } }
+      // Verified state is read at send time so a retried or delayed ack, or an
+      // address confirmed through another flow in the meantime, gets the right variant.
+      const contact = await contactMethodService.getByValue('email', payload.to)
+      let verificationUrl: string | null = null
+      if (contact && !contact.verified) {
+        const { token } = await contactMethodService.generateVerificationToken(contact.id)
+        verificationUrl = buildContactVerificationUrl(token, payload.language)
+      }
       const ok = await sendInboxAutoAck({
         to: payload.to,
         name: payload.name ?? null,
         language: payload.language ?? 'en',
         replyToken: conversation.reply_token,
+        verificationUrl,
       })
       if (!ok) throw new Error('Auto-ack send failed')
       return { success: true }

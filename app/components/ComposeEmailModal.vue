@@ -36,7 +36,7 @@
         </UFormField>
 
         <div class="flex justify-end gap-2 mt-2">
-          <UButton variant="outline" color="neutral" @click="isOpen = false">{{ $t('common.cancel') }}</UButton>
+          <UButton variant="outline" color="neutral" @click="() => { isOpen = false }">{{ $t('common.cancel') }}</UButton>
           <UButton type="submit" :loading="sending" :disabled="!canSend">{{ $t('inbox.compose.send') }}</UButton>
         </div>
       </form>

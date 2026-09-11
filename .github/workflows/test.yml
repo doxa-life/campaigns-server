@@ -92,6 +92,9 @@ jobs:
           # (the vitest run still exits 1, but with no failed-assertion output).
           ANON_SIGNUP_SECRET: test-anon-signup-secret-for-ci
           FORM_API_KEY: test-form-api-key-for-ci
+          # The Nuxt build in tests/e2e/global-setup.ts runs inside this vitest
+          # process and needs more heap than Node's default ~4 GB limit.
+          NODE_OPTIONS: --max-old-space-size=8192
 
       - name: Print failing tests
         if: failure()

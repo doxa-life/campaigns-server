@@ -5,7 +5,7 @@
       <UButton
         icon="i-lucide-menu"
         variant="ghost"
-        @click="sidebarOpen = true"
+        @click="() => { sidebarOpen = true }"
       />
       <span class="mobile-title">{{ config.public.appName || 'Base' }} Admin</span>
     </div>
@@ -87,6 +87,18 @@
             <span v-if="showExpanded" class="nav-label">Onboarding</span>
           </NuxtLink>
         </li>
+        <li v-if="canAccess('churches.view')">
+          <NuxtLink to="/admin/churches" class="nav-link" :title="!showExpanded ? 'Churches' : undefined">
+            <UIcon name="i-lucide-church" />
+            <span v-if="showExpanded" class="nav-label">Churches</span>
+          </NuxtLink>
+        </li>
+        <li v-if="canAccess('context.view')">
+          <NuxtLink to="/admin/context" class="nav-link" :title="!showExpanded ? 'Context' : undefined">
+            <UIcon name="i-lucide-book-open-text" />
+            <span v-if="showExpanded" class="nav-label">Context</span>
+          </NuxtLink>
+        </li>
       </ul>
       <div v-if="!hasRole" class="nav-menu"></div>
 
@@ -109,10 +121,12 @@
     />
 
     <div class="main-wrapper">
-      <main class="main-content">
+      <main class="main-content" :class="{ 'main-content-flush': isFlushPage }">
         <slot />
       </main>
     </div>
+
+    <ContextAssistantLauncher v-if="hasRole" />
   </div>
 </template>
 
@@ -129,6 +143,10 @@ if (config.public.feedbackProjectId && config.public.feedbackApiBase) {
 const route = useRoute()
 const sidebarOpen = ref(false)
 const sidebarCollapsed = ref(true)
+
+// Context lays out its own full-height panes with their own padding, so the
+// main area gives it the bare viewport instead of the usual page padding.
+const isFlushPage = computed(() => /(^|\/)admin\/context(\/|$)/.test(route.path))
 
 // On mobile when sidebar is open, show full labels regardless of collapsed state
 const showExpanded = computed(() => !sidebarCollapsed.value || sidebarOpen.value)
@@ -169,6 +187,12 @@ onMounted(async () => {
   min-height: 100vh;
   background-color: var(--ui-bg);
   color: var(--ui-text);
+}
+
+.admin-layout:has(.main-content-flush) {
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -327,12 +351,25 @@ onMounted(async () => {
   flex-direction: column;
   background-color: var(--ui-bg);
   min-width: 0;
+  min-height: 0;
 }
 
 .main-content {
   flex: 1;
   padding: 2rem;
   width: 100%;
+}
+
+/* A page that fills the viewport itself: no page padding, and no page-level
+   scroll, so the panes inside it scroll independently. Written with both
+   classes so it outranks the narrow-screen `.main-content` padding further
+   down this stylesheet. */
+.main-content.main-content-flush {
+  padding: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Mobile header - hidden on desktop */

@@ -30,9 +30,11 @@ const props = withDefaults(defineProps<{
   // Offer the personalized "resubscribe button" block (marketing emails only —
   // the node is meaningless in content rendered without a per-recipient link).
   resubscribeButton?: boolean
+  readonly?: boolean
 }>(), {
   mentions: false,
-  resubscribeButton: false
+  resubscribeButton: false,
+  readonly: false
 })
 
 const emit = defineEmits<{
@@ -433,6 +435,7 @@ const setHighlight = (color: string | null) => {
     <UEditor
       ref="editorRef"
       v-model="content"
+      :editable="!readonly"
       content-type="json"
       :extensions="customExtensions"
       :handlers="customHandlers"

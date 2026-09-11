@@ -20,6 +20,19 @@
         </UButton>
       </UCard>
 
+      <!-- Reason step: the stop is already saved, this only asks why -->
+      <UCard v-else-if="done && askReason">
+        <OptOutReasonPrompt
+          :profile-id="profileId"
+          :subscription-ids="reasonSubscriptionIds"
+          :already-said-stopped="done === 'stop_all'"
+          :time="time"
+          :campaign="target?.peopleGroup.title"
+          :whole-people-group="done === 'stop_all'"
+          @done="askReason = false"
+        />
+      </UCard>
+
       <!-- Confirmation after a choice is made -->
       <UCard v-else-if="done" class="text-center">
         <UIcon
@@ -174,6 +187,11 @@ const hasMultiple = computed(() =>
 const processing = ref(false)
 const done = ref<'mute' | 'not_praying' | 'stop_all' | null>(null)
 
+// Muting records its own reason server-side (the button says it), so only the two
+// stopping choices ask. Holds the prayer times the answer applies to.
+const askReason = ref(false)
+const reasonSubscriptionIds = ref<number[]>([])
+
 const doneIcon = computed(() =>
   done.value === 'mute' ? 'i-lucide-bell-off' : done.value === 'stop_all' ? 'i-lucide-circle-slash' : 'i-lucide-pause'
 )
@@ -191,6 +209,10 @@ async function choose(action: 'mute' | 'not_praying') {
       body: { profile_id: profileId, action }
     })
     done.value = action
+    if (action === 'not_praying') {
+      reasonSubscriptionIds.value = [sid]
+      askReason.value = true
+    }
   } catch (err: any) {
     toast.add({ title: err.data?.statusMessage || t('campaign.profile.error.failed'), color: 'error' })
   } finally {
@@ -201,11 +223,13 @@ async function choose(action: 'mute' | 'not_praying') {
 async function stopAll() {
   processing.value = true
   try {
-    await $fetch(`/api/people-groups/${slug}/stop-all`, {
+    const result = await $fetch<{ stopped_subscription_ids?: number[] }>(`/api/people-groups/${slug}/stop-all`, {
       method: 'POST',
       body: { profile_id: profileId }
     })
     done.value = 'stop_all'
+    reasonSubscriptionIds.value = result.stopped_subscription_ids || []
+    askReason.value = reasonSubscriptionIds.value.length > 0
   } catch (err: any) {
     toast.add({ title: err.data?.statusMessage || t('campaign.profile.error.failed'), color: 'error' })
   } finally {

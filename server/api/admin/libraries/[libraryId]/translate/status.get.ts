@@ -33,10 +33,13 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  const errors = await jobQueueService.getFailureReasons('library_translation', libraryId)
+
   return {
     libraryId,
     ...stats,
     isComplete,
-    verseWarnings
+    verseWarnings,
+    errors
   }
 })

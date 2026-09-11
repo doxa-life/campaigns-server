@@ -1,9 +1,9 @@
 import { defineEventHandler } from 'h3'
-import { getAiModel } from '#server/utils/anthropic'
+import { getAiModel } from '#server/utils/ai'
 import { handleApiError } from '#server/utils/api-helpers'
 
 /**
- * Get the Claude model used for all AI calls (report parsing + inbox).
+ * Get the model used for all AI calls (report parsing + inbox).
  *
  * Returns the effective model — the stored app_config value if set, otherwise
  * the env/default fallback — so the UI always shows what AI calls actually use.

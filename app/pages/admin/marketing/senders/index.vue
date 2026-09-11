@@ -61,7 +61,7 @@
       </template>
       <template #footer>
         <div class="flex justify-end gap-2 w-full">
-          <UButton variant="outline" @click="showEditor = false">Cancel</UButton>
+          <UButton variant="outline" @click="() => { showEditor = false }">Cancel</UButton>
           <UButton color="primary" :loading="saving" :disabled="!canSave" @click="save">Save</UButton>
         </div>
       </template>

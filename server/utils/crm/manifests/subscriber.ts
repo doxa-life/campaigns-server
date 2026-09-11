@@ -78,6 +78,21 @@ export const subscriberServerManifest: ServerManifest = {
     },
   },
 
+  // utm_source on the link the subscriber arrived through for any of their signups.
+  utm_source: {
+    type: 'foreign-key',
+    buildSql: (op: Operator, value: unknown, sql: Sql): Fragment | null => {
+      if (typeof value !== 'string' || value.length === 0) return null
+      const matches = sql`EXISTS (
+        SELECT 1 FROM campaign_subscriptions cs
+        WHERE cs.subscriber_id = s.id AND cs.utm_source = ${value}
+      )`
+      if (op === 'is') return matches
+      if (op === 'is_not') return sql`NOT ${matches}`
+      return null
+    },
+  },
+
   subscribed_to_people_group: {
     type: 'foreign-key',
     buildSql: (op: Operator, value: unknown, sql: Sql): Fragment | null => {

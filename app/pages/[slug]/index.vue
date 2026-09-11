@@ -725,7 +725,8 @@ async function handleSignup() {
         language: locale.value,
         tracking_id: getVisitorId(),
         consent_people_group_updates: signupForm.value.consent_people_group_updates,
-        consent_doxa_general: signupForm.value.consent_doxa_general
+        consent_doxa_general: signupForm.value.consent_doxa_general,
+        ...signupAttribution()
       }
     })
 

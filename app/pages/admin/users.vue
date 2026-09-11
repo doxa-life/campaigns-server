@@ -2,7 +2,7 @@
   <div class="max-w-6xl">
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-2xl font-bold">User Management</h1>
-      <UButton @click="showInviteModal = true" icon="i-lucide-user-plus">
+      <UButton @click="() => { showInviteModal = true }" icon="i-lucide-user-plus">
         Invite User
       </UButton>
     </div>
@@ -177,7 +177,7 @@
                 </p>
                 <div class="space-y-1">
                   <div
-                    v-for="{ perm, granted, scoped } in group.permissions"
+                    v-for="{ perm, granted, scope } in group.permissions"
                     :key="perm"
                     class="flex items-center gap-2 py-1 px-2"
                   >
@@ -186,9 +186,9 @@
                       :class="granted ? 'size-4 text-[var(--ui-color-success-500)]' : 'size-4 text-[var(--ui-text-muted)]'"
                     />
                     <span class="text-sm" :class="{ 'text-[var(--ui-text-muted)]': !granted }">{{ permissionDetails[perm]?.title || perm }}</span>
-                    <UBadge v-if="scoped" color="warning" variant="subtle" size="xs">Scoped</UBadge>
+                    <UBadge v-if="scope" color="warning" variant="subtle" size="xs">{{ scope === 'languages' ? 'Language-scoped' : 'Scoped' }}</UBadge>
                     <span class="text-xs text-[var(--ui-text-muted)]">
-                      — {{ scoped ? scopedDescriptions[perm] || permissionDetails[perm]?.description : permissionDetails[perm]?.description }}
+                      — {{ scopeDescription(perm, scope) || permissionDetails[perm]?.description }}
                     </span>
                   </div>
                 </div>
@@ -212,7 +212,7 @@
           </div>
           <div class="slideover-header-actions">
             <CrmSaveStatus :saving="anySaving" :saved="anySaved" />
-            <UButton size="sm" color="error" variant="outline" @click="showDeleteUserConfirm = true">Delete</UButton>
+            <UButton size="sm" color="error" variant="outline" @click="() => { showDeleteUserConfirm = true }">Delete</UButton>
           </div>
           <div class="slideover-close">
             <UButton
@@ -220,7 +220,7 @@
               variant="ghost"
               color="neutral"
               size="sm"
-              @click="slideoverOpen = false"
+              @click="() => { slideoverOpen = false }"
             />
           </div>
         </DialogTitle>
@@ -447,7 +447,7 @@
           <UAlert v-if="inviteSuccess" color="success" title="Invitation sent successfully!" />
 
           <div class="flex justify-end gap-2 pt-4">
-            <UButton @click="showInviteModal = false" variant="outline" type="button">
+            <UButton @click="() => { showInviteModal = false }" variant="outline" type="button">
               Cancel
             </UButton>
             <UButton type="submit" :loading="inviteSubmitting">
@@ -573,7 +573,8 @@ const permissionGroupLabels: Record<string, string> = {
   content: 'Content',
   users: 'Users',
   inbox: 'Inbox',
-  marketing: 'Marketing'
+  marketing: 'Marketing',
+  context: 'Context'
 }
 
 const permissionDetails: Record<string, { title: string; description: string }> = {
@@ -597,24 +598,43 @@ const permissionDetails: Record<string, { title: string; description: string }> 
   'inbox.view': { title: 'View Inbox', description: 'View the shared email inbox and conversations' },
   'inbox.send': { title: 'Send from Inbox', description: 'Reply to and send messages from the shared inbox' },
   'marketing.view': { title: 'View Marketing', description: 'View marketing emails, senders, and survey results' },
-  'marketing.send': { title: 'Manage & Send Marketing', description: 'Create/send marketing emails and delete survey responses' }
+  'marketing.send': { title: 'Manage & Send Marketing', description: 'Create/send marketing emails and delete survey responses' },
+  'context.view': { title: 'View Context', description: 'Read context portfolios and chat with the portfolio assistant' },
+  'context.edit': { title: 'Edit Context', description: 'Save section content, comment, and apply assistant updates' },
+  'context.manage': { title: 'Manage Context', description: 'Create and delete portfolios, manage sections, resolve comments' }
 }
 
 const allPermissions = Object.keys(permissionDetails)
 
+type PermissionScope = 'people_groups' | 'languages' | null
+
 function getPermissionGroups(rolePermissions: string[]) {
-  const groups: Record<string, { perm: string; granted: boolean; scoped: boolean }[]> = {}
+  const groups: Record<string, { perm: string; granted: boolean; scope: PermissionScope }[]> = {}
   for (const perm of allPermissions) {
     const prefix = perm.substring(0, perm.lastIndexOf('.'))
     if (!groups[prefix]) groups[prefix] = []
     const hasExact = rolePermissions.includes(perm)
     const hasScoped = rolePermissions.includes(perm + '_scoped')
-    groups[prefix].push({ perm, granted: hasExact || hasScoped, scoped: hasScoped && !hasExact })
+    const hasLanguageScoped = rolePermissions.includes(perm + '_language_scoped')
+    const scope: PermissionScope = hasExact ? null : hasScoped ? 'people_groups' : hasLanguageScoped ? 'languages' : null
+    groups[prefix].push({ perm, granted: hasExact || hasScoped || hasLanguageScoped, scope })
   }
   return Object.entries(groups).map(([key, perms]) => ({
     label: permissionGroupLabels[key] || key,
     permissions: perms
   }))
+}
+
+function scopeDescription(perm: string, scope: PermissionScope): string | undefined {
+  if (scope === 'people_groups') return scopedDescriptions[perm]
+  if (scope === 'languages') return languageScopedDescriptions[perm]
+  return undefined
+}
+
+const languageScopedDescriptions: Record<string, string> = {
+  'content.create': 'Only in assigned languages',
+  'content.edit': 'Only in assigned languages',
+  'content.delete': 'Only in assigned languages'
 }
 
 const scopedDescriptions: Record<string, string> = {

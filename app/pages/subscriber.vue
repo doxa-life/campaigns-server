@@ -261,15 +261,6 @@
               </UFormField>
             </div>
 
-            <UFormField :label="$t('campaign.signup.form.duration.label')">
-              <USelect
-                v-model="reminderForms[item.reminder.id]!.prayer_duration"
-                :items="durationOptions"
-                required
-                class="w-full"
-              />
-            </UFormField>
-
             <!-- Add to Calendar -->
             <AddToCalendar
               v-if="item.reminder.calendar_urls"
@@ -321,7 +312,7 @@
               variant="ghost"
               color="neutral"
               :disabled="resumeProcessing"
-              @click="resumeModalOpen = false"
+              @click="() => { resumeModalOpen = false }"
             >
               {{ $t('common.cancel') }}
             </UButton>
@@ -338,9 +329,19 @@
     </UModal>
 
     <!-- Stop reminders: mute this time, stop praying at this time, or stop everything -->
-    <UModal v-model:open="stopModalOpen" :title="stopModalTitle">
+    <UModal v-model:open="stopModalOpen" :title="stopReasonOpen ? '' : stopModalTitle">
       <template #body>
-        <div class="space-y-3">
+        <OptOutReasonPrompt
+          v-if="stopReasonOpen"
+          :profile-id="profileId"
+          :subscription-ids="stopReasonSubscriptionIds"
+          :already-said-stopped="stopReasonWholePeopleGroup"
+          :time="stopTime"
+          :campaign="stopTarget?.peopleGroup.title"
+          :whole-people-group="stopReasonWholePeopleGroup"
+          @done="closeStopModal"
+        />
+        <div v-else class="space-y-3">
           <p class="text-sm text-[var(--ui-text-muted)]">
             {{ $t('campaign.profile.stopRemindersQuestion') }}
           </p>
@@ -456,7 +457,6 @@ interface ReminderFormState {
   days_of_week: number[]
   time_preference: string
   timezone: string
-  prayer_duration: number
 }
 const reminderForms = ref<Record<number, ReminderFormState>>({})
 
@@ -496,8 +496,7 @@ watch(data, (newData) => {
         frequency: reminder.frequency,
         days_of_week: [...(reminder.days_of_week || [])],
         time_preference: reminder.time_preference,
-        timezone: reminder.timezone,
-        prayer_duration: reminder.prayer_duration
+        timezone: reminder.timezone
       }
     }
   }
@@ -508,15 +507,6 @@ watch(data, (newData) => {
 const frequencyOptions = computed(() => [
   { value: 'daily', label: t('campaign.signup.form.frequency.daily') },
   { value: 'weekly', label: t('campaign.signup.form.frequency.weekly') }
-])
-
-// Prayer duration options
-const durationOptions = computed(() => [
-  { value: 5, label: t('campaign.signup.form.duration.5min') },
-  { value: 10, label: t('campaign.signup.form.duration.10min') },
-  { value: 15, label: t('campaign.signup.form.duration.15min') },
-  { value: 30, label: t('campaign.signup.form.duration.30min') },
-  { value: 60, label: t('campaign.signup.form.duration.60min') }
 ])
 
 // Days of week
@@ -619,8 +609,7 @@ async function saveReminder(reminder: any, pgGroup: any) {
         frequency: form.frequency,
         days_of_week: form.days_of_week,
         time_preference: form.time_preference,
-        timezone: form.timezone,
-        prayer_duration: form.prayer_duration
+        timezone: form.timezone
       }
     })
 
@@ -644,6 +633,17 @@ async function saveReminder(reminder: any, pgGroup: any) {
 const stopModalOpen = ref(false)
 const stopTarget = ref<{ reminder: any; peopleGroup: any } | null>(null)
 const stopProcessing = ref(false)
+
+// Second step of the same modal, shown after a stop is saved. Muting skips it:
+// that button already states the reason, which is recorded server-side.
+const stopReasonOpen = ref(false)
+const stopReasonSubscriptionIds = ref<number[]>([])
+const stopReasonWholePeopleGroup = ref(false)
+
+function closeStopModal() {
+  stopReasonOpen.value = false
+  stopModalOpen.value = false
+}
 
 // Format a "HH:MM" preference as a friendly clock time (e.g. "9:00 AM").
 function formatTime(value: string | null): string {
@@ -670,6 +670,9 @@ const stopHasMultiple = computed(() =>
 
 function openStopModal(reminder: any, peopleGroup: any) {
   stopTarget.value = { reminder, peopleGroup }
+  stopReasonOpen.value = false
+  stopReasonSubscriptionIds.value = []
+  stopReasonWholePeopleGroup.value = false
   stopModalOpen.value = true
 }
 
@@ -691,8 +694,15 @@ async function chooseStop(action: 'mute' | 'not_praying') {
       color: 'success'
     })
 
-    stopModalOpen.value = false
     await refresh()
+
+    if (action === 'mute') {
+      stopModalOpen.value = false
+    } else {
+      stopReasonSubscriptionIds.value = [reminder.id]
+      stopReasonWholePeopleGroup.value = false
+      stopReasonOpen.value = true
+    }
   } catch (err: any) {
     toast.add({
       title: err.data?.statusMessage || t('campaign.profile.error.failed'),
@@ -709,7 +719,7 @@ async function chooseStopAll() {
   stopProcessing.value = true
 
   try {
-    await $fetch(`/api/people-groups/${peopleGroup.slug}/stop-all`, {
+    const result = await $fetch<{ stopped_subscription_ids?: number[] }>(`/api/people-groups/${peopleGroup.slug}/stop-all`, {
       method: 'POST',
       body: { profile_id: profileId }
     })
@@ -719,8 +729,12 @@ async function chooseStopAll() {
       color: 'success'
     })
 
-    stopModalOpen.value = false
     await refresh()
+
+    stopReasonSubscriptionIds.value = result.stopped_subscription_ids || []
+    stopReasonWholePeopleGroup.value = true
+    stopReasonOpen.value = stopReasonSubscriptionIds.value.length > 0
+    if (!stopReasonOpen.value) stopModalOpen.value = false
   } catch (err: any) {
     toast.add({
       title: err.data?.statusMessage || t('campaign.profile.error.failed'),

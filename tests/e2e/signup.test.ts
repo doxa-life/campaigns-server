@@ -487,4 +487,101 @@ describe('POST /api/people-groups/[slug]/signup', async () => {
       expect(subscriberB!.tracking_id).not.toBe(trackingId)
     })
   })
+
+  describe('Signup attribution', () => {
+    const baseBody = {
+      name: 'Test Attributed User',
+      delivery_method: 'email',
+      frequency: 'daily',
+      reminder_time: '09:00'
+    }
+
+    it('stores utm parameters and referrer on the subscription', async () => {
+      const peopleGroup = await createTestPeopleGroup(sql)
+      const email = `attributed-${Date.now()}@example.com`
+
+      await $fetch(`/api/people-groups/${peopleGroup.slug}/signup`, {
+        method: 'POST',
+        body: {
+          ...baseBody,
+          email,
+          utm_source: '  doxa.life ',
+          utm_medium: 'website',
+          utm_campaign: 'spring-push',
+          referrer: 'https://doxa.life/people-groups/example/'
+        }
+      })
+
+      const subscriber = await getTestSubscriberByEmail(sql, email)
+      const subscription = await getTestSubscription(sql, peopleGroup.id, subscriber!.id)
+      expect(subscription!.utm_source).toBe('doxa.life')
+      expect(subscription!.utm_medium).toBe('website')
+      expect(subscription!.utm_campaign).toBe('spring-push')
+      expect(subscription!.referrer).toBe('https://doxa.life/people-groups/example/')
+    })
+
+    it('leaves attribution empty for a direct signup and ignores non-string values', async () => {
+      const peopleGroup = await createTestPeopleGroup(sql)
+      const email = `direct-${Date.now()}@example.com`
+
+      await $fetch(`/api/people-groups/${peopleGroup.slug}/signup`, {
+        method: 'POST',
+        body: { ...baseBody, email, utm_source: 42, utm_campaign: '   ' }
+      })
+
+      const subscriber = await getTestSubscriberByEmail(sql, email)
+      const subscription = await getTestSubscription(sql, peopleGroup.id, subscriber!.id)
+      expect(subscription!.utm_source).toBeNull()
+      expect(subscription!.utm_medium).toBeNull()
+      expect(subscription!.utm_campaign).toBeNull()
+      expect(subscription!.referrer).toBeNull()
+    })
+
+    it('truncates oversized attribution values', async () => {
+      const peopleGroup = await createTestPeopleGroup(sql)
+      const email = `long-${Date.now()}@example.com`
+
+      await $fetch(`/api/people-groups/${peopleGroup.slug}/signup`, {
+        method: 'POST',
+        body: { ...baseBody, email, utm_source: 'x'.repeat(500), referrer: 'https://example.com/' + 'y'.repeat(3000) }
+      })
+
+      const subscriber = await getTestSubscriberByEmail(sql, email)
+      const subscription = await getTestSubscription(sql, peopleGroup.id, subscriber!.id)
+      expect(subscription!.utm_source).toHaveLength(200)
+      expect(subscription!.referrer).toHaveLength(2048)
+    })
+
+    it('re-attributes a reactivated subscription only when the re-signup carries attribution', async () => {
+      const peopleGroup = await createTestPeopleGroup(sql)
+      const subscriber = await createTestSubscriber(sql, { name: 'Test Reactivated' })
+      const email = `reactivated-${Date.now()}@example.com`
+      await createTestContactMethod(sql, subscriber.id, { value: email, verified: true })
+      const original = await createTestPeopleGroupSubscription(sql, peopleGroup.id, subscriber.id, {
+        status: 'unsubscribed',
+        time_preference: '09:00'
+      })
+      await sql`UPDATE campaign_subscriptions SET utm_source = 'newsletter' WHERE id = ${original.id}`
+
+      // Direct re-signup: the original source stays.
+      await $fetch(`/api/people-groups/${peopleGroup.slug}/signup`, {
+        method: 'POST',
+        body: { ...baseBody, email }
+      })
+      let subscription = await getTestSubscription(sql, peopleGroup.id, subscriber.id)
+      expect(subscription!.id).toBe(original.id)
+      expect(subscription!.status).toBe('active')
+      expect(subscription!.utm_source).toBe('newsletter')
+
+      // Re-signup through a tagged link after unsubscribing again: last touch wins.
+      await sql`UPDATE campaign_subscriptions SET status = 'unsubscribed' WHERE id = ${original.id}`
+      await $fetch(`/api/people-groups/${peopleGroup.slug}/signup`, {
+        method: 'POST',
+        body: { ...baseBody, email, utm_source: 'doxa.life' }
+      })
+      subscription = await getTestSubscription(sql, peopleGroup.id, subscriber.id)
+      expect(subscription!.id).toBe(original.id)
+      expect(subscription!.utm_source).toBe('doxa.life')
+    })
+  })
 })

@@ -85,7 +85,7 @@
 
     <template #footer>
       <div class="flex justify-end gap-2 w-full">
-        <UButton variant="outline" color="neutral" @click="isOpen = false">{{ $t('common.cancel') }}</UButton>
+        <UButton variant="outline" color="neutral" @click="() => { isOpen = false }">{{ $t('common.cancel') }}</UButton>
         <UButton color="primary" icon="i-lucide-check" :disabled="!result || generating" @click="use">
           {{ $t('inbox.ai.useResponse') }}
         </UButton>
@@ -195,7 +195,7 @@ async function run() {
     result.value = res
     editedHtml.value = res.draft_html || ''
   } catch (e: any) {
-    // 503 = AI not configured; 502 = Anthropic temporarily unreachable (retryable).
+    // 503 = AI not configured; 502 = the AI provider is temporarily unreachable (retryable).
     const msg = e?.statusCode === 503 ? t('inbox.ai.notConfigured')
       : e?.statusCode === 502 ? t('inbox.ai.unavailable')
         : t('inbox.toasts.error')

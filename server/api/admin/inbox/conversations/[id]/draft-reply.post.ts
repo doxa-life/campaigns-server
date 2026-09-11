@@ -1,7 +1,7 @@
 import { conversationService } from '#server/database/conversations'
 import { messageService, type AiDraftMetadata } from '#server/database/conversation-messages'
 import { userService } from '#server/database/users'
-import { isAnthropicConfigured, getAiModel } from '#server/utils/anthropic'
+import { isAiConfigured, getAiModel } from '#server/utils/ai'
 import { generateInboxDraft } from '#server/utils/inbox/ai-draft'
 import { getIntParam, handleApiError } from '#server/utils/api-helpers'
 
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Under VITEST the generator returns a deterministic stub, so no key is required.
-  if (!isAnthropicConfigured() && !process.env.VITEST) {
+  if (!isAiConfigured() && !process.env.VITEST) {
     throw createError({ statusCode: 503, statusMessage: 'AI drafting is not configured' })
   }
 

@@ -153,9 +153,11 @@ export default defineNuxtConfig({
     s3SecretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
     s3BucketName: process.env.S3_BUCKET_NAME || process.env.S3_BACKUP_BUCKET || '',
 
-    // DeepL Translation API
-    deeplApiKey: process.env.DEEPL_API_KEY || '',
-    deeplApiUrl: process.env.DEEPL_API_URL || 'https://api-free.deepl.com',
+    // OpenRouter — every LLM call (content translation, inbox drafting, knowledge
+    // capture, report parsing). TRANSLATION_MODEL overrides the default
+    // translation model when no app_config value is set.
+    openrouterApiKey: process.env.OPENROUTER_API_KEY || '',
+    translationModel: process.env.TRANSLATION_MODEL || '',
 
     // Joshua Project API — external people group search on /updates
     joshuaProjectApiKey: process.env.JOSHUA_PROJECT_API_KEY || '',
@@ -165,11 +167,9 @@ export default defineNuxtConfig({
     // marketing site's convention.
     turnstileSecretKey: process.env.NUXT_TURNSTILE_SECRET_KEY || '',
 
-    // Anthropic AI API
-    anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
-    // Fallback Claude model for all AI calls (inbox drafting, knowledge capture,
-    // report parsing) when the superadmin app_config 'ai_model' setting is unset
-    inboxAiModel: process.env.INBOX_AI_MODEL || 'claude-sonnet-4-6',
+    // Fallback model for all AI calls (inbox drafting, knowledge capture, report
+    // parsing) when the superadmin app_config 'ai_model' setting is unset
+    inboxAiModel: process.env.INBOX_AI_MODEL || '',
     // Marketing site (doxa.life) base URL — source of grounding CMS pages (FAQ, about, …)
     marketingSiteUrl: process.env.MARKETING_SITE_URL || 'https://doxa.life',
 
@@ -228,6 +228,8 @@ export default defineNuxtConfig({
       statinatorCookieDomain: process.env.NUXT_PUBLIC_STATINATOR_COOKIE_DOMAIN || '.doxa.life',
       // Cloudflare Turnstile widget on /updates (empty = widget hidden, verification skipped)
       turnstileSiteKey: process.env.NUXT_TURNSTILE_SITE_KEY || '',
+      // Mapbox public token (pk.*) for the admin dashboard map (empty = map card shows a setup notice)
+      mapboxToken: process.env.NUXT_PUBLIC_MAPBOX_TOKEN || '',
 
       // Feedback widget (external chat bubble → support.gospelambition.org)
       feedbackApiBase: process.env.NUXT_PUBLIC_FEEDBACK_API_BASE || 'https://support.gospelambition.org',

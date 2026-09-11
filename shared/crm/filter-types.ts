@@ -11,7 +11,7 @@ export type TextOp = 'contains' | 'eq' | 'starts_with' | 'empty' | 'not_empty'
 export type NumberOp = 'eq' | 'neq' | 'gt' | 'lt' | 'between'
 export type DateOp = 'before' | 'after' | 'between'
 export type BooleanOp = 'is_true' | 'is_false'
-export type EnumOp = 'is' | 'is_not'
+export type EnumOp = 'is' | 'is_not' | 'empty' | 'not_empty'
 export type EnumMultiOp = 'includes_any' | 'includes_all' | 'excludes'
 export type ForeignKeyOp = 'is' | 'is_not'
 

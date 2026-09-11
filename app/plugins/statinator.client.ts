@@ -10,6 +10,7 @@
 
 import type { RouteLocationNormalizedLoaded, RouteLocationNormalized } from 'vue-router'
 import { LANGUAGE_CODES } from '../../config/languages'
+import { UTM_KEYS } from '~/utils/attribution'
 
 const ANON_STORAGE_KEY = 'prayertools_anon_id'
 const ANON_COOKIE_NAME = 'doxa_vid'
@@ -101,7 +102,7 @@ function getUtmParams(): Record<string, string> | null {
   if (typeof window === 'undefined') return null
   const params = new URLSearchParams(window.location.search)
   const utm: Record<string, string> = {}
-  for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content']) {
+  for (const key of UTM_KEYS) {
     const val = params.get(key)
     if (val) utm[key] = val
   }

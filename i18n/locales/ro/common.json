@@ -339,11 +339,33 @@
       "stopAllSuccess": "Toate memento-urile pentru {campaign} au fost oprite. Le poți porni din nou oricând.",
       "resumeRemindersButton": "Pornește memento-urile",
       "resumeSuccess": "Memento-uri pornite."
+    },
+    "optOutReason": {
+      "title": "Ne spui de ce?",
+      "subtitle": "Ne ajută să facem mai bine. Poți sări peste acest pas.",
+      "stoppedTitle": "Timpul tău de rugăciune de la ora {time} a fost oprit",
+      "stoppedAllTitle": "Memento-urile tale pentru {campaign} au fost oprite",
+      "stoppedGenericTitle": "Acest timp de rugăciune a fost oprit",
+      "skip": "Sari peste",
+      "send": "Trimite",
+      "sending": "Se trimite…",
+      "thanks": "Mulțumim, ne ajută.",
+      "otherPlaceholder": "Spune-ne mai multe (opțional)",
+      "charactersLeft": "Au mai rămas {count} caractere",
+      "reason": {
+        "wrong_time": "Ora nu mi s-a potrivit",
+        "life_busy": "Viața a devenit prea aglomerată",
+        "no_longer_praying": "Nu mă mai rog",
+        "different_people_group": "Mă rog pentru un alt grup etnic",
+        "emails_only": "Încă mă rog, doar că nu vreau e-mailurile",
+        "other": "Altceva"
+      }
     }
   },
   "prayerFuel": {
     "pageTitle": "Conținut de rugăciune",
     "title": "Rugăciunea de astăzi",
+    "prayingWithYou": "{count} persoană se roagă cu tine acum | {count} persoane se roagă cu tine acum",
     "loading": "Se încarcă rugăciunea de astăzi...",
     "backTo": "Înapoi la {campaign}",
     "backToToday": "Înapoi la rugăciunea de astăzi",
@@ -430,8 +452,10 @@
     "intro": "Bine ai venit și îți mulțumim că ne ajuți să păstrăm exacte informațiile despre grupurile etnice. Acest scurt formular îți va cere câteva informații de bază despre tine și despre grupul etnic. Echipa noastră analizează fiecare sugestie înainte de a face o modificare.",
     "steps": {
       "group": "Grup etnic",
+      "eligibility": "Eligibilitate",
       "engagement": "Angajare",
       "details": "Detalii",
+      "resources": "Resurse",
       "reason": "Motiv",
       "about": "Despre tine"
     },
@@ -446,6 +470,8 @@
     "sourceImb": "IMB",
     "sourceJp": "Joshua Project",
     "alreadyInDoxa": "Deja în lista noastră",
+    "alsoKnownAs": "cunoscut și ca {names}",
+    "searchMissingNote": "Un grup care lipsește din lista noastră poate fi o populație din diaspora sau poate să nu îndeplinească criteriile DOXA. Dacă crezi că ar trebui să fie pe listă, selectează-l mai sus sau adaugă-l ca grup etnic nou și spune-ne de ce.",
     "addNewCta": "Nu îl găsești? Spune-ne despre un grup etnic nou",
     "newGroupBadge": "Nou",
     "actionQuestion": "Ce ai vrea să faci?",
@@ -467,9 +493,16 @@
     "detailsTitle": "Detalii despre grupul etnic",
     "addNotice": "Ceri ca {name} să fie adăugat în lista de rugăciune DOXA.",
     "addNoticeNew": "Ceri ca un grup etnic nou să fie adăugat în lista de rugăciune DOXA.",
-    "addManualHint": "Acest grup etnic nu se află încă în listele IMB sau Joshua Project, așa că te rugăm să ne împărtășești toate detaliile pe care le poți oferi — inclusiv starea sa de angajare.",
-    "addJpHint": "Acest grup este listat de Joshua Project, dar nu și de IMB. Te rugăm să verifici mai jos starea sa de angajare și să ne spui în comentarii de ce ar trebui să fie în lista DOXA.",
-    "addImbReasonsTitle": "De ce acest grup nu este în lista DOXA",
+    "eligibilityTitle": "Cine poate fi adăugat pe lista DOXA",
+    "eligibility": {
+      "indigenous": "Indigen în țara sa, nu o populație din diaspora",
+      "unengaged": "Neangajat — nu există lucrare de plantare de biserici în desfășurare printre ei",
+      "notChristian": "Religia lor principală nu este creștină și nu au fost considerați istoric creștini",
+      "otherCriteria": "Eligibil în rest conform criteriilor DOXA stabilite"
+    },
+    "engagedBlockedTitle": "Grupurile angajate nu pot fi adăugate",
+    "engagedBlockedText": "Lista DOXA se concentrează pe grupurile etnice neangajate, așa că un grup angajat este în afara domeniului ei. Dacă crezi că informațiile despre angajare sunt învechite, selectează Neangajat și spune-ne mai multe în comentarii.",
+    "addManualHint": "Acest grup etnic nu se află încă în listele IMB sau Joshua Project, așa că te rugăm să ne împărtășești toate detaliile pe care le poți oferi — inclusiv starea sa de angajare.",    "addImbReasonsTitle": "De ce acest grup nu este în lista DOXA",
     "addImbReasonsHint": "Dacă ceva din acestea este depășit, corectează mai jos și spune-ne mai multe în comentarii.",
     "addImbEligibleHint": "Acest grup îndeplinește criteriile DOXA și pur și simplu nu a fost încă adăugat — confirmarea detaliilor de mai jos ne va ajuta să îl adăugăm rapid.",
     "exclusionReasons": {
@@ -487,8 +520,8 @@
       "emailHint": "Dacă ne scrii pentru prima dată, îți vom trimite un link pentru a-ți confirma emailul."
     },
     "verifier": {
-      "title": "Verificator (recomandat)",
-      "hint": "Dacă altcineva poate confirma aceste informații, spune-ne cine este.",
+      "title": "Verificator",
+      "hint": "Fiecare sugestie are nevoie de o a doua persoană care o poate confirma independent — un membru al echipei, un lider de teren sau un reprezentant al unei organizații cu cunoaștere directă a grupului etnic, alta decât tine.",
       "name": "Numele verificatorului",
       "entity": "Organizația verificatorului",
       "email": "Emailul verificatorului"
@@ -528,7 +561,46 @@
       "reasonRequired": "Te rugăm să ne spui de ce ar trebui eliminat acest grup",
       "changesRequired": "Te rugăm să sugerezi cel puțin o modificare sau să lași un comentariu",
       "commentsRequired": "Te rugăm să adaugi un comentariu care să ne ajute să înțelegem cererea ta",
-      "uploadFailed": "Nu am putut încărca fotografia — te rugăm să încerci din nou"
+      "uploadFailed": "Nu am putut încărca fotografia — te rugăm să încerci din nou",
+      "engagementRequired": "Selectează statutul de angajare al grupului",
+      "engagedBlocked": "Grupurile etnice angajate sunt în afara domeniului listei DOXA",
+      "verifierNameRequired": "Spune-ne numele verificatorului",
+      "verifierEmailRequired": "Introdu o adresă de e-mail validă a verificatorului",
+      "verifierEmailSame": "Verificatorul trebuie să fie altcineva decât tine"
+    }
+  },
+  "feedback": {
+    "pageTitle": "Trimite feedback",
+    "heading": "Trimite-ne feedbackul tău",
+    "intro": "Ne-ar plăcea să auzim de la tine — spune-ne ce îți place, împărtășește o sugestie sau semnalează o problemă.",
+    "typeLabel": "Ce fel de feedback este acesta?",
+    "type": {
+      "compliment": "Apreciere",
+      "suggestion": "Sugestie",
+      "problem": "Problemă"
+    },
+    "nameLabel": "Nume",
+    "namePlaceholder": "Numele tău (opțional)",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Introdu emailul tău",
+    "messageLabel": "Mesaj",
+    "messagePlaceholder": "Spune-ne mai multe…",
+    "consentLabel": "Aș dori să primesc noutăți prin email de la parteneriatul DOXA.",
+    "submit": "Trimite feedback",
+    "submitting": "Se trimite…",
+    "success": {
+      "title": "Mulțumim!",
+      "message": "Am primit feedbackul tău. Apreciem cu adevărat timpul pe care ni l-ai acordat."
+    },
+    "error": {
+      "title": "Ceva nu a mers bine",
+      "message": "Nu am putut trimite feedbackul tău. Te rugăm să încerci din nou.",
+      "rateLimited": "Ai trimis feedback recent. Te rugăm să încerci din nou puțin mai târziu."
+    },
+    "validation": {
+      "email": "Te rugăm să introduci o adresă de email validă.",
+      "message": "Te rugăm să introduci un mesaj.",
+      "type": "Te rugăm să alegi un tip de feedback."
     }
   },
   "adoption": {
@@ -606,6 +678,11 @@
     "welcome": {
       "subject": "Bun venit la {appName} - {campaign}",
       "header": "Bun venit la {appName}",
+      "doxaMeaning": "În greacă, doxa înseamnă „slavă”, și exact asta oferim atunci când ne unim în rugăciune pentru milioanele de oameni care trăiesc cu puțină sau nicio mărturie a Evangheliei. Împreună, Îi aducem slavă lui Dumnezeu printr-o rugăciune credincioasă și plină de așteptare.",
+      "reminderExplanation": "Ca parte a acestei campanii de rugăciune, vei începe în curând să primești emailuri memento cu linkuri către conținutul zilnic de rugăciune. Fiecare link va include subiecte de rugăciune ghidate și alte materiale care te vor ajuta să te rogi strategic și cu credincioșie pentru grupul etnic neangajat pe care l-ai ales.",
+      "sharedGoal": "Prin această mișcare, scopul nostru comun este să vedem peste 100 de oameni rugându-se zilnic pentru fiecare dintre cele peste 2.000 de grupuri etnice neangajate, bărbați și femei trimiși să ajungă la aceste grupuri etnice cu Evanghelia până în anul 2033, și dăruire susținută pentru a sprijini acest efort.",
+      "closing": "Suntem profund recunoscători să ne alăturăm întregii Biserici în efortul de a duce întreaga Evanghelie în întreaga lume.",
+      "reminderTimeNote": "Memento-ul tău zilnic este setat pentru {time}.",
       "thankYou": "Mulțumim că te-ai înscris pentru rugăciune. Emailul tău a fost verificat și ești pregătit să primești memento-uri de rugăciune pentru {campaign}.",
       "startPraying": "Începe rugăciunea",
       "profileInstructions": "Poți actualiza detaliile profilului și notificările aici:",
@@ -732,7 +809,8 @@
     "source": {
       "contact_form": "Formular de contact",
       "inbound_email": "E-mail",
-      "staff": "Echipă"
+      "staff": "Echipă",
+      "feedback": "Feedback"
     },
     "unassigned": "Neatribuită",
     "assignedTo": "Atribuită lui {name}",
@@ -853,7 +931,10 @@
       "greeting": "Bună,",
       "greetingNamed": "Bună {name},",
       "body": "Îți mulțumim că ai contactat {appName}. Am primit mesajul tău și un membru al echipei noastre îți va răspunde în curând.",
-      "signoff": "În Hristos,\nEchipa {appName}"
+      "signoff": "În Hristos,\nEchipa {appName}",
+      "subjectVerify": "Am primit mesajul tău, te rugăm să verifici emailul",
+      "verifyPrompt": "Te rugăm să verifici adresa de email ca să îți putem răspunde:",
+      "verifyButton": "Verifică emailul meu"
     },
     "ai": {
       "draft": "Redactează răspuns (IA)",

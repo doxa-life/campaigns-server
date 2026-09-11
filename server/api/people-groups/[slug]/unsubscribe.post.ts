@@ -127,10 +127,11 @@ export default defineEventHandler(async (event) => {
 
   // If unsubscribe_all flag is set, unsubscribe from entire people group
   if (unsubscribeAll) {
-    const unsubscribedCount = await peopleGroupSubscriptionService.unsubscribeAllForPeopleGroup(
+    const unsubscribedIds = await peopleGroupSubscriptionService.unsubscribeAllForPeopleGroup(
       subscriber.id,
       peopleGroup.id
     )
+    const unsubscribedCount = unsubscribedIds.length
 
     if (unsubscribedCount > 0) {
       logCreate('subscribers', String(subscriber.id), event, {
@@ -155,6 +156,9 @@ export default defineEventHandler(async (event) => {
       message: `Unsubscribed from all ${unsubscribedCount} reminder(s) for this people group`,
       already_unsubscribed: false,
       unsubscribed_from_people_group: true,
+      // The prayer times this stopped, so the caller can record one opt-out reason
+      // against exactly them.
+      stopped_subscription_ids: unsubscribedIds,
       people_group: {
         id: peopleGroup.id,
         title: peopleGroup.name,
@@ -256,6 +260,7 @@ export default defineEventHandler(async (event) => {
     message: 'Successfully unsubscribed from this reminder',
     already_unsubscribed: false,
     unsubscribed_from_people_group: false,
+    stopped_subscription_ids: [subscriptionToUnsubscribe.id],
     people_group: {
       id: peopleGroup.id,
       title: peopleGroup.name,

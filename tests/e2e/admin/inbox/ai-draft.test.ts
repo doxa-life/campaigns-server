@@ -186,7 +186,7 @@ describe('Inbox AI drafting', async () => {
     expect(faq!.body_text).toContain('Stubbed marketing content')
 
     const [countries] = await sql`SELECT body_text FROM grounding_documents WHERE source = 'doxa_page' AND doc_key = 'countries'`
-    expect(countries!.body_text).toContain('/countries/india')
+    expect(countries!.body_text).toContain('/regions/india')
   })
 
   it('blocks users without permission on every knowledge-base and grounding endpoint', async () => {

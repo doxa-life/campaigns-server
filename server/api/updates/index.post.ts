@@ -44,6 +44,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'A valid email address is required' })
   }
 
+  // Every change needs a second, independent person with firsthand knowledge
+  // who can substantiate it — someone other than the submitter.
+  const verifierName = String(body.verifier_name || '').trim()
+  const verifierEmail = String(body.verifier_email || '').trim().toLowerCase()
+  if (!verifierName) {
+    throw createError({ statusCode: 400, statusMessage: 'A verifier name is required' })
+  }
+  if (!EMAIL_RE.test(verifierEmail)) {
+    throw createError({ statusCode: 400, statusMessage: 'A valid verifier email address is required' })
+  }
+  if (verifierEmail === reporterEmail) {
+    throw createError({ statusCode: 400, statusMessage: 'The verifier must be someone other than you' })
+  }
+
   if (!(await verifyTurnstile(event, body.turnstile_token))) {
     throw createError({ statusCode: 400, statusMessage: 'Anti-spam verification failed. Please try again.' })
   }
@@ -110,6 +124,11 @@ export default defineEventHandler(async (event) => {
   if (type === 'add' && !suggestedChanges.name) {
     throw createError({ statusCode: 400, statusMessage: 'The people group name is required' })
   }
+  // The DOXA list only covers unengaged people groups — an engaged group is
+  // outside its scope, so a new-group submission for one is not accepted.
+  if (type === 'add' && suggestedChanges.engagement_status === 'engaged') {
+    throw createError({ statusCode: 400, statusMessage: 'Engaged people groups are outside the scope of the DOXA list' })
+  }
   if (type === 'update' && Object.keys(suggestedChanges).length === 0 && !suggestedImageKey && !notes) {
     throw createError({ statusCode: 400, statusMessage: 'Suggest at least one change or add a comment' })
   }
@@ -134,9 +153,9 @@ export default defineEventHandler(async (event) => {
     reporter_name: reporterName.slice(0, 200),
     reporter_email: reporterEmail,
     reporter_org: body.reporter_org ? String(body.reporter_org).slice(0, 200) : null,
-    verifier_name: body.verifier_name ? String(body.verifier_name).slice(0, 200) : null,
+    verifier_name: verifierName.slice(0, 200),
     verifier_entity: body.verifier_entity ? String(body.verifier_entity).slice(0, 200) : null,
-    verifier_email: body.verifier_email ? String(body.verifier_email).slice(0, 200) : null,
+    verifier_email: verifierEmail.slice(0, 200),
     reporter_contact_method_id: contactMethod.id,
     suggested_changes: suggestedChanges,
     suggested_image_key: suggestedImageKey,

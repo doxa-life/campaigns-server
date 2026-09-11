@@ -191,7 +191,7 @@ Email templates in `server/utils/`: `prayer-reminder-email.ts`, `welcome-email.t
 - URL strategy: `prefix_except_default` (English has no prefix)
 - Use `$t('key')` in templates, `useI18n()` in scripts
 - Use `localePath()` for navigation links
-- **Translation glossaries**: When translating text, follow the DeepL glossaries in `../translation/deepl-glossaries/` to ensure consistent terminology (e.g., "people group" has specific translations per language)
+- **Translation glossaries**: When translating text, follow the glossary TSVs in `../translation/deepl-glossaries/` to ensure consistent terminology (e.g., "people group" has specific translations per language). The app vendors them into `config/glossaries.ts` via `bun scripts/build-glossaries.ts` — re-run it after changing the TSVs
 
 ## Styling
 
@@ -283,3 +283,5 @@ Reference documentation in `documentation/` folder:
 - `nuxt-ui-modals.md` - Modal implementation patterns
 - `wysiwyg-editor.md` - Tiptap editor implementation
 - `nuxt-4x-*.md` - Nuxt 4.x framework documentation
+
+Team-facing docs are written here and mirrored to the Doxa context portfolios (apps-context MCP, org `doxa`). The repo copy is the source of truth because it is publicly shareable. After editing a file in `documentation/feature-descriptions/`, push the same text to its section in the DOXA FEATURES portfolio; after editing `documentation/onboarding-new-people-groups.md`, push it to the page of the same name in DOXA TECH. Each portfolio page opens with a line naming its source file. Use `update_section` so the two stay in sync.

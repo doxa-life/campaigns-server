@@ -1,5 +1,10 @@
 import type { FieldDefinition } from '../types'
 
+// IMB ROR codes counted as a Christian background by the DOXA filter. Groups
+// with these religions are outside the DOXA list's scope, so the public add
+// flow hides them from the religion picker.
+export const CHRISTIAN_RELIGION_CODES = ['C', 'CPR', 'CPC', 'CRO', 'CEV', 'CAO', 'CAN', 'CCM', 'CFC', 'CRC', 'COR', 'CNP']
+
 export const field: FieldDefinition = {
   key: 'primary_religion',
   labelKey: 'peopleGroups.fields.primary_religion',

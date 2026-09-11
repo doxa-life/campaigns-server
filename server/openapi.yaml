@@ -25,6 +25,8 @@ tags:
     description: Mobile app support endpoints
   - name: Suggestions
     description: Public people group change suggestions (/updates form)
+  - name: Context
+    description: Context portfolios — organizational knowledge as markdown sections, readable and writable by AI tools
 
 paths:
   /api/app/version:
@@ -247,6 +249,29 @@ paths:
                   type: string
                   description: Preferred reminder time (HH:MM format)
                   example: "09:00"
+                utm_source:
+                  type: string
+                  maxLength: 200
+                  description: >
+                    Signup attribution: the utm_source on the link the visitor arrived
+                    through (captured by the browser on landing). Stored on the
+                    subscription and reported as signups by source in the admin.
+                  example: doxa.life
+                utm_medium:
+                  type: string
+                  maxLength: 200
+                  description: Signup attribution; utm_medium on the arriving link
+                  example: website
+                utm_campaign:
+                  type: string
+                  maxLength: 200
+                  description: Signup attribution; utm_campaign on the arriving link
+                  example: spring-prayer-push
+                referrer:
+                  type: string
+                  maxLength: 2048
+                  description: Signup attribution; URL of the external page that referred the visitor
+                  example: https://doxa.life/people-groups/example/
       responses:
         '200':
           description: Successfully signed up
@@ -346,6 +371,29 @@ paths:
                 consent_people_group_updates:
                   type: boolean
                   description: Optional; only applied when an email is supplied
+                utm_source:
+                  type: string
+                  maxLength: 200
+                  description: >
+                    Signup attribution: the utm_source on the link the visitor arrived
+                    through (captured by the browser on landing). Stored on the
+                    subscription and reported as signups by source in the admin.
+                  example: doxa.life
+                utm_medium:
+                  type: string
+                  maxLength: 200
+                  description: Signup attribution; utm_medium on the arriving link
+                  example: website
+                utm_campaign:
+                  type: string
+                  maxLength: 200
+                  description: Signup attribution; utm_campaign on the arriving link
+                  example: spring-prayer-push
+                referrer:
+                  type: string
+                  maxLength: 2048
+                  description: Signup attribution; URL of the external page that referred the visitor
+                  example: https://doxa.life/people-groups/example/
       responses:
         '200':
           description: Signup recorded
@@ -844,7 +892,9 @@ paths:
       description: >
         Public submission of a suggestion to add, update, or remove a people
         group on the DOXA list. Protected by Cloudflare Turnstile and per-IP
-        rate limiting (10/hour). If the reporter's email is not yet verified,
+        rate limiting (10/hour). Every submission requires an independent
+        verifier (verifier_name + verifier_email, which must differ from
+        reporter_email). If the reporter's email is not yet verified,
         the suggestion is held (`awaiting_verification`) and a verification
         email is sent; once verified it enters review by the two designated
         approvers. Suggested field keys are whitelisted per type — update
@@ -852,9 +902,12 @@ paths:
         (workers_long_term, work_in_local_language,
         disciple_and_church_multiplication), the six resource availability
         booleans (imb_*_available), and name, population, country_code,
-        latitude, longitude, primary_language, primary_religion, image_url;
+        imb_is_indigenous, latitude, longitude, primary_language,
+        primary_religion, image_url;
         add additionally allows imb_peid, imb_pgid, joshua_project_id;
-        remove additionally allows reason_unlisted (required).
+        remove additionally allows reason_unlisted (required). An add with
+        engagement_status `engaged` is rejected — engaged groups are outside
+        the DOXA list's scope.
       operationId: submitPeopleGroupSuggestion
       requestBody:
         required: true
@@ -862,7 +915,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [type, reporter_name, reporter_email]
+              required: [type, reporter_name, reporter_email, verifier_name, verifier_email]
               properties:
                 type:
                   type: string
@@ -879,11 +932,13 @@ paths:
                   format: email
                 verifier_name:
                   type: string
+                  description: Someone other than the reporter with firsthand knowledge who can confirm the change
                 verifier_entity:
                   type: string
                 verifier_email:
                   type: string
                   format: email
+                  description: Must differ from reporter_email
                 comments:
                   type: string
                   description: Free-text context for the reviewers (required for add and remove)
@@ -983,7 +1038,7 @@ paths:
       tags:
         - Suggestions
       summary: Search DOXA people groups
-      description: Public name search over the DOXA people group list, for the update/remove pickers. Returns at most 20 results; queries under 2 characters return none.
+      description: Public name search over the DOXA people group list, for the update/remove pickers. Also matches IMB alternate names, so a group is findable under any of its names. Returns at most 20 results; queries under 2 characters return none.
       operationId: searchDoxaPeopleGroups
       parameters:
         - name: q
@@ -1011,6 +1066,9 @@ paths:
                         country_code: { type: [string, 'null'] }
                         status: { type: [string, 'null'] }
                         engagement_status: { type: [string, 'null'] }
+                        alternate_name:
+                          type: [string, 'null']
+                          description: IMB alternate names for the group, when recorded
 
   /api/updates/search-external:
     get:
@@ -1021,7 +1079,10 @@ paths:
         Public search over the local IMB (peoplegroups.org) mirror and the
         Joshua Project dataset for the add-flow picker. Each result carries
         prefill values keyed by DOXA field keys, source identifiers, and an
-        in_doxa flag marking groups already on the DOXA list.
+        in_doxa flag marking groups already on the DOXA list. Matching is
+        country-specific: IMB results match by PEID, Joshua Project results by
+        PeopleID3 plus country, so only the exact country record of a group
+        maps to its DOXA counterpart.
       operationId: searchExternalPeopleGroups
       parameters:
         - name: q
@@ -1053,6 +1114,9 @@ paths:
                         doxa_id:
                           type: [integer, 'null']
                           description: DOXA people group id when the group is already on the list
+                        is_diaspora:
+                          type: [boolean, 'null']
+                          description: Whether the source classifies this country record as diaspora (null when the source doesn't say)
                         doxa_exclusion_reasons:
                           type: array
                           items:
@@ -1275,6 +1339,84 @@ paths:
         '404':
           description: Subscriber, subscription, or people group not found
 
+  /api/subscriptions/opt-out-reason:
+    post:
+      tags:
+        - Profile
+      summary: Record why prayer times were muted or stopped
+      description: >
+        Records the reason a subscriber gave after muting or stopping one or more
+        prayer times. Always a follow-up to the opt-out itself, never a
+        precondition for it: the change has already been saved by the time this is
+        called, so answering is optional and a failure here can never leave someone
+        subscribed against their wish.
+
+
+        Identified by the subscriber's `profile_id` (UUID), the same self-service
+        token the stop endpoints use. Every id in `subscription_ids` is checked
+        against that subscriber before anything is written, and ids belonging to
+        anyone else are ignored.
+
+
+        `reason` is a key, not display text; the wording shown to people lives in
+        the app's translation files. `reason_text` is only stored alongside the
+        `other` key and is dropped for any fixed choice.
+      operationId: recordOptOutReason
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [profile_id, subscription_ids, reason]
+              properties:
+                profile_id:
+                  type: string
+                  format: uuid
+                  description: Subscriber profile_id
+                subscription_ids:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: integer
+                  description: >
+                    Prayer times the answer applies to. Stopping every prayer time
+                    for a people group at once records one answer against them all.
+                  example: [12, 13]
+                reason:
+                  type: string
+                  enum: [wrong_time, life_busy, no_longer_praying, different_people_group, emails_only, other]
+                  description: Reason key
+                  example: wrong_time
+                reason_text:
+                  type: string
+                  nullable: true
+                  maxLength: 300
+                  description: Free-text detail. Stored only when `reason` is `other`.
+      responses:
+        '200':
+          description: Reason recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  reason:
+                    type: string
+                  subscription_ids:
+                    type: array
+                    items:
+                      type: integer
+                    description: The prayer times the reason was written to
+        '400':
+          description: Missing profile id, unknown reason, no subscription ids, or reason text too long
+        '403':
+          description: None of the given subscriptions belong to this profile
+        '404':
+          description: Subscriber not found
+
   /api/collect/app:
     post:
       tags:
@@ -1354,6 +1496,622 @@ paths:
         '413':
           description: Metadata payload too large
 
+  /api/admin/context/portfolios:
+    get:
+      tags:
+        - Context
+      summary: List context portfolios
+      description: |
+        Every context portfolio, ordered by name. A portfolio is one body of
+        organizational knowledge held as markdown sections.
+      operationId: listContextPortfolios
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: The portfolios on this server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  portfolios:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ContextPortfolio'
+        '401':
+          description: Unauthorized — missing or invalid API key / JWT
+        '403':
+          description: Requires the context.view permission
+
+    post:
+      tags:
+        - Context
+      summary: Create a context portfolio
+      description: |
+        Creates a portfolio. `builtin_sections` chooses which catalog sections it
+        starts with — omit the field for every section, or pass an empty array
+        for none. A slug that already exists gets a numeric suffix.
+      operationId: createContextPortfolio
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  maxLength: 120
+                color:
+                  type: string
+                  maxLength: 20
+                  nullable: true
+                slug:
+                  type: string
+                  pattern: '^[a-z][a-z0-9-]{1,39}$'
+                builtin_sections:
+                  type: array
+                  maxItems: 50
+                  items:
+                    type: string
+                  description: Built-in section keys, e.g. identity, team, decision-log
+            example:
+              name: DOXA TECH
+              color: "#7c3aed"
+              builtin_sections: ["identity", "team", "decision-log"]
+      responses:
+        '200':
+          description: The created portfolio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextPortfolio'
+        '400':
+          description: Missing name, malformed slug, or an unknown built-in section key
+        '403':
+          description: Requires the context.manage permission
+
+  /api/admin/context/portfolios/{slug}:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Context
+      summary: Read a context portfolio
+      operationId: getContextPortfolio
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: The portfolio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextPortfolio'
+        '404':
+          description: Portfolio not found
+    patch:
+      tags:
+        - Context
+      summary: Rename or recolor a context portfolio
+      operationId: updateContextPortfolio
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  maxLength: 120
+                color:
+                  type: string
+                  maxLength: 20
+                  nullable: true
+      responses:
+        '200':
+          description: The updated portfolio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextPortfolio'
+        '403':
+          description: Requires the context.edit permission
+        '404':
+          description: Portfolio not found
+    delete:
+      tags:
+        - Context
+      summary: Delete a context portfolio
+      description: Removes the portfolio with all its sections, versions, comments, and chats.
+      operationId: deleteContextPortfolio
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  id:
+                    type: string
+                    format: uuid
+        '403':
+          description: Requires the context.manage permission
+        '404':
+          description: Portfolio not found
+
+  /api/admin/context/portfolios/{slug}/export:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Context
+      summary: Export a portfolio as a zip of markdown files
+      description: One `.md` file per section plus a `README.md` index.
+      operationId: exportContextPortfolio
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Zip archive
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Portfolio not found
+
+  /api/admin/context/portfolios/{slug}/sections:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Context
+      summary: List a portfolio's sections
+      description: |
+        Every section with its content metadata. Survey step for an AI client:
+        read `word_count` and `has_content` to decide which sections to fetch.
+        Titles and descriptions of built-in sections come from the code-owned
+        catalog unless the portfolio stores an override.
+      operationId: listContextSections
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: The portfolio's sections, in display order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  portfolio_id:
+                    type: string
+                    format: uuid
+                  sections:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ContextSectionSummary'
+        '404':
+          description: Portfolio not found
+    post:
+      tags:
+        - Context
+      summary: Add a section to a portfolio
+      description: |
+        Pass `key` to add a built-in section from the catalog, or `title` to
+        create a custom one keyed by the slugified title. A custom key may not
+        collide with a built-in key.
+      operationId: addContextSection
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+                  description: A built-in section key
+                title:
+                  type: string
+                  maxLength: 120
+                  description: Title of a new custom section
+                description:
+                  type: string
+                  maxLength: 500
+                order:
+                  type: integer
+                  minimum: 0
+      responses:
+        '200':
+          description: The added section
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextSectionDefinition'
+        '400':
+          description: Neither key nor title given, or the key is not a built-in
+        '403':
+          description: Requires the context.manage permission
+        '409':
+          description: The section already exists, or a custom key collides with a built-in
+
+  /api/admin/context/portfolios/{slug}/section-order:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      tags:
+        - Context
+      summary: Set the order of every section
+      description: |
+        `keys` must list exactly the portfolio's sections, once each. A partial or
+        stale list is rejected rather than applied, so no section can be dropped
+        out of the order by a client working from an old view.
+      operationId: reorderContextSections
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - keys
+              properties:
+                keys:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: The reordered sections
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sections:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ContextSectionDefinition'
+        '400':
+          description: The list does not name every section exactly once
+        '403':
+          description: Requires the context.manage permission
+
+  /api/admin/context/portfolios/{slug}/sections/{key}:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: key
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Context
+      summary: Read one section
+      operationId: getContextSection
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: The section and its content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextSection'
+        '404':
+          description: Portfolio not found, or the portfolio has no such section
+    put:
+      tags:
+        - Context
+      summary: Save section content
+      description: |
+        Replaces the section's markdown and appends a version. Content is capped
+        at 100KB. The section must already exist on the portfolio.
+      operationId: saveContextSection
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+            example:
+              content: "# Team\n\nAda leads engineering."
+      responses:
+        '200':
+          description: The saved section
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  portfolio_id:
+                    type: string
+                    format: uuid
+                  key:
+                    type: string
+                  content:
+                    type: string
+                  last_edited_at:
+                    type: string
+                    format: date-time
+                  last_edited_by:
+                    type: string
+                    format: uuid
+                    nullable: true
+                  version_id:
+                    type: string
+                    format: uuid
+        '400':
+          description: content missing
+        '403':
+          description: Requires the context.edit permission
+        '404':
+          description: The portfolio has no such section
+        '413':
+          description: Content exceeds the 100KB limit
+    patch:
+      tags:
+        - Context
+      summary: Change a section's title, description, or position
+      description: The key is fixed once the section exists.
+      operationId: updateContextSectionDefinition
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  maxLength: 120
+                description:
+                  type: string
+                  maxLength: 500
+                order:
+                  type: integer
+                  minimum: 0
+      responses:
+        '200':
+          description: The updated section
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextSectionDefinition'
+        '400':
+          description: No fields to update, or a field is out of range
+        '403':
+          description: Requires the context.manage permission
+        '404':
+          description: The portfolio has no such section
+    delete:
+      tags:
+        - Context
+      summary: Remove a section from a portfolio
+      description: |
+        Content saved under the key is kept and resurfaces if a section with the
+        same key is added again.
+      operationId: deleteContextSection
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  key:
+                    type: string
+                  id:
+                    type: string
+                    format: uuid
+                  is_custom:
+                    type: boolean
+                  content_retained:
+                    type: boolean
+                    description: Whether the removed section had content that was kept
+        '403':
+          description: Requires the context.manage permission
+        '404':
+          description: The portfolio has no such section
+
+  /api/admin/context/portfolios/{slug}/sections/{key}/export:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: key
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Context
+      summary: Export one section as markdown
+      description: Returns `# {title}` followed by the section body.
+      operationId: exportContextSection
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Markdown document
+          content:
+            text/markdown:
+              schema:
+                type: string
+        '404':
+          description: The portfolio has no such section
+
+  /api/admin/context/portfolios/{slug}/sections/{key}/versions:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: key
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Context
+      summary: List a section's versions
+      description: Newest first. Empty when the section has never been saved.
+      operationId: listContextSectionVersions
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: The section's history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  versions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        content:
+                          type: string
+                        edited_at:
+                          type: string
+                          format: date-time
+                        edited_by:
+                          type: string
+                          format: uuid
+                          nullable: true
+                        edited_by_name:
+                          type: string
+                          nullable: true
+                        source:
+                          type: string
+                          nullable: true
+                          enum: [user, assistant, api]
+                          description: How the change was made
+        '404':
+          description: The portfolio has no such section
+
+  /api/admin/context/portfolios/{slug}/sections/{key}/versions/{id}/restore:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: key
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - Context
+      summary: Restore an earlier version
+      description: |
+        Saves the named version's content as the current content. This appends a
+        new version at the head — restoring is itself an edit.
+      operationId: restoreContextSectionVersion
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: The restored section
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  key:
+                    type: string
+                  content:
+                    type: string
+                  restored_from:
+                    type: string
+                    format: uuid
+                  version_id:
+                    type: string
+                    format: uuid
+        '403':
+          description: Requires the context.edit permission
+        '404':
+          description: Section or version not found
+
 components:
   securitySchemes:
     apiKey:
@@ -1373,6 +2131,106 @@ components:
       description: Shared form API key (FORM_API_KEY) for trusted sister sites (marketing, global)
 
   schemas:
+    ContextPortfolio:
+      type: object
+      description: One body of organizational knowledge, held as markdown sections
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+          example: doxa-tech
+        name:
+          type: string
+          example: DOXA TECH
+        color:
+          type: string
+          nullable: true
+          example: "#7c3aed"
+        icon_url:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ContextSectionDefinition:
+      type: object
+      description: |
+        A section a portfolio has. For a built-in key the title, description, and
+        default position come from the code-owned catalog; a custom section
+        carries its own.
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+          example: team
+        title:
+          type: string
+          example: Team
+        description:
+          type: string
+        order:
+          type: integer
+        is_custom:
+          type: boolean
+
+    ContextSectionSummary:
+      allOf:
+        - $ref: '#/components/schemas/ContextSectionDefinition'
+        - type: object
+          properties:
+            word_count:
+              type: integer
+            has_content:
+              type: boolean
+            last_edited_at:
+              type: string
+              format: date-time
+              nullable: true
+            last_edited_by:
+              type: string
+              format: uuid
+              nullable: true
+            last_edited_by_name:
+              type: string
+              nullable: true
+
+    ContextSection:
+      type: object
+      description: One section with its full markdown body
+      properties:
+        portfolio_id:
+          type: string
+          format: uuid
+        key:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        is_custom:
+          type: boolean
+        content:
+          type: string
+        last_edited_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_edited_by:
+          type: string
+          format: uuid
+          nullable: true
+        last_edited_by_name:
+          type: string
+          nullable: true
+
     ValueLabel:
       type: object
       description: A value with its translated label
@@ -1450,8 +2308,8 @@ components:
           example: 58
         adopted_by_churches:
           type: integer
-          description: Number of churches that have adopted this group (always 0)
-          example: 0
+          description: Number of active adoptions of this group by churches and other groups
+          example: 1
 
     PeopleGroupDetail:
       type: object
@@ -1487,6 +2345,15 @@ components:
           type: integer
         adopted_by_churches:
           type: integer
+          description: Number of active adoptions of this group
+        adopted_by_count:
+          type: integer
+          description: Number of active adoptions of this group (same value as adopted_by_churches)
+        adopted_by_names:
+          type: array
+          items:
+            type: string
+          description: Names of the adopting groups that chose to be listed publicly
         people_committed:
           type: integer
           description: Total number of active prayer commitments
@@ -1565,8 +2432,8 @@ components:
           example: 312
         total_adopted:
           type: integer
-          description: Number of people groups adopted by churches (always 0)
-          example: 0
+          description: Number of people groups with at least one active adoption
+          example: 15
         people_committed:
           type: integer
           description: Total number of active prayer commitments (subscriptions)
@@ -1577,3 +2444,12 @@ components:
             Frequency-weighted daily committed prayer minutes across all active
             subscriptions (weekly commitments scaled by days-per-week ÷ 7).
           example: 36000
+        praying_now:
+          type: integer
+          description: >
+            People currently in a prayer session, across the mobile app and the
+            web prayer pages. A session re-reports itself about every 60
+            seconds while it runs, so this counts distinct sessions last seen
+            within the past 5 minutes. Approximate by design, and served with a
+            5-minute cache — treat it as "roughly now", not a precise instant.
+          example: 42

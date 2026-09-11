@@ -1,0 +1,341 @@
+/**
+ * Translation Utility
+ *
+ * Translates plain text and Tiptap JSON content between the app's languages
+ * with an LLM via OpenRouter. Verse nodes are never machine-translated — they
+ * are fetched from the Bible API in the target language.
+ */
+
+import { LANGUAGE_CODES, getBibleId, getBibleLabel } from '~/utils/languages'
+import { parseReference, localizeReference, type ParsedReference } from '../../config/bible-books'
+import { fetchVerseData, isBollsBibleConfigured, BibleUnavailableError } from './app/bolls-bible'
+import { openrouterTranslateTexts, isOpenRouterConfigured } from './openrouter'
+
+// Re-export for convenience
+export const SUPPORTED_LANGUAGES = LANGUAGE_CODES
+
+export interface VerseWarning {
+  reference: string
+  language: string
+  reason: string
+}
+
+/**
+ * Translate a single text
+ */
+export async function translateText(
+  text: string,
+  targetLanguage: string,
+  sourceLanguage?: string
+): Promise<string> {
+  const [translated] = await translateTexts([text], targetLanguage, sourceLanguage)
+  if (translated === undefined) {
+    throw new Error('No translation returned')
+  }
+  return translated
+}
+
+/**
+ * Translate multiple texts in a single API call (more efficient)
+ */
+export async function translateTexts(
+  texts: string[],
+  targetLanguage: string,
+  sourceLanguage?: string
+): Promise<string[]> {
+  if (texts.length === 0) return []
+  return openrouterTranslateTexts(texts, targetLanguage, sourceLanguage)
+}
+
+/**
+ * Interface for Tiptap JSON node
+ */
+export interface TiptapNode {
+  type: string
+  content?: TiptapNode[]
+  text?: string
+  marks?: any[]
+  attrs?: Record<string, any>
+}
+
+/**
+ * Extract all text content from Tiptap JSON, skipping specified node types.
+ * Returns array of { path, text } for reconstruction.
+ */
+export function extractTexts(
+  node: TiptapNode,
+  path: number[] = [],
+  skipNodeTypes: Set<string> = new Set()
+): Array<{ path: number[]; text: string }> {
+  const results: Array<{ path: number[]; text: string }> = []
+
+  if (skipNodeTypes.has(node.type)) {
+    return results
+  }
+
+  if (node.type === 'text' && node.text) {
+    results.push({ path: [...path], text: node.text })
+  }
+
+  if (node.content && Array.isArray(node.content)) {
+    node.content.forEach((child, index) => {
+      results.push(...extractTexts(child, [...path, index], skipNodeTypes))
+    })
+  }
+
+  return results
+}
+
+/**
+ * Set text at a specific path in the Tiptap JSON tree
+ */
+export function setTextAtPath(node: TiptapNode, path: number[], text: string): void {
+  if (path.length === 0) {
+    node.text = text
+    return
+  }
+
+  const [index, ...rest] = path as [number, ...number[]]
+  if (node.content && node.content[index]) {
+    setTextAtPath(node.content[index], rest, text)
+  }
+}
+
+/**
+ * Translate Tiptap JSON content
+ * Preserves structure, marks, and attributes while translating text nodes.
+ * Verse nodes are never sent to the translator — they are fetched from the Bible API instead.
+ */
+export async function translateTiptapContent(
+  contentJson: TiptapNode,
+  targetLanguage: string,
+  sourceLanguage?: string
+): Promise<{ doc: TiptapNode; verseWarnings: VerseWarning[] }> {
+  // Deep clone the content to avoid mutating the original
+  const cloned: TiptapNode = JSON.parse(JSON.stringify(contentJson))
+
+  // Extract all text nodes, skipping verse nodes entirely
+  const skipNodes = new Set(['verse'])
+  const textEntries = extractTexts(cloned, [], skipNodes)
+
+  if (textEntries.length > 0) {
+    const textsToTranslate = textEntries.map(e => e.text)
+    const translatedTexts = await translateTexts(textsToTranslate, targetLanguage, sourceLanguage)
+
+    textEntries.forEach((entry, i) => {
+      setTextAtPath(cloned, entry.path, translatedTexts[i]!)
+    })
+  }
+
+  // Handle verse nodes: fetch from Bible Brain in the target language
+  const verseWarnings: VerseWarning[] = []
+  await translateVerseNodes(cloned, targetLanguage, verseWarnings)
+
+  return { doc: cloned, verseWarnings }
+}
+
+/**
+ * Batch translate multiple Tiptap JSON documents in a single operation.
+ * More efficient than calling translateTiptapContent() per doc because it
+ * combines all text nodes across all documents into chunked translation calls.
+ *
+ * Returns translated documents in the same order as the input.
+ */
+export async function batchTranslateTiptapContents(
+  docs: TiptapNode[],
+  targetLanguage: string,
+  sourceLanguage?: string,
+  options?: { skipVerseTranslation?: boolean }
+): Promise<{ docs: TiptapNode[]; verseWarnings: VerseWarning[] }> {
+  const skipNodes = new Set(['verse'])
+
+  // Deep clone all docs
+  const clonedDocs: TiptapNode[] = docs.map(doc => JSON.parse(JSON.stringify(doc)))
+
+  // Extract text entries from all docs, tracking which doc each belongs to
+  const allEntries: Array<{ docIndex: number; path: number[]; text: string }> = []
+
+  for (let i = 0; i < clonedDocs.length; i++) {
+    const entries = extractTexts(clonedDocs[i]!, [], skipNodes)
+    for (const entry of entries) {
+      allEntries.push({ docIndex: i, path: entry.path, text: entry.text })
+    }
+  }
+
+  // Chunk size balances request count against the fragment-alignment
+  // contract, which gets harder for the model to honor on long batches
+  if (allEntries.length > 0) {
+    const CHUNK_SIZE = 40
+    const allTranslated: string[] = []
+
+    for (let i = 0; i < allEntries.length; i += CHUNK_SIZE) {
+      if (i > 0) {
+        await new Promise(resolve => setTimeout(resolve, 200))
+      }
+      const chunk = allEntries.slice(i, i + CHUNK_SIZE)
+      const translated = await translateTexts(
+        chunk.map(e => e.text),
+        targetLanguage,
+        sourceLanguage
+      )
+      allTranslated.push(...translated)
+    }
+
+    // Set translated texts back into cloned docs
+    for (let i = 0; i < allEntries.length; i++) {
+      const entry = allEntries[i]!
+      setTextAtPath(clonedDocs[entry.docIndex]!, entry.path, allTranslated[i]!)
+    }
+  }
+
+  // Handle verse nodes in each doc
+  const verseWarnings: VerseWarning[] = []
+  if (!options?.skipVerseTranslation) {
+    for (const doc of clonedDocs) {
+      await translateVerseNodes(doc, targetLanguage, verseWarnings)
+    }
+  }
+
+  return { docs: clonedDocs, verseWarnings }
+}
+
+/**
+ * Walk the Tiptap tree and replace verse node content with Bible text
+ * in the target language. If fetching fails or no bibleId is configured,
+ * the verse content is left untouched.
+ */
+export async function translateVerseNodes(node: TiptapNode, targetLanguage: string, warnings: VerseWarning[], options?: { onlyApiFetched?: boolean }): Promise<void> {
+  if (!node.content) return
+
+  for (const child of node.content) {
+    if (child.type === 'verse') {
+      const reference = child.attrs?.reference
+      if (!reference) continue
+
+      // Skip manually entered verses (no translation attr) when onlyApiFetched is set
+      if (options?.onlyApiFetched && !child.attrs?.translation) continue
+
+      const bibleId = getBibleId(targetLanguage)
+      if (!isBollsBibleConfigured(bibleId)) {
+        const reason = `No Bible translation configured for "${targetLanguage}"`
+        console.warn(`[Bolls Bible] ${reason}`)
+        warnings.push({ reference, language: targetLanguage, reason })
+        continue
+      }
+
+      // Handle multi-line references (multiple refs in one verse node)
+      const refLines = reference.split('\n').map((r: string) => r.trim()).filter(Boolean)
+      const allParsed: Array<{ raw: string; parsed: ParsedReference | null }> = refLines.map((r: string) => ({ raw: r, parsed: parseReference(r) }))
+      const failedRefs = allParsed.filter(r => !r.parsed)
+
+      if (failedRefs.length === allParsed.length) {
+        const reason = `Could not parse reference "${reference}"`
+        console.warn(`[Bolls Bible] ${reason}`)
+        warnings.push({ reference, language: targetLanguage, reason })
+        continue
+      }
+
+      for (const f of failedRefs) {
+        const reason = `Could not parse reference "${f.raw}"`
+        console.warn(`[Bolls Bible] ${reason}`)
+        warnings.push({ reference: f.raw, language: targetLanguage, reason })
+      }
+
+      try {
+        const allVerses: Array<{ verse: number; text: string }> = []
+        for (const { parsed } of allParsed) {
+          if (!parsed) continue
+          const verses = await fetchVerseData({
+            bibleId: bibleId!,
+            bookId: parsed.bookId,
+            chapter: parsed.chapter,
+            verseStart: parsed.verseStart,
+            verseEnd: parsed.verseEnd
+          })
+          allVerses.push(...verses)
+        }
+
+        const content: any[] = []
+        allVerses.forEach((v, i) => {
+          content.push({ type: 'text', text: `${v.verse} `, marks: [{ type: 'superscript' }] })
+          content.push({ type: 'text', text: i < allVerses.length - 1 ? v.text + ' ' : v.text })
+        })
+        child.content = [{
+          type: 'paragraph',
+          content
+        }]
+        const successParsed = allParsed.filter(r => r.parsed).map(r => r.parsed!)
+        child.attrs!.reference = successParsed.map(p => localizeReference(p, 'en')).join('\n')
+        child.attrs!.translation = getBibleLabel(targetLanguage)
+      } catch (e: any) {
+        if (e instanceof BibleUnavailableError) throw e
+        const reason = e?.message || 'Unknown error'
+        console.warn(`[Bolls Bible] Failed to fetch verse "${reference}" for "${targetLanguage}": ${reason}`)
+        warnings.push({ reference, language: targetLanguage, reason })
+      }
+    } else {
+      await translateVerseNodes(child, targetLanguage, warnings, options)
+    }
+  }
+}
+
+/**
+ * Walk two Tiptap trees in parallel and replace verse nodes in `target`
+ * with those from `source`, matching by index position. Assumes the two
+ * trees are structurally parallel.
+ */
+export function graftVerseNodes(target: TiptapNode, source: TiptapNode): void {
+  if (!target.content || !source.content) return
+  for (let i = 0; i < target.content.length && i < source.content.length; i++) {
+    if (target.content[i]!.type === 'verse' && source.content[i]!.type === 'verse') {
+      target.content[i] = source.content[i]!
+    } else {
+      graftVerseNodes(target.content[i]!, source.content[i]!)
+    }
+  }
+}
+
+/**
+ * Re-fetch verses for an existing translation while keeping it structurally
+ * in sync with the source. When only verses changed between source and target
+ * — i.e. the non-verse prose text sequence is identical — the target is rebuilt
+ * from the source structure: verses removed from the source disappear, verses
+ * added to the source appear, the translation's prose is re-injected, and verse
+ * text is fetched in the target language.
+ *
+ * If the prose structure also diverged (the number of text nodes differs), the
+ * prose mapping is ambiguous, so it falls back to grafting verse nodes by
+ * position into the existing target, leaving its structure untouched.
+ */
+export async function reconcileVersesFromSource(
+  sourceDoc: TiptapNode,
+  existingTargetDoc: TiptapNode,
+  targetLanguage: string,
+  warnings: VerseWarning[]
+): Promise<TiptapNode> {
+  const skipNodes = new Set(['verse'])
+  const sourceTexts = extractTexts(sourceDoc, [], skipNodes)
+  const targetTexts = extractTexts(existingTargetDoc, [], skipNodes)
+
+  if (sourceTexts.length === targetTexts.length) {
+    const merged: TiptapNode = JSON.parse(JSON.stringify(sourceDoc))
+    sourceTexts.forEach((entry, i) => {
+      setTextAtPath(merged, entry.path, targetTexts[i]!.text)
+    })
+    await translateVerseNodes(merged, targetLanguage, warnings)
+    return merged
+  }
+
+  const sourceClone: TiptapNode = JSON.parse(JSON.stringify(sourceDoc))
+  await translateVerseNodes(sourceClone, targetLanguage, warnings)
+  const targetClone: TiptapNode = JSON.parse(JSON.stringify(existingTargetDoc))
+  graftVerseNodes(targetClone, sourceClone)
+  return targetClone
+}
+
+/**
+ * Check if the translation service is configured
+ */
+export function isTranslationConfigured(): boolean {
+  return isOpenRouterConfigured()
+}

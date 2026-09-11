@@ -7,10 +7,10 @@
         <p class="subtitle">Manage content libraries specific to this people group</p>
       </div>
       <div class="header-actions">
-        <UButton @click="showImportModal = true" variant="outline" icon="i-lucide-upload">
+        <UButton @click="() => { showImportModal = true }" variant="outline" icon="i-lucide-upload">
           Import
         </UButton>
-        <UButton @click="showCreateModal = true" size="lg">
+        <UButton @click="() => { showCreateModal = true }" size="lg">
           + Create Library
         </UButton>
       </div>
@@ -22,7 +22,7 @@
 
     <div v-else-if="libraries.length === 0" class="empty-state">
       <p>No content libraries yet. Create your first library to get started.</p>
-      <UButton @click="showCreateModal = true" size="lg">
+      <UButton @click="() => { showCreateModal = true }" size="lg">
         Create Library
       </UButton>
     </div>

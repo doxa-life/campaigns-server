@@ -16,6 +16,7 @@
           Jump to Today
         </UButton>
         <UButton
+          v-if="!isLanguageScopedOnly('content.create')"
           @click="openTranslateAllModal"
           variant="outline"
           icon="i-lucide-languages"
@@ -171,6 +172,15 @@ const loading = ref(true)
 const error = ref('')
 const selectedLanguage = ref('all')
 const dayContentMap = ref<Map<number, LibraryContent[]>>(new Map())
+
+const { isLanguageScopedOnly, assignedLanguages } = useAuthUser()
+
+// A translator with a single language lands on that language's view of the calendar.
+watch(assignedLanguages, (langs) => {
+  if (isLanguageScopedOnly('content.edit') && langs.length === 1) {
+    selectedLanguage.value = langs[0]!
+  }
+}, { immediate: true })
 const dayRange = ref({ minDay: 1, maxDay: 365 })
 const currentPage = ref(1)
 const daysPerPage = 100

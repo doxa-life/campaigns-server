@@ -5,7 +5,7 @@
         <h1>Marketing Emails</h1>
         <p class="subtitle">Create and manage marketing emails</p>
       </div>
-      <UButton @click="navigateTo('/admin/marketing/emails/new')" size="lg">
+      <UButton @click="() => { navigateTo('/admin/marketing/emails/new') }" size="lg">
         + New Email
       </UButton>
     </div>
@@ -25,7 +25,7 @@
 
     <div v-else-if="filteredEmails.length === 0" class="empty-state">
       <p>No emails yet. Create your first marketing email to get started.</p>
-      <UButton @click="navigateTo('/admin/marketing/emails/new')" size="lg">
+      <UButton @click="() => { navigateTo('/admin/marketing/emails/new') }" size="lg">
         Create Email
       </UButton>
     </div>
@@ -96,7 +96,7 @@
             <td class="date-cell">{{ formatDate(email.updated_at) }}</td>
             <td class="actions-cell">
               <UButton
-                @click.stop="navigateTo(`/admin/marketing/emails/${email.id}`)"
+                @click.stop="() => { navigateTo(`/admin/marketing/emails/${email.id}`) }"
                 variant="link"
                 size="sm"
               >

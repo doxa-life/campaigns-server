@@ -62,6 +62,11 @@
           </template>
         </div>
 
+        <!-- Failure Reasons -->
+        <div v-if="errors.length > 0" class="failure-reasons">
+          <div v-for="(e, i) in errors" :key="i" class="failure-item">{{ e }}</div>
+        </div>
+
         <!-- Verse Warnings -->
         <div v-if="isComplete && verseWarnings.length > 0" class="verse-warnings">
           <button class="warnings-toggle" @click="showWarnings = !showWarnings">
@@ -141,6 +146,7 @@ const cancelling = ref(false)
 const pollInterval = ref<NodeJS.Timeout | null>(null)
 const verseWarnings = ref<Array<{ reference: string; language: string; reason: string }>>([])
 const showWarnings = ref(false)
+const errors = ref<string[]>([])
 
 const completedCount = computed(() => {
   return stats.value.completed + stats.value.failed
@@ -158,6 +164,7 @@ watch(() => props.open, async (newVal) => {
     cancelling.value = false
     verseWarnings.value = []
     showWarnings.value = false
+    errors.value = []
     await fetchStatus()
     startPolling()
   } else {
@@ -181,6 +188,7 @@ async function fetchStatus() {
       failed: response.failed
     }
     isComplete.value = response.isComplete
+    errors.value = response.errors ?? []
 
     if (isComplete.value) {
       stopPolling()
@@ -324,6 +332,17 @@ function handleClose() {
 
 .status-message .info {
   color: var(--ui-text-muted);
+}
+
+.failure-reasons {
+  margin-top: 1rem;
+}
+
+.failure-item {
+  font-size: 0.8125rem;
+  padding: 0.25rem 0;
+  color: var(--ui-error);
+  text-align: center;
 }
 
 .verse-warnings {

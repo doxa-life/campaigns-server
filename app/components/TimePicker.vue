@@ -124,7 +124,7 @@
 
           <!-- Action Buttons -->
           <div class="flex justify-end gap-2 pt-4 border-t border-[var(--ui-border)]">
-            <UButton variant="ghost" @click="showPicker = false">Cancel</UButton>
+            <UButton variant="ghost" @click="() => { showPicker = false }">Cancel</UButton>
             <UButton @click="confirmSelection">OK</UButton>
           </div>
         </div>

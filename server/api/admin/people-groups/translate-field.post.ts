@@ -1,5 +1,5 @@
 import { peopleGroupService, type PeopleGroup } from '#server/database/people-groups'
-import { translateTexts, isDeepLConfigured } from '#server/utils/deepl'
+import { translateTexts, isTranslationConfigured } from '#server/utils/translate'
 import { LANGUAGES } from '~/utils/languages'
 import { allFields, type FieldDefinition } from '~/utils/people-group-fields'
 import { getErrorMessage } from '#server/utils/api-helpers'
@@ -25,10 +25,10 @@ interface PeopleGroupWithEnglish {
 export default defineEventHandler(async (event) => {
   await requirePermission(event, 'people_groups.edit')
 
-  if (!isDeepLConfigured()) {
+  if (!isTranslationConfigured()) {
     throw createError({
       statusCode: 503,
-      statusMessage: 'Translation service not configured. Please add DEEPL_API_KEY to environment.'
+      statusMessage: 'Translation service not configured. Please add OPENROUTER_API_KEY to environment.'
     })
   }
 

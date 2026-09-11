@@ -3,6 +3,7 @@ import { handleApiError } from '#server/utils/api-helpers'
 const TABLE_PERMISSIONS: Record<string, string> = {
   people_groups: 'people_groups.view',
   groups: 'groups.view',
+  churches: 'churches.view',
   subscribers: 'subscribers.view',
   libraries: 'content.view',
   people_group_adoptions: 'groups.view',

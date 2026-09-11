@@ -240,7 +240,7 @@
 
             <CrmFormSection title="Groups">
               <template #header-extra>
-                <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="showAddGroupModal = true">
+                <UButton size="xs" variant="outline" icon="i-lucide-plus" @click="() => { showAddGroupModal = true }">
                   Add
                 </UButton>
               </template>
@@ -381,6 +381,14 @@
                       <div class="field-display">{{ subscription.timezone }}</div>
                     </UFormField>
 
+                    <UFormField v-if="formatSignupSource(subscription)" :label="getSubscriberFieldLabel('utm_source')">
+                      <div class="field-display">{{ formatSignupSource(subscription) }}</div>
+                    </UFormField>
+
+                    <UFormField v-if="subscription.referrer" :label="getSubscriberFieldLabel('referrer')">
+                      <div class="field-display break-all">{{ formatReferrer(subscription.referrer) }}</div>
+                    </UFormField>
+
                     <UFormField :label="getSubscriberFieldLabel('prayer_duration')">
                       <div class="field-display">{{ formatDuration(subscription.prayer_duration) }}</div>
                     </UFormField>
@@ -397,6 +405,18 @@
                         value-key="value"
                         class="w-full"
                       />
+                    </UFormField>
+
+                    <UFormField v-if="subscription.opt_out_reason" :label="getSubscriberFieldLabel('opt_out_reason')">
+                      <div class="field-display">
+                        {{ optOutReasonLabel(subscription.opt_out_reason) }}
+                        <span v-if="subscription.opt_out_reason_at" class="text-[var(--ui-text-dimmed)]">
+                          — {{ formatDateTime(subscription.opt_out_reason_at) }}
+                        </span>
+                      </div>
+                      <div v-if="subscription.opt_out_reason_text" class="field-display italic mt-1">
+                        “{{ subscription.opt_out_reason_text }}”
+                      </div>
                     </UFormField>
 
                     <div class="subscription-actions">
@@ -462,7 +482,7 @@
                 color="primary"
                 variant="soft"
                 icon="i-lucide-pen-line"
-                @click="showCompose = true"
+                @click="() => { showCompose = true }"
               >{{ $t('inbox.compose.newEmail') }}</UButton>
             </template>
             <div v-if="loadingConversations" class="activity-loading">
@@ -514,7 +534,7 @@
                     <UTextarea v-model="quickReplyText" :rows="2" :placeholder="$t('inbox.compose.placeholder')" class="w-full" />
                     <div class="qr-actions">
                       <UButton size="xs" color="primary" :loading="quickReplySending" :disabled="!quickReplyText.trim()" @click="sendQuickReply(conversation.id)">{{ $t('inbox.compose.send') }}</UButton>
-                      <UButton size="xs" variant="ghost" color="neutral" @click="quickReplyFor = null">{{ $t('common.cancel') }}</UButton>
+                      <UButton size="xs" variant="ghost" color="neutral" @click="() => { quickReplyFor = null }">{{ $t('common.cancel') }}</UButton>
                     </div>
                   </template>
                 </div>
@@ -632,7 +652,7 @@
           />
         </UFormField>
         <div class="flex justify-end gap-2 mt-2">
-          <UButton variant="outline" @click="showAddGroupModal = false">Cancel</UButton>
+          <UButton variant="outline" @click="() => { showAddGroupModal = false }">Cancel</UButton>
           <UButton type="submit" :disabled="!addGroupId">Add</UButton>
         </div>
       </form>
@@ -653,7 +673,7 @@
           <UInput v-model="createPersonForm.phone" type="tel" class="w-full" />
         </UFormField>
         <div class="flex justify-end gap-2 mt-2">
-          <UButton variant="outline" @click="showCreatePersonModal = false">Cancel</UButton>
+          <UButton variant="outline" @click="() => { showCreatePersonModal = false }">Cancel</UButton>
           <UButton type="submit" :loading="creatingPerson">Create</UButton>
         </div>
       </form>
@@ -691,6 +711,8 @@ import type { FilterState } from '#shared/crm/filter-types'
 import { EMPTY_FILTER } from '#shared/crm/filter-types'
 import { decodeFilter, encodeFilter } from '#shared/crm/filter-codec'
 import { deriveSubscriberStatus, SUBSCRIBER_STATUS_LABELS, SUBSCRIBER_STATUS_COLORS } from '#shared/subscriber-status'
+
+const { optOutReasonLabel } = useOptOutReasonLabel()
 import { useSubscriberFilterManifest } from '~/utils/crm/subscriber-manifest'
 
 definePageMeta({
@@ -724,6 +746,13 @@ interface Subscription {
   prayer_duration: number
   next_reminder_utc: string | null
   status: 'active' | 'inactive' | 'unsubscribed' | 'pending'
+  utm_source: string | null
+  utm_medium: string | null
+  utm_campaign: string | null
+  referrer: string | null
+  opt_out_reason: string | null
+  opt_out_reason_text: string | null
+  opt_out_reason_at: string | null
   created_at: string
   updated_at: string
 }
@@ -1592,6 +1621,17 @@ function formatDaysOfWeek(days: number[] | string | null): string {
   } catch {
     return ''
   }
+}
+
+// The utm_source / utm_medium / utm_campaign of the link the signup arrived through.
+function formatSignupSource(subscription: Subscription): string {
+  return [subscription.utm_source, subscription.utm_medium, subscription.utm_campaign]
+    .filter(Boolean)
+    .join(' / ')
+}
+
+function formatReferrer(referrer: string): string {
+  return referrer.replace(/^https?:\/\//, '')
 }
 
 function formatDuration(minutes: number | null): string {

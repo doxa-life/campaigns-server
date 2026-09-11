@@ -1,4 +1,5 @@
 import { defineEventHandler, createError, readBody } from 'h3'
+import { requireNonLanguageScopedPermission } from '#server/utils/content-access'
 import { appConfigService } from '#server/database/app-config'
 import { handleApiError } from '#server/utils/api-helpers'
 
@@ -26,7 +27,7 @@ interface RowConfig {
  * }
  */
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'content.edit')
+  await requireNonLanguageScopedPermission(event, 'content.edit')
 
   try {
     const body = await readBody(event)

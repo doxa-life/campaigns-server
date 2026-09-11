@@ -1,3 +1,6 @@
+// Permission scopes: a bare permission is unrestricted. The `_scoped` suffix limits it to the
+// user's assigned people groups; the `_language_scoped` suffix limits it to the user's assigned
+// languages. A user holding several roles gets the union of what each role's scope allows.
 export type RoleName = 'admin' | 'progress_admin' | 'content_editor' | 'language_editor' | 'people_group_editor' | 'inbox_agent'
 
 export const ROLES: Record<RoleName, { name: RoleName; label: string; description: string; permissions: string[] }> = {
@@ -14,6 +17,10 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
       'groups.create',
       'groups.edit',
       'groups.delete',
+      'churches.view',
+      'churches.create',
+      'churches.edit',
+      'churches.delete',
       'subscribers.view',
       'subscribers.create',
       'subscribers.edit',
@@ -26,7 +33,10 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
       'inbox.view',
       'inbox.send',
       'marketing.view',
-      'marketing.send'
+      'marketing.send',
+      'context.view',
+      'context.edit',
+      'context.manage'
     ]
   },
   progress_admin: {
@@ -41,7 +51,9 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
       'inbox.view',
       'inbox.send',
       'marketing.view',
-      'marketing.send'
+      'marketing.send',
+      'context.view',
+      'context.edit'
     ]
   },
   people_group_editor: {
@@ -58,7 +70,8 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
       'content.view_scoped',
       'content.create_scoped',
       'content.edit_scoped',
-      'content.delete_scoped'
+      'content.delete_scoped',
+      'context.view'
     ]
   },
   content_editor: {
@@ -69,18 +82,20 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
       'content.view',
       'content.create',
       'content.edit',
-      'content.delete'
+      'content.delete',
+      'context.view'
     ]
   },
   language_editor: {
     name: 'language_editor',
-    label: 'Language Editor',
-    description: 'Manages library content in assigned languages only',
+    label: 'Translator',
+    description: 'Reviews and edits library content in assigned languages — can read every language but only change assigned ones',
     permissions: [
       'content.view',
-      'content.create',
-      'content.edit',
-      'content.delete'
+      'content.create_language_scoped',
+      'content.edit_language_scoped',
+      'content.delete_language_scoped',
+      'context.view'
     ]
   },
   inbox_agent: {
@@ -89,7 +104,8 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
     description: 'Handles the shared email inbox — triage and reply to contacts',
     permissions: [
       'inbox.view',
-      'inbox.send'
+      'inbox.send',
+      'context.view'
     ]
   }
 }

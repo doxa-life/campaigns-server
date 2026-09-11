@@ -1,8 +1,9 @@
 import { libraryService } from '#server/database/libraries'
+import { requireNonLanguageScopedPermission } from '#server/utils/content-access'
 import { handleApiError } from '#server/utils/api-helpers'
 
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'content.create')
+  await requireNonLanguageScopedPermission(event, 'content.create')
 
   const body = await readBody(event)
 

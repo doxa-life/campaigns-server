@@ -6,13 +6,13 @@
         <p class="subtitle">Manage centralized prayer content libraries</p>
       </div>
       <div class="header-actions">
-        <UButton to="/admin/prayer-fuel-order" variant="outline" icon="i-lucide-list-ordered">
+        <UButton v-if="canAccessUnscoped('content.edit')" to="/admin/prayer-fuel-order" variant="outline" icon="i-lucide-list-ordered">
           Prayer Fuel Order
         </UButton>
-        <UButton @click="showImportModal = true" variant="outline" icon="i-lucide-upload">
+        <UButton v-if="canAccessUnscoped('content.edit')" @click="() => { showImportModal = true }" variant="outline" icon="i-lucide-upload">
           Import
         </UButton>
-        <UButton @click="showCreateModal = true" size="lg">
+        <UButton v-if="canAccessUnscoped('content.create')" @click="() => { showCreateModal = true }" size="lg">
           + Create Library
         </UButton>
       </div>
@@ -24,7 +24,7 @@
 
     <div v-else-if="libraries.length === 0" class="empty-state">
       <p>No libraries yet. Create your first content library to get started.</p>
-      <UButton @click="showCreateModal = true" size="lg">
+      <UButton v-if="canAccessUnscoped('content.create')" @click="() => { showCreateModal = true }" size="lg">
         Create Library
       </UButton>
     </div>
@@ -74,6 +74,7 @@
                 Export
               </UButton>
               <UButton
+                v-if="canAccessUnscoped('content.edit')"
                 @click="editLibrary(library)"
                 variant="link"
                 size="sm"
@@ -82,6 +83,7 @@
                 Edit
               </UButton>
               <UButton
+                v-if="canAccessUnscoped('content.delete')"
                 @click="deleteLibrary(library)"
                 variant="link"
                 size="sm"
@@ -169,6 +171,8 @@ definePageMeta({
   layout: 'admin',
   middleware: 'auth'
 })
+
+const { canAccessUnscoped } = useAuthUser()
 
 interface Library {
   id: number

@@ -4,6 +4,7 @@ import { buildSet, committedDailyMinutes } from './sql-helpers'
 import { calculateNextReminderUtc, calculateNextReminderAfterSend } from '../utils/next-reminder-calculator'
 import { contactMethodService } from './contact-methods'
 import { appConfigService } from './app-config'
+import { OPT_OUT_REASON_TEXT_MAX, type OptOutReasonKey } from '../../config/opt-out-reasons'
 
 export interface PeopleGroupSubscription {
   id: number
@@ -21,6 +22,20 @@ export interface PeopleGroupSubscription {
   // active: the person is still praying and still receives the monthly follow-up
   // check-in. Orthogonal to status — mute the emails without ending the commitment.
   reminders_paused: boolean
+  // Where the signup came from: utm_* parameters on the arriving link and the
+  // referring page. NULL for direct or untagged visits.
+  utm_source: string | null
+  utm_medium: string | null
+  utm_campaign: string | null
+  referrer: string | null
+  // Why the subscriber last reduced notifications for this prayer time — muting the
+  // daily email while still praying, or stopping the prayer time itself. Status and
+  // reminders_paused say which of the two it was. A key from config/opt-out-reasons.ts;
+  // the wording shown to people lives in the i18n files. Cleared on resume and
+  // resubscribe, so a value here always describes the current reduced state.
+  opt_out_reason: string | null
+  opt_out_reason_text: string | null
+  opt_out_reason_at: string | null
   created_at: string
   updated_at: string
 }
@@ -59,6 +74,10 @@ export interface CreateSubscriptionInput {
   time_preference?: string | null
   timezone?: string
   prayer_duration?: number
+  utm_source?: string | null
+  utm_medium?: string | null
+  utm_campaign?: string | null
+  referrer?: string | null
 }
 
 class PeopleGroupSubscriptionService {
@@ -73,12 +92,15 @@ class PeopleGroupSubscriptionService {
     const [row] = await this.sql`
       INSERT INTO campaign_subscriptions (
         people_group_id, subscriber_id, delivery_method, frequency, days_of_week,
-        time_preference, timezone, prayer_duration, status
+        time_preference, timezone, prayer_duration, status,
+        utm_source, utm_medium, utm_campaign, referrer
       )
       VALUES (
         ${input.people_group_id}, ${input.subscriber_id}, ${input.delivery_method},
         ${input.frequency}, ${days_of_week_json}, ${time_preference},
-        ${timezone}, ${input.prayer_duration || 10}, ${status}
+        ${timezone}, ${input.prayer_duration || 10}, ${status},
+        ${input.utm_source ?? null}, ${input.utm_medium ?? null},
+        ${input.utm_campaign ?? null}, ${input.referrer ?? null}
       )
       RETURNING *
     `
@@ -135,32 +157,38 @@ class PeopleGroupSubscriptionService {
     return result?.count
   }
 
+  // Returns the ids of the rows it changed so the caller can attach an opt-out
+  // reason to exactly the prayer times this stopped.
   async unsubscribeAllForPeopleGroup(
     subscriberId: number,
     peopleGroupId: number
-  ): Promise<number> {
-    const result = await this.sql`
+  ): Promise<number[]> {
+    const rows = await this.sql`
       UPDATE campaign_subscriptions
       SET status = 'unsubscribed', updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE subscriber_id = ${subscriberId} AND people_group_id = ${peopleGroupId}
+      RETURNING id
     `
-    return result.count
+    return rows.map((r: any) => r.id as number)
   }
 
   // "Not praying any more" for a whole people group: the contact chose to stop, so
   // every still-active prayer time becomes 'unsubscribed' (a deliberate opt-out that
   // background activity never silently reverses). Leaves already-stopped rows alone.
+  // Returns the ids of the rows it stopped so the caller can attach an opt-out
+  // reason to exactly the prayer times this stopped.
   async stopPrayerForPeopleGroup(
     subscriberId: number,
     peopleGroupId: number
-  ): Promise<number> {
-    const result = await this.sql`
+  ): Promise<number[]> {
+    const rows = await this.sql`
       UPDATE campaign_subscriptions
       SET status = 'unsubscribed', updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE subscriber_id = ${subscriberId} AND people_group_id = ${peopleGroupId}
         AND status = 'active'
+      RETURNING id
     `
-    return result.count
+    return rows.map((r: any) => r.id as number)
   }
 
   async getSubscriberSubscriptions(subscriberId: number): Promise<PeopleGroupSubscriptionWithDetails[]> {
@@ -258,6 +286,10 @@ class PeopleGroupSubscriptionService {
       time_preference?: string
       timezone?: string
       prayer_duration?: number
+      utm_source?: string | null
+      utm_medium?: string | null
+      utm_campaign?: string | null
+      referrer?: string | null
     }
   ): Promise<PeopleGroupSubscription | null> {
     const fields: Fragment[] = []
@@ -272,6 +304,10 @@ class PeopleGroupSubscriptionService {
     if (updates.time_preference !== undefined) { fields.push(this.sql`time_preference = ${updates.time_preference}`); scheduleChanged = true }
     if (updates.timezone !== undefined) { fields.push(this.sql`timezone = ${updates.timezone}`); scheduleChanged = true }
     if (updates.prayer_duration !== undefined) fields.push(this.sql`prayer_duration = ${updates.prayer_duration}`)
+    if (updates.utm_source !== undefined) fields.push(this.sql`utm_source = ${updates.utm_source}`)
+    if (updates.utm_medium !== undefined) fields.push(this.sql`utm_medium = ${updates.utm_medium}`)
+    if (updates.utm_campaign !== undefined) fields.push(this.sql`utm_campaign = ${updates.utm_campaign}`)
+    if (updates.referrer !== undefined) fields.push(this.sql`referrer = ${updates.referrer}`)
 
     if (fields.length === 0) return this.getById(id)
 
@@ -321,6 +357,7 @@ class PeopleGroupSubscriptionService {
     const result = await this.sql`
       UPDATE campaign_subscriptions
       SET reminders_paused = false,
+          opt_out_reason = NULL, opt_out_reason_text = NULL, opt_out_reason_at = NULL,
           updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE id = ${id}
     `
@@ -331,12 +368,61 @@ class PeopleGroupSubscriptionService {
     return false
   }
 
+  // Record why these prayer times were muted or stopped. Scoped to one subscriber so
+  // a profile id can never attach a reason to somebody else's rows. Free text is
+  // trimmed to the configured cap and stored only alongside the 'other' key.
+  async recordOptOutReason(
+    subscriberId: number,
+    subscriptionIds: number[],
+    reason: OptOutReasonKey,
+    reasonText: string | null
+  ): Promise<number[]> {
+    if (subscriptionIds.length === 0) return []
+
+    const text = reasonText?.trim().slice(0, OPT_OUT_REASON_TEXT_MAX) || null
+
+    const rows = await this.sql`
+      UPDATE campaign_subscriptions
+      SET opt_out_reason = ${reason},
+          opt_out_reason_text = ${text},
+          opt_out_reason_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC',
+          updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
+      WHERE id = ANY(${subscriptionIds}) AND subscriber_id = ${subscriberId}
+      RETURNING id
+    `
+    return rows.map((r: any) => r.id as number)
+  }
+
+  // Reason breakdown for the admin dashboard, counting distinct people rather than
+  // prayer times so someone who stops five reminders at once counts once.
+  // sinceDays null covers every reason recorded since the feature shipped; prayer
+  // times stopped before then have no reason and never appear.
+  async getOptOutReasonBreakdown(sinceDays: number | null = null): Promise<Array<{
+    reason: string
+    people: number
+  }>> {
+    const since = sinceDays
+      ? this.sql`AND opt_out_reason_at >= CURRENT_TIMESTAMP AT TIME ZONE 'UTC' - ${`${sinceDays} days`}::interval`
+      : this.sql``
+
+    const rows = await this.sql`
+      SELECT opt_out_reason AS reason, COUNT(DISTINCT subscriber_id)::int AS people
+      FROM campaign_subscriptions
+      WHERE opt_out_reason IS NOT NULL ${since}
+      GROUP BY opt_out_reason
+      ORDER BY people DESC
+    `
+    return rows as unknown as Array<{ reason: string, people: number }>
+  }
+
   async resubscribe(id: number, status: 'active' | 'pending' = 'active'): Promise<boolean> {
     // Reactivating always turns daily reminders back on — clear any lingering mute
-    // so a re-subscribe never lands in a silently muted state.
+    // so a re-subscribe never lands in a silently muted state. The opt-out reason
+    // goes with it: the row is no longer reduced, so nothing is left to explain.
     const result = await this.sql`
       UPDATE campaign_subscriptions
       SET status = ${status}, reminders_paused = false,
+          opt_out_reason = NULL, opt_out_reason_text = NULL, opt_out_reason_at = NULL,
           updated_at = CURRENT_TIMESTAMP AT TIME ZONE 'UTC'
       WHERE id = ${id}
     `

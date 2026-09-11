@@ -73,7 +73,7 @@
               />
 
               <UButton
-                @click="showTranslateConfirmModal = true"
+                @click="() => { showTranslateConfirmModal = true }"
                 :disabled="!selectedTranslateField"
                 variant="outline"
                 icon="i-lucide-languages"
@@ -118,7 +118,7 @@
             />
 
             <UButton
-              @click="showDinlConfirmModal = true"
+              @click="() => { showDinlConfirmModal = true }"
               :disabled="isDinlTranslating"
               variant="outline"
               icon="i-lucide-languages"
@@ -165,6 +165,7 @@
                 <span>Processing: {{ dinlProgress.processing }}</span>
                 <span>Pending: {{ dinlProgress.pending }}</span>
               </div>
+              <p v-for="(e, i) in dinlErrors" :key="i" class="text-sm text-red-500">{{ e }}</p>
             </div>
           </UCard>
 
@@ -177,6 +178,7 @@
               <p><strong>Total Jobs:</strong> {{ dinlResults.total }}</p>
               <p><strong>Completed:</strong> {{ dinlResults.completed }}</p>
               <p><strong>Failed:</strong> {{ dinlResults.failed }}</p>
+              <p v-for="(e, i) in dinlErrors" :key="i" class="text-red-500">{{ e }}</p>
             </div>
           </UCard>
 
@@ -207,7 +209,7 @@
             </div>
 
             <UButton
-              @click="showRebuildConfirmModal = true"
+              @click="() => { showRebuildConfirmModal = true }"
               :disabled="rebuildLanguages.length === 0 || isRebuilding"
               variant="outline"
               icon="i-lucide-refresh-cw"
@@ -292,17 +294,42 @@
 
         <!-- Settings Tab -->
         <div v-if="item.value === 'settings'" class="py-6">
-          <h2 class="text-xl font-semibold mb-2">AI Model</h2>
+          <h2 class="text-xl font-semibold mb-2">OpenRouter API Key</h2>
           <p class="text-[var(--ui-text-muted)] mb-6">
-            The Claude model used for every AI feature — inbox draft replies, knowledge capture, and report parsing.
-            Enter any current Anthropic model id (e.g. <code>claude-sonnet-4-6</code>); a newly released model can be adopted here without a code change.
+            Translation and every AI feature call OpenRouter with the <code>OPENROUTER_API_KEY</code> environment variable.
+            This checks the key the server is running with; it does not spend credits.
+          </p>
+
+          <div class="max-w-md">
+            <UAlert
+              v-if="openrouterKeyAlert"
+              :color="openrouterKeyAlert.color"
+              :icon="openrouterKeyAlert.icon"
+              :title="openrouterKeyAlert.title"
+              :description="openrouterKeyAlert.description"
+            />
+
+            <UButton
+              @click="checkOpenrouterKey"
+              :loading="isCheckingOpenrouterKey"
+              variant="outline"
+              class="mt-4"
+            >
+              {{ isCheckingOpenrouterKey ? 'Checking...' : 'Check Key' }}
+            </UButton>
+          </div>
+
+          <h2 class="text-xl font-semibold mb-2 mt-10">AI Model</h2>
+          <p class="text-[var(--ui-text-muted)] mb-6">
+            The OpenRouter model used for every AI feature — inbox draft replies, knowledge capture, and report parsing.
+            Enter any OpenRouter model id (e.g. <code>anthropic/claude-sonnet-4.6</code>); a newly released model can be adopted here without a code change.
           </p>
 
           <div class="max-w-md">
             <label class="block text-sm font-medium mb-1">Model id</label>
             <UInput
               v-model="aiModel"
-              placeholder="claude-sonnet-4-6"
+              placeholder="anthropic/claude-sonnet-4.6"
               class="w-full"
             />
 
@@ -320,6 +347,38 @@
               v-if="aiModelMessage"
               :color="aiModelMessage.type === 'success' ? 'success' : 'error'"
               :title="aiModelMessage.text"
+              class="mt-4"
+            />
+          </div>
+
+          <h2 class="text-xl font-semibold mb-2 mt-10">Translation Model</h2>
+          <p class="text-[var(--ui-text-muted)] mb-6">
+            The OpenRouter model used to translate content into other languages.
+            Enter any OpenRouter model id (e.g. <code>google/gemini-3.1-pro-preview</code>); a newly released model can be adopted here without a code change.
+          </p>
+
+          <div class="max-w-md">
+            <label class="block text-sm font-medium mb-1">Model id</label>
+            <UInput
+              v-model="translationModel"
+              placeholder="google/gemini-3.1-pro-preview"
+              class="w-full"
+            />
+
+            <UButton
+              @click="saveTranslationModel"
+              :loading="isSavingTranslationModel"
+              :disabled="!translationModel.trim()"
+              variant="outline"
+              class="mt-4"
+            >
+              {{ isSavingTranslationModel ? 'Saving...' : 'Save Model' }}
+            </UButton>
+
+            <UAlert
+              v-if="translationModelMessage"
+              :color="translationModelMessage.type === 'success' ? 'success' : 'error'"
+              :title="translationModelMessage.text"
               class="mt-4"
             />
           </div>
@@ -343,7 +402,7 @@
           <div class="flex gap-2 justify-end pt-4">
             <UButton
               variant="outline"
-              @click="showDinlConfirmModal = false"
+              @click="() => { showDinlConfirmModal = false }"
             >
               Cancel
             </UButton>
@@ -371,7 +430,7 @@
           <div class="flex gap-2 justify-end pt-4">
             <UButton
               variant="outline"
-              @click="showRebuildConfirmModal = false"
+              @click="() => { showRebuildConfirmModal = false }"
             >
               Cancel
             </UButton>
@@ -427,7 +486,7 @@
             <UButton
               v-if="!isTranslating"
               variant="outline"
-              @click="showTranslateConfirmModal = false"
+              @click="() => { showTranslateConfirmModal = false }"
             >
               Cancel
             </UButton>
@@ -470,6 +529,51 @@ const lastBackup = ref<{ filename: string; size: number; location: string } | nu
 const isUpdatingPrayerCounts = ref(false)
 const prayerCountsMessage = ref<{ text: string; type: 'success' | 'error' } | null>(null)
 
+// OpenRouter API key check
+type OpenRouterKeyStatus =
+  | { status: 'missing' }
+  | { status: 'invalid' | 'unreachable'; message: string }
+  | { status: 'valid'; label: string; limit: number | null; limit_remaining: number | null; usage_monthly: number; is_free_tier: boolean }
+
+const openrouterKey = ref<OpenRouterKeyStatus | null>(null)
+const isCheckingOpenrouterKey = ref(false)
+
+const usd = (amount: number) => `$${amount.toFixed(2)}`
+
+const openrouterKeyAlert = computed(() => {
+  const key = openrouterKey.value
+  switch (key?.status) {
+    case 'valid': {
+      const credits = key.limit === null
+        ? `${usd(key.usage_monthly)} used this month, no credit limit on this key.`
+        : `${usd(key.limit_remaining ?? 0)} of ${usd(key.limit)} remaining, ${usd(key.usage_monthly)} used this month.`
+      return { color: 'success' as const, icon: 'i-lucide-circle-check', title: `Key "${key.label}" is valid`, description: credits }
+    }
+    case 'invalid':
+      return { color: 'error' as const, icon: 'i-lucide-circle-x', title: 'OpenRouter rejected the key', description: key.message }
+    case 'unreachable':
+      return { color: 'warning' as const, icon: 'i-lucide-triangle-alert', title: 'Could not verify the key', description: key.message }
+    case 'missing':
+      return { color: 'error' as const, icon: 'i-lucide-circle-x', title: 'OPENROUTER_API_KEY is not set', description: 'Translation and AI features are disabled until the server has a key.' }
+    default:
+      return null
+  }
+})
+
+async function checkOpenrouterKey() {
+  isCheckingOpenrouterKey.value = true
+  try {
+    openrouterKey.value = await $fetch<OpenRouterKeyStatus>('/api/admin/superadmin/openrouter-key')
+  } catch (error: any) {
+    console.error('Failed to check OpenRouter key:', error)
+    openrouterKey.value = { status: 'unreachable', message: error.data?.message || 'Failed to check the OpenRouter API key.' }
+  } finally {
+    isCheckingOpenrouterKey.value = false
+  }
+}
+
+checkOpenrouterKey()
+
 // AI model setting
 const aiModel = ref('')
 const isSavingAiModel = ref(false)
@@ -508,6 +612,44 @@ async function saveAiModel() {
 
 loadAiModel()
 
+// Translation model setting
+const translationModel = ref('')
+const isSavingTranslationModel = ref(false)
+const translationModelMessage = ref<{ text: string; type: 'success' | 'error' } | null>(null)
+
+async function loadTranslationModel() {
+  try {
+    const data = await $fetch<{ translation_model: string }>('/api/admin/superadmin/translation-model')
+    translationModel.value = data.translation_model || ''
+  } catch (error) {
+    console.error('Failed to load translation model:', error)
+  }
+}
+
+async function saveTranslationModel() {
+  const value = translationModel.value.trim()
+  if (!value) return
+
+  isSavingTranslationModel.value = true
+  translationModelMessage.value = null
+
+  try {
+    const data = await $fetch<{ translation_model: string }>('/api/admin/superadmin/translation-model', {
+      method: 'PUT',
+      body: { translation_model: value }
+    })
+    translationModel.value = data.translation_model
+    translationModelMessage.value = { text: 'Translation model saved.', type: 'success' }
+  } catch (error: any) {
+    console.error('Failed to save translation model:', error)
+    translationModelMessage.value = { text: error.data?.message || 'Failed to save translation model.', type: 'error' }
+  } finally {
+    isSavingTranslationModel.value = false
+  }
+}
+
+loadTranslationModel()
+
 // Translation state
 const selectedTranslateField = ref<string | undefined>(undefined)
 const translateOverwrite = ref(false)
@@ -525,6 +667,7 @@ const isCancellingDinl = ref(false)
 const dinlBatchId = ref<number | null>(null)
 const dinlMessage = ref<{ text: string; type: 'success' | 'error' } | null>(null)
 const dinlProgress = ref({ total: 0, pending: 0, processing: 0, completed: 0, failed: 0 })
+const dinlErrors = ref<string[]>([])
 const dinlResults = ref<{ total: number; completed: number; failed: number } | null>(null)
 let dinlPollTimer: ReturnType<typeof setInterval> | null = null
 
@@ -642,6 +785,7 @@ async function startDinlTranslation() {
   dinlMessage.value = null
   dinlResults.value = null
   dinlProgress.value = { total: 0, pending: 0, processing: 0, completed: 0, failed: 0 }
+  dinlErrors.value = []
 
   try {
     const response = await $fetch<{
@@ -700,6 +844,7 @@ async function pollDinlStatus() {
       completed: number
       failed: number
       isComplete: boolean
+      errors?: string[]
     }>('/api/admin/superadmin/translate-dinl/status', {
       params: { batchId: dinlBatchId.value }
     })
@@ -711,6 +856,7 @@ async function pollDinlStatus() {
       completed: status.completed,
       failed: status.failed
     }
+    dinlErrors.value = status.errors ?? []
 
     if (status.isComplete) {
       stopDinlPolling()

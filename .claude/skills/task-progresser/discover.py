@@ -4,14 +4,14 @@ Task-progresser discovery — print the next people group(s) needing onboarding 
 
 Reads:
   - GET /api/admin/people-groups/onboarding-status (server truth)
-  - ../people-groups/dinl/todo.csv (local truth: research_done / prompts_done / upload_done)
-  - Local existence of dinl/people-group-findings/{slug}.md and dinl/prompts/{slug}.csv
+  - ../people-groups/todo.csv (local truth: research_done / prompts_done / reviewed / upload_done)
+  - Local existence of research/findings/{slug}.md and day-in-the-life/prompts/{slug}.csv
 
 Prints one row per PG with outstanding work, listing what step comes next:
   RESEARCH | PROMPTS | UPLOAD | TRANSLATE | NEEDS_TAG
 
 Usage:
-  python3 .claude/skills/task-progresser/discover.py --api-key KEY [--base-url URL] [--dinl PATH] [--limit N]
+  python3 .claude/skills/task-progresser/discover.py --api-key KEY [--base-url URL] [--repo PATH] [--limit N]
 """
 
 import argparse
@@ -56,7 +56,7 @@ def parse_csv_line(line):
 
 
 def load_todo(todo_path):
-    """Return dict[slug] -> dict with research_done/prompts_done/upload_done."""
+    """Return dict[slug] -> dict with research_done/prompts_done/upload_done/reviewed."""
     if not todo_path.exists():
         return {}
     with open(todo_path, 'r', encoding='utf-8') as f:
@@ -73,18 +73,19 @@ def load_todo(todo_path):
             'research_done': p[3].strip(),
             'prompts_done': p[4].strip(),
             'upload_done': p[5].strip(),
+            'reviewed': p[8].strip() if len(p) > 8 else '',
         }
     return result
 
 
-def next_step(pg, todo_row, dinl_dir):
+def next_step(pg, todo_row, repo_dir):
     """Return the next required step for a PG, or None if fully done."""
     slug = pg.get('slug')
     if not slug:
         return None
 
-    findings_path = dinl_dir / 'people-group-findings' / f'{slug}.md'
-    prompts_path = dinl_dir / 'prompts' / f'{slug}.csv'
+    findings_path = repo_dir / 'research' / 'findings' / f'{slug}.md'
+    prompts_path = repo_dir / 'day-in-the-life' / 'prompts' / f'{slug}.csv'
 
     research_local = findings_path.exists()
     prompts_local = prompts_path.exists()
@@ -118,17 +119,17 @@ def main():
     parser = argparse.ArgumentParser(description='Task-progresser discovery: list outstanding onboarding work')
     parser.add_argument('--api-key', required=True, help='Admin API key (dxk_*)')
     parser.add_argument('--base-url', default='http://localhost:3000', help='API base URL')
-    parser.add_argument('--dinl', default=None, help='Path to people-groups/dinl directory (default: auto-detect)')
+    parser.add_argument('--repo', default=None, help='Path to the people-groups repo root (default: ../people-groups)')
     parser.add_argument('--limit', type=int, default=0, help='Cap output rows (0 = no limit)')
     parser.add_argument('--json', action='store_true', help='Output raw JSON list')
     args = parser.parse_args()
 
-    if args.dinl:
-        dinl_dir = Path(args.dinl)
+    if args.repo:
+        repo_dir = Path(args.repo)
     else:
-        dinl_dir = Path(__file__).parent.parent.parent.parent.parent / 'people-groups' / 'dinl'
+        repo_dir = Path(__file__).parent.parent.parent.parent.parent / 'people-groups'
 
-    todo_path = dinl_dir / 'todo.csv'
+    todo_path = repo_dir / 'todo.csv'
     todo_map = load_todo(todo_path)
 
     try:
@@ -139,7 +140,7 @@ def main():
 
     rows = []
     for pg in data.get('peopleGroups', []):
-        step = next_step(pg, todo_map.get(pg.get('slug')), dinl_dir)
+        step = next_step(pg, todo_map.get(pg.get('slug')), repo_dir)
         if not step:
             continue
         rows.append({

@@ -1,5 +1,7 @@
 import { libraryContentService } from '#server/database/library-content'
-import { translateTiptapContent, reconcileVersesFromSource, isDeepLConfigured, type TiptapNode, type VerseWarning } from '#server/utils/deepl'
+import { libraryService } from '#server/database/libraries'
+import { requireContentAccess } from '#server/utils/content-access'
+import { translateTiptapContent, reconcileVersesFromSource, isTranslationConfigured, type TiptapNode, type VerseWarning } from '#server/utils/translate'
 import { getErrorMessage, getIntParam } from '#server/utils/api-helpers'
 
 /**
@@ -15,18 +17,10 @@ import { getErrorMessage, getIntParam } from '#server/utils/api-helpers'
  * Returns array of created/updated content records
  */
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'content.create')
+  const user = await requirePermission(event, 'content.create')
 
   const libraryId = getIntParam(event, 'libraryId')
   const contentId = getIntParam(event, 'id')
-
-  // Check if DeepL is configured
-  if (!isDeepLConfigured()) {
-    throw createError({
-      statusCode: 503,
-      statusMessage: 'Translation service not configured. Please add DEEPL_API_KEY to environment.'
-    })
-  }
 
   const body = await readBody(event)
 
@@ -81,6 +75,28 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Translating writes every target language, so each one must be within the user's scope.
+  const library = await libraryService.getLibraryById(libraryId)
+  await requireContentAccess(user.userId, 'content.create', {
+    peopleGroupId: library?.people_group_id,
+    languageCodes: targetLanguages
+  })
+
+  // Existing target content with overwrite off is skipped or verse-refreshed without the
+  // translator, so the service only has to be configured for targets that get translated.
+  const existingByLanguage = new Map<string, Awaited<ReturnType<typeof libraryContentService.getLibraryContentByDay>>>()
+  for (const targetLanguage of targetLanguages) {
+    if (targetLanguage === sourceLanguage) continue
+    existingByLanguage.set(targetLanguage, await libraryContentService.getLibraryContentByDay(libraryId, sourceContent.day_number, targetLanguage))
+  }
+  const needsTranslator = [...existingByLanguage.values()].some(existing => !existing || overwrite)
+  if (needsTranslator && !isTranslationConfigured()) {
+    throw createError({
+      statusCode: 503,
+      statusMessage: 'Translation service not configured. Please add OPENROUTER_API_KEY to environment.'
+    })
+  }
+
   const results: Array<{
     language: string
     success: boolean
@@ -103,12 +119,7 @@ export default defineEventHandler(async (event) => {
     }
 
     try {
-      // Check if content already exists for this language
-      const existingContent = await libraryContentService.getLibraryContentByDay(
-        libraryId,
-        sourceContent.day_number,
-        targetLanguage
-      )
+      const existingContent = existingByLanguage.get(targetLanguage) ?? null
 
       if (existingContent && !overwrite) {
         if (retranslateVerses && existingContent.content_json) {

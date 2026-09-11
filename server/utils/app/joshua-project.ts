@@ -26,6 +26,9 @@ export interface JoshuaProjectGroup {
   photo_url: string | null
   latitude: number | null
   longitude: number | null
+  // JP's IndigenousCode (Y/N); null when the source (or an older disk cache)
+  // doesn't carry it.
+  indigenous: boolean | null
 }
 
 const JP_API_BASE = 'https://api.joshuaproject.net/v1'
@@ -63,7 +66,13 @@ function mapJpRow(row: Record<string, any>): JoshuaProjectGroup | null {
     language_code: row.ROL3 ? String(row.ROL3) : null,
     photo_url: row.PeopleGroupPhotoURL ? String(row.PeopleGroupPhotoURL) : null,
     latitude: toNumberOrNull(row.Latitude),
-    longitude: toNumberOrNull(row.Longitude)
+    longitude: toNumberOrNull(row.Longitude),
+    indigenous:
+      String(row.IndigenousCode).toUpperCase() === 'Y'
+        ? true
+        : String(row.IndigenousCode).toUpperCase() === 'N'
+          ? false
+          : null
   }
 }
 

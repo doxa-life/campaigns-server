@@ -86,24 +86,25 @@
 
               <div v-if="doxaResults.length > 0 || externalResults.length > 0" class="search-results">
                 <template v-if="doxaResults.length > 0">
-                  <div class="search-section">{{ $t('updates.sectionDoxa') }}</div>
+                  <div class="search-section section-doxa">{{ $t('updates.sectionDoxa') }}</div>
                   <button
                     v-for="result in doxaResults"
                     :key="`doxa-${result.id}`"
                     type="button"
-                    class="search-result"
+                    class="search-result result-doxa"
                     @click="selectDoxaGroup(result.id)"
                   >
-                    <span class="flex items-center gap-2">
+                    <span class="flex items-center gap-2 flex-wrap">
                       <UBadge label="DOXA" color="primary" variant="subtle" size="sm" />
                       <span class="font-medium">{{ result.name }}</span>
                       <span v-if="result.country_code" class="text-xs text-[var(--ui-text-muted)]">{{ countryName(result.country_code) }}</span>
+                      <span v-if="result.alternate_name" class="text-xs text-[var(--ui-text-muted)] italic">{{ $t('updates.alsoKnownAs', { names: result.alternate_name }) }}</span>
                     </span>
                     <UBadge v-if="result.status === 'archived'" label="archived" color="neutral" variant="subtle" size="sm" />
                   </button>
                 </template>
                 <template v-if="externalResults.length > 0">
-                  <div class="search-section">{{ $t('updates.sectionExternal') }}</div>
+                  <div class="search-section section-external">{{ $t('updates.sectionExternal') }}</div>
                   <button
                     v-for="(result, idx) in externalResults"
                     :key="`ext-${result.source}-${result.external_id}-${idx}`"
@@ -111,14 +112,29 @@
                     class="search-result"
                     @click="selectExternal(result)"
                   >
-                    <span class="flex items-center gap-2">
+                    <span class="flex items-center gap-2 flex-wrap">
                       <UBadge :label="result.source === 'imb' ? $t('updates.sourceImb') : $t('updates.sourceJp')" variant="subtle" size="sm" />
                       <span class="font-medium">{{ result.name }}</span>
                       <span v-if="result.country" class="text-xs text-[var(--ui-text-muted)]">{{ result.country }}</span>
+                      <UBadge
+                        v-if="result.is_diaspora === true"
+                        :label="$t('peopleGroups.options.indigenous.diaspora')"
+                        color="warning"
+                        variant="subtle"
+                        size="sm"
+                      />
+                      <UBadge
+                        v-else-if="result.is_diaspora === false"
+                        :label="$t('peopleGroups.options.indigenous.indigenous')"
+                        color="success"
+                        variant="subtle"
+                        size="sm"
+                      />
                     </span>
                     <UBadge v-if="result.in_doxa" :label="$t('updates.alreadyInDoxa')" color="neutral" variant="subtle" size="sm" />
                   </button>
                 </template>
+                <p class="search-missing-note">{{ $t('updates.searchMissingNote') }}</p>
               </div>
               <p v-else-if="searchQuery.trim().length >= 2 && !searching" class="text-sm text-[var(--ui-text-muted)] m-0">
                 {{ $t('updates.searchNoResults') }}
@@ -152,58 +168,113 @@
             </div>
           </template>
 
-          <!-- ============ Step: engagement (update leads with it, add ends with it) ============ -->
+          <!-- ============ Step: eligibility (add flow) — the request notice, the
+               DOXA criteria, and the engagement questions with the gate: an
+               engaged group cannot proceed as a new-group submission. ============ -->
+          <template v-else-if="step === 'eligibility'">
+            <UAlert
+              color="info"
+              icon="i-lucide-list-plus"
+              :title="manualEntry ? $t('updates.addNoticeNew') : $t('updates.addNotice', { name: selectionName })"
+            />
+
+            <UAlert
+              color="neutral"
+              variant="subtle"
+              icon="i-lucide-shield-check"
+              :title="$t('updates.eligibilityTitle')"
+            >
+              <template #description>
+                <ul class="list-disc ml-4 my-1">
+                  <li>{{ $t('updates.eligibility.indigenous') }}</li>
+                  <li>{{ $t('updates.eligibility.unengaged') }}</li>
+                  <li>{{ $t('updates.eligibility.notChristian') }}</li>
+                  <li>{{ $t('updates.eligibility.otherCriteria') }}</li>
+                </ul>
+              </template>
+            </UAlert>
+
+            <p v-if="manualEntry" class="text-sm my-0">{{ $t('updates.addManualHint') }}</p>
+            <template v-else-if="selectedExternal?.source === 'imb'">
+              <UAlert
+                v-if="imbExclusionReasons.length > 0"
+                color="warning"
+                icon="i-lucide-circle-help"
+                :title="$t('updates.addImbReasonsTitle')"
+              >
+                <template #description>
+                  <ul class="list-disc ml-4 my-1">
+                    <li v-for="reason in imbExclusionReasons" :key="reason">
+                      {{ $t(`updates.exclusionReasons.${reason}`) }}
+                    </li>
+                  </ul>
+                  {{ $t('updates.addImbReasonsHint') }}
+                </template>
+              </UAlert>
+              <p v-else class="text-sm my-0">{{ $t('updates.addImbEligibleHint') }}</p>
+            </template>
+
+            <UpdatesFieldRow v-model="suggested.engagement_status" field-key="engagement_status" />
+
+            <UAlert
+              v-if="suggested.engagement_status === 'engaged'"
+              color="error"
+              icon="i-lucide-octagon-x"
+              :title="$t('updates.engagedBlockedTitle')"
+              :description="$t('updates.engagedBlockedText')"
+            />
+
+            <p class="group-title">{{ $t('updates.criteriaTitle') }}</p>
+            <UpdatesFieldRow
+              v-for="key in criteriaKeys"
+              :key="key"
+              v-model="suggested[key]"
+              :field-key="key"
+              :label="$t(`updates.criteria.${key}`)"
+            />
+          </template>
+
+          <!-- ============ Step: engagement (update flow) ============ -->
           <template v-else-if="step === 'engagement'">
-            <template v-if="flow === 'update'">
-              <UpdatesFieldRow
-                v-model="suggested.engagement_status"
-                field-key="engagement_status"
-                show-current
-                :current-display="formatValue('engagement_status', currentValues.engagement_status)"
-              />
+            <UpdatesFieldRow
+              v-model="suggested.engagement_status"
+              field-key="engagement_status"
+              show-current
+              :current-display="formatValue('engagement_status', currentValues.engagement_status)"
+            />
 
-              <!-- The three engagement criteria as yes/no questions -->
-              <p class="group-title">{{ $t('updates.criteriaTitle') }}</p>
-              <UpdatesFieldRow
-                v-for="key in criteriaKeys"
-                :key="key"
-                v-model="suggested[key]"
-                :field-key="key"
-                :label="$t(`updates.criteria.${key}`)"
-                show-current
-                :current-display="formatValue(key, currentValues[key])"
-              />
+            <!-- The three engagement criteria as yes/no questions -->
+            <p class="group-title">{{ $t('updates.criteriaTitle') }}</p>
+            <UpdatesFieldRow
+              v-for="key in criteriaKeys"
+              :key="key"
+              v-model="suggested[key]"
+              :field-key="key"
+              :label="$t(`updates.criteria.${key}`)"
+              show-current
+              :current-display="formatValue(key, currentValues[key])"
+            />
 
-              <p class="group-title">{{ $t('updates.resourcesTitle') }}</p>
-              <UpdatesFieldRow
-                v-for="key in resourceKeys"
-                :key="key"
-                v-model="suggested[key]"
-                :field-key="key"
-                show-current
-                :current-display="formatValue(key, currentValues[key])"
-              />
-            </template>
+            <p class="group-title">{{ $t('updates.resourcesTitle') }}</p>
+            <UpdatesFieldRow
+              v-for="key in resourceKeys"
+              :key="key"
+              v-model="suggested[key]"
+              :field-key="key"
+              show-current
+              :current-display="formatValue(key, currentValues[key])"
+            />
+          </template>
 
-            <template v-else>
-              <p class="group-title">{{ $t('updates.criteriaTitle') }}</p>
-              <UpdatesFieldRow v-model="suggested.engagement_status" field-key="engagement_status" />
-              <UpdatesFieldRow
-                v-for="key in criteriaKeys"
-                :key="key"
-                v-model="suggested[key]"
-                :field-key="key"
-                :label="$t(`updates.criteria.${key}`)"
-              />
-
-              <p class="group-title">{{ $t('updates.resourcesTitle') }}</p>
-              <UpdatesFieldRow
-                v-for="key in resourceKeys"
-                :key="key"
-                v-model="suggested[key]"
-                :field-key="key"
-              />
-            </template>
+          <!-- ============ Step: resources (add flow) ============ -->
+          <template v-else-if="step === 'resources'">
+            <p class="group-title">{{ $t('updates.resourcesTitle') }}</p>
+            <UpdatesFieldRow
+              v-for="key in resourceKeys"
+              :key="key"
+              v-model="suggested[key]"
+              :field-key="key"
+            />
           </template>
 
           <!-- ============ Step: detail fields + picture ============ -->
@@ -234,41 +305,16 @@
               </UpdatesFieldRow>
             </template>
 
-            <!-- ADD: request notice + details -->
+            <!-- ADD: detail fields (the request notice and source context live
+                 on the eligibility step) -->
             <template v-else>
-              <UAlert
-                color="info"
-                icon="i-lucide-list-plus"
-                :title="manualEntry ? $t('updates.addNoticeNew') : $t('updates.addNotice', { name: selectionName })"
-              />
-
-              <p v-if="manualEntry" class="text-sm mt-0 mb-6">{{ $t('updates.addManualHint') }}</p>
-              <p v-else-if="selectedExternal?.source === 'jp'" class="text-sm mt-0 mb-6">{{ $t('updates.addJpHint') }}</p>
-              <template v-else-if="selectedExternal?.source === 'imb'">
-                <UAlert
-                  v-if="imbExclusionReasons.length > 0"
-                  color="warning"
-                  icon="i-lucide-circle-help"
-                  :title="$t('updates.addImbReasonsTitle')"
-                >
-                  <template #description>
-                    <ul class="list-disc ml-4 my-1">
-                      <li v-for="reason in imbExclusionReasons" :key="reason">
-                        {{ $t(`updates.exclusionReasons.${reason}`) }}
-                      </li>
-                    </ul>
-                    {{ $t('updates.addImbReasonsHint') }}
-                  </template>
-                </UAlert>
-                <p v-else class="text-sm mt-0 mb-6">{{ $t('updates.addImbEligibleHint') }}</p>
-              </template>
-
               <UpdatesFieldRow
                 v-for="key in detailKeys"
                 :key="key"
                 v-model="suggested[key]"
                 :field-key="key"
                 :hint="key === 'primary_religion' && jpReligionLabel ? $t('updates.jpReligionHint', { label: jpReligionLabel }) : undefined"
+                :exclude-options="key === 'primary_religion' ? christianReligionCodes : undefined"
               />
 
               <UpdatesFieldRow
@@ -343,14 +389,14 @@
             <USeparator :label="$t('updates.verifier.title')" />
             <p class="text-sm text-[var(--ui-text-muted)] m-0">{{ $t('updates.verifier.hint') }}</p>
             <div class="grid sm:grid-cols-2 gap-4">
-              <UFormField :label="$t('updates.verifier.name')">
+              <UFormField :label="$t('updates.verifier.name')" required>
                 <UInput v-model="form.verifier_name" class="w-full" />
               </UFormField>
               <UFormField :label="$t('updates.verifier.entity')">
                 <UInput v-model="form.verifier_entity" class="w-full" />
               </UFormField>
             </div>
-            <UFormField :label="$t('updates.verifier.email')">
+            <UFormField :label="$t('updates.verifier.email')" required>
               <UInput v-model="form.verifier_email" type="email" class="w-full" />
             </UFormField>
 
@@ -404,7 +450,8 @@ import {
   getField,
   publicEngagementCriteriaKeys,
   publicResourceFieldKeys,
-  publicDetailFieldKeys
+  publicDetailFieldKeys,
+  CHRISTIAN_RELIGION_CODES as christianReligionCodes
 } from '~/utils/people-group-fields'
 
 countriesLib.registerLocale(countriesEn)
@@ -422,6 +469,7 @@ interface DoxaSearchResult {
   country_code: string | null
   status: string | null
   engagement_status: string | null
+  alternate_name: string | null
 }
 
 interface ExternalSearchResult {
@@ -431,6 +479,8 @@ interface ExternalSearchResult {
   country: string | null
   in_doxa: boolean
   doxa_id: number | null
+  // null = the source doesn't say (older cached JP rows).
+  is_diaspora: boolean | null
   doxa_exclusion_reasons?: string[]
   prefill: Record<string, any>
   identifiers: Record<string, string | null>
@@ -439,7 +489,7 @@ interface ExternalSearchResult {
 }
 
 const route = useRoute()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const toast = useToast()
 
 useHead(() => ({ title: t('updates.pageTitle') }))
@@ -466,10 +516,12 @@ const addFieldKeys = [...detailKeys, 'engagement_status']
 
 // Wizard steps per flow. The stepper and nav only render once a flow is
 // chosen; before that the sequence is just the group-selection step.
+// The add flow leads with the eligibility gate so an engaged group stops the
+// submission before any details are typed.
 const step = ref('group')
 const stepSequence = computed<string[]>(() => {
   if (flow.value === 'update') return ['group', 'engagement', 'details', 'about']
-  if (flow.value === 'add') return ['group', 'details', 'engagement', 'about']
+  if (flow.value === 'add') return ['group', 'eligibility', 'details', 'resources', 'about']
   if (flow.value === 'remove') return ['group', 'reason', 'about']
   return ['group']
 })
@@ -485,6 +537,18 @@ const stepperItems = computed(() =>
 )
 
 function nextStep() {
+  // The eligibility gate: a new-group submission needs an engagement answer,
+  // and an engaged group is outside the DOXA list's scope.
+  if (step.value === 'eligibility') {
+    if (!suggested.value.engagement_status) {
+      toast.add({ title: t('updates.errors.engagementRequired'), color: 'error' })
+      return
+    }
+    if (suggested.value.engagement_status === 'engaged') {
+      toast.add({ title: t('updates.errors.engagedBlocked'), color: 'error' })
+      return
+    }
+  }
   if (step.value === 'reason' && !removeReason.value) {
     toast.add({ title: t('updates.errors.reasonRequired'), color: 'error' })
     return
@@ -600,6 +664,12 @@ function formatValue(key: string, value: any): string {
     if (value === true || value === 'true' || value === '1') return t('common.yes')
     if (value === false || value === 'false' || value === '0') return t('common.no')
   }
+  // Thousands separators for whole numbers (population); fractional values
+  // like coordinates keep their exact digits.
+  if (field?.type === 'number') {
+    const n = Number(value)
+    if (Number.isInteger(n)) return n.toLocaleString(locale.value)
+  }
   if (field?.optionsSource === 'countries') return countryName(String(value))
   if (field?.type === 'select' && field.options) {
     const opt = field.options.find((o) => o.value === String(value))
@@ -675,7 +745,7 @@ function selectExternal(result: ExternalSearchResult) {
   // storage when the add is applied); the submitter can replace it by upload.
   if (result.prefill.image_url) prefill.image_url = result.prefill.image_url
   suggested.value = prefill
-  step.value = 'details'
+  step.value = 'eligibility'
 }
 
 function startManualEntry() {
@@ -683,7 +753,7 @@ function startManualEntry() {
   manualEntry.value = true
   flow.value = 'add'
   suggested.value = { name: searchQuery.value.trim() }
-  step.value = 'details'
+  step.value = 'eligibility'
 }
 
 function chooseUpdate() {
@@ -716,6 +786,12 @@ function resetSelection() {
 function validate(): string | null {
   if (!form.value.reporter_name.trim()) return t('updates.errors.nameRequired')
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.reporter_email.trim())) return t('updates.errors.emailRequired')
+  if (!form.value.verifier_name.trim()) return t('updates.errors.verifierNameRequired')
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.verifier_email.trim())) return t('updates.errors.verifierEmailRequired')
+  if (form.value.verifier_email.trim().toLowerCase() === form.value.reporter_email.trim().toLowerCase()) {
+    return t('updates.errors.verifierEmailSame')
+  }
+  if (flow.value === 'add' && suggested.value.engagement_status === 'engaged') return t('updates.errors.engagedBlocked')
   if (flow.value !== 'add' && !selectedDoxaGroup.value) return t('updates.errors.groupRequired')
   if (flow.value === 'add' && !String(suggested.value.name || '').trim()) return t('updates.errors.groupNameRequired')
   if (flow.value === 'remove' && !removeReason.value) return t('updates.errors.reasonRequired')
@@ -883,6 +959,42 @@ function resetAll() {
 }
 .search-result:hover {
   background: var(--ui-bg-elevated);
+}
+
+/* Distinct section colors — the DOXA list wears the brand green and external
+   sources wear beige, so the two lists can't read as one. */
+.search-section.section-doxa {
+  background: var(--color-forest-100);
+  color: var(--color-forest-950);
+}
+.search-result.result-doxa {
+  background: var(--color-sage-100);
+}
+.search-result.result-doxa:hover {
+  background: var(--color-sage-200);
+}
+.dark .search-result.result-doxa {
+  background: var(--color-forest-800);
+}
+.dark .search-result.result-doxa:hover {
+  background: var(--color-forest-700);
+}
+.search-section.section-external {
+  background: var(--color-beige-300);
+  color: var(--color-beige-950);
+}
+.dark .search-section.section-external {
+  background: var(--color-beige-900);
+  color: var(--color-beige-100);
+}
+
+.search-missing-note {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--ui-text-muted);
+  background: var(--ui-bg-elevated);
+  border-top: 1px solid var(--ui-border);
 }
 
 .selected-group {

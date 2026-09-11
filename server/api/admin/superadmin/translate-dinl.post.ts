@@ -1,6 +1,6 @@
 import { getSql } from '#server/database/db'
 import { jobQueueService, type TranslationBatchPayload } from '#server/database/job-queue'
-import { isDeepLConfigured, SUPPORTED_LANGUAGES } from '#server/utils/deepl'
+import { isTranslationConfigured, SUPPORTED_LANGUAGES } from '#server/utils/translate'
 import { handleApiError } from '#server/utils/api-helpers'
 
 /**
@@ -18,10 +18,10 @@ export default defineEventHandler(async (event) => {
   try {
     await requireSuperAdmin(event)
 
-    if (!isDeepLConfigured()) {
+    if (!isTranslationConfigured()) {
       throw createError({
         statusCode: 503,
-        statusMessage: 'Translation service not configured. Please add DEEPL_API_KEY to environment.'
+        statusMessage: 'Translation service not configured. Please add OPENROUTER_API_KEY to environment.'
       })
     }
 

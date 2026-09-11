@@ -21,6 +21,8 @@ export function useSubscriberFilterManifest() {
       label: 'Status',
       type: 'enum',
       values: Object.entries(SUBSCRIBER_STATUS_LABELS).map(([value, label]) => ({ label, value })),
+      // Derived status always resolves to a value, so the empty operators never apply.
+      operators: ['is', 'is_not'],
     },
     {
       key: 'preferred_language',
@@ -39,6 +41,17 @@ export function useSubscriberFilterManifest() {
       label: 'Sources',
       type: 'enum-multi',
       values: sourceOptions,
+    },
+    {
+      key: 'utm_source',
+      label: 'Signup Source',
+      type: 'foreign-key',
+      valuesLoader: async () => {
+        const res = await $fetch<{ sources: { utm_source: string; signup_count: number }[] }>(
+          '/api/admin/subscriptions/utm-sources'
+        )
+        return res.sources.map(s => ({ label: `${s.utm_source} (${s.signup_count})`, value: s.utm_source }))
+      },
     },
     { key: 'created_at', label: 'Created', type: 'date' },
     { key: 'email_verified', label: 'Email Verified', type: 'boolean' },

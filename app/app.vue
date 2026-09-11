@@ -36,8 +36,8 @@ onMounted(() => {
 <style scoped>
 .site-feedback-widget {
   position: fixed;
-  right: 16px;
-  bottom: 16px;
+  right: 0;
+  bottom: 0;
   z-index: 40;
 }
 </style>

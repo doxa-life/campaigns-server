@@ -85,12 +85,12 @@ async function fetchCountries(base: string): Promise<CountrySummary[]> {
 // the resource is and when to use it, then one linkable line per country.
 function buildCountriesBody(base: string, countries: CountrySummary[]): string {
   const lead = 'Every country that has people groups has its own page at '
-    + 'doxa.life/countries/<slug> showing a map and the list of its people groups. '
+    + 'doxa.life/regions/<slug> showing a map and the list of its people groups. '
     + 'When a contact asks which people groups are in their country — or how to find or '
     + 'pray for the people groups of a specific country — link them to the matching page below.'
   const lines = [...countries]
     .sort((a, b) => a.name.localeCompare(b.name))
-    .map(c => `- ${c.name} — ${base}/countries/${c.slug} (${c.count} people groups)`)
+    .map(c => `- ${c.name} — ${base}/regions/${c.slug} (${c.count} people groups)`)
   return `${lead}\n\n${lines.join('\n')}`
 }
 

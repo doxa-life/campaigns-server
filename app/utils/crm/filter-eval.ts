@@ -82,6 +82,9 @@ function matchesRow(raw: unknown, type: FieldType, row: FilterRow): boolean {
 
     case 'enum':
     case 'foreign-key': {
+      const isEmpty = raw === null || raw === undefined || raw === ''
+      if (row.op === 'empty') return isEmpty
+      if (row.op === 'not_empty') return !isEmpty
       if (row.value === null || row.value === undefined || row.value === '') return true
       if (row.op === 'is') return raw === row.value
       if (row.op === 'is_not') return raw !== row.value

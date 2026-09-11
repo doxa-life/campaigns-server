@@ -7,6 +7,8 @@ import { processInboxEmail } from './inbox-email'
 export interface ProcessorResult {
   success: boolean
   data?: Record<string, any>
+  /** False when the failure needs a human to fix and a retry would only repeat it. */
+  retryable?: boolean
 }
 
 export type JobProcessor = (job: Job) => Promise<ProcessorResult>

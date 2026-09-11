@@ -211,6 +211,55 @@ describe('POST /api/feedback', async () => {
     expect(contact!.verification_token).toBeTruthy()
   })
 
+  // --- Email verification --------------------------------------------------
+
+  it('mints a verification token for an unverified address even without consent', async () => {
+    const email = `test-feedback-verify-${Date.now()}@example.com`
+
+    await $fetch('/api/feedback', {
+      method: 'POST',
+      body: { email, message: 'No consent given', feedback_type: 'suggestion' }
+    })
+
+    const subscriber = await getTestSubscriberByEmail(sql, email)
+    const contact = await getTestContactMethod(sql, subscriber!.id, 'email')
+    expect(contact!.consent_doxa_general).toBe(false)
+    expect(contact!.verified).toBe(false)
+    expect(contact!.verification_token).toBeTruthy()
+  })
+
+  it('does not mint a verification token for an already-verified address', async () => {
+    const existing = await createTestSubscriber(sql, { name: 'Test Feedback Verified' })
+    const email = `test-feedback-verified-${Date.now()}@example.com`
+    await createTestContactMethod(sql, existing.id, { type: 'email', value: email, verified: true })
+
+    await $fetch('/api/feedback', {
+      method: 'POST',
+      body: { email, message: 'Already verified', feedback_type: 'compliment' }
+    })
+
+    const contact = await getTestContactMethod(sql, existing.id, 'email')
+    expect(contact!.verified).toBe(true)
+    expect(contact!.verification_token).toBeNull()
+  })
+
+  it('verifies the address through /api/contact/verify with the token from a submission', async () => {
+    const email = `test-feedback-verifylink-${Date.now()}@example.com`
+
+    await $fetch('/api/feedback', {
+      method: 'POST',
+      body: { email, message: 'Verify me', feedback_type: 'problem' }
+    })
+
+    const subscriber = await getTestSubscriberByEmail(sql, email)
+    const before = await getTestContactMethod(sql, subscriber!.id, 'email')
+    const res = await $fetch(`/api/contact/verify?token=${before!.verification_token}`, { method: 'GET' })
+    expect(res.success).toBe(true)
+
+    const after = await getTestContactMethod(sql, subscriber!.id, 'email')
+    expect(after!.verified).toBe(true)
+  })
+
   // --- Device diagnostics -------------------------------------------------
 
   it('renders a Device info block into the message body', async () => {
@@ -338,5 +387,20 @@ describe('POST /api/feedback', async () => {
       body: { email: `test-feedback-contactok-${Date.now()}@example.com`, message: 'hi via key' }
     })
     expect(res.success).toBe(true)
+  })
+
+  it.skipIf(!FORM_KEY)('mints a verification token for an unverified /api/contact sender without consent', async () => {
+    const email = `test-feedback-contactverify-${Date.now()}@example.com`
+    await $fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'x-api-key': FORM_KEY },
+      body: { email, message: 'Contact without consent' }
+    })
+
+    const subscriber = await getTestSubscriberByEmail(sql, email)
+    const contact = await getTestContactMethod(sql, subscriber!.id, 'email')
+    expect(contact!.consent_doxa_general).toBe(false)
+    expect(contact!.verified).toBe(false)
+    expect(contact!.verification_token).toBeTruthy()
   })
 })

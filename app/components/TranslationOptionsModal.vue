@@ -102,6 +102,8 @@ interface Props {
   targetLanguage?: string
   availableLanguages: string[]
   existingLanguages?: string[]
+  // Languages offered as targets; every known language when omitted
+  allowedTargetLanguages?: string[]
   loading?: boolean
 }
 
@@ -163,6 +165,7 @@ const allTargetLanguages = computed(() => {
   return LANGUAGES
     .map(l => l.code)
     .filter(code => code !== sourceLanguage.value)
+    .filter(code => !props.allowedTargetLanguages || props.allowedTargetLanguages.includes(code))
 })
 
 // Target languages for emit (selected in 'all' mode, single in 'single' mode)

@@ -55,6 +55,7 @@ function getEventColor(label: string): 'success' | 'warning' | 'error' | 'neutra
     'Muted Reminder': 'neutral',
     'Started Reminder': 'success',
     'Stopped Prayer': 'warning',
+    'Stop Reason': 'neutral',
     'Report Update': 'success'
   }
   return colors[label] || 'neutral'
@@ -71,6 +72,7 @@ function getEventIcon(label: string): string | undefined {
     'Muted Reminder': 'i-lucide-bell-off',
     'Started Reminder': 'i-lucide-bell-ring',
     'Stopped Prayer': 'i-lucide-circle-stop',
+    'Stop Reason': 'i-lucide-message-circle-question',
     'Report Update': 'i-lucide-file-check'
   }
   return icons[label]
@@ -99,6 +101,7 @@ function formatFieldName(field: string): string {
 }
 
 const { getCountryName } = useLocalizedOptions()
+const { optOutReasonLabel } = useOptOutReasonLabel()
 
 function formatValue(field: string, value: any): string {
   if (value === null || value === undefined || value === '') {
@@ -113,6 +116,10 @@ function formatValue(field: string, value: any): string {
   }
   if (typeof value === 'object') {
     return JSON.stringify(value)
+  }
+
+  if (field === 'opt_out_reason') {
+    return optOutReasonLabel(String(value))
   }
 
   if (field === 'roles') {

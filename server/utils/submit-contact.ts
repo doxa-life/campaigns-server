@@ -4,7 +4,6 @@ import { contactMethodService } from '../database/contact-methods'
 import { conversationService } from '../database/conversations'
 import { messageService } from '../database/conversation-messages'
 import { jobQueueService, type InboxEmailPayload } from '../database/job-queue'
-import { sendContactVerificationEmail } from './contact-verification-email'
 import { trackEventInBackground, userHashFromEmail } from './tracking'
 
 // Local helper (not exported) to avoid colliding with the auto-imported
@@ -85,8 +84,11 @@ export interface SubmitContactInput {
 
 /**
  * Shared contact/feedback pipeline: resolve the subscriber, record consent,
- * open an inbox conversation with the first inbound message, enqueue the
- * auto-ack + staff-notification emails, and emit the tracking event.
+ * mint a verification token for an unverified address, open an inbox
+ * conversation with the first inbound message, enqueue the auto-ack +
+ * staff-notification emails, and emit the tracking event. The auto-ack carries
+ * the verification link while the address is unverified, so staff can see in
+ * the inbox whether a reply will reach a confirmed address.
  *
  * Used by both the key-gated /api/contact (external/marketing-site callers) and
  * the public, rate-limited /api/feedback (the mobile app's web form). The two
@@ -121,20 +123,13 @@ export async function submitContactMessage(event: H3Event, input: SubmitContactI
 
   await subscriberService.addSource(subscriber.id, isFeedback ? 'feedback' : 'contact')
 
-  if (input.consentDoxaGeneral) {
-    const emailContact = await contactMethodService.getByValue('email', email)
-    if (emailContact) {
-      await contactMethodService.updateDoxaConsent(emailContact.id, true)
-
-      if (!emailContact.verified) {
-        // Reuse a still-valid link; only mail when it's the first one outstanding.
-        const { token, isNew: isNewToken } = await contactMethodService.generateVerificationToken(emailContact.id)
-        if (isNewToken) {
-          sendContactVerificationEmail(email, token, name || email, language)
-            .catch(err => console.error('Failed to send contact verification email:', err))
-        }
-      }
-    }
+  const emailContact = await contactMethodService.getByValue('email', email)
+  if (emailContact && input.consentDoxaGeneral) {
+    await contactMethodService.updateDoxaConsent(emailContact.id, true)
+  }
+  // The auto-ack job resolves this token into the link at send time.
+  if (emailContact && !emailContact.verified) {
+    await contactMethodService.generateVerificationToken(emailContact.id)
   }
 
   logCreate('subscribers', String(subscriber.id), event, {

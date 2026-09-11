@@ -11,7 +11,7 @@
       <div>
         <span v-if="showCurrent" class="value-tag">{{ $t('updates.suggestedValue') }}</span>
         <slot>
-          <UpdatesSuggestFieldInput v-model="model" :field-key="fieldKey" />
+          <UpdatesSuggestFieldInput v-model="model" :field-key="fieldKey" :exclude-options="excludeOptions" />
         </slot>
         <p v-if="hint" class="jp-hint">
           <UIcon name="i-lucide-info" class="shrink-0" />
@@ -35,6 +35,8 @@ const props = defineProps<{
   currentLabel?: string
   currentDisplay?: string
   hint?: string
+  // Passed through to the suggested-value select input.
+  excludeOptions?: string[]
 }>()
 
 const model = defineModel<string | number | null>({ default: null })

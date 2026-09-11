@@ -17,6 +17,7 @@
         <h1>Day {{ dayNumber }}</h1>
         <div class="header-actions">
           <UButton
+            v-if="translatableLanguages.length > 0"
             @click="openTranslateAllModal"
             variant="outline"
             size="sm"
@@ -103,9 +104,10 @@
                 variant="link"
                 size="sm"
               >
-                Edit
+                {{ canAccessLanguage('content.edit', lang.code) ? 'Edit' : 'View' }}
               </UButton>
               <UButton
+                v-if="canAccessLanguage('content.create', lang.code)"
                 @click="openTranslateSingleModal(lang.code)"
                 variant="link"
                 size="sm"
@@ -114,6 +116,7 @@
                 Translate
               </UButton>
               <UButton
+                v-if="canAccessLanguage('content.delete', lang.code)"
                 @click="promptDeleteTranslation(lang.translation)"
                 variant="link"
                 size="sm"
@@ -122,7 +125,7 @@
                 Delete
               </UButton>
             </template>
-            <template v-else>
+            <template v-else-if="canAccessLanguage('content.create', lang.code)">
               <UButton
                 @click="openTranslateSingleModal(lang.code)"
                 size="sm"
@@ -162,6 +165,7 @@
       :target-language="translateTargetLanguage"
       :available-languages="languagesWithContent"
       :existing-languages="languagesWithContent"
+      :allowed-target-languages="translatableLanguages"
       :loading="translating"
       @translate="handleTranslate"
       @cancel="closeTranslateModal"
@@ -207,6 +211,8 @@ const emit = defineEmits<{
   'create-translation': [languageCode: string]
 }>()
 
+const { canAccessLanguage } = useAuthUser()
+
 const translations = ref<LibraryContent[]>([])
 const loading = ref(true)
 const error = ref('')
@@ -234,6 +240,11 @@ const allLanguagesWithStatus = computed(() => {
 const languagesWithContent = computed(() => {
   return translations.value.map(t => t.language_code)
 })
+
+// Languages the user may write AI translations into
+const translatableLanguages = computed(() =>
+  LANGUAGES.map(l => l.code).filter(code => canAccessLanguage('content.create', code))
+)
 
 async function loadTranslations() {
   try {

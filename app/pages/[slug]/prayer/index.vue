@@ -31,6 +31,7 @@
           <div class="max-w-4xl mx-auto">
             <h1 class="text-3xl font-bold mb-2 text-center">{{ $t('prayerFuel.title') }}</h1>
             <p class="text-muted text-center">{{ formatDate(data.date, selectedLanguage) }}</p>
+            <PrayingNowBanner />
           </div>
         </header>
 

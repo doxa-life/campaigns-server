@@ -79,7 +79,8 @@ async function processJobQueue(): Promise<boolean> {
       if (result.success) {
         await jobQueueService.markCompleted(job.id, result.data)
       } else {
-        throw new Error(result.data?.error || 'Job failed')
+        console.error(`Translation job ${job.id} failed:`, result.data?.error)
+        await jobQueueService.failOrRetry(job.id, result.data?.error || 'Job failed', { retryable: result.retryable !== false })
       }
     } catch (error: any) {
       console.error(`Translation job ${job.id} failed:`, error.message || error)
@@ -106,7 +107,7 @@ async function processJobQueue(): Promise<boolean> {
       if (result.success) {
         await jobQueueService.markCompleted(job.id, result.data)
       } else {
-        throw new Error(result.data?.error || 'Job failed')
+        await jobQueueService.failOrRetry(job.id, result.data?.error || 'Job failed', { retryable: result.retryable !== false })
       }
 
       if (job.type === 'marketing_email' && job.reference_id) {

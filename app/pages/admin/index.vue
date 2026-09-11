@@ -26,7 +26,7 @@
         size="xs"
         :color="activeTab === tab.value ? 'primary' : 'neutral'"
         :variant="activeTab === tab.value ? 'subtle' : 'soft'"
-        @click="activeTab = tab.value"
+        @click="() => { activeTab = tab.value }"
       />
     </div>
 
@@ -163,6 +163,85 @@
                 <span class="text-xs font-semibold w-10 shrink-0 tabular-nums">{{ entry.count }}</span>
               </div>
             </div>
+          </UCard>
+
+          <UCard v-if="data.signupsBySource?.length" class="mt-6">
+            <template #header>
+              <div class="flex items-center gap-2">
+                <UIcon name="i-lucide-link" class="text-[var(--ui-primary)] text-lg" />
+                <span class="font-semibold">Signups by Source</span>
+              </div>
+            </template>
+            <div class="flex flex-col gap-2">
+              <div
+                v-for="entry in data.signupsBySource"
+                :key="entry.source"
+                class="flex items-center gap-3"
+              >
+                <span
+                  class="text-xs text-[var(--ui-text-dimmed)] w-28 text-right shrink-0 truncate"
+                  :title="entry.source"
+                >
+                  {{ entry.source }}
+                </span>
+                <div class="flex-1">
+                  <div
+                    class="h-6 rounded bg-[var(--ui-primary)] opacity-80 transition-all duration-500"
+                    :style="{ width: sourceBarWidth(entry.count) }"
+                  />
+                </div>
+                <span class="text-xs font-semibold w-10 shrink-0 tabular-nums">{{ entry.count }}</span>
+              </div>
+            </div>
+          </UCard>
+
+          <UCard v-if="optOutReasonRows.length" class="mt-6">
+            <template #header>
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <UIcon name="i-lucide-message-circle-question" class="text-[var(--ui-primary)] text-lg" />
+                  <span class="font-semibold">Why people stop</span>
+                </div>
+                <div class="flex gap-1">
+                  <UButton
+                    v-for="range in optOutRanges"
+                    :key="range.value"
+                    size="xs"
+                    :variant="optOutRange === range.value ? 'solid' : 'ghost'"
+                    color="neutral"
+                    @click="() => { optOutRange = range.value }"
+                  >
+                    {{ range.label }}
+                  </UButton>
+                </div>
+              </div>
+            </template>
+            <div class="flex flex-col gap-2">
+              <div
+                v-for="entry in optOutReasonRows"
+                :key="entry.reason"
+                class="flex items-center gap-3"
+              >
+                <span
+                  class="text-xs text-[var(--ui-text-dimmed)] w-28 text-right shrink-0 truncate"
+                  :title="optOutReasonLabel(entry.reason)"
+                >
+                  {{ optOutReasonLabel(entry.reason) }}
+                </span>
+                <div class="flex-1">
+                  <div
+                    class="h-6 rounded bg-[var(--ui-primary)] opacity-80 transition-all duration-500"
+                    :style="{ width: optOutBarWidth(entry.people) }"
+                  />
+                </div>
+                <span class="text-xs font-semibold w-10 shrink-0 tabular-nums">{{ entry.people }}</span>
+              </div>
+            </div>
+            <p class="text-xs text-[var(--ui-text-dimmed)] mt-3">
+              People, not prayer times. Muting records its own reason every time, while
+              the rest are answered only when someone chooses to, so the muting bar
+              reflects fuller data than the others rather than a larger group.
+            </p>
           </UCard>
         </div>
       </div>
@@ -573,6 +652,51 @@
         </UCard>
       </div>
     </template>
+
+    <template v-if="activeTab === 'map'">
+      <UCard>
+        <template #header>
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <UIcon name="i-lucide-map" class="text-[var(--ui-primary)] text-lg" />
+              <span class="font-semibold">Where People Are Praying</span>
+              <span v-if="prayerLocations" class="text-xs text-[var(--ui-text-dimmed)]">
+                {{ prayerLocations.located }} people located
+              </span>
+            </div>
+            <div class="flex gap-1">
+              <UButton
+                v-for="w in mapWindows"
+                :key="w.value"
+                :label="w.label"
+                size="xs"
+                :color="mapWindow === w.value ? 'primary' : 'neutral'"
+                :variant="mapWindow === w.value ? 'subtle' : 'soft'"
+                @click="setMapWindow(w.value)"
+              />
+            </div>
+          </div>
+        </template>
+
+        <UAlert
+          v-if="!mapboxToken"
+          color="neutral"
+          variant="subtle"
+          icon="i-lucide-map-pin-off"
+          title="Map not configured"
+          description="Set NUXT_PUBLIC_MAPBOX_TOKEN to show the map."
+        />
+        <div v-else class="relative h-[480px]">
+          <LazyAdminPrayerMap :countries="prayerLocations?.countries ?? []" :token="mapboxToken" />
+          <div
+            v-if="prayerLocationsStatus === 'pending'"
+            class="absolute inset-0 flex items-center justify-center bg-[var(--ui-bg)]/50"
+          >
+            <UIcon name="i-lucide-loader-2" class="animate-spin text-3xl text-[var(--ui-text-dimmed)]" />
+          </div>
+        </div>
+      </UCard>
+    </template>
   </div>
 </template>
 
@@ -605,7 +729,8 @@ const activeTab = ref('general')
 const tabs = [
   { label: 'General', value: 'general', icon: 'i-lucide-layout-dashboard' },
   { label: 'Prayer', value: 'prayer', icon: 'i-lucide-clock' },
-  { label: 'Subscribers', value: 'subscribers', icon: 'i-lucide-users' }
+  { label: 'Subscribers', value: 'subscribers', icon: 'i-lucide-users' },
+  { label: 'Map', value: 'map', icon: 'i-lucide-map' }
 ]
 
 const { data, status } = useFetch('/api/admin/dashboard/stats')
@@ -614,6 +739,65 @@ const { data: subscribersData, status: subscribersStatus } = useFetch('/api/admi
 const { data: subscribersDaily } = useFetch<{ date: string; subscribed: number; unsubscribed: number }[]>('/api/admin/dashboard/subscribers-daily')
 const { data: pgSubscribers } = useFetch<{ id: number; name: string; slug: string; subscriber_count: number }[]>('/api/admin/dashboard/people-group-subscribers')
 const { data: prayerEngagement } = useFetch('/api/admin/dashboard/prayer-engagement')
+
+interface OptOutReasonRow { reason: string; people: number }
+const { data: optOutReasons } = useFetch<{
+  last_30_days: OptOutReasonRow[]
+  since_launch: OptOutReasonRow[]
+}>('/api/admin/dashboard/opt-out-reasons')
+
+const { optOutReasonLabel } = useOptOutReasonLabel()
+
+// "Since launch" rather than all time: prayer times stopped before opt-out reasons
+// shipped carry none and are absent from both ranges.
+const optOutRanges = [
+  { label: '30 days', value: '30d' },
+  { label: 'Since launch', value: 'launch' }
+]
+const optOutRange = ref('30d')
+
+const optOutReasonRows = computed<OptOutReasonRow[]>(() =>
+  (optOutRange.value === '30d'
+    ? optOutReasons.value?.last_30_days
+    : optOutReasons.value?.since_launch) || []
+)
+
+function optOutBarWidth(people: number): string {
+  const max = Math.max(1, optOutReasonRows.value[0]?.people ?? 1)
+  if (people === 0) return '0%'
+  return `${Math.max((people / max) * 100, 2)}%`
+}
+
+interface PrayerLocations {
+  window: string
+  countries: { country: string; name: string; count: number }[]
+  located: number
+  total: number
+}
+
+const mapboxToken = useRuntimeConfig().public.mapboxToken as string
+const mapWindows = [
+  { label: '24h', value: '24h' },
+  { label: '7 days', value: '7d' },
+  { label: '30 days', value: '30d' },
+  { label: 'All time', value: 'all' }
+]
+const mapWindow = ref('7d')
+
+function setMapWindow(value: string) {
+  mapWindow.value = value
+}
+
+// The map is the only tab whose data is not fetched on page load: this query
+// (and the Mapbox bundle) load the first time the tab is opened.
+const { data: prayerLocations, status: prayerLocationsStatus, execute: loadPrayerLocations } = useFetch<PrayerLocations>(
+  '/api/admin/dashboard/prayer-locations',
+  { query: { window: mapWindow }, immediate: false }
+)
+
+watch(activeTab, tab => {
+  if (tab === 'map' && prayerLocationsStatus.value === 'idle') loadPrayerLocations()
+})
 
 const maxPgSubscribers = computed(() =>
   Math.max(1, ...(pgSubscribers.value?.map(p => p.subscriber_count) ?? [1]))
@@ -687,6 +871,17 @@ const maxLanguageCount = computed(() => {
 function languageBarWidth(count: number): string {
   if (count === 0) return '0%'
   const pct = (count / maxLanguageCount.value) * 100
+  return `${Math.max(pct, 2)}%`
+}
+
+const maxSourceCount = computed(() => {
+  if (!data.value?.signupsBySource?.length) return 1
+  return Math.max(1, data.value.signupsBySource[0]?.count ?? 1)
+})
+
+function sourceBarWidth(count: number): string {
+  if (count === 0) return '0%'
+  const pct = (count / maxSourceCount.value) * 100
   return `${Math.max(pct, 2)}%`
 }
 

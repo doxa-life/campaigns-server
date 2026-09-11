@@ -1,6 +1,8 @@
 import { libraryContentService } from '#server/database/library-content'
+import { libraryService } from '#server/database/libraries'
+import { requireContentAccess } from '#server/utils/content-access'
 import { jobQueueService, type TranslationBatchPayload } from '#server/database/job-queue'
-import { isDeepLConfigured, SUPPORTED_LANGUAGES } from '#server/utils/deepl'
+import { isTranslationConfigured, SUPPORTED_LANGUAGES } from '#server/utils/translate'
 import { getIntParam } from '#server/utils/api-helpers'
 
 /**
@@ -14,14 +16,18 @@ import { getIntParam } from '#server/utils/api-helpers'
  * - overwrite: boolean - Whether to overwrite existing translations
  */
 export default defineEventHandler(async (event) => {
-  await requirePermission(event, 'content.create')
+  const user = await requirePermission(event, 'content.create')
 
   const libraryId = getIntParam(event, 'libraryId')
 
-  if (!isDeepLConfigured()) {
+  // Bulk translation spans every language, so language-scoped users cannot run it.
+  const library = await libraryService.getLibraryById(libraryId)
+  await requireContentAccess(user.userId, 'content.create', { peopleGroupId: library?.people_group_id })
+
+  if (!isTranslationConfigured()) {
     throw createError({
       statusCode: 503,
-      statusMessage: 'Translation service not configured. Please add DEEPL_API_KEY to environment.'
+      statusMessage: 'Translation service not configured. Please add OPENROUTER_API_KEY to environment.'
     })
   }
 
