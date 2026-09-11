@@ -3,6 +3,7 @@ import { sendEmail } from '../email'
 import { userService } from '../../database/users'
 import { getReportApprovers } from './report-approvers'
 import type { PeopleGroupReport } from '../../database/people-group-reports'
+import type { ReportMonthlySummary } from './report-summary'
 
 const TYPE_LABELS: Record<string, string> = {
   add: 'Add a people group',
@@ -87,6 +88,65 @@ export async function notifyReportApprovers(report: PeopleGroupReport & { people
       await sendEmail({ to: user.email, subject: `New people group suggestion: ${groupLabel(report)}`, html })
     }
   }
+}
+
+function plural(count: number, singular: string, pluralForm: string): string {
+  return `<strong>${count}</strong> ${count === 1 ? singular : pluralForm}`
+}
+
+/**
+ * The month's suggestion summary for the designated approvers. Both approvers
+ * receive identical HTML; the "awaiting my approval" link resolves per viewer
+ * from their own session in the admin UI.
+ */
+export function buildReportSummaryEmail(summary: ReportMonthlySummary): { subject: string; html: string } {
+  const baseUrl = useRuntimeConfig().public.siteUrl || 'http://localhost:3000'
+  const reportsUrl = `${baseUrl}/admin/people-groups/reports`
+  const { label } = summary.period
+
+  const quiet = summary.receivedCount === 0 &&
+    summary.approvedCount === 0 &&
+    summary.approvers.every((a) => a.awaitingCount === 0)
+
+  const body = quiet
+    ? `
+      <p style="font-size: 16px;">No people group suggestions came in during ${label}, and nothing is waiting for approval.</p>
+      ${button(reportsUrl, 'Open Suggestions')}
+    `
+    : `
+      <p style="font-size: 16px;">Here is the summary of public people group suggestions for <strong>${label}</strong>.</p>
+      <ul style="font-size: 16px; padding-left: 20px;">
+        <li>${plural(summary.receivedCount, 'new suggestion', 'new suggestions')} came in during ${label}.</li>
+        <li>${plural(summary.approvedCount, 'suggestion is', 'suggestions are')} approved by both reviewers and ready to apply.</li>
+      </ul>
+      <p style="font-size: 16px; margin-bottom: 4px;">Awaiting approval:</p>
+      <ul style="font-size: 16px; padding-left: 20px;">
+        ${summary.approvers
+          .map((a) => `<li>${escapeHtml(a.displayName)}: ${plural(a.awaitingCount, 'suggestion', 'suggestions')}</li>`)
+          .join('')}
+      </ul>
+      ${button(`${reportsUrl}?status=awaiting_mine`, 'Suggestions Awaiting My Approval')}
+      ${button(`${reportsUrl}?status=pending`, 'Review Pending Suggestions')}
+      ${summary.approvedCount > 0 ? button(`${reportsUrl}?status=approved`, 'Apply Approved Suggestions') : ''}
+    `
+
+  return {
+    subject: `People group suggestions: ${label} summary`,
+    html: layout(`Suggestions summary: ${label}`, body)
+  }
+}
+
+/** Email the month's summary to each designated approver; returns the addresses reached. */
+export async function sendReportSummaryEmail(summary: ReportMonthlySummary): Promise<string[]> {
+  const { subject, html } = buildReportSummaryEmail(summary)
+
+  const sentTo: string[] = []
+  for (const approver of summary.approvers) {
+    if (await sendEmail({ to: approver.email, subject, html })) {
+      sentTo.push(approver.email)
+    }
+  }
+  return sentTo
 }
 
 /**
