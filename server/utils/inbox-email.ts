@@ -5,11 +5,12 @@
  * all of which the inbox needs. This service controls From / Reply-To / In-Reply-To /
  * References and attachment parts directly. Existing emails keep using the base `sendEmail`.
  *
- * Provider is abstracted: Mailgun HTTP API in production (EMAIL_PROVIDER=mailgun), and
- * SMTP (nodemailer) otherwise — which in local dev points at MailHog (localhost:1025),
- * so replies show up at http://localhost:8025. Swapping to Postmark later stays localized.
+ * Provider is abstracted: SendGrid v3 API (EMAIL_PROVIDER=sendgrid) or Mailgun HTTP API
+ * (EMAIL_PROVIDER=mailgun) in production, and SMTP (nodemailer) otherwise — which in
+ * local dev points at MailHog (localhost:1025), so replies show up at http://localhost:8025.
  */
 import nodemailer from 'nodemailer'
+import { sendViaSendgrid as sendgridSend, isSendgridConfigured } from './sendgrid'
 
 export interface InboxEmailAttachment {
   filename: string
@@ -80,6 +81,9 @@ class InboxEmailService {
 
     try {
       const provider = (process.env.EMAIL_PROVIDER || 'smtp').toLowerCase()
+      if (provider === 'sendgrid' && isSendgridConfigured()) {
+        return await this.sendViaSendgrid(options)
+      }
       const { apiKey, domain } = getMailgunConfig()
       if (provider === 'mailgun' && apiKey && domain) {
         return await this.sendViaMailgun(options)
@@ -90,6 +94,27 @@ class InboxEmailService {
       console.error('[InboxEmail] Send failed:', error?.message || error)
       return { success: false, error: error?.message || 'Unknown send error' }
     }
+  }
+
+  private async sendViaSendgrid(options: InboxEmailOptions): Promise<InboxEmailResult> {
+    const info = await sendgridSend({
+      from: options.from,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      text: options.text,
+      replyTo: options.replyTo,
+      inReplyTo: options.inReplyTo,
+      references: options.references,
+      headers: options.autoReply ? { 'Auto-Submitted': 'auto-replied', 'Precedence': 'bulk' } : undefined,
+      attachments: (options.attachments || []).map(a => ({
+        filename: a.filename,
+        contentType: a.contentType,
+        data: a.data,
+        ...(a.cid ? { cid: a.cid } : {}),
+      })),
+    })
+    return { success: true, providerMessageId: info.messageId }
   }
 
   private async sendViaSmtp(options: InboxEmailOptions): Promise<InboxEmailResult> {

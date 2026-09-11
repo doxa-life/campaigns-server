@@ -138,10 +138,13 @@ export default defineNuxtConfig({
     smtpSecure: process.env.SMTP_SECURE || 'false',
     smtpRejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED || 'true',
 
-    // AWS SES configuration (base layer)
-    awsRegion: process.env.AWS_REGION || process.env.AWS_SES_REGION || '',
-    awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+    // SendGrid configuration (EMAIL_PROVIDER=sendgrid; all three send paths)
+    sendgridApiKey: process.env.SENDGRID_API_KEY || '',
+    sendgridHost: process.env.SENDGRID_HOST || 'api.sendgrid.com',
+    // Public key (base64 DER) verifying the ECDSA-signed event webhook
+    sendgridWebhookPublicKey: process.env.SENDGRID_WEBHOOK_PUBLIC_KEY || '',
+    // Shared secret required as ?token= on the Inbound Parse webhook (it has no signing)
+    sendgridInboundToken: process.env.SENDGRID_INBOUND_TOKEN || '',
 
     // S3 configuration (base layer)
     s3Endpoint: process.env.S3_ENDPOINT || '',
@@ -181,8 +184,11 @@ export default defineNuxtConfig({
     inboxContactAddress: process.env.INBOX_CONTACT_ADDRESS || 'contact@doxa.life',
     inboxDomain: process.env.INBOX_DOMAIN || 'doxa.life',
 
-    // Marketing email transport — separate Mailgun domain + key so marketing
-    // sends on its own subdomain reputation, isolated from transactional/inbox.
+    // Marketing email transport — separate sending domain so marketing sends on
+    // its own subdomain reputation, isolated from transactional/inbox.
+    // MARKETING_EMAIL_DOMAIN is provider-neutral (SendGrid); the MARKETING_MAILGUN_*
+    // vars additionally configure the Mailgun transport.
+    marketingEmailDomain: process.env.MARKETING_EMAIL_DOMAIN || '',
     marketingMailgunApiKey: process.env.MARKETING_MAILGUN_API_KEY || '',
     marketingMailgunDomain: process.env.MARKETING_MAILGUN_DOMAIN || '',
     marketingMailgunHost: process.env.MARKETING_MAILGUN_HOST || 'api.mailgun.net',

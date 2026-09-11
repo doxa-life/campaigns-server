@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer'
 import type { Transporter } from 'nodemailer'
-import { SESClient, SendRawEmailCommand } from '@aws-sdk/client-ses'
+import { sendViaSendgrid } from './sendgrid'
 import { renderEmailTemplate, type EmailTemplateData } from './email-templates'
 
 // Determine environment
@@ -8,23 +8,19 @@ const isDevelopment = (process.env.NODE_ENV || 'development') === 'development'
 
 // Lazy transporter initialization
 let transporter: Transporter | null = null
-let sesClient: SESClient | null = null
 
 // Get email configuration from environment variables
 function getEmailConfig() {
   try {
     const config = useRuntimeConfig()
     return {
-      // Provider selection: 'smtp', 'mailgun', or 'ses'
+      // Provider selection: 'smtp', 'mailgun', or 'sendgrid'
       provider: config.emailProvider || process.env.EMAIL_PROVIDER || 'smtp',
       // Mailgun config
       mailgunApiKey: config.mailgunApiKey || process.env.MAILGUN_API_KEY,
       mailgunDomain: config.mailgunDomain || process.env.MAILGUN_DOMAIN,
       mailgunHost: config.mailgunHost || process.env.MAILGUN_HOST, // 'api.eu.mailgun.net' for EU
-      // SES config
-      awsRegion: config.awsRegion || process.env.AWS_REGION || process.env.AWS_SES_REGION,
-      awsAccessKeyId: config.awsAccessKeyId || process.env.AWS_ACCESS_KEY_ID,
-      awsSecretAccessKey: config.awsSecretAccessKey || process.env.AWS_SECRET_ACCESS_KEY,
+      // SendGrid config lives in ./sendgrid (getSendgridConfig)
       // SMTP config (fallback)
       smtpHost: config.smtpHost || process.env.SMTP_HOST,
       smtpPort: config.smtpPort || process.env.SMTP_PORT || '587',
@@ -44,9 +40,6 @@ function getEmailConfig() {
       mailgunApiKey: process.env.MAILGUN_API_KEY,
       mailgunDomain: process.env.MAILGUN_DOMAIN,
       mailgunHost: process.env.MAILGUN_HOST,
-      awsRegion: process.env.AWS_REGION || process.env.AWS_SES_REGION,
-      awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       smtpHost: process.env.SMTP_HOST,
       smtpPort: process.env.SMTP_PORT || '587',
       smtpUser: process.env.SMTP_USER,
@@ -82,28 +75,6 @@ function getTransporter(): Transporter {
   const provider = config.provider.toLowerCase()
 
   switch (provider) {
-    case 'ses': {
-      // Validate SES config
-      if (!config.awsRegion || !config.awsAccessKeyId || !config.awsSecretAccessKey) {
-        throw new Error('AWS SES configuration incomplete. Set AWS_REGION, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY.')
-      }
-
-      console.log('[Email] Using AWS SES')
-      sesClient = new SESClient({
-        region: config.awsRegion,
-        credentials: {
-          accessKeyId: config.awsAccessKeyId,
-          secretAccessKey: config.awsSecretAccessKey
-        }
-      })
-
-      // Create a nodemailer transporter that uses SES
-      transporter = nodemailer.createTransport({
-        SES: { ses: sesClient, aws: { SendRawEmailCommand } }
-      } as any)
-      break
-    }
-
     case 'smtp':
     default: {
       // Validate SMTP config
@@ -217,6 +188,11 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     let messageId: string | undefined
     if (!isDevelopment && provider === 'mailgun') {
       const info = await sendViaMailgunHttp(mailOptions, config)
+      messageId = info.messageId
+    } else if (!isDevelopment && provider === 'sendgrid') {
+      // Pass the original to value: sendViaSendgrid handles arrays itself, and a
+      // comma-joined string would be read as one (invalid) address.
+      const info = await sendViaSendgrid({ ...mailOptions, to: options.to })
       messageId = info.messageId
     } else {
       const info = await getTransporter().sendMail(mailOptions)

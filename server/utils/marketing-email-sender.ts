@@ -1,18 +1,20 @@
 /**
  * App-level email transport for marketing emails.
  *
- * Marketing sends on its OWN Mailgun domain (MARKETING_MAILGUN_DOMAIN) with its
- * own API key, so its sending reputation is isolated from transactional + inbox
- * mail. From identities come from the marketing_senders table; the domain is
- * appended here so From always aligns with this domain's DKIM.
+ * Marketing sends on its OWN domain (MARKETING_EMAIL_DOMAIN, e.g. mail.doxa.life)
+ * so its sending reputation is separated from transactional + inbox mail. From
+ * identities come from the marketing_senders table; the domain is appended here
+ * so From always aligns with that domain's DKIM.
  *
- * Provider: Mailgun HTTP API when EMAIL_PROVIDER=mailgun and the marketing
- * Mailgun vars are set; otherwise falls back to the base-layer sendEmail (which
- * in dev points at MailHog). That fallback keeps local dev and unconfigured
- * environments working without a separate marketing domain.
+ * Provider: SendGrid v3 API (EMAIL_PROVIDER=sendgrid) or Mailgun HTTP API
+ * (EMAIL_PROVIDER=mailgun with the marketing Mailgun vars set); otherwise falls
+ * back to the base-layer sendEmail (which in dev points at MailHog). That
+ * fallback keeps local dev and unconfigured environments working without a
+ * separate marketing domain.
  *
  * `sendEmail` is auto-imported in the Nitro server context (base layer util).
  */
+import { sendViaSendgrid, isSendgridConfigured } from './sendgrid'
 export interface MarketingSendOptions {
   // Full address, e.g. '"Doxa Updates" <updates@mail.doxa.life>'. When omitted
   // (no sender / marketing domain not configured), the base transport's default
@@ -39,11 +41,27 @@ function getMarketingMailgunConfig() {
 }
 
 /**
+ * The marketing sending domain, provider-neutral. MARKETING_EMAIL_DOMAIN wins;
+ * MARKETING_MAILGUN_DOMAIN is honored as a fallback so existing environments
+ * keep working. Empty when no marketing domain is configured.
+ */
+export function getMarketingEmailDomain(): string {
+  const config = useRuntimeConfig()
+  return (
+    config.marketingEmailDomain ||
+    process.env.MARKETING_EMAIL_DOMAIN ||
+    config.marketingMailgunDomain ||
+    process.env.MARKETING_MAILGUN_DOMAIN ||
+    ''
+  )
+}
+
+/**
  * Build a sender's full From address on the marketing domain.
  * Returns null when the marketing domain isn't configured.
  */
 export function buildMarketingFrom(name: string, localPart: string): string | null {
-  const { domain } = getMarketingMailgunConfig()
+  const domain = getMarketingEmailDomain()
   if (!domain) return null
   const address = `${localPart}@${domain}`
   return name ? `"${name.replace(/"/g, '')}" <${address}>` : address
@@ -52,6 +70,32 @@ export function buildMarketingFrom(name: string, localPart: string): string | nu
 export async function sendMarketingEmail(options: MarketingSendOptions): Promise<boolean> {
   const provider = (process.env.EMAIL_PROVIDER || 'smtp').toLowerCase()
   const { apiKey, domain, host } = getMarketingMailgunConfig()
+
+  // SendGrid v3 API. Marketing sends carry the RFC 8058 one-click unsubscribe
+  // headers; the From domain comes from the marketing sending domain.
+  if (provider === 'sendgrid' && isSendgridConfigured() && options.from) {
+    try {
+      const headers: Record<string, string> = {}
+      if (options.listUnsubscribeUrl) {
+        headers['List-Unsubscribe'] = `<${options.listUnsubscribeUrl}>`
+        headers['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click'
+      }
+      await sendViaSendgrid({
+        from: options.from,
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+        replyTo: options.replyTo,
+        headers: Object.keys(headers).length ? headers : undefined,
+        timeoutMs: Number(process.env.MARKETING_SEND_TIMEOUT_MS) || 30000,
+      })
+      return true
+    } catch (error: any) {
+      console.error('[MarketingEmail] SendGrid send failed:', error?.message || error)
+      return false
+    }
+  }
 
   // Use the dedicated marketing Mailgun domain when fully configured.
   if (provider === 'mailgun' && apiKey && domain && options.from) {
