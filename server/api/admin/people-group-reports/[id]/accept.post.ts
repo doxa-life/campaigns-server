@@ -1,14 +1,13 @@
 import { peopleGroupReportService } from '../../../../database/people-group-reports'
 import { getIntParam } from '#server/utils/api-helpers'
 import { applyReport } from '#server/utils/app/apply-report'
-import { isReportApprover } from '#server/utils/app/report-approvers'
 import { sendReportOutcomeEmail } from '#server/utils/app/report-emails'
 
 /**
  * Accept a report and apply its changes. Admin-sourced reports apply on a
  * single reviewer's accept; public-sourced reports must already hold both
- * designated approvals (status 'approved') and only a designated approver can
- * trigger the apply.
+ * designated approvals (status 'approved'), after which any user with edit
+ * rights can trigger the apply.
  */
 export default defineEventHandler(async (event) => {
   const user = await requirePermission(event, 'people_groups.edit')
@@ -23,9 +22,6 @@ export default defineEventHandler(async (event) => {
   if (report.source === 'public') {
     if (report.status !== 'approved') {
       throw createError({ statusCode: 400, statusMessage: 'Public suggestions need both approvals before they can be applied' })
-    }
-    if (!(await isReportApprover(user.userId))) {
-      throw createError({ statusCode: 403, statusMessage: 'Only a designated approver can apply this suggestion' })
     }
   } else if (report.status !== 'pending') {
     throw createError({ statusCode: 400, statusMessage: 'Only pending reports can be accepted' })

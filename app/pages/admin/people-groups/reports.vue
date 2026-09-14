@@ -191,7 +191,7 @@
             </div>
           </CrmFormSection>
 
-          <!-- Public suggestions: two designated approvals, then an explicit apply -->
+          <!-- Public suggestions: two designated approvals, then an explicit apply by any editor -->
           <div v-if="selectedReport.source === 'public' && ['awaiting_verification', 'pending', 'approved'].includes(selectedReport.status)" class="review-actions">
             <UBadge
               v-if="selectedReport.status === 'awaiting_verification'"
@@ -209,7 +209,7 @@
               @click="approveReport"
             />
             <UButton
-              v-if="selectedReport.status === 'approved' && isCurrentUserApprover"
+              v-if="selectedReport.status === 'approved' && canEditPeopleGroups"
               color="success"
               icon="i-lucide-circle-check-big"
               label="Apply"
@@ -622,8 +622,9 @@ const approverForm = ref<(string | undefined)[]>([undefined, undefined])
 const approverUsers = ref<{ id: string; display_name: string | null; email: string }[]>([])
 const savingApprovers = ref(false)
 
-const { isAdmin } = useAuthUser()
+const { isAdmin, canAccess } = useAuthUser()
 const canManageApprovers = computed(() => isAdmin.value)
+const canEditPeopleGroups = computed(() => canAccess('people_groups.edit'))
 const currentUserId = computed(() => (user.value as any)?.id || '')
 const isCurrentUserApprover = computed(() => approvers.value.some(a => a.id === currentUserId.value))
 
