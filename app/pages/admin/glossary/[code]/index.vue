@@ -194,6 +194,11 @@
               </div>
               <p class="text-sm text-[var(--ui-text-muted)]">
                 {{ pass.reviewer_name || 'Not yet opened' }}
+                <a
+                  v-if="pass.reviewer_email"
+                  :href="`mailto:${pass.reviewer_email}`"
+                  class="underline"
+                >{{ pass.reviewer_email }}</a>
                 <span v-if="pass.submitted_at"> · submitted {{ formatDate(pass.submitted_at) }}</span>
                 <span v-else-if="pass.last_seen_at"> · last seen {{ formatDate(pass.last_seen_at) }}</span>
               </p>
@@ -351,6 +356,7 @@ interface Pass {
   label: string
   token: string
   reviewer_name: string | null
+  reviewer_email: string | null
   status: 'open' | 'submitted'
   submitted_at: string | null
   last_seen_at: string | null

@@ -24,6 +24,7 @@ export default defineEventHandler(async (event) => {
         id: pass.id,
         label: pass.label,
         reviewer_name: pass.reviewer_name,
+        reviewer_email: pass.reviewer_email,
         status: pass.status,
         submitted_at: pass.submitted_at
       },

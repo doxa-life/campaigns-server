@@ -79,6 +79,7 @@ export interface GlossaryReviewPass {
   label: string
   token: string
   reviewer_name: string | null
+  reviewer_email: string | null
   status: 'open' | 'submitted'
   submitted_at: string | null
   last_seen_at: string | null
@@ -122,7 +123,7 @@ const LANGUAGE_COLUMNS =
 const TRANSLATION_COLUMNS =
   'id, language_id, term_id, value, status, note, stale, updated_by_name, updated_by_pass_id, updated_at'
 const PASS_COLUMNS =
-  'id, language_id, label, token, reviewer_name, status, submitted_at, last_seen_at, created_at'
+  'id, language_id, label, token, reviewer_name, reviewer_email, status, submitted_at, last_seen_at, created_at'
 
 // ---------------------------------------------------------------- English glossary
 
@@ -523,10 +524,17 @@ export async function getPassByToken(token: string): Promise<GlossaryReviewPass 
   return (row as GlossaryReviewPass) || null
 }
 
-export async function setPassReviewerName(id: string, name: string): Promise<GlossaryReviewPass | null> {
+/** Record who is working a pass. An omitted email leaves the stored one alone. */
+export async function setPassReviewer(
+  id: string,
+  reviewer: { name: string; email?: string | null }
+): Promise<GlossaryReviewPass | null> {
   const sql = getSql()
   const [row] = await sql`
-    UPDATE glossary_review_passes SET reviewer_name = ${name}, last_seen_at = NOW()
+    UPDATE glossary_review_passes SET
+      reviewer_name = ${reviewer.name},
+      reviewer_email = ${reviewer.email === undefined ? sql`reviewer_email` : reviewer.email},
+      last_seen_at = NOW()
     WHERE id = ${id}
     RETURNING ${sql.unsafe(PASS_COLUMNS)}
   `

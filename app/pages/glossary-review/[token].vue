@@ -27,17 +27,30 @@
       <!-- The name gates editing: it is the only attribution an edit through this link carries. -->
       <UCard class="mb-8">
         <div class="flex flex-col gap-3">
-          <UFormField :label="chrome('reviewer.rows.reviewer_name')" required>
-            <div class="flex gap-2">
-              <UInput v-model="reviewerName" class="flex-1" placeholder="Your name" />
-              <UButton :loading="savingName" :disabled="!reviewerName.trim()" @click="saveName">
-                Save
-              </UButton>
-            </div>
-          </UFormField>
-          <p v-if="!data.pass.reviewer_name" class="text-sm text-[var(--ui-text-muted)]">
-            Enter your name to start. Your work is saved as you go — you can close this page and come back.
-          </p>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <UFormField
+              :label="data.chrome_en.reviewer.rows.reviewer_name"
+              :hint="chrome('reviewer.rows.reviewer_name')"
+              required
+            >
+              <UInput v-model="reviewerName" class="w-full" placeholder="Your name" />
+            </UFormField>
+            <UFormField
+              :label="data.chrome_en.reviewer.rows.reviewer_email"
+              :hint="chrome('reviewer.rows.reviewer_email')"
+              help="So we can come back to you about a flagged term."
+            >
+              <UInput v-model="reviewerEmail" type="email" class="w-full" placeholder="you@example.com" />
+            </UFormField>
+          </div>
+          <div class="flex items-center gap-3">
+            <UButton :loading="savingName" :disabled="!reviewerName.trim()" @click="saveName">
+              Save
+            </UButton>
+            <p v-if="!data.pass.reviewer_name" class="text-sm text-[var(--ui-text-muted)]">
+              Enter your name to start. Your work is saved as you go — you can close this page and come back.
+            </p>
+          </div>
         </div>
       </UCard>
 
@@ -121,7 +134,12 @@
           <div class="flex flex-col gap-4">
             <UCard v-for="entry in section.entries" :key="entry.term_id">
               <div class="flex items-start justify-between gap-3 mb-4">
-                <h3 class="text-base font-semibold text-[var(--ui-text-highlighted)]">{{ entry.term }}</h3>
+                <h3 class="text-base font-semibold text-[var(--ui-text-highlighted)] flex items-baseline gap-2">
+                  <span class="text-xs font-normal tabular-nums text-[var(--ui-text-dimmed)]">
+                    {{ entry.number }}/{{ entries.length }}
+                  </span>
+                  {{ entry.term }}
+                </h3>
                 <UBadge :color="statusColor(entry)" variant="subtle" size="xs">
                   {{ entry.status }}
                 </UBadge>
@@ -238,6 +256,7 @@ interface Field { label: string; value: string }
 
 interface Entry {
   term_id: string
+  number: number
   term: string
   section_title: string
   fields: Field[]
@@ -248,7 +267,14 @@ interface Entry {
 }
 
 interface ReviewData {
-  pass: { id: string; label: string; reviewer_name: string | null; status: 'open' | 'submitted'; submitted_at: string | null }
+  pass: {
+    id: string
+    label: string
+    reviewer_name: string | null
+    reviewer_email: string | null
+    status: 'open' | 'submitted'
+    submitted_at: string | null
+  }
   language: {
     code: string
     name_en: string
@@ -278,6 +304,7 @@ const loading = ref(true)
 const error = ref('')
 
 const reviewerName = ref('')
+const reviewerEmail = ref('')
 const savingName = ref(false)
 const submitting = ref(false)
 const bibleForm = ref({ bible_id: '', bible_translation: '' })
@@ -333,8 +360,13 @@ async function load() {
   try {
     const result = await $fetch<ReviewData>(`/api/glossary/review/${token.value}`)
     data.value = result
-    entries.value = result.entries.map(entry => ({ ...entry, note: entry.note || '' }))
+    entries.value = result.entries.map((entry, index) => ({
+      ...entry,
+      number: index + 1,
+      note: entry.note || ''
+    }))
     reviewerName.value = result.pass.reviewer_name || ''
+    reviewerEmail.value = result.pass.reviewer_email || ''
     bibleForm.value = {
       bible_id: result.language.bible_id || '',
       bible_translation: result.language.bible_translation || ''
@@ -349,14 +381,20 @@ async function load() {
 async function saveName() {
   savingName.value = true
   try {
-    await $fetch(`/api/glossary/review/${token.value}/name`, {
-      method: 'PATCH',
-      body: { reviewer_name: reviewerName.value }
-    })
-    if (data.value) data.value.pass.reviewer_name = reviewerName.value.trim()
+    const pass = await $fetch<{ reviewer_name: string | null; reviewer_email: string | null }>(
+      `/api/glossary/review/${token.value}/reviewer`,
+      {
+        method: 'PATCH',
+        body: { reviewer_name: reviewerName.value, reviewer_email: reviewerEmail.value }
+      }
+    )
+    if (data.value) {
+      data.value.pass.reviewer_name = pass.reviewer_name
+      data.value.pass.reviewer_email = pass.reviewer_email
+    }
     toast.add({ title: 'Thanks — you can start reviewing', color: 'success' })
   } catch (e: any) {
-    toast.add({ title: 'Could not save your name', description: e?.data?.statusMessage, color: 'error' })
+    toast.add({ title: 'Could not save your details', description: e?.data?.statusMessage, color: 'error' })
   } finally {
     savingName.value = false
   }

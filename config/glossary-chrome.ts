@@ -61,6 +61,7 @@ export const GLOSSARY_CHROME_EN: GlossaryChrome = {
       'Please report the translation most regularly used by your local church community, even if your personal preference is different.',
     rows: {
       reviewer_name: 'Your name',
+      reviewer_email: 'Your email',
       bible_translation_primary: 'Bible translation used most regularly',
       bible_translation_edition_year: 'Exact abbreviation, edition, and year'
     }

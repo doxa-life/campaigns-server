@@ -144,12 +144,21 @@ describe('Glossary', async () => {
       expect(error.statusCode).toBe(400)
     })
 
-    it('records the reviewer name', async () => {
-      const pass = await $fetch<{ reviewer_name: string }>(`/api/glossary/review/${passToken}/name`, {
+    it('rejects a malformed email', async () => {
+      const error = await $fetch(`/api/glossary/review/${passToken}/reviewer`, {
         method: 'PATCH',
-        body: { reviewer_name: 'Rodica T' }
-      })
+        body: { reviewer_name: 'Rodica T', reviewer_email: 'not-an-email' }
+      }).catch(e => e)
+      expect(error.statusCode).toBe(400)
+    })
+
+    it('records the reviewer name and email', async () => {
+      const pass = await $fetch<{ reviewer_name: string; reviewer_email: string }>(
+        `/api/glossary/review/${passToken}/reviewer`,
+        { method: 'PATCH', body: { reviewer_name: 'Rodica T', reviewer_email: 'rodica@example.com' } }
+      )
       expect(pass.reviewer_name).toBe('Rodica T')
+      expect(pass.reviewer_email).toBe('rodica@example.com')
     })
 
     it('applies an edit immediately and attributes it', async () => {

@@ -54,7 +54,12 @@ function sendReviewSubmittedEmail(to: string, data: GlossaryReviewSummary): Prom
     <head><meta charset="UTF-8"><title>${escapeHtml(subject)}</title></head>
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <h2 style="color: #3B463D;">${escapeHtml(data.language.name_en)} glossary review finished</h2>
-      <p>${escapeHtml(reviewer)} finished <strong>${escapeHtml(data.pass.label)}</strong>.</p>
+      <p>
+        ${escapeHtml(reviewer)} finished <strong>${escapeHtml(data.pass.label)}</strong>.
+        ${data.pass.reviewer_email
+          ? `<br><a href="mailto:${escapeHtml(data.pass.reviewer_email)}" style="color: #3B463D;">${escapeHtml(data.pass.reviewer_email)}</a>`
+          : ''}
+      </p>
       <ul>
         <li>${confirmed.length} of ${data.entries.length} terms confirmed</li>
         <li>${flagged.length} flagged for discussion</li>
@@ -74,6 +79,7 @@ function sendReviewSubmittedEmail(to: string, data: GlossaryReviewSummary): Prom
     `${data.language.name_en} glossary review finished`,
     '',
     `${reviewer} finished ${data.pass.label}.`,
+    data.pass.reviewer_email || '',
     `${confirmed.length} of ${data.entries.length} terms confirmed`,
     `${flagged.length} flagged for discussion`,
     `${withNotes.length} carrying a reviewer note`,
