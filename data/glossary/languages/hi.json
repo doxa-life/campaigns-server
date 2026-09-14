@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "locale_code": "hi",
+  "language_name_en": "Hindi",
+  "language_name_local": "हिन्दी",
+  "output_name": "Hindi",
+  "text_direction": "ltr",
+  "version_display": "Hindi review draft · 14 August 2026",
+  "running_header": "DOXA.LIFE  ·  HINDI TERMINOLOGY REVIEW",
+  "cover": {
+    "kicker": "Translator review form · अनुवादक समीक्षा प्रपत्र",
+    "title": "Doxa.Life Hindi Glossary Review",
+    "subtitle": "English context · सुझाए गए हिंदी शब्द · अनुमोदन और संशोधन",
+    "term_count_template": "{count} terms for review · समीक्षा के लिए {count} शब्द"
+  },
+  "instructions": {
+    "english_heading": "Instructions in English",
+    "english_purpose_label": "Purpose",
+    "english_purpose": "Please confirm or edit the suggested Hindi term for each English glossary entry. The Hindi suggestions are starting points, not approved translations.",
+    "english_items": [
+      "Read the English term, definition or meaning, example, and ‘Why it matters’ note before deciding.",
+      "Keep every numeric threshold and distinction exact, including ≤ 2%, ≤ 1%, ≤ 0.1%, the 100+ daily-intercessor goal, and the CPM measures.",
+      "Use standard Hindi spelling and script. Keep Doxa.Life and DOXA unchanged. Retain UPG, UUPG, and CPM alongside the Hindi phrase unless you recommend a stable Hindi acronym and explain it in Notes.",
+      "For biblical phrases, use the wording of the Bible translation most commonly used by your local church or Assemblies of God/Pentecostal community—not merely your personal preference. Record its exact title, abbreviation, edition, and year below. If local communities commonly use more than one translation, list the primary one first and note the others.",
+      "Check that related terms form a coherent family, especially engage / engaged / engagement / unengaged / under-engaged / fruitful engagement.",
+      "Choose Approve if the suggested Hindi term is accurate, natural in Hindi evangelical and missional usage, and suitable for both prose and interface labels.",
+      "Choose Edit if you prefer another term. Write the complete preferred term in the Final Hindi term field; do not merely describe the change."
+    ],
+    "local_heading": "हिंदी में निर्देश",
+    "local_purpose_label": "उद्देश्य",
+    "local_purpose": "अंग्रेज़ी शब्दावली की प्रत्येक प्रविष्टि के लिए सुझाए गए हिंदी शब्द की पुष्टि करें या उसे बदलें। ये सुझाव आरंभिक विकल्प हैं, स्वीकृत अनुवाद नहीं।",
+    "local_items": [
+      "निर्णय लेने से पहले अंग्रेज़ी शब्द, परिभाषा या अर्थ, उदाहरण और ‘यह क्यों महत्त्वपूर्ण है’ टिप्पणी पढ़ें।",
+      "≤ 2%, ≤ 1%, ≤ 0.1%, प्रतिदिन 100 से अधिक मध्यस्थों के लक्ष्य और CPM मापों सहित सभी संख्यात्मक सीमाएँ ठीक रखें।",
+      "मानक हिंदी और देवनागरी का प्रयोग करें। Doxa.Life और DOXA न बदलें। UPG, UUPG और CPM को हिंदी पद के साथ रखें, जब तक कि आप कोई स्थिर हिंदी संक्षेप सुझाकर टिप्पणियों में न समझाएँ।",
+      "बाइबिलीय वाक्यांशों के लिए उस बाइबिल अनुवाद की भाषा लें जिसे आपकी स्थानीय कलीसिया या क्षेत्र की असेंबलीज़ ऑफ गॉड/पेंटेकोस्टल संगति सबसे अधिक प्रयोग करती है। सही नाम, संक्षेप, संस्करण और वर्ष लिखें।",
+      "engage / engaged / engagement / unengaged / under-engaged / fruitful engagement से संबंधित शब्दों की एकरूपता जाँचें।",
+      "यदि सुझाया शब्द सटीक, हिंदी सुसमाचारी और मिशन-विज्ञान के प्रयोग में स्वाभाविक तथा पाठ और इंटरफ़ेस दोनों के लिए उपयुक्त है, तो अनुमोदित चुनें।",
+      "यदि आप दूसरा शब्द चाहते हैं, तो संशोधित चुनें और अंतिम हिंदी शब्द वाले खाने में पूरा शब्द लिखें।"
+    ]
+  },
+  "section_titles": {
+    "People-group terminology": "जातीय-भाषाई जनसमूह की शब्दावली",
+    "Engagement and mission language": "मिशनरी सहभागिता और मिशन की भाषा",
+    "Prayer and intercession": "प्रार्थना और मध्यस्थता",
+    "Adoption and mobilization": "अंगीकरण और जुटाव",
+    "Vision and goals language": "दृष्टि और लक्ष्यों की भाषा"
+  },
+  "field_labels": {
+    "Meaning": "अंग्रेज़ी में अर्थ",
+    "Site definition": "वेबसाइट की परिभाषा (अंग्रेज़ी)",
+    "Site definition (Vision page — \"What is Engagement?\")": "विज़न पृष्ठ की परिभाषा (अंग्रेज़ी)",
+    "Example": "अंग्रेज़ी उदाहरण",
+    "Why it matters": "यह क्यों महत्त्वपूर्ण है"
+  },
+  "labels": {
+    "seed_term": "आधार शब्द",
+    "suggested_term_en": "Suggested Hindi term",
+    "suggested_term_local": "सुझाया गया हिंदी शब्द",
+    "section_note_en": "Section note",
+    "section_note_local": "खंड टिप्पणी",
+    "decision_en": "Decision",
+    "decision_local": "निर्णय",
+    "approve_en": "Approve",
+    "approve_local": "अनुमोदित",
+    "edit_en": "Edit",
+    "edit_local": "संशोधित",
+    "final_term_en": "Final Hindi term",
+    "final_term_local": "अंतिम हिंदी शब्द",
+    "translator_notes_en": "Translator notes",
+    "translator_notes_local": "अनुवादक की टिप्पणियाँ"
+  },
+  "reviewer": {
+    "heading_en": "Reviewer details",
+    "heading_local": "समीक्षक का विवरण",
+    "bible_label_en": "Bible translation",
+    "bible_label_local": "बाइबिल अनुवाद",
+    "bible_note_en": "Please report the translation most regularly used by your local church community, even if your personal preference is different.",
+    "bible_note_local": "वह अनुवाद बताएँ जिसे आपकी स्थानीय कलीसिया नियमित रूप से प्रयोग करती है, भले आपकी व्यक्तिगत पसंद अलग हो।",
+    "rows": [
+      {
+        "tag": "reviewer_name",
+        "en": "Translator",
+        "local": "अनुवादक"
+      },
+      {
+        "tag": "review_date",
+        "en": "Date",
+        "local": "तारीख"
+      },
+      {
+        "tag": "reviewer_church_region",
+        "en": "Church, community, or region",
+        "local": "कलीसिया, समुदाय या क्षेत्र"
+      },
+      {
+        "tag": "bible_translation_primary",
+        "en": "Bible translation used most regularly",
+        "local": "सबसे अधिक प्रयोग होने वाला बाइबिल अनुवाद"
+      },
+      {
+        "tag": "bible_translation_edition_year",
+        "en": "Exact abbreviation, edition, and year",
+        "local": "सही संक्षेप, संस्करण और वर्ष"
+      }
+    ],
+    "version_label_en": "Glossary version",
+    "version_label_local": "शब्दावली संस्करण"
+  },
+  "signoff": {
+    "heading_en": "Final sign-off",
+    "heading_local": "अंतिम पुष्टि",
+    "confirmation_label_en": "Confirmation",
+    "confirmation_label_local": "पुष्टि",
+    "confirmation_en": "I have reviewed all {count} entries and entered a final Hindi term for every edited item.",
+    "confirmation_local": "मैंने सभी {count} प्रविष्टियों की समीक्षा की है और हर संशोधित मद के लिए अंतिम हिंदी शब्द लिखा है।",
+    "rows": [
+      {
+        "tag": "signoff_approved_count",
+        "en": "Approved without edits",
+        "local": "बिना परिवर्तन अनुमोदित"
+      },
+      {
+        "tag": "signoff_edited_count",
+        "en": "Edited",
+        "local": "संशोधित"
+      },
+      {
+        "tag": "signoff_questions",
+        "en": "Questions remaining",
+        "local": "शेष प्रश्न"
+      },
+      {
+        "tag": "signoff_name_date",
+        "en": "Name and date",
+        "local": "नाम और तारीख"
+      }
+    ]
+  },
+  "suggested_terms": {
+    "People group": "जातीय-भाषाई जनसमूह",
+    "Unreached people group (UPG)": "न पहुँचा हुआ जातीय-भाषाई जनसमूह (UPG)",
+    "Unengaged (people group)": "सक्रिय मिशनरी सहभागिता से रहित जनसमूह",
+    "Unengaged unreached people group (UUPG)": "न पहुँचा हुआ और मिशनरी रूप से असहभागी जनसमूह (UUPG)",
+    "Under-engaged (people group)": "अपर्याप्त मिशनरी सहभागिता वाला जनसमूह",
+    "Frontier people (group)": "सीमांत जनसमूह",
+    "Ethnolinguistic group": "जातीय-भाषाई समूह",
+    "Engagement / engaged (people group)": "मिशनरी सहभागिता / मिशनरी रूप से सहभागी",
+    "Fruitful engagement": "फलदायी मिशनरी सहभागिता",
+    "Gospel access": "सुसमाचार तक पहुँच",
+    "Gospel engagement": "सुसमाचार के साथ सक्रिय सहभागिता",
+    "Church-planting movement (CPM)": "कलीसिया-स्थापना आंदोलन (CPM)",
+    "Indigenous church": "स्वदेशी कलीसिया",
+    "The five \"selfs\" (of an indigenous church)": "स्वदेशी कलीसिया की पाँच आत्मनिर्भर विशेषताएँ",
+    "Residential engagement / workers in residence": "निवासी मिशनरी सहभागिता / स्थानीय निवासी कार्यकर्ता",
+    "Cross-cultural workers": "अंतर-सांस्कृतिक कार्यकर्ता",
+    "Apostolic (pioneering) effort": "प्रेरिताई (अग्रणी) प्रयास",
+    "Pioneer work": "अग्रणी कार्य",
+    "Heart language": "हृदय की भाषा",
+    "Movement to Jesus": "यीशु की ओर लोगों का आंदोलन",
+    "Nonresident partners": "गैर-निवासी साझेदार",
+    "Broader engagement (components)": "व्यापक मिशनरी सहभागिता के घटक",
+    "Diaspora": "प्रवासी समुदाय",
+    "Daily prayer (for a people group)": "किसी जनसमूह के लिए दैनिक प्रार्थना",
+    "Intercessor / intercessors": "मध्यस्थ / मध्यस्थगण",
+    "Intercessory prayer": "मध्यस्थ प्रार्थना",
+    "Daily prayer guide / daily prayer points": "दैनिक प्रार्थना मार्गदर्शिका / दैनिक प्रार्थना विषय",
+    "Prayer prepares the way": "प्रार्थना मार्ग तैयार करती है",
+    "Lord of the harvest": "कटनी का प्रभु",
+    "Adopt (an unengaged people group)": "असहभागी जनसमूह को मिशनरी रूप से अंगीकार करना",
+    "Pray, give, and send": "प्रार्थना करें, दें और भेजें",
+    "Mobilize / mobilization": "जुटाना / जुटाव",
+    "Sending agency / sending agencies": "मिशनरी भेजने वाली संस्था",
+    "Our gift to Jesus": "यीशु के लिए हमारी भेंट",
+    "Priority — \"Engage every Unengaged People Group by 2033\"": "प्राथमिकता: 2033 तक हर असहभागी जनसमूह को सहभागी बनाना",
+    "Vision 2033": "दृष्टि 2033",
+    "Every tribe, tongue, people, and nation": "हर गोत्र, भाषा, लोग और राष्ट्र",
+    "A multitude of every people around the throne": "सिंहासन के चारों ओर हर जनसमूह की बड़ी भीड़",
+    "DOXA partnership missionaries": "DOXA साझेदारी के मिशनरी"
+  },
+  "script_font": "Noto Sans Devanagari",
+  "pdf_font_family": "Noto Sans Devanagari"
+}

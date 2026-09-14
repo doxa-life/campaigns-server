@@ -27,6 +27,8 @@ tags:
     description: Public people group change suggestions (/updates form)
   - name: Context
     description: Context portfolios — organizational knowledge as markdown sections, readable and writable by AI tools
+  - name: Glossary
+    description: Approved Doxa terminology per language, for translating interface strings and marketing copy
 
 paths:
   /api/app/version:
@@ -2111,6 +2113,158 @@ paths:
           description: Requires the context.edit permission
         '404':
           description: Section or version not found
+
+  /api/glossary:
+    get:
+      tags:
+        - Glossary
+      summary: List the languages the glossary covers
+      description: >
+        Public. Glossary languages are independent of the languages the app
+        itself serves — terminology work on a language starts before it is
+        registered in the app.
+      responses:
+        '200':
+          description: Languages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  languages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          example: ro
+                        name_en:
+                          type: string
+                          example: Romanian
+                        name_local:
+                          type: string
+                          example: română
+                        text_direction:
+                          type: string
+                          enum: [ltr, rtl]
+                        term_count:
+                          type: integer
+                        confirmed_count:
+                          type: integer
+
+  /api/glossary/{lang}:
+    get:
+      tags:
+        - Glossary
+      summary: Approved terminology for one language
+      description: >
+        Public. Each term carries the English annotations a translator needs —
+        the site definition, an example, and why the term matters — alongside
+        the approved wording and its review status.
+
+
+        Terms a reviewer has not yet confirmed are included and labelled
+        `draft`: a term applied consistently is cheap to correct once a reviewer
+        rules on it, while a term with no glossary entry drifts differently in
+        every file. `stale` marks a wording whose English term changed after it
+        was reviewed.
+      parameters:
+        - name: lang
+          in: path
+          required: true
+          schema:
+            type: string
+          example: ro
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [json, markdown, md]
+          description: '`markdown` returns the same content as a document.'
+      responses:
+        '200':
+          description: The language's glossary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  language:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      name_en:
+                        type: string
+                      name_local:
+                        type: string
+                      text_direction:
+                        type: string
+                        enum: [ltr, rtl]
+                      bible_id:
+                        type: string
+                        nullable: true
+                        description: The bolls.life edition verses are fetched from.
+                      bible_translation:
+                        type: string
+                        nullable: true
+                        description: >
+                          The translation reviewers report their church
+                          communities use, which biblical phrasing follows.
+                  generated_at:
+                    type: string
+                    format: date-time
+                  term_count:
+                    type: integer
+                  confirmed_count:
+                    type: integer
+                  terms:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        term:
+                          type: string
+                          example: People group
+                        section:
+                          type: string
+                          example: People-group terminology
+                        fields:
+                          type: array
+                          description: English annotations, in display order.
+                          items:
+                            type: object
+                            properties:
+                              label:
+                                type: string
+                                example: Why it matters
+                              value:
+                                type: string
+                        translation:
+                          type: string
+                          example: grup etnolingvistic
+                        status:
+                          type: string
+                          enum: [draft, confirmed, flagged]
+                        stale:
+                          type: boolean
+                        note:
+                          type: string
+                          nullable: true
+                        reviewed_by:
+                          type: string
+                          nullable: true
+                        updated_at:
+                          type: string
+                          format: date-time
+                          nullable: true
+            text/markdown:
+              schema:
+                type: string
+        '404':
+          description: No glossary for that language
 
 components:
   securitySchemes:

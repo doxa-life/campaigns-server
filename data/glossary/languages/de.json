@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "locale_code": "de",
+  "language_name_en": "German",
+  "language_name_local": "Deutsch",
+  "output_name": "German",
+  "text_direction": "ltr",
+  "version_display": "German review draft · 14 August 2026",
+  "running_header": "DOXA.LIFE  ·  GERMAN TERMINOLOGY REVIEW",
+  "cover": {
+    "kicker": "Translator review form · Prüfformular für Übersetzer",
+    "title": "Doxa.Life German Glossary Review",
+    "subtitle": "English context · Vorgeschlagene deutsche Begriffe · Freigabe und Änderungen",
+    "term_count_template": "{count} terms for review · {count} Begriffe zur Prüfung"
+  },
+  "instructions": {
+    "english_heading": "Instructions in English",
+    "english_purpose_label": "Purpose",
+    "english_purpose": "Please confirm or edit the suggested German term for each English glossary entry. The German suggestions are starting points, not approved translations.",
+    "english_items": [
+      "Read the English term, definition or meaning, example, and ‘Why it matters’ note before deciding.",
+      "Keep every numeric threshold and distinction exact, including ≤ 2%, ≤ 1%, ≤ 0.1%, the 100+ daily-intercessor goal, and the CPM measures.",
+      "Use standard German spelling and script. Keep Doxa.Life and DOXA unchanged. Retain UPG, UUPG, and CPM alongside the German phrase unless you recommend a stable German acronym and explain it in Notes.",
+      "For biblical phrases, use the wording of the Bible translation most commonly used by your local church or Assemblies of God/Pentecostal community—not merely your personal preference. Record its exact title, abbreviation, edition, and year below. If local communities commonly use more than one translation, list the primary one first and note the others.",
+      "Check that related terms form a coherent family, especially engage / engaged / engagement / unengaged / under-engaged / fruitful engagement.",
+      "Choose Approve if the suggested German term is accurate, natural in German evangelical and missional usage, and suitable for both prose and interface labels.",
+      "Choose Edit if you prefer another term. Write the complete preferred term in the Final German term field; do not merely describe the change."
+    ],
+    "local_heading": "Anweisungen auf Deutsch",
+    "local_purpose_label": "Zweck",
+    "local_purpose": "Bestätigen oder ändern Sie den vorgeschlagenen deutschen Begriff für jeden englischen Glossareintrag. Die Vorschläge sind Ausgangspunkte, keine freigegebenen Übersetzungen.",
+    "local_items": [
+      "Lesen Sie vor der Entscheidung den englischen Begriff, die Definition bzw. Bedeutung, das Beispiel und den Hinweis „Warum wichtig“.",
+      "Übernehmen Sie alle Zahlenwerte genau, einschließlich ≤ 2 %, ≤ 1 %, ≤ 0,1 %, des Ziels von mehr als 100 täglichen Fürbittern und der CPM-Messgrößen.",
+      "Verwenden Sie korrekte deutsche Rechtschreibung. Doxa.Life und DOXA bleiben unverändert. UPG, UUPG und CPM sollen neben dem deutschen Ausdruck stehen, außer Sie empfehlen ein stabiles deutsches Kürzel und erläutern es in den Anmerkungen.",
+      "Verwenden Sie für biblische Wendungen den Wortlaut der Bibelübersetzung, die Ihre Ortsgemeinde oder regionale Pfingst-/Assemblies-of-God-Gemeinschaft am häufigsten nutzt. Geben Sie Titel, Abkürzung, Ausgabe und Jahr genau an.",
+      "Prüfen Sie die begriffliche Einheit der Familie engage / engaged / engagement / unengaged / under-engaged / fruitful engagement.",
+      "Wählen Sie Freigeben, wenn der Vorschlag genau, im evangelikalen und missiologischen Sprachgebrauch natürlich und für Fließtext wie Oberfläche geeignet ist.",
+      "Wählen Sie Ändern, wenn Sie einen anderen Begriff bevorzugen, und tragen Sie ihn vollständig im Feld Endgültiger deutscher Begriff ein."
+    ]
+  },
+  "section_titles": {
+    "People-group terminology": "Terminologie ethnolinguistischer Gruppen",
+    "Engagement and mission language": "Sprache missionarischen Engagements und der Mission",
+    "Prayer and intercession": "Gebet und Fürbitte",
+    "Adoption and mobilization": "Adoption und Mobilisierung",
+    "Vision and goals language": "Sprache von Vision und Zielen"
+  },
+  "field_labels": {
+    "Meaning": "Bedeutung auf Englisch",
+    "Site definition": "Website-Definition (Englisch)",
+    "Site definition (Vision page — \"What is Engagement?\")": "Website-Definition, Vision-Seite (Englisch)",
+    "Example": "Beispiel auf Englisch",
+    "Why it matters": "Warum wichtig"
+  },
+  "labels": {
+    "seed_term": "AUSGANGSBEGRIFF",
+    "suggested_term_en": "Suggested German term",
+    "suggested_term_local": "Vorgeschlagener deutscher Begriff",
+    "section_note_en": "Section note",
+    "section_note_local": "Abschnittshinweis",
+    "decision_en": "Decision",
+    "decision_local": "Entscheidung",
+    "approve_en": "Approve",
+    "approve_local": "Freigeben",
+    "edit_en": "Edit",
+    "edit_local": "Ändern",
+    "final_term_en": "Final German term",
+    "final_term_local": "Endgültiger deutscher Begriff",
+    "translator_notes_en": "Translator notes",
+    "translator_notes_local": "Anmerkungen des Übersetzers"
+  },
+  "reviewer": {
+    "heading_en": "Reviewer details",
+    "heading_local": "Angaben zur prüfenden Person",
+    "bible_label_en": "Bible translation",
+    "bible_label_local": "Bibelübersetzung",
+    "bible_note_en": "Please report the translation most regularly used by your local church community, even if your personal preference is different.",
+    "bible_note_local": "Nennen Sie die Übersetzung, die Ihre örtliche Gemeinde gewöhnlich nutzt, auch wenn Sie persönlich eine andere bevorzugen.",
+    "rows": [
+      {
+        "tag": "reviewer_name",
+        "en": "Translator",
+        "local": "Übersetzer"
+      },
+      {
+        "tag": "review_date",
+        "en": "Date",
+        "local": "Datum"
+      },
+      {
+        "tag": "reviewer_church_region",
+        "en": "Church, community, or region",
+        "local": "Gemeinde, Gemeinschaft oder Region"
+      },
+      {
+        "tag": "bible_translation_primary",
+        "en": "Bible translation used most regularly",
+        "local": "Am häufigsten verwendete Bibelübersetzung"
+      },
+      {
+        "tag": "bible_translation_edition_year",
+        "en": "Exact abbreviation, edition, and year",
+        "local": "Genaue Abkürzung, Ausgabe und Jahr"
+      }
+    ],
+    "version_label_en": "Glossary version",
+    "version_label_local": "Glossarversion"
+  },
+  "signoff": {
+    "heading_en": "Final sign-off",
+    "heading_local": "Abschließende Freigabe",
+    "confirmation_label_en": "Confirmation",
+    "confirmation_label_local": "Bestätigung",
+    "confirmation_en": "I have reviewed all {count} entries and entered a final German term for every edited item.",
+    "confirmation_local": "Ich habe alle {count} Einträge geprüft und für jeden geänderten Eintrag einen endgültigen deutschen Begriff eingetragen.",
+    "rows": [
+      {
+        "tag": "signoff_approved_count",
+        "en": "Approved without edits",
+        "local": "Ohne Änderungen freigegeben"
+      },
+      {
+        "tag": "signoff_edited_count",
+        "en": "Edited",
+        "local": "Geändert"
+      },
+      {
+        "tag": "signoff_questions",
+        "en": "Questions remaining",
+        "local": "Offene Fragen"
+      },
+      {
+        "tag": "signoff_name_date",
+        "en": "Name and date",
+        "local": "Name und Datum"
+      }
+    ]
+  },
+  "suggested_terms": {
+    "People group": "ethnolinguistische Gruppe",
+    "Unreached people group (UPG)": "unerreichte ethnolinguistische Gruppe (UPG)",
+    "Unengaged (people group)": "ethnolinguistische Gruppe ohne aktives missionarisches Engagement",
+    "Unengaged unreached people group (UUPG)": "unerreichte und missionarisch nicht engagierte ethnolinguistische Gruppe (UUPG)",
+    "Under-engaged (people group)": "unzureichend missionarisch engagierte ethnolinguistische Gruppe",
+    "Frontier people (group)": "Frontier-Volksgruppe",
+    "Ethnolinguistic group": "ethnolinguistische Gruppe",
+    "Engagement / engaged (people group)": "missionarisches Engagement / missionarisch engagiert",
+    "Fruitful engagement": "fruchtbares missionarisches Engagement",
+    "Gospel access": "Zugang zum Evangelium",
+    "Gospel engagement": "aktive Auseinandersetzung mit dem Evangelium",
+    "Church-planting movement (CPM)": "Gemeindegründungsbewegung (CPM)",
+    "Indigenous church": "einheimische Gemeinde",
+    "The five \"selfs\" (of an indigenous church)": "die fünf Selbstständigkeitsmerkmale einer einheimischen Gemeinde",
+    "Residential engagement / workers in residence": "residentielles Engagement / vor Ort lebende Mitarbeiter",
+    "Cross-cultural workers": "kulturübergreifende Mitarbeiter",
+    "Apostolic (pioneering) effort": "apostolischer (pionierhafter) Einsatz",
+    "Pioneer work": "Pionierarbeit",
+    "Heart language": "Herzenssprache",
+    "Movement to Jesus": "Bewegung von Menschen hin zu Jesus",
+    "Nonresident partners": "nicht vor Ort lebende Partner",
+    "Broader engagement (components)": "Komponenten eines breiteren missionarischen Engagements",
+    "Diaspora": "Diaspora",
+    "Daily prayer (for a people group)": "tägliches Gebet für eine ethnolinguistische Gruppe",
+    "Intercessor / intercessors": "Fürbitter / Fürbitterinnen",
+    "Intercessory prayer": "Fürbittegebet",
+    "Daily prayer guide / daily prayer points": "täglicher Gebetsleitfaden / tägliche Gebetsanliegen",
+    "Prayer prepares the way": "Gebet bereitet den Weg",
+    "Lord of the harvest": "Herr der Ernte",
+    "Adopt (an unengaged people group)": "eine nicht engagierte Volksgruppe missionarisch adoptieren",
+    "Pray, give, and send": "beten, geben und senden",
+    "Mobilize / mobilization": "mobilisieren / Mobilisierung",
+    "Sending agency / sending agencies": "missionarische Sendeorganisation",
+    "Our gift to Jesus": "unsere Gabe für Jesus",
+    "Priority — \"Engage every Unengaged People Group by 2033\"": "Priorität: Jede nicht engagierte Volksgruppe bis 2033 erreichen",
+    "Vision 2033": "Vision 2033",
+    "Every tribe, tongue, people, and nation": "jeder Stamm, jede Sprache, jedes Volk und jede Nation",
+    "A multitude of every people around the throne": "eine große Schar aus allen Völkern um den Thron",
+    "DOXA partnership missionaries": "Missionare der DOXA-Partnerschaft"
+  }
+}
