@@ -275,12 +275,13 @@
   </CrmLayout>
 
   <!-- Accept Confirmation Modal -->
-  <UModal v-model:open="showAcceptModal" title="Accept Report">
+  <UModal v-model:open="showAcceptModal" :title="selectedReport?.source === 'public' ? 'Apply Suggestion' : 'Accept Report'">
     <template #body>
+      <p v-if="selectedReport?.source === 'public' && selectedReport?.status === 'approved'" class="mb-2">Both approvers have approved this suggestion.</p>
       <p>This will apply the suggested changes to <strong>{{ selectedReport?.people_group_name }}</strong>. Continue?</p>
       <div class="flex justify-end gap-2 mt-4">
         <UButton variant="outline" @click="() => { showAcceptModal = false }">Cancel</UButton>
-        <UButton color="success" :loading="accepting" @click="acceptReport">Accept</UButton>
+        <UButton color="success" :loading="accepting" @click="acceptReport">{{ selectedReport?.source === 'public' ? 'Apply' : 'Accept' }}</UButton>
       </div>
     </template>
   </UModal>
@@ -660,6 +661,10 @@ async function approveReport() {
     toast.add({ title: 'Approval recorded', color: 'success' })
     selectedReport.value = res.report
     await loadReports()
+    // The final approval hands off straight to apply so the changes don't sit unapplied
+    if (res.report.status === 'approved' && canEditPeopleGroups.value) {
+      showAcceptModal.value = true
+    }
   } catch (err: any) {
     toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to approve', color: 'error' })
   } finally {
