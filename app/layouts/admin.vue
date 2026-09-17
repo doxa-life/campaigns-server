@@ -93,6 +93,12 @@
             <span v-if="showExpanded" class="nav-label">Churches</span>
           </NuxtLink>
         </li>
+        <li v-if="canAccess('glossary.view')">
+          <NuxtLink to="/admin/glossary" class="nav-link" :title="!showExpanded ? 'Glossary' : undefined">
+            <UIcon name="i-lucide-languages" />
+            <span v-if="showExpanded" class="nav-label">Glossary</span>
+          </NuxtLink>
+        </li>
         <li v-if="canAccess('context.view')">
           <NuxtLink to="/admin/context" class="nav-link" :title="!showExpanded ? 'Context' : undefined">
             <UIcon name="i-lucide-book-open-text" />

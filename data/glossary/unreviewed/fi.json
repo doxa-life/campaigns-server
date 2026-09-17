@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "locale_code": "fi",
+  "language_name_en": "Finnish",
+  "language_name_local": "suomi",
+  "output_name": "Finnish",
+  "text_direction": "ltr",
+  "version_display": "Finnish review draft · 7 September 2026",
+  "running_header": "DOXA.LIFE  ·  FINNISH TERMINOLOGY REVIEW",
+  "cover": {
+    "kicker": "Translator review form · Kääntäjän tarkastuslomake",
+    "title": "Doxa.Life Finnish Glossary Review",
+    "subtitle": "English context · Suomenkieliset termiehdotukset · Hyväksyntä ja muutokset",
+    "term_count_template": "{count} terms for review · {count} termiä tarkastettavaksi"
+  },
+  "instructions": {
+    "english_heading": "Instructions in English",
+    "english_purpose_label": "Purpose",
+    "english_purpose": "Please confirm or edit the suggested Finnish term for each English glossary entry. The Finnish suggestions are starting points, not approved translations.",
+    "english_items": [
+      "Read the English term, definition or meaning, example, and ‘Why it matters’ note before deciding.",
+      "Keep every numeric threshold and distinction exact, including ≤ 2%, ≤ 1%, ≤ 0.1%, the 100+ daily-intercessor goal, and the CPM measures.",
+      "Use standard Finnish spelling and script. Keep Doxa.Life and DOXA unchanged. Retain UPG, UUPG, and CPM alongside the Finnish phrase unless you recommend a stable Finnish acronym and explain it in Notes.",
+      "For biblical phrases, use the wording of the Bible translation most commonly used by your local church or Assemblies of God/Pentecostal community—not merely your personal preference. Record its exact title, abbreviation, edition, and year below. If local communities commonly use more than one translation, list the primary one first and note the others.",
+      "Check that related terms form a coherent family, especially engage / engaged / engagement / unengaged / under-engaged / fruitful engagement.",
+      "Choose Approve if the suggested Finnish term is accurate, natural in Finnish evangelical and missional usage, and suitable for both prose and interface labels.",
+      "Choose Edit if you prefer another term. Write the complete preferred term in the Final Finnish term field; do not merely describe the change."
+    ],
+    "local_heading": "Ohjeet suomeksi",
+    "local_purpose_label": "Tarkoitus",
+    "local_purpose": "Vahvista tai muokkaa jokaiselle englanninkieliselle sanastotermille ehdotettu suomenkielinen termi. Suomenkieliset ehdotukset ovat lähtökohtia, eivät hyväksyttyjä käännöksiä.",
+    "local_items": [
+      "Lue englanninkielinen termi, määritelmä tai merkitys, esimerkki ja kohta ”Miksi tämä on tärkeää” ennen kuin teet päätöksen.",
+      "Säilytä kaikki numeeriset raja-arvot ja erottelut täsmällisinä, mukaan lukien ≤ 2 %, ≤ 1 %, ≤ 0,1 %, tavoite yli 100 päivittäisestä esirukoilijasta sekä CPM-mittarit.",
+      "Käytä suomen kielen normien mukaista oikeinkirjoitusta. Säilytä Doxa.Life ja DOXA muuttumattomina. Säilytä lyhenteet UPG, UUPG ja CPM suomenkielisen ilmauksen yhteydessä, ellet suosittele vakiintunutta suomenkielistä lyhennettä ja perustele sitä huomioissa.",
+      "Käytä raamatullisissa ilmauksissa sen raamatunkäännöksen sanamuotoa, jota paikallinen seurakuntasi tai helluntai-/Assemblies of God -yhteisö käyttää yleisimmin – ei pelkästään omaa henkilökohtaista suosikkiasi. Kirjaa alle sen tarkka nimi, lyhenne, laitos ja vuosi. Jos paikallisissa yhteisöissä käytetään yleisesti useampaa käännöstä, merkitse ensin pääkäännös ja mainitse muut.",
+      "Tarkista, että toisiinsa liittyvät termit muodostavat yhtenäisen ja johdonmukaisen kokonaisuuden, erityisesti engage / engaged / engagement / unengaged / under-engaged / fruitful engagement.",
+      "Valitse Hyväksy, jos ehdotettu suomenkielinen termi on täsmällinen, luonteva suomalaisessa evankelisessa ja lähetysteologisessa käytössä ja sopii sekä leipätekstiin että käyttöliittymän otsikoihin.",
+      "Valitse Muokkaa, jos suosit toista termiä. Kirjoita täydellinen haluamasi termi kenttään Lopullinen suomenkielinen termi; älä pelkästään kuvaile muutosta."
+    ]
+  },
+  "section_titles": {
+    "People-group terminology": "Kansanryhmiä koskeva käsitteistö",
+    "Engagement and mission language": "Lähetystyön ja tavoittamisen käsitteistö",
+    "Prayer and intercession": "Rukous ja esirukous",
+    "Adoption and mobilization": "Adoptio ja mobilisointi",
+    "Vision and goals language": "Vision ja tavoitteiden käsitteistö"
+  },
+  "field_labels": {
+    "Meaning": "Merkitys englanniksi",
+    "Site definition": "Sivuston määritelmä (englanniksi)",
+    "Site definition (Vision page — \"What is Engagement?\")": "Sivuston määritelmä, Vision-sivu (englanniksi)",
+    "Example": "Esimerkki englanniksi",
+    "Why it matters": "Miksi tämä on tärkeää"
+  },
+  "labels": {
+    "seed_term": "PERUSTERMI",
+    "suggested_term_en": "Suggested Finnish term",
+    "suggested_term_local": "Suomenkielinen termiehdotus",
+    "section_note_en": "Section note",
+    "section_note_local": "Osion huomautus",
+    "decision_en": "Decision",
+    "decision_local": "Päätös",
+    "approve_en": "Approve",
+    "approve_local": "Hyväksy",
+    "edit_en": "Edit",
+    "edit_local": "Muokkaa",
+    "final_term_en": "Final Finnish term",
+    "final_term_local": "Lopullinen suomenkielinen termi",
+    "translator_notes_en": "Translator notes",
+    "translator_notes_local": "Kääntäjän huomiot"
+  },
+  "reviewer": {
+    "heading_en": "Reviewer details",
+    "heading_local": "Tarkastajan tiedot",
+    "bible_label_en": "Bible translation",
+    "bible_label_local": "Raamatunkäännös",
+    "bible_note_en": "Please report the translation most regularly used by your local church community, even if your personal preference is different.",
+    "bible_note_local": "Ilmoita se käännös, jota paikallinen seurakuntayhteisösi käyttää säännöllisimmin, vaikka oma henkilökohtainen mieltymyksesi olisi toinen.",
+    "rows": [
+      {
+        "tag": "reviewer_name",
+        "en": "Translator",
+        "local": "Kääntäjä"
+      },
+      {
+        "tag": "review_date",
+        "en": "Date",
+        "local": "Päivämäärä"
+      },
+      {
+        "tag": "reviewer_church_region",
+        "en": "Church, community, or region",
+        "local": "Seurakunta, yhteisö tai alue"
+      },
+      {
+        "tag": "bible_translation_primary",
+        "en": "Bible translation used most regularly",
+        "local": "Säännöllisimmin käytetty raamatunkäännös"
+      },
+      {
+        "tag": "bible_translation_edition_year",
+        "en": "Exact abbreviation, edition, and year",
+        "local": "Tarkka lyhenne, laitos ja vuosi"
+      }
+    ],
+    "version_label_en": "Glossary version",
+    "version_label_local": "Sanaston versio"
+  },
+  "signoff": {
+    "heading_en": "Final sign-off",
+    "heading_local": "Lopullinen vahvistus",
+    "confirmation_label_en": "Confirmation",
+    "confirmation_label_local": "Vahvistus",
+    "confirmation_en": "I have reviewed all {count} entries and entered a final Finnish term for every edited item.",
+    "confirmation_local": "Olen tarkastanut kaikki {count} termiä ja kirjannut lopullisen suomenkielisen termin jokaiseen muokattuun kohtaan.",
+    "rows": [
+      {
+        "tag": "signoff_approved_count",
+        "en": "Approved without edits",
+        "local": "Hyväksytty ilman muutoksia"
+      },
+      {
+        "tag": "signoff_edited_count",
+        "en": "Edited",
+        "local": "Muokattu"
+      },
+      {
+        "tag": "signoff_questions",
+        "en": "Questions remaining",
+        "local": "Avoimet kysymykset"
+      },
+      {
+        "tag": "signoff_name_date",
+        "en": "Name and date",
+        "local": "Nimi ja päivämäärä"
+      }
+    ]
+  },
+  "suggested_terms": {
+    "People group": "kansanryhmä",
+    "Unreached people group (UPG)": "saavuttamaton kansanryhmä (UPG)",
+    "Unengaged (people group)": "kansanryhmä, jonka parissa ei ole aktiivista lähetystyötä",
+    "Unengaged unreached people group (UUPG)": "saavuttamaton kansanryhmä, jonka parissa ei ole aktiivista lähetystyötä (UUPG)",
+    "Under-engaged (people group)": "kansanryhmä, jonka parissa lähetystyö on riittämätöntä",
+    "Frontier people (group)": "raja-alueen kansanryhmä (frontier)",
+    "Ethnolinguistic group": "etnolingvistinen ryhmä",
+    "Engagement / engaged (people group)": "aktiivinen lähetystyö / kansanryhmä, jonka parissa tehdään aktiivista lähetystyötä",
+    "Fruitful engagement": "hedelmällinen lähetystyö",
+    "Gospel access": "evankeliumin saatavuus",
+    "Gospel engagement": "evankeliumin aktiivinen julistaminen ja todeksi eläminen",
+    "Church-planting movement (CPM)": "seurakuntien istutusliike (CPM)",
+    "Indigenous church": "paikallissyntyinen seurakunta",
+    "The five \"selfs\" (of an indigenous church)": "paikallissyntyisen seurakunnan viisi itsenäisyyden tunnusmerkkiä",
+    "Residential engagement / workers in residence": "kansanryhmän keskellä asuvien työntekijöiden lähetystyö / paikan päällä asuvat työntekijät",
+    "Cross-cultural workers": "kulttuurirajat ylittävät työntekijät",
+    "Apostolic (pioneering) effort": "apostolinen pioneerityö",
+    "Pioneer work": "pioneerityö",
+    "Heart language": "sydämen kieli",
+    "Movement to Jesus": "liike, jossa ihmiset kääntyvät seuraamaan Jeesusta",
+    "Nonresident partners": "alueen ulkopuolelta tukevat kumppanit",
+    "Broader engagement (components)": "laajemman lähetystyön osa-alueet",
+    "Diaspora": "diaspora",
+    "Daily prayer (for a people group)": "päivittäinen rukous (kansanryhmän puolesta)",
+    "Intercessor / intercessors": "esirukoilija / esirukoilijat",
+    "Intercessory prayer": "esirukous",
+    "Daily prayer guide / daily prayer points": "päivittäinen rukousopas / päivittäiset rukousaiheet",
+    "Prayer prepares the way": "rukous valmistaa tien",
+    "Lord of the harvest": "elonkorjuun Herra",
+    "Adopt (an unengaged people group)": "adoptoida kansanryhmä, jonka parissa ei ole aktiivista lähetystyötä",
+    "Pray, give, and send": "rukoile, anna ja lähetä",
+    "Mobilize / mobilization": "mobilisoida / mobilisointi",
+    "Sending agency / sending agencies": "lähettävä järjestö / lähettävät järjestöt",
+    "Our gift to Jesus": "meidän lahjamme Jeesukselle",
+    "Priority — \"Engage every Unengaged People Group by 2033\"": "Painopiste – ”Aloittaa vuoteen 2033 mennessä aktiivinen lähetystyö jokaisen sellaisen kansanryhmän parissa, jonka keskuudessa sitä ei vielä tehdä”",
+    "Vision 2033": "Visio 2033",
+    "Every tribe, tongue, people, and nation": "jokaisesta heimosta, kielestä, kansasta ja maasta",
+    "A multitude of every people around the throne": "suuri kansanjoukko kaikista kansoista valtaistuimen ympärillä",
+    "DOXA partnership missionaries": "DOXA-kumppanuuden lähetystyöntekijät"
+  }
+}

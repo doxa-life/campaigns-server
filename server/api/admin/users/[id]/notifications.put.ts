@@ -5,8 +5,8 @@ type StatsKey = 'daily' | 'weekly' | 'monthly' | 'yearly'
 
 /**
  * Set a user's notification preferences from the user-management record: which stats-summary
- * frequencies they receive (only effective for stats-eligible roles), plus adoption and
- * contact-us opt-ins. Accepts a partial body and merges it with the user's current settings.
+ * frequencies they receive (only effective for stats-eligible roles), plus adoption,
+ * contact-us and glossary-review opt-ins. Accepts a partial body and merges it with the user's current settings.
  */
 export default defineEventHandler(async (event) => {
   await requirePermission(event, 'users.manage')
@@ -16,6 +16,7 @@ export default defineEventHandler(async (event) => {
     stats?: Partial<Record<StatsKey, boolean>>
     adoption?: boolean
     contact_us?: boolean
+    glossary_review?: boolean
   }>(event)
 
   const target = await userService.getUserById(userId)
@@ -35,6 +36,7 @@ export default defineEventHandler(async (event) => {
     },
     adoption: typeof body.adoption === 'boolean' ? body.adoption : current.adoption,
     contact_us: typeof body.contact_us === 'boolean' ? body.contact_us : current.contact_us,
+    glossary_review: typeof body.glossary_review === 'boolean' ? body.glossary_review : current.glossary_review,
   }
 
   // Audit only the settings that actually changed, with readable labels and On/Off values
@@ -57,6 +59,9 @@ export default defineEventHandler(async (event) => {
   }
   if (current.contact_us !== merged.contact_us) {
     changes['Contact-us notifications'] = { from: onOff(current.contact_us), to: onOff(merged.contact_us) }
+  }
+  if (current.glossary_review !== merged.glossary_review) {
+    changes['Glossary review notifications'] = { from: onOff(current.glossary_review), to: onOff(merged.glossary_review) }
   }
 
   try {

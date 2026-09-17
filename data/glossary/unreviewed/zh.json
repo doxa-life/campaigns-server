@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "locale_code": "zh",
+  "language_name_en": "Chinese",
+  "language_name_local": "简体中文",
+  "output_name": "Chinese",
+  "text_direction": "ltr",
+  "version_display": "In-use terminology · 2026-09-14",
+  "running_header": "DOXA.LIFE  ·  CHINESE TERMINOLOGY REVIEW",
+  "cover": {
+    "kicker": "Translator review form · 译者审核表",
+    "title": "Doxa.Life Chinese Glossary Review",
+    "subtitle": "English context · 建议中文术语 · 批准与修改",
+    "term_count_template": "{count} terms for review · 供审核的 {count} 个术语"
+  },
+  "instructions": {
+    "english_heading": "Instructions in English",
+    "english_purpose_label": "Purpose",
+    "english_purpose": "Please confirm or edit the suggested Chinese term for each English glossary entry. The Chinese suggestions are starting points, not approved translations.",
+    "english_items": [
+      "Read the English term, definition or meaning, example, and ‘Why it matters’ note before deciding.",
+      "Keep every numeric threshold and distinction exact, including ≤ 2%, ≤ 1%, ≤ 0.1%, the 100+ daily-intercessor goal, and the CPM measures.",
+      "Use standard Chinese spelling and script. Keep Doxa.Life and DOXA unchanged. Retain UPG, UUPG, and CPM alongside the Chinese phrase unless you recommend a stable Chinese acronym and explain it in Notes.",
+      "For biblical phrases, use the wording of the Bible translation most commonly used by your local church or Assemblies of God/Pentecostal community—not merely your personal preference. Record its exact title, abbreviation, edition, and year below. If local communities commonly use more than one translation, list the primary one first and note the others.",
+      "Check that related terms form a coherent family, especially engage / engaged / engagement / unengaged / under-engaged / fruitful engagement.",
+      "Choose Approve if the suggested Chinese term is accurate, natural in Chinese evangelical and missional usage, and suitable for both prose and interface labels.",
+      "Choose Edit if you prefer another term. Write the complete preferred term in the Final Chinese term field; do not merely describe the change."
+    ],
+    "local_heading": "中文说明",
+    "local_purpose_label": "目的",
+    "local_purpose": "请确认或修改英语词汇表中每个条目的建议中文术语。这些建议只是起点，并非已批准的译法。",
+    "local_items": [
+      "决定前，请阅读英语术语、定义或含义、例句以及“为何重要”的说明。",
+      "准确保留所有数字门槛和区别，包括 ≤ 2%、≤ 1%、≤ 0.1%、每天 100 多名代祷者的目标及 CPM 指标。",
+      "使用规范简体中文。Doxa.Life 和 DOXA 保持不变。UPG、UUPG 和 CPM 应与中文表达并列，除非您建议一个稳定的中文缩写并在备注中说明。",
+      "圣经用语应采用您当地教会或本地区神召会/五旬节群体最常使用的圣经译本措辞，而非仅按个人偏好。请记录准确书名、缩写、版本和年份。",
+      "检查 engage / engaged / engagement / unengaged / under-engaged / fruitful engagement 这一组相关术语是否一致。",
+      "若建议术语准确、符合中文福音派及宣教学惯用法，并适用于正文和界面标签，请选择批准。",
+      "若您更倾向其他术语，请选择修改，并在最终中文术语栏填写完整术语。"
+    ]
+  },
+  "section_titles": {
+    "People-group terminology": "族群术语",
+    "Engagement and mission language": "宣教参与和使命用语",
+    "Prayer and intercession": "祷告与代祷",
+    "Adoption and mobilization": "认领与动员",
+    "Vision and goals language": "异象与目标用语"
+  },
+  "field_labels": {
+    "Meaning": "英语含义",
+    "Site definition": "网站定义（英语）",
+    "Site definition (Vision page — \"What is Engagement?\")": "异象页面的网站定义（英语）",
+    "Example": "英语例句",
+    "Why it matters": "为何重要"
+  },
+  "labels": {
+    "seed_term": "基础术语",
+    "suggested_term_en": "Suggested Chinese term",
+    "suggested_term_local": "建议中文术语",
+    "section_note_en": "Section note",
+    "section_note_local": "本节说明",
+    "decision_en": "Decision",
+    "decision_local": "决定",
+    "approve_en": "Approve",
+    "approve_local": "批准",
+    "edit_en": "Edit",
+    "edit_local": "修改",
+    "final_term_en": "Final Chinese term",
+    "final_term_local": "最终中文术语",
+    "translator_notes_en": "Translator notes",
+    "translator_notes_local": "译者备注"
+  },
+  "reviewer": {
+    "heading_en": "Reviewer details",
+    "heading_local": "审核者信息",
+    "bible_label_en": "Bible translation",
+    "bible_label_local": "圣经译本",
+    "bible_note_en": "Please report the translation most regularly used by your local church community, even if your personal preference is different.",
+    "bible_note_local": "请填写您当地教会群体通常使用的译本，即使您的个人偏好不同。",
+    "rows": [
+      {
+        "tag": "reviewer_name",
+        "en": "Translator",
+        "local": "译者"
+      },
+      {
+        "tag": "review_date",
+        "en": "Date",
+        "local": "日期"
+      },
+      {
+        "tag": "reviewer_church_region",
+        "en": "Church, community, or region",
+        "local": "教会、群体或地区"
+      },
+      {
+        "tag": "bible_translation_primary",
+        "en": "Bible translation used most regularly",
+        "local": "最常使用的圣经译本"
+      },
+      {
+        "tag": "bible_translation_edition_year",
+        "en": "Exact abbreviation, edition, and year",
+        "local": "准确缩写、版本和年份"
+      }
+    ],
+    "version_label_en": "Glossary version",
+    "version_label_local": "词汇表版本"
+  },
+  "signoff": {
+    "heading_en": "Final sign-off",
+    "heading_local": "最终确认",
+    "confirmation_label_en": "Confirmation",
+    "confirmation_label_local": "确认",
+    "confirmation_en": "I have reviewed all {count} entries and entered a final Chinese term for every edited item.",
+    "confirmation_local": "我已审核全部 {count} 个条目，并为每个修改项填写最终中文术语。",
+    "rows": [
+      {
+        "tag": "signoff_approved_count",
+        "en": "Approved without edits",
+        "local": "无修改批准"
+      },
+      {
+        "tag": "signoff_edited_count",
+        "en": "Edited",
+        "local": "已修改"
+      },
+      {
+        "tag": "signoff_questions",
+        "en": "Questions remaining",
+        "local": "待解决问题"
+      },
+      {
+        "tag": "signoff_name_date",
+        "en": "Name and date",
+        "local": "姓名和日期"
+      }
+    ]
+  },
+  "suggested_terms": {
+    "People group": "族群",
+    "Unreached people group (UPG)": "未得之民",
+    "Unengaged (people group)": "未接触",
+    "Unengaged unreached people group (UUPG)": "尚无福音工作的未得之族（UUPG）",
+    "Under-engaged (people group)": "福音工作投入不足的族群",
+    "Frontier people (group)": "前沿族群",
+    "Ethnolinguistic group": "族裔语言群体",
+    "Engagement / engaged (people group)": "接触状态",
+    "Fruitful engagement": "有果效的宣教参与",
+    "Gospel access": "福音可及性",
+    "Gospel engagement": "积极的福音接触",
+    "Church-planting movement (CPM)": "植堂运动（CPM）",
+    "Indigenous church": "本土教会",
+    "The five \"selfs\" (of an indigenous church)": "本土教会的五项自立原则",
+    "Residential engagement / workers in residence": "驻地的跨文化工人",
+    "Cross-cultural workers": "跨文化工人",
+    "Apostolic (pioneering) effort": "使徒性（开拓性）努力",
+    "Pioneer work": "开拓工作",
+    "Heart language": "心灵语言",
+    "Movement to Jesus": "归向耶稣的运动",
+    "Nonresident partners": "非驻地伙伴",
+    "Broader engagement (components)": "广义宣教参与的组成部分",
+    "Diaspora": "散居群体",
+    "Daily prayer (for a people group)": "每日祷告",
+    "Intercessor / intercessors": "代祷者",
+    "Intercessory prayer": "代祷",
+    "Daily prayer guide / daily prayer points": "每日祷告指南／每日祷告事项",
+    "Prayer prepares the way": "祷告预备道路",
+    "Lord of the harvest": "庄稼的主",
+    "Adopt (an unengaged people group)": "认领",
+    "Pray, give, and send": "祷告、奉献并差派",
+    "Mobilize / mobilization": "动员",
+    "Sending agency / sending agencies": "差派机构",
+    "Our gift to Jesus": "我们献给耶稣的礼物",
+    "Priority — \"Engage every Unengaged People Group by 2033\"": "优先事项：到2033年参与服事每一个尚无福音工作的族群",
+    "Vision 2033": "2033异象",
+    "Every tribe, tongue, people, and nation": "各支派、各方言、各民族、各邦国",
+    "A multitude of every people around the throne": "宝座周围来自万民的大群人",
+    "DOXA partnership missionaries": "DOXA伙伴关系宣教士"
+  },
+  "script_font": "Droid Sans Fallback",
+  "pdf_font_family": "Droid Sans Fallback"
+}

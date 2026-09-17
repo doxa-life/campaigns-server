@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "locale_code": "ar",
+  "language_name_en": "Arabic",
+  "language_name_local": "العربية",
+  "output_name": "Arabic",
+  "text_direction": "rtl",
+  "version_display": "In-use terminology · 2026-09-14",
+  "running_header": "DOXA.LIFE  ·  ARABIC TERMINOLOGY REVIEW",
+  "cover": {
+    "kicker": "Translator review form · نموذج مراجعة المترجم",
+    "title": "Doxa.Life Arabic Glossary Review",
+    "subtitle": "English context · مصطلحات عربية مقترحة · الموافقة والتعديلات",
+    "term_count_template": "{count} terms for review · {count} مصطلحًا للمراجعة"
+  },
+  "instructions": {
+    "english_heading": "Instructions in English",
+    "english_purpose_label": "Purpose",
+    "english_purpose": "Please confirm or edit the suggested Arabic term for each English glossary entry. The Arabic suggestions are starting points, not approved translations.",
+    "english_items": [
+      "Read the English term, definition or meaning, example, and ‘Why it matters’ note before deciding.",
+      "Keep every numeric threshold and distinction exact, including ≤ 2%, ≤ 1%, ≤ 0.1%, the 100+ daily-intercessor goal, and the CPM measures.",
+      "Use standard Arabic spelling and script. Keep Doxa.Life and DOXA unchanged. Retain UPG, UUPG, and CPM alongside the Arabic phrase unless you recommend a stable Arabic acronym and explain it in Notes.",
+      "For biblical phrases, use the wording of the Bible translation most commonly used by your local church or Assemblies of God/Pentecostal community—not merely your personal preference. Record its exact title, abbreviation, edition, and year below. If local communities commonly use more than one translation, list the primary one first and note the others.",
+      "Check that related terms form a coherent family, especially engage / engaged / engagement / unengaged / under-engaged / fruitful engagement.",
+      "Choose Approve if the suggested Arabic term is accurate, natural in Arabic evangelical and missional usage, and suitable for both prose and interface labels.",
+      "Choose Edit if you prefer another term. Write the complete preferred term in the Final Arabic term field; do not merely describe the change."
+    ],
+    "local_heading": "التعليمات باللغة العربية",
+    "local_purpose_label": "الغرض",
+    "local_purpose": "يرجى تأكيد المصطلح العربي المقترح لكل مدخل في المسرد الإنجليزي أو تعديله. هذه المقترحات نقاط بداية وليست ترجمات معتمدة.",
+    "local_items": [
+      "اقرأ المصطلح الإنجليزي والتعريف أو المعنى والمثال وملاحظة «لماذا يهم» قبل اتخاذ القرار.",
+      "حافظ بدقة على جميع الحدود والفروق العددية، ومنها ≤ 2% و≤ 1% و≤ 0.1% وهدف أكثر من 100 شفيع يوميًا ومقاييس CPM.",
+      "استخدم العربية الفصحى الواضحة، واترك Doxa.Life وDOXA دون تغيير. أبقِ UPG وUUPG وCPM بجانب العبارة العربية إلا إذا اقترحت اختصارًا عربيًا ثابتًا وشرحته في الملاحظات.",
+      "في العبارات الكتابية استخدم صياغة ترجمة الكتاب المقدس الأكثر استعمالًا في كنيستك المحلية أو مجتمع جمعيات الله/الخمسينيين في منطقتك، وسجّل الاسم الدقيق والاختصار والطبعة والسنة.",
+      "تحقق من اتساق عائلة المصطلحات engage / engaged / engagement / unengaged / under-engaged / fruitful engagement.",
+      "اختر موافقة إذا كان المصطلح المقترح دقيقًا وطبيعيًا في الاستعمال الإنجيلي وعلم الإرساليات ومناسبًا للنص وواجهة الاستخدام.",
+      "اختر تعديل إذا كنت تفضل مصطلحًا آخر، واكتب المصطلح كاملًا في حقل المصطلح العربي النهائي."
+    ]
+  },
+  "section_titles": {
+    "People-group terminology": "مصطلحات المجموعات الإثنية اللغوية",
+    "Engagement and mission language": "لغة الانخراط الإرسالي والإرسالية",
+    "Prayer and intercession": "الصلاة والشفاعة",
+    "Adoption and mobilization": "التبنّي والتعبئة",
+    "Vision and goals language": "لغة الرؤية والأهداف"
+  },
+  "field_labels": {
+    "Meaning": "المعنى بالإنجليزية",
+    "Site definition": "تعريف الموقع بالإنجليزية",
+    "Site definition (Vision page — \"What is Engagement?\")": "تعريف الموقع في صفحة الرؤية بالإنجليزية",
+    "Example": "مثال بالإنجليزية",
+    "Why it matters": "لماذا يهم"
+  },
+  "labels": {
+    "seed_term": "المصطلح الأساس",
+    "suggested_term_en": "Suggested Arabic term",
+    "suggested_term_local": "المصطلح العربي المقترح",
+    "section_note_en": "Section note",
+    "section_note_local": "ملاحظة القسم",
+    "decision_en": "Decision",
+    "decision_local": "القرار",
+    "approve_en": "Approve",
+    "approve_local": "موافقة",
+    "edit_en": "Edit",
+    "edit_local": "تعديل",
+    "final_term_en": "Final Arabic term",
+    "final_term_local": "المصطلح العربي النهائي",
+    "translator_notes_en": "Translator notes",
+    "translator_notes_local": "ملاحظات المترجم"
+  },
+  "reviewer": {
+    "heading_en": "Reviewer details",
+    "heading_local": "بيانات المراجع",
+    "bible_label_en": "Bible translation",
+    "bible_label_local": "ترجمة الكتاب المقدس",
+    "bible_note_en": "Please report the translation most regularly used by your local church community, even if your personal preference is different.",
+    "bible_note_local": "اذكر الترجمة التي تستخدمها جماعة كنيستك المحلية بانتظام، حتى لو كان تفضيلك الشخصي مختلفًا.",
+    "rows": [
+      {
+        "tag": "reviewer_name",
+        "en": "Translator",
+        "local": "المترجم"
+      },
+      {
+        "tag": "review_date",
+        "en": "Date",
+        "local": "التاريخ"
+      },
+      {
+        "tag": "reviewer_church_region",
+        "en": "Church, community, or region",
+        "local": "الكنيسة أو المجتمع أو المنطقة"
+      },
+      {
+        "tag": "bible_translation_primary",
+        "en": "Bible translation used most regularly",
+        "local": "ترجمة الكتاب المقدس الأكثر استعمالًا"
+      },
+      {
+        "tag": "bible_translation_edition_year",
+        "en": "Exact abbreviation, edition, and year",
+        "local": "الاختصار والطبعة والسنة بدقة"
+      }
+    ],
+    "version_label_en": "Glossary version",
+    "version_label_local": "إصدار المسرد"
+  },
+  "signoff": {
+    "heading_en": "Final sign-off",
+    "heading_local": "الاعتماد النهائي",
+    "confirmation_label_en": "Confirmation",
+    "confirmation_label_local": "التأكيد",
+    "confirmation_en": "I have reviewed all {count} entries and entered a final Arabic term for every edited item.",
+    "confirmation_local": "راجعت جميع المداخل وعددها {count} وأدخلت مصطلحًا عربيًا نهائيًا لكل عنصر عدّلته.",
+    "rows": [
+      {
+        "tag": "signoff_approved_count",
+        "en": "Approved without edits",
+        "local": "مُعتمد دون تعديل"
+      },
+      {
+        "tag": "signoff_edited_count",
+        "en": "Edited",
+        "local": "مُعدّل"
+      },
+      {
+        "tag": "signoff_questions",
+        "en": "Questions remaining",
+        "local": "الأسئلة المتبقية"
+      },
+      {
+        "tag": "signoff_name_date",
+        "en": "Name and date",
+        "local": "الاسم والتاريخ"
+      }
+    ]
+  },
+  "suggested_terms": {
+    "People group": "الجماعة العرقية",
+    "Unreached people group (UPG)": "جماعة عرقية غير مُبلَّغة",
+    "Unengaged (people group)": "غير مُنخرَط",
+    "Unengaged unreached people group (UUPG)": "مجموعة إثنية لغوية غير موصول إليها وبلا انخراط إرسالي نشط (UUPG)",
+    "Under-engaged (people group)": "غير مثمر",
+    "Frontier people (group)": "الشعوب الغير مخدومة",
+    "Ethnolinguistic group": "مجموعة إثنية لغوية",
+    "Engagement / engaged (people group)": "مُنخرَط",
+    "Fruitful engagement": "تفاعل مثمر",
+    "Gospel access": "الوصول إلى الإنجيل",
+    "Gospel engagement": "التفاعل مع الإنجيل",
+    "Church-planting movement (CPM)": "حركة زرع الكنائس (CPM)",
+    "Indigenous church": "كنيسة محلّية",
+    "The five \"selfs\" (of an indigenous church)": "مبادئ الاستقلال الذاتي الخمسة للكنيسة المحلية",
+    "Residential engagement / workers in residence": "مقيمون",
+    "Cross-cultural workers": "عاملون عابرون للثقافات",
+    "Apostolic (pioneering) effort": "جهد رسولي (ريادي)",
+    "Pioneer work": "عمل ريادي",
+    "Heart language": "لغة القلب",
+    "Movement to Jesus": "حركة نحو يسوع",
+    "Nonresident partners": "شركاء غير مقيمين",
+    "Broader engagement (components)": "مكوّنات الانخراط الإرسالي الأوسع",
+    "Diaspora": "الشتات",
+    "Daily prayer (for a people group)": "الصلاة اليومية",
+    "Intercessor / intercessors": "المتشفعين",
+    "Intercessory prayer": "صلاة شفاعية",
+    "Daily prayer guide / daily prayer points": "نقاط الصلاة اليومية",
+    "Prayer prepares the way": "الصلاة تمهد الطريق",
+    "Lord of the harvest": "رب الحصاد",
+    "Adopt (an unengaged people group)": "تبنّى",
+    "Pray, give, and send": "الصلاة والعطاء والإرسال",
+    "Mobilize / mobilization": "حشد",
+    "Sending agency / sending agencies": "هيئة إرسال إرسالية",
+    "Our gift to Jesus": "هديتنا إلى الرب يسوع",
+    "Priority — \"Engage every Unengaged People Group by 2033\"": "الأولوية: إشراك كل مجموعة غير منخرطة بحلول 2033",
+    "Vision 2033": "رؤية 2033",
+    "Every tribe, tongue, people, and nation": "كل قبيلة ولسان وشعب وأمة",
+    "A multitude of every people around the throne": "جمع كثير من كل الشعوب حول العرش",
+    "DOXA partnership missionaries": "مبشّر بالتعاون مع شركاء دوكسا"
+  },
+  "script_font": "Noto Sans Arabic",
+  "pdf_font_family": "Noto Sans Arabic"
+}

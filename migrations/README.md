@@ -127,6 +127,29 @@ export default class AddUserPreferencesMigration {
 }
 ```
 
+## Seeding glossary languages
+
+The glossary ships with the languages whose reviewed wording is in `data/glossary/languages/`; migration 101 seeds every file there on a fresh database. Drafts still awaiting a reviewer live in `data/glossary/unreviewed/` and are not seeded. To enable one or more languages after 101 has run in production:
+
+1. Put the reviewer's wording into `data/glossary/unreviewed/xx.json`.
+2. `git mv data/glossary/unreviewed/xx.json data/glossary/languages/xx.json`, once per language being enabled.
+3. Add one migration naming every code being enabled in this step:
+
+```javascript
+import { seedGlossaryLanguages } from './lib/glossary-seed.js'
+
+export default class SeedGlossaryItalianRomanianMigration {
+  id = 1NN
+  name = 'Seed the Italian and Romanian glossaries from their reviewed files'
+
+  async up(sql) {
+    await seedGlossaryLanguages(sql, ['it', 'ro'])
+  }
+}
+```
+
+4. Deploy. Production seeds those codes from the new migration. A fresh database gets them from 101, and the new migration finds them present and skips.
+
 ## Testing
 
 You can test the migration system using:

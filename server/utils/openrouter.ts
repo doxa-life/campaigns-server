@@ -13,7 +13,7 @@
  */
 
 import { getLanguageByCode, getLanguageName } from '~/utils/languages'
-import { GLOSSARIES } from '../../config/glossaries'
+import { getGlossaryPairs, type GlossaryPair } from '../database/glossary'
 import { appConfigService } from '../database/app-config'
 
 /** app_config key holding the default OpenRouter model used for translation. */
@@ -101,13 +101,51 @@ function promptLanguageName(code: string): string {
   return getLanguageByCode(code)?.translationName || getLanguageName(code)
 }
 
-function buildSystemPrompt(targetLanguage: string, sourceLanguage: string, fragmentCount: number): string {
+/** How long a language's glossary is reused before it is read again. */
+const GLOSSARY_CACHE_MS = 5 * 60 * 1000
+
+const glossaryCache = new Map<string, { pairs: GlossaryPair[]; expires: number }>()
+
+/**
+ * The approved wording for a language, as reviewers left it. Cached briefly so
+ * a batch of translation calls does not re-read the table for every request,
+ * and short enough that a confirmed term reaches translation without a deploy.
+ */
+async function loadGlossary(code: string): Promise<GlossaryPair[]> {
+  const cached = glossaryCache.get(code)
+  if (cached && cached.expires > Date.now()) return cached.pairs
+
+  let pairs: GlossaryPair[] = []
+  try {
+    pairs = await getGlossaryPairs(code)
+  } catch (e: any) {
+    // A translation without its glossary is worse than ideal but still usable;
+    // failing the whole request over a glossary read is not.
+    console.warn(`[Translate] could not load the ${code} glossary: ${e?.message}`)
+    return cached?.pairs ?? []
+  }
+
+  glossaryCache.set(code, { pairs, expires: Date.now() + GLOSSARY_CACHE_MS })
+  return pairs
+}
+
+/** Drop cached glossaries so the next translation picks up an edited term. */
+export function clearGlossaryCache(code?: string): void {
+  if (code) glossaryCache.delete(code)
+  else glossaryCache.clear()
+}
+
+function buildSystemPrompt(
+  targetLanguage: string,
+  sourceLanguage: string,
+  fragmentCount: number,
+  glossary: GlossaryPair[]
+): string {
   const source = promptLanguageName(sourceLanguage)
   const target = promptLanguageName(targetLanguage)
 
-  const glossary = GLOSSARIES[targetLanguage]
-  const glossaryBlock = glossary?.length
-    ? `\nGlossary — always use these translations, inflected correctly for the surrounding grammar:\n${glossary.map(([s, t]) => `${s} → ${t}`).join('\n')}\n`
+  const glossaryBlock = glossary.length
+    ? `\nGlossary — always use these translations, inflected correctly for the surrounding grammar:\n${glossary.map(({ term, value }) => `${term} → ${value}`).join('\n')}\n`
     : ''
 
   return `You are a professional translator for a Christian prayer platform. Translate daily prayer content from ${source} into ${target}.
@@ -326,11 +364,12 @@ export async function openrouterTranslateTexts(
   if (texts.length === 0) return []
 
   const model = await getTranslationModel(targetLanguage)
+  const glossary = await loadGlossary(targetLanguage)
 
   const body = {
     model,
     messages: [
-      { role: 'system', content: buildSystemPrompt(targetLanguage, sourceLanguage, texts.length) },
+      { role: 'system', content: buildSystemPrompt(targetLanguage, sourceLanguage, texts.length, glossary) },
       { role: 'user', content: JSON.stringify({ fragments: texts }) }
     ],
     response_format: { type: 'json_object' }

@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "locale_code": "ro",
+  "language_name_en": "Romanian",
+  "language_name_local": "română",
+  "output_name": "Romanian",
+  "text_direction": "ltr",
+  "version_display": "In-use terminology · 2026-09-14",
+  "running_header": "DOXA.LIFE  ·  ROMANIAN TERMINOLOGY REVIEW",
+  "cover": {
+    "kicker": "Translator review form · Formular pentru traducător",
+    "title": "Doxa.Life Romanian Glossary Review",
+    "subtitle": "English context · Suggested Romanian terms · Approval and edits",
+    "term_count_template": "{count} terms for review · {count} de termeni pentru verificare"
+  },
+  "instructions": {
+    "english_heading": "Instructions in English",
+    "english_purpose_label": "Purpose",
+    "english_purpose": "Please confirm or edit the suggested Romanian term for each English glossary entry. The Romanian suggestions are starting points, not approved translations.",
+    "english_items": [
+      "Read the English term, definition or meaning, example, and ‘Why it matters’ note before deciding.",
+      "Keep every numeric threshold and distinction exact, including ≤ 2%, ≤ 1%, ≤ 0.1%, the 100+ daily-intercessor goal, and the CPM measures.",
+      "Use Romanian diacritics. Keep Doxa.Life and DOXA unchanged. Retain UPG, UUPG, and CPM alongside the Romanian phrase unless you recommend a stable Romanian acronym and explain it in Notes.",
+      "For biblical phrases, use the wording of the Bible translation most commonly used by your local church or Assemblies of God/Pentecostal community—not merely your personal preference. Record its exact title, abbreviation, edition, and year below. If local communities commonly use more than one translation, list the primary one first and note the others.",
+      "Check that related terms form a coherent family, especially engage / engaged / engagement / unengaged / under-engaged / fruitful engagement.",
+      "Choose Approve if the suggested Romanian term is accurate, natural in Romanian evangelical and missional usage, and suitable for both prose and interface labels.",
+      "Choose Edit if you prefer another term. Write the complete preferred term in the Final Romanian term field; do not merely describe the change."
+    ],
+    "local_heading": "Instrucțiuni în limba română",
+    "local_purpose_label": "Scop",
+    "local_purpose": "Vă rugăm să confirmați sau să modificați termenul românesc sugerat pentru fiecare intrare din glosarul englez. Sugestiile în limba română sunt puncte de pornire, nu traduceri aprobate.",
+    "local_items": [
+      "Citiți termenul în engleză, definiția sau sensul, exemplul și explicația „De ce contează” înainte de a lua o decizie.",
+      "Păstrați cu exactitate toate pragurile numerice și distincțiile, inclusiv ≤ 2%, ≤ 1%, ≤ 0,1%, obiectivul de cel puțin 100 de mijlocitori zilnici și criteriile CPM.",
+      "Folosiți diacriticele românești. Păstrați neschimbate denumirile Doxa.Life și DOXA. Păstrați UPG, UUPG și CPM alături de expresia românească, cu excepția cazului în care recomandați un acronim românesc stabil și îl explicați la Note.",
+      "Pentru expresiile biblice, folosiți formularea traducerii Bibliei utilizate cel mai frecvent de biserica dumneavoastră locală sau de comunitatea penticostală/Assemblies of God din zonă, nu doar versiunea pe care o preferați personal. Consemnați mai jos titlul exact, abrevierea, ediția și anul. Dacă în comunitățile locale se folosesc frecvent mai multe traduceri, treceți-o mai întâi pe cea principală și menționați-le pe celelalte.",
+      "Verificați ca termenii înrudiți să formeze o familie coerentă, în special engage / engaged / engagement / unengaged / under-engaged / fruitful engagement.",
+      "Bifați Aprob dacă termenul românesc sugerat este exact, firesc în limbajul evanghelic și misiologic românesc și potrivit atât în texte, cât și în etichetele interfeței.",
+      "Bifați Modific dacă preferați un alt termen. Scrieți termenul complet preferat în câmpul Termen românesc final; nu descrieți doar schimbarea."
+    ]
+  },
+  "section_titles": {
+    "People-group terminology": "Terminologia grupurilor etnolingvistice",
+    "Engagement and mission language": "Terminologia angajării misionare și a misiunii",
+    "Prayer and intercession": "Rugăciune și mijlocire",
+    "Adoption and mobilization": "Adoptare misionară și mobilizare",
+    "Vision and goals language": "Terminologia viziunii și a obiectivelor"
+  },
+  "field_labels": {
+    "Meaning": "Sens în engleză",
+    "Site definition": "Definiție pe site (în engleză)",
+    "Site definition (Vision page — \"What is Engagement?\")": "Definiție pe site, pagina Vision (în engleză)",
+    "Example": "Exemplu în engleză",
+    "Why it matters": "De ce contează",
+    "Context": "Context"
+  },
+  "labels": {
+    "seed_term": "SEED TERM",
+    "suggested_term_en": "Suggested Romanian term",
+    "suggested_term_local": "Termen românesc sugerat",
+    "section_note_en": "Section note",
+    "section_note_local": "Notă pentru secțiune",
+    "decision_en": "Decision",
+    "decision_local": "Decizie",
+    "approve_en": "Approve",
+    "approve_local": "Aprob",
+    "edit_en": "Edit",
+    "edit_local": "Modific",
+    "final_term_en": "Final Romanian term",
+    "final_term_local": "Termen românesc final",
+    "translator_notes_en": "Translator notes",
+    "translator_notes_local": "Notele traducătorului"
+  },
+  "reviewer": {
+    "heading_en": "Reviewer details",
+    "heading_local": "Datele recenzentului",
+    "bible_label_en": "Bible translation",
+    "bible_label_local": "Traducerea Bibliei",
+    "bible_note_en": "Please report the translation most regularly used by your local church community, even if your personal preference is different.",
+    "bible_note_local": "Vă rugăm să indicați traducerea folosită în mod obișnuit de comunitatea bisericii locale, chiar dacă preferința dumneavoastră personală este diferită.",
+    "rows": [
+      {
+        "tag": "reviewer_name",
+        "en": "Translator",
+        "local": "Traducător"
+      },
+      {
+        "tag": "review_date",
+        "en": "Date",
+        "local": "Data"
+      },
+      {
+        "tag": "reviewer_church_region",
+        "en": "Church, community, or region",
+        "local": "Biserica, comunitatea ori regiunea"
+      },
+      {
+        "tag": "bible_translation_primary",
+        "en": "Bible translation used most regularly",
+        "local": "Traducerea Bibliei folosită cel mai frecvent"
+      },
+      {
+        "tag": "bible_translation_edition_year",
+        "en": "Exact abbreviation, edition, and year",
+        "local": "Abrevierea, ediția și anul exact"
+      }
+    ],
+    "version_label_en": "Glossary version",
+    "version_label_local": "Versiunea glosarului"
+  },
+  "signoff": {
+    "heading_en": "Final sign-off",
+    "heading_local": "Confirmare finală",
+    "confirmation_label_en": "Confirmation",
+    "confirmation_label_local": "Confirmare",
+    "confirmation_en": "I have reviewed all {count} entries and entered a final Romanian term for every edited item.",
+    "confirmation_local": "Am verificat toate cele {count} de intrări și am completat un termen românesc final pentru fiecare element modificat.",
+    "rows": [
+      {
+        "tag": "signoff_approved_count",
+        "en": "Approved without edits",
+        "local": "Aprobate fără modificări"
+      },
+      {
+        "tag": "signoff_edited_count",
+        "en": "Edited",
+        "local": "Modificate"
+      },
+      {
+        "tag": "signoff_questions",
+        "en": "Questions remaining",
+        "local": "Întrebări rămase"
+      },
+      {
+        "tag": "signoff_name_date",
+        "en": "Name and date",
+        "local": "Nume și dată"
+      }
+    ]
+  },
+  "suggested_terms": {
+    "People group": "grup etnic",
+    "Unreached people group (UPG)": "grup etnic neatins",
+    "Unengaged (people group)": "neangajat",
+    "Unengaged unreached people group (UUPG)": "grup etnolingvistic neatins și fără angajare misionară activă (UUPG)",
+    "Under-engaged (people group)": "grup etnolingvistic cu angajare misionară insuficientă",
+    "Frontier people (group)": "grup etnolingvistic de frontieră",
+    "Ethnolinguistic group": "grup etnolingvistic",
+    "Engagement / engaged (people group)": "angajat / angajare",
+    "Fruitful engagement": "angajare misionară roditoare",
+    "Gospel access": "acces la Evanghelie",
+    "Gospel engagement": "lucrare activă de vestire și trăire a Evangheliei",
+    "Church-planting movement (CPM)": "mișcare de plantare de biserici (CPM)",
+    "Indigenous church": "biserică autohtonă",
+    "The five \"selfs\" (of an indigenous church)": "cele cinci caracteristici de autonomie ale unei biserici autohtone",
+    "Residential engagement / workers in residence": "lucrători interculturali rezidenți",
+    "Cross-cultural workers": "lucrători interculturali",
+    "Apostolic (pioneering) effort": "efort apostolic (de pionierat)",
+    "Pioneer work": "lucrare de pionierat",
+    "Heart language": "limba inimii",
+    "Movement to Jesus": "mișcare de oameni care vin la Isus și Îl urmează",
+    "Nonresident partners": "parteneri nerezidenți",
+    "Broader engagement (components)": "componente ale implicării misionare extinse",
+    "Diaspora": "diaspora",
+    "Daily prayer (for a people group)": "rugăciune zilnică",
+    "Intercessor / intercessors": "mijlocitor",
+    "Intercessory prayer": "rugăciune de mijlocire",
+    "Daily prayer guide / daily prayer points": "ghid zilnic de rugăciune / subiecte zilnice de rugăciune",
+    "Prayer prepares the way": "rugăciunea pregătește calea",
+    "Lord of the harvest": "Domnul secerișului",
+    "Adopt (an unengaged people group)": "adoptare",
+    "Pray, give, and send": "roagă-te, dăruiește și trimite",
+    "Mobilize / mobilization": "mobiliza",
+    "Sending agency / sending agencies": "agenție misionară de trimitere / agenții misionare de trimitere",
+    "Our gift to Jesus": "darul nostru pentru Isus",
+    "Priority — \"Engage every Unengaged People Group by 2033\"": "Prioritate — „Să inițiem până în 2033 o lucrare misionară activă în fiecare grup etnolingvistic încă neangajat misionar”",
+    "Vision 2033": "Viziunea 2033",
+    "Every tribe, tongue, people, and nation": "din orice neam, din orice seminție, din orice popor și de orice limbă",
+    "A multitude of every people around the throne": "o mare mulțime din toate popoarele în jurul tronului",
+    "DOXA partnership missionaries": "misionari ai parteneriatului DOXA"
+  }
+}

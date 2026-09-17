@@ -6,20 +6,22 @@
       "namePopulation": "Die {name} zählen etwa {population} Menschen.",
       "peopleDescWithAltNames": "Sie sind {peopleDesc} und können auch als {altNames} bekannt sein.",
       "peopleDesc": "Sie sind {peopleDesc}.",
-      "indigenousClusterBloc": "Sie sind ein indigenes Volk, im Volkscluster {cluster} des Affinitätsblocks {bloc}.",
-      "diasporaClusterBloc": "Sie sind ein Diaspora-Volk, im Volkscluster {cluster} des Affinitätsblocks {bloc}.",
-      "indigenousBloc": "Sie sind ein indigenes Volk, im Affinitätsblock {bloc}.",
-      "diasporaBloc": "Sie sind ein Diaspora-Volk, im Affinitätsblock {bloc}.",
-      "indigenousOnly": "Sie sind ein indigenes Volk.",
-      "diasporaOnly": "Sie sind ein Diaspora-Volk.",
+      "indigenousClusterBloc": "Sie sind eine einheimische Volksgruppe im Volkscluster {cluster} des Affinitätsblocks {bloc}.",
+      "diasporaClusterBloc": "Sie sind eine Diaspora-Volksgruppe im Volkscluster {cluster} des Affinitätsblocks {bloc}.",
+      "indigenousBloc": "Sie sind eine einheimische Volksgruppe im Affinitätsblock {bloc}.",
+      "diasporaBloc": "Sie sind eine Diaspora-Volksgruppe im Affinitätsblock {bloc}.",
+      "indigenousOnly": "Sie sind eine einheimische Volksgruppe.",
+      "diasporaOnly": "Sie sind eine Diaspora-Volksgruppe.",
       "blocOnly": "Sie gehören zum Affinitätsblock {bloc}.",
       "religion": "Ihre Hauptreligion ist {religion}.",
       "language": "Sie sprechen hauptsächlich {language}.",
-      "andUnreached": "und Unerreicht",
-      "butUnreached": "aber Unerreicht"
+      "statusEngaged": "engagiert",
+      "statusUnengaged": "unberührt",
+      "statusEngagedUnreached": "engagiert, aber unerreicht",
+      "statusUnengagedUnreached": "unberührt und unerreicht"
     },
     "categories": {
-      "engagement": "Status",
+      "engagement": "Arbeit vor Ort",
       "basic": "Grundinformationen",
       "identifiers": "Kennungen",
       "geography": "Geografie",
@@ -29,7 +31,7 @@
       "religion": "Religion",
       "rop": "Volksklassifizierung (ROP)",
       "resources": "Verfügbare Ressourcen",
-      "workers": "Engagement Criteria",
+      "workers": "Kriterien für Arbeit vor Ort",
       "wagf": "WAGF/Doxa",
       "media": "Medien"
     },
@@ -52,12 +54,12 @@
       "imb_subregion": "Unterregion",
       "latitude": "Breitengrad",
       "longitude": "Längengrad",
-      "imb_is_indigenous": "Indigener Status",
+      "imb_is_indigenous": "Einheimisch oder Diaspora",
       "population": "Bevölkerung",
       "imb_population_class": "Bevölkerungsklasse",
       "evangelical_pct": "Evangelikaler Anteil %",
       "imb_evangelical_level": "Evangelikales Niveau",
-      "engagement_status": "Engagementstatus",
+      "engagement_status": "Status der Arbeit vor Ort",
       "believers_count": "Believers Count",
       "imb_congregation_existing": "Gemeinde vorhanden",
       "imb_church_planting": "Gemeindegründungsstatus",
@@ -130,7 +132,7 @@
       },
       "indigenous": {
         "diaspora": "Diaspora",
-        "indigenous": "Indigene"
+        "indigenous": "Einheimisch"
       },
       "populationClass": {
         "0": "Weniger als 10.000",
@@ -160,7 +162,7 @@
       },
       "engagementStatus": {
         "engaged": "Engagiert",
-        "unengaged": "Nicht-engagiert"
+        "unengaged": "Unberührt"
       },
       "yesNo": {
         "no": "Nein",
@@ -182,13 +184,13 @@
         "6": "10% oder mehr Evangelikale"
       },
       "strategicPriorityIndex": {
-        "0": "Nicht-engagiert und unerreicht",
+        "0": "Völlig unerreicht (VUVG)",
         "1": "Engagiert, aber unerreicht",
         "2": "Nicht mehr unerreicht"
       },
       "lostnessPriorityIndex": {
-        "0": "Frontier-unerreichte Volksgruppe",
-        "1": "Pionier-unerreichte Volksgruppe",
+        "0": "Unerreichte Frontier-Volksgruppe",
+        "1": "Unerreichte Pionier-Volksgruppe",
         "2": "Expandierende unerreichte Volksgruppe",
         "3": "Minimal erreichte Volksgruppe",
         "4": "Marginal erreichte Volksgruppe",
@@ -196,14 +198,14 @@
         "6": "Signifikant erreichte Volksgruppe"
       },
       "affinityCode": {
-        "AG800": "Amerikanische Völker",
-        "AG650": "Asiatisch-pazifische Völker",
-        "AG400": "Zentralasiatische Völker",
-        "AG900": "Gehörlose Völker",
-        "AG100": "Europäische Völker",
-        "AG200": "Nordafrikanische und nahöstliche Völker",
-        "AG500": "Südasiatische Völker",
-        "AG300": "Subsaharische afrikanische Völker"
+        "AG800": "Amerikanische Volksgruppen",
+        "AG650": "Asiatisch-pazifische Volksgruppen",
+        "AG400": "Zentralasiatische Volksgruppen",
+        "AG900": "Gehörlose Volksgruppen",
+        "AG100": "Europäische Volksgruppen",
+        "AG200": "Nordafrikanische und nahöstliche Volksgruppen",
+        "AG500": "Südasiatische Volksgruppen",
+        "AG300": "Subsaharisch-afrikanische Volksgruppen"
       },
       "religion": {
         "BOF": "Buddhismus - Volksbuddhismus",
@@ -278,7 +280,7 @@
         "ECO": "Konfuzianismus, ein chinesisches ethisches und philosophisches System, das mit den Lehren des chinesischen Philosophen Konfuzius verbunden ist.",
         "EDA": "Taoismus, eine der drei großen Religionen mit historischen Wurzeln in China, die als Teil der chinesischen Volksreligion betrachtet wird.",
         "EJF": "Shinbutsu-Shugo, eine synkretisierte Mischung aus Shintoismus und Buddhismus, die eine einzigartige japanische Volksreligion bildet, die von Japanern weltweit praktiziert wird.",
-        "ENA": "Indianische Religionen, ein Oberbegriff, der weit gefächerte spirituelle Praktiken umfasst, die je nach Kultur und Standort der einzelnen Nationen einzigartig sind.",
+        "ENA": "Indigene amerikanische Religionen, ein Oberbegriff, der weit gefächerte spirituelle Praktiken umfasst, die je nach Kultur und Standort der einzelnen Nationen einzigartig sind.",
         "EPO": "Polytheismus, ein Glaube an mehrere Gottheiten, die oft als Pantheons von Göttern oder Göttinnen organisiert sind.",
         "ESA": "Samaritanismus, eine abrahamitische Religion, die eng mit dem Judentum verwandt ist.",
         "ESM": "Schamanismus, eine Praxis, die das Erreichen eines veränderten Bewusstseinszustands beinhaltet, um mit der Geisterwelt zu interagieren.",
@@ -296,8 +298,8 @@
         "OBH": "Bahaitum, eine universalistische Religion, die die wesentliche Einheit aller Religionen betont.",
         "ODZ": "Drusen, eine kleine nahöstliche Religionsgemeinschaft, die sich durch geheime religiöse Praktiken und starken sozialen Zusammenhalt auszeichnet. Die Drusen erlauben Außenstehenden nicht, zu ihrer Religion zu konvertieren.",
         "OJA": "Jainismus, eine indische Religion, die Gewaltlosigkeit gegenüber allen Lebewesen fördert und die Notwendigkeit der Eigenanstrengung betont, um die Seele zum göttlichen Bewusstsein und zur Befreiung zu führen.",
-        "OKI": "Kirati, eine Form des Schamanismus, die hauptsächlich von den Kirat- oder Kiranti-Völkern des Himalayas praktiziert wird.",
-        "OMA": "Mandäismus, eine gnostische Religion, die hauptsächlich vom mandäischen Volk praktiziert wird. Die Mandäer siedelten sich in Nordmesopotamien an und sind noch in Teilen des Irak und des Iran zu finden.",
+        "OKI": "Kirati, eine Form des Schamanismus, die hauptsächlich von der Volksgruppe der Kirat oder Kiranti im Himalaya praktiziert wird.",
+        "OMA": "Mandäismus, eine gnostische Religion, die hauptsächlich von der Volksgruppe der Mandäer praktiziert wird. Die Mandäer siedelten sich in Nordmesopotamien an und sind noch in Teilen des Irak und des Iran zu finden.",
         "OZR": "Zoroastrismus, eine Religion und Philosophie, die auf den Lehren des persischen Propheten Zarathustra basiert. Zoroastrier glauben an einen universellen und transzendenten Gott, Ahura Mazda.",
         "S": "Sikhismus, eine monotheistische Religion, die im 15. Jahrhundert in der Region Punjab in Indien gegründet wurde. Sikhs schätzen die Wahrheit als höchstes Ideal und streben ein wahrhaftiges Leben an, wobei sie das indische Kastensystem zugunsten der Gleichheit aller Menschen ablehnen.",
         "U": "Unbekannt."
@@ -352,23 +354,23 @@
       },
       "rop1": {
         "A001": "Arabische Welt",
-        "A017": "Gehörlose Völker",
-        "A002": "Ostasiatische Völker",
-        "A003": "Eurasische Völker",
+        "A017": "Gehörlose Volksgruppen",
+        "A002": "Ostasiatische Volksgruppen",
+        "A003": "Eurasische Volksgruppen",
         "A004": "Horn von Afrika",
-        "A006": "Jüdische Völker",
+        "A006": "Jüdische Volksgruppen",
         "A007": "Lateinamerikanisch-karibische Amerikaner",
-        "A008": "Malaiische Völker",
-        "A009": "Nordamerikanische Völker",
+        "A008": "Malaiische Volksgruppen",
+        "A009": "Nordamerikanische Volksgruppen",
         "A010": "Pazifische Inselbewohner",
         "A005": "Persisch-Medisch",
-        "A012": "Südasiatische Völker",
-        "A011": "Südostasiatische Völker",
+        "A012": "Südasiatische Volksgruppen",
+        "A011": "Südostasiatische Volksgruppen",
         "A013": "Subsaharisches Afrika",
-        "A014": "Tibetische / Himalaya-Völker",
-        "A015": "Turkische Völker",
-        "A018": "Tibetische Völker",
-        "A019": "Himalaya-Völker"
+        "A014": "Tibetische / Himalaya-Volksgruppen",
+        "A015": "Turksprachige Volksgruppen",
+        "A018": "Tibetische Volksgruppen",
+        "A019": "Himalaya-Volksgruppen"
       },
       "availability": {
         "notAvailable": "Nicht verfügbar",
