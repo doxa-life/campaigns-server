@@ -44,7 +44,7 @@
     },
     "header": {
       "prayFor": "Ora por los {campaign}",
-      "championedBy": "Un grupo étnico apadrinado por {link}.",
+      "championedBy": "Un grupo étnico cuyo defensor es {link}.",
       "doxaFoundation": "Doxa.Life"
     },
     "share": {
@@ -75,7 +75,7 @@
     "signup": {
       "title": "Inscríbase para Orar",
       "description": "Comprométase a orar diaria o semanalmente y reciba recordatorios de contenido de oración.",
-      "success": "✓ ¡Bienvenido! Se ha unido al movimiento de oración. Recibirá su primera invitación a orar pronto.",
+      "success": "✓ ¡Bienvenido! Se ha unido al movimiento de oración. Recibirá pronto sus primeros motivos de oración.",
       "successEmail": "✓ ¡Casi listo! Por favor revise su correo electrónico y haga clic en el enlace de verificación para completar su registro.",
       "checkSpam": "¿No ve el correo? Revise su carpeta de spam.",
       "modal": {
@@ -90,7 +90,7 @@
           "placeholder": "Su nombre"
         },
         "deliveryMethod": {
-          "label": "¿Cómo le gustaría recibir sus invitaciones diarias a la oración?",
+          "label": "¿Cómo le gustaría recibir sus motivos diarios de oración?",
           "placeholder": "Seleccione un método...",
           "email": "Correo Electrónico",
           "whatsapp": "WhatsApp",
@@ -157,7 +157,7 @@
     },
     "prayerFuel": {
       "title": "Oración de Hoy",
-      "description": "Acceda al contenido y las invitaciones de oración de hoy",
+      "description": "Acceda al contenido y los motivos de oración de hoy",
       "button": "Ver Contenido de Oración"
     },
     "whyPray": {
@@ -223,7 +223,7 @@
         "doxa": "¿Está seguro de que desea cancelar la suscripción a las actualizaciones generales de Doxa?",
         "product": "¿Está seguro de que desea cancelar la suscripción a los correos del producto?",
         "peopleGroup": "¿Está seguro de que desea cancelar la suscripción a las novedades sobre {campaign}?",
-        "peopleGroupGeneric": "¿Está seguro de que desea cancelar la suscripción a las novedades sobre este grupo de personas?",
+        "peopleGroupGeneric": "¿Está seguro de que desea cancelar la suscripción a las novedades sobre este grupo étnico?",
         "reminders": "¿Está seguro de que desea cancelar la suscripción a los recordatorios de oración de {campaign}?",
         "remindersGeneric": "¿Está seguro de que desea cancelar la suscripción a estos recordatorios de oración?"
       },
@@ -262,7 +262,7 @@
       "unsubscribedFrom": "Te has dado de baja de {item}.",
       "justTurnedOff": "Acabas de desactivarlo",
       "remindersUnaffected": "Tus recordatorios diarios de oración no se ven afectados.",
-      "peopleGroupUpdatesLabel": "novedades sobre este grupo de personas",
+      "peopleGroupUpdatesLabel": "novedades sobre este grupo étnico",
       "noActiveSubscriptions": "No tienes suscripciones activas.",
       "current": "Actual",
       "reminderFormat": {
@@ -585,7 +585,7 @@
     "emailPlaceholder": "Ingrese su correo electrónico",
     "messageLabel": "Mensaje",
     "messagePlaceholder": "Cuéntanos más…",
-    "consentLabel": "Me gustaría recibir novedades por correo electrónico de la alianza DOXA.",
+    "consentLabel": "Me gustaría recibir novedades por correo electrónico de la asociación DOXA.",
     "submit": "Enviar comentarios",
     "submitting": "Enviando…",
     "success": {
@@ -679,8 +679,8 @@
       "subject": "¡Bienvenido a Doxa! - {campaign}",
       "header": "¡Bienvenido a Doxa!",
       "doxaMeaning": "En griego, doxa significa «gloria», y eso es exactamente lo que estamos ofreciendo al unirnos en oración por los millones de personas que viven con poco o ningún testimonio del Evangelio. Juntos, estamos dando gloria a Dios a través de una oración fiel y expectante.",
-      "reminderExplanation": "Como parte de esta campaña de oración, pronto comenzarás a recibir correos electrónicos de recordatorio con enlaces a contenido de oración diario. Cada enlace incluirá guías de oración y otros materiales para ayudarte a orar de manera estratégica y fiel por el grupo étnico no comprometido que has elegido.",
-      "sharedGoal": "A través de este movimiento, nuestro objetivo compartido es ver más de 100 personas orando diariamente por cada uno de los más de 2,000 grupos étnicos no comprometidos, hombres y mujeres enviados para comprometer a estos grupos étnicos con el Evangelio para el año 2033, y ofrendas sostenidas para apoyar este esfuerzo.",
+      "reminderExplanation": "Como parte de esta campaña de oración, pronto comenzarás a recibir correos electrónicos de recordatorio con enlaces a contenido de oración diario. Cada enlace incluirá motivos de oración guiados y otros materiales para ayudarte a orar de manera estratégica y fiel por el grupo étnico no comprometido que has elegido.",
+      "sharedGoal": "A través de este movimiento, nuestro objetivo compartido es ver más de 100 personas orando diariamente por cada uno de los más de 2.000 grupos étnicos no comprometidos, hombres y mujeres enviados para comprometer a estos grupos étnicos con el Evangelio para el año 2033, y ofrendas sostenidas para apoyar este esfuerzo.",
       "closing": "Estamos profundamente agradecidos de unirnos con toda la Iglesia mientras buscamos llevar todo el Evangelio a todo el mundo.",
       "reminderTimeNote": "Tu recordatorio diario está programado para las {time}.",
       "startPraying": "Comenzar a Orar",
@@ -1005,7 +1005,7 @@
           }
         },
         "focus": {
-          "label": "Las indicaciones de oración diaria me ayudan a concentrarme y a involucrarme al orar por los grupos étnicos no alcanzados.",
+          "label": "Los motivos de oración diarios me ayudan a concentrarme y a involucrarme al orar por los grupos étnicos no alcanzados.",
           "scale": {
             "1": "Para nada",
             "3": "Algo",
@@ -1016,7 +1016,7 @@
           "label": "Cuéntanos más sobre tu experiencia: ¿qué parte de la página de oración diaria te ha resultado más útil, y por qué?"
         },
         "clarity": {
-          "label": "Las indicaciones de oración comunican con claridad por qué motivos orar y por qué es importante.",
+          "label": "Los motivos de oración comunican con claridad por qué motivos orar y por qué es importante.",
           "scale": {
             "1": "Para nada",
             "3": "Algo",
@@ -1064,7 +1064,7 @@
         "greeting": "Hola {name}:",
         "greetingFallback": "Hola:",
         "p1": "Ha sido un privilegio unirnos a ti en intercesión por los grupos étnicos no alcanzados del mundo.",
-        "p2": "Siempre buscamos que las indicaciones de oración diaria sean más útiles y, antes de reunirnos como equipo para planificar los próximos pasos, nos encantaría escucharte. ¿Podrías dedicar unos minutos a responder unas pocas preguntas breves sobre tu experiencia?",
+        "p2": "Siempre buscamos que los motivos de oración diarios sean más útiles y, antes de reunirnos como equipo para planificar los próximos pasos, nos encantaría escucharte. ¿Podrías dedicar unos minutos a responder unas pocas preguntas breves sobre tu experiencia?",
         "p3": "Tu opinión sincera —lo que funciona y lo que no— moldea directamente el contenido de oración que creamos.",
         "cta": "Responder la encuesta",
         "signoff": "Con gratitud,",
