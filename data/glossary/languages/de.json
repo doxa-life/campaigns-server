@@ -5,7 +5,7 @@
   "language_name_local": "Deutsch",
   "output_name": "German",
   "text_direction": "ltr",
-  "version_display": "In-use terminology · 2026-09-14",
+  "version_display": "Reviewed glossary (R, thread final say) · 2026-09-17",
   "running_header": "DOXA.LIFE  ·  GERMAN TERMINOLOGY REVIEW",
   "cover": {
     "kicker": "Translator review form · Prüfformular für Übersetzer",
@@ -138,44 +138,74 @@
     ]
   },
   "suggested_terms": {
-    "People group": "Volksgruppe",
-    "Unreached people group (UPG)": "unerreichte Volksgruppe",
-    "Unengaged (people group)": "nicht-engagiert",
-    "Unengaged unreached people group (UUPG)": "unerreichte und missionarisch nicht engagierte ethnolinguistische Gruppe (UUPG)",
-    "Under-engaged (people group)": "wenig erreicht",
-    "Frontier people (group)": "Frontier Gruppe",
-    "Ethnolinguistic group": "ethnolinguistische Gruppe",
-    "Engagement / engaged (people group)": "engagiert",
-    "Fruitful engagement": "fruchtbares Zusammenwirken",
+    "People group": {
+      "value": "Volksgruppe",
+      "note": "Always Volksgruppe, never Völker. R: \"we never say Völker but always Volksgruppen\" — Swiss usage leans to Völker, German to Volksgruppen."
+    },
+    "Unreached people group (UPG)": {
+      "value": "unerreichte Volksgruppe (UVG)",
+      "note": "R: \"a no brainer\". Acronyms are germanised rather than kept in English (R's rule) — UPG becomes UVG. For general church recruiting, \"unerreichte Volksgruppen\" alone is the recommended umbrella; the finer categories are for strategic leaders."
+    },
+    "Unengaged (people group)": {
+      "value": "unberührte Volksgruppe",
+      "note": "R's final say in the review thread, which is the authority: unberührte Volksgruppe (\"in German we talk about unberührte Landstriche\"). The reviewed document body predates it and still reads \"völlig unerreichte Volksgruppe\" here; that wording is reserved for UUPG. The prayer network Unerreichte-Volksgruppen.de uses \"am wenigsten erreichte\" for this concept, which R kept for under-engaged."
+    },
+    "Unengaged unreached people group (UUPG)": {
+      "value": "völlig unerreichte Volksgruppe (VUVG)",
+      "note": "R's suggestion for UUPG in the thread — \"totally unreached\", implying 0% believers — never retracted, and matching R's own germanised acronym VUVG. The final say keeps unengaged and UUPG as distinct terms rather than lumping them. The document body has the two terms the other way round."
+    },
+    "Under-engaged (people group)": {
+      "value": "am wenigsten erreichte Volksgruppe",
+      "note": "R's final say, which is the authority — the wording Unerreichte-Volksgruppen.de uses. The reviewed document body predates it and reads \"unterversorgte Volksgruppe\"."
+    },
+    "Frontier people (group)": {
+      "value": "Frontier-Volksgruppe",
+      "note": "Kept as the English loanword with an explanation added. \"Grenzvolksgruppen\" (used in the Joshua Project video) was rejected because Grenze reads as \"border\"."
+    },
+    "Ethnolinguistic group": "ethno-linguistische Gruppe",
+    "Engagement / engaged (people group)": {
+      "value": "missionarische Arbeit vor Ort / engagiert",
+      "note": "\"Missionarische Arbeit vor Ort\" renders engagement concretely — resident, sustained, cross-cultural — where \"Beteiligung\" or \"Kontakt\" would empty it."
+    },
+    "Fruitful engagement": "fruchtbare Arbeit vor Ort",
     "Gospel access": "Zugang zum Evangelium",
-    "Gospel engagement": "Verkündigung des Evangeliums",
-    "Church-planting movement (CPM)": "Gemeindegründungsbewegung (CPM)",
+    "Gospel engagement": "Evangelisationsarbeit",
+    "Church-planting movement (CPM)": "Gemeindegründungsbewegung",
     "Indigenous church": "einheimische Gemeinde",
-    "The five \"selfs\" (of an indigenous church)": "die fünf Selbstständigkeitsmerkmale einer einheimischen Gemeinde",
-    "Residential engagement / workers in residence": "interkulturelle Mitarbeiter vor Ort",
-    "Cross-cultural workers": "interkulturelle Mitarbeiter",
-    "Apostolic (pioneering) effort": "apostolischer (pionierhafter) Einsatz",
+    "The five \"selfs\" (of an indigenous church)": "die fünf „Selbst“ (einer einheimischen Gemeinde)",
+    "Residential engagement / workers in residence": "Engagement vor Ort / vor Ort ansässige Mitarbeiter/innen",
+    "Cross-cultural workers": "kulturübergreifende Mitarbeiter/innen",
+    "Apostolic (pioneering) effort": "apostolischer Einsatz (in der Pionierphase)",
     "Pioneer work": "Pionierarbeit",
     "Heart language": "Herzenssprache",
-    "Movement to Jesus": "Bewegung von Menschen hin zu Jesus",
-    "Nonresident partners": "nicht vor Ort lebende Partner",
-    "Broader engagement (components)": "Komponenten eines breiteren missionarischen Engagements",
+    "Movement to Jesus": "Bewegung zu Jesus hin",
+    "Nonresident partners": "Projektpartner",
+    "Broader engagement (components)": "weiteres Engagement",
     "Diaspora": "Diaspora",
-    "Daily prayer (for a people group)": "tägliches Gebet für eine ethnolinguistische Gruppe",
-    "Intercessor / intercessors": "Fürbitter",
+    "Daily prayer (for a people group)": "tägliches Gebet (für eine Volksgruppe)",
+    "Intercessor / intercessors": "Fürbitter/in / Fürbitter/innen",
     "Intercessory prayer": "Fürbittegebet",
-    "Daily prayer guide / daily prayer points": "täglicher Prayer Guide",
-    "Prayer prepares the way": "das Gebet bereitet den Weg",
+    "Daily prayer guide / daily prayer points": "täglicher Gebetsleitfaden / tägliche Gebetsanliegen",
+    "Prayer prepares the way": "Gebet bahnt den Weg",
     "Lord of the harvest": "Herr der Ernte",
-    "Adopt (an unengaged people group)": "adoptieren",
-    "Pray, give, and send": "Beten, Geben und Senden",
-    "Mobilize / mobilization": "mobilisieren",
-    "Sending agency / sending agencies": "missionarische Sendeorganisation",
+    "Adopt (an unengaged people group)": {
+      "value": "adoptieren",
+      "note": "R rejected \"Patenschaft übernehmen\": everybody already says \"adopt a people group\" in German, and adoptieren carries no more family-law weight than the English does."
+    },
+    "Pray, give, and send": "beten, geben und senden",
+    "Mobilize / mobilization": "mobilisieren / Mobilisierung",
+    "Sending agency / sending agencies": "Sendeorganisation / Sendeorganisationen",
     "Our gift to Jesus": "unser Geschenk an Jesus",
-    "Priority — \"Engage every Unengaged People Group by 2033\"": "Priorität: Jede nicht engagierte Volksgruppe bis 2033 erreichen",
+    "Priority — \"Engage every Unengaged People Group by 2033\"": {
+      "value": "Priorität — „Jede unberührte Volksgruppe soll bis 2033 eine missionarische Arbeit vor Ort haben“",
+      "note": "Follows the final-say wording for unengaged; the document body reads \"Jede völlig unerreichte Volksgruppe …\"."
+    },
     "Vision 2033": "Vision 2033",
-    "Every tribe, tongue, people, and nation": "alle Stämme, Sprachen, Völker und Nationen",
-    "A multitude of every people around the throne": "eine große Schar aus allen Völkern um den Thron",
-    "DOXA partnership missionaries": "DOXA-Partnerschafts-Missionare"
+    "Every tribe, tongue, people, and nation": "jeder Stamm, jede Zunge, jedes Volk und jede Nation",
+    "A multitude of every people around the throne": "eine riesige Menschenmenge aus jedem Volk um den Thron versammelt",
+    "DOXA partnership missionaries": {
+      "value": "DOXA-Partnermissionare",
+      "note": "R kept the translator's shorter Partnermissionare over Partnerschaftsmissionare — \"it doesn't sound clearer\"."
+    }
   }
 }

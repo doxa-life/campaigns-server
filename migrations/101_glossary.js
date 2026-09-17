@@ -271,13 +271,17 @@ export default class GlossaryMigration extends BaseMigration {
         RETURNING id
       `
 
+      // A seeded term is either the bare wording or { value, note, status }:
+      // the note carries why the wording was chosen, and a term whose choice is
+      // still contested ships flagged so the next reviewer sees the question.
       let seeded = 0
-      for (const [term, value] of Object.entries(locale.suggested_terms || {})) {
+      for (const [term, entry] of Object.entries(locale.suggested_terms || {})) {
         const termId = termIdByTerm.get(term)
         if (!termId) continue
+        const { value, note = null, status = 'draft' } = typeof entry === 'string' ? { value: entry } : entry
         await sql`
-          INSERT INTO glossary_translations (language_id, term_id, value, status)
-          VALUES (${language.id}, ${termId}, ${value}, 'draft')
+          INSERT INTO glossary_translations (language_id, term_id, value, status, note)
+          VALUES (${language.id}, ${termId}, ${value}, ${status}, ${note})
         `
         seeded++
       }
