@@ -231,6 +231,23 @@ export const publicSuggestibleFieldKeys = [
   ...publicDetailFieldKeys
 ] as const
 
+// Fields an editor completes when applying an "add" report. The required set
+// is what the public list API and the marketing site read for every group;
+// the optional set is prefilled from other groups in the same country.
+export const addReportRequiredFieldKeys = [
+  'doxa_wagf_region',
+  'doxa_wagf_block',
+  'imb_reg_of_people_1',
+  'primary_religion'
+] as const
+
+export const addReportOptionalFieldKeys = [
+  'imb_alternate_name',
+  'region',
+  'imb_subregion',
+  'doxa_wagf_member'
+] as const
+
 // Get a field definition by key
 export function getField(key: string): FieldDefinition | undefined {
   return allFields.find((f) => f.key === key)
