@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { $fetch } from '@nuxt/test-utils/e2e'
+import { mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { seedGlossaryLanguage } from '../../migrations/lib/glossary-seed.js'
 import { getTestDatabase, closeTestDatabase, cleanupTestData } from '../helpers/db'
 import { createAdminUser, createNoRoleUser } from '../helpers/auth'
 
@@ -57,17 +61,74 @@ describe('Glossary', async () => {
   })
 
   describe('Seed data', () => {
-    it('ships the English glossary and its drafted languages', async () => {
+    it('ships the English glossary and its reviewed languages', async () => {
       const [terms] = await sql`SELECT COUNT(*)::int AS count FROM glossary_terms WHERE seed = TRUE`
       expect(terms!.count).toBeGreaterThan(0)
 
-      const [languages] = await sql`SELECT COUNT(*)::int AS count FROM glossary_languages WHERE code <> 'zz'`
-      expect(languages!.count).toBeGreaterThan(0)
+      const languages = await sql`SELECT code FROM glossary_languages`
+      expect(languages.map(row => row.code)).toEqual(expect.arrayContaining(['de', 'es', 'fr', 'pt']))
     })
 
     it('carries no retired terminology', async () => {
       const rows = await sql`SELECT term FROM glossary_terms WHERE term ILIKE '%24-hour%'`
       expect(rows.length).toBe(0)
+    })
+  })
+
+  describe('Seeding a reviewed language file', () => {
+    const languagesDir = mkdtempSync(join(tmpdir(), 'glossary-seed-'))
+
+    it('inserts the language and its drafted terms, then skips a second run', async () => {
+      const [extraTerm] = await sql`
+        INSERT INTO glossary_terms (section_id, term, position)
+        VALUES (${sectionId}, 'Test seed term', 1)
+        RETURNING id
+      `
+
+      writeFileSync(join(languagesDir, 'zzs.json'), JSON.stringify({
+        locale_code: 'zzs',
+        language_name_en: 'Seedish',
+        language_name_local: 'seediska',
+        text_direction: 'rtl',
+        instructions: { local_heading: 'Ohjeet' },
+        labels: { approve_local: 'Hyväksy' },
+        suggested_terms: {
+          'Test people group': { value: 'seedgrupp', note: 'The reviewer preferred it.', status: 'flagged' },
+          'Test seed term': 'seedterm',
+          'Not a glossary term': 'ignored'
+        }
+      }))
+
+      const first = await seedGlossaryLanguage(sql, 'zzs', { languagesDir })
+      expect(first).toEqual({ code: 'zzs', seeded: 2, skipped: false })
+
+      const [language] = await sql`
+        SELECT id, name_en, name_local, text_direction, chrome FROM glossary_languages WHERE code = 'zzs'
+      `
+      expect(language!.name_en).toBe('Seedish')
+      expect(language!.name_local).toBe('seediska')
+      expect(language!.text_direction).toBe('rtl')
+      expect(language!.chrome.instructions.heading).toBe('Ohjeet')
+      expect(language!.chrome.labels.confirm).toBe('Hyväksy')
+
+      const translations = await sql`
+        SELECT value, status, note FROM glossary_translations
+        WHERE language_id = ${language!.id} ORDER BY value
+      `
+      expect(translations).toHaveLength(2)
+      expect(translations[0]).toMatchObject({ value: 'seedgrupp', status: 'flagged', note: 'The reviewer preferred it.' })
+      expect(translations[1]).toMatchObject({ value: 'seedterm', status: 'draft', note: null })
+
+      const second = await seedGlossaryLanguage(sql, 'zzs', { languagesDir })
+      expect(second).toEqual({ code: 'zzs', seeded: 0, skipped: true })
+      const [count] = await sql`SELECT COUNT(*)::int AS count FROM glossary_languages WHERE code = 'zzs'`
+      expect(count!.count).toBe(1)
+
+      await sql`DELETE FROM glossary_terms WHERE id = ${extraTerm!.id}`
+    })
+
+    it('throws when no reviewed file exists for the code', async () => {
+      await expect(seedGlossaryLanguage(sql, 'zzq', { languagesDir })).rejects.toThrow('No reviewed glossary file')
     })
   })
 

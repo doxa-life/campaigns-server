@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { seedGlossaryLanguage, LANGUAGES_DIR } from './lib/glossary-seed.js'
 
 class BaseMigration {
   async exec(sql, query) {
@@ -24,47 +25,6 @@ class BaseMigration {
 }
 
 const DATA_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'data', 'glossary')
-
-/**
- * The target-language half of a locale file's reviewer wording. The English
- * half is code-owned in config/glossary-chrome.ts, so only the translated
- * strings are stored.
- */
-function localChrome(locale) {
-  const instructions = locale.instructions || {}
-  const labels = locale.labels || {}
-  const reviewer = locale.reviewer || {}
-
-  const localLabels = {}
-  for (const [key, value] of Object.entries(labels)) {
-    if (key.endsWith('_local')) localLabels[key.slice(0, -'_local'.length)] = value
-  }
-  // The review form's Approve action is the page's Confirm action.
-  if (localLabels.approve && !localLabels.confirm) localLabels.confirm = localLabels.approve
-
-  const reviewerRows = {}
-  for (const row of reviewer.rows || []) {
-    if (row.tag && row.local) reviewerRows[row.tag] = row.local
-  }
-
-  return {
-    instructions: {
-      heading: instructions.local_heading || '',
-      purpose_label: instructions.local_purpose_label || '',
-      purpose: instructions.local_purpose || '',
-      items: instructions.local_items || []
-    },
-    section_titles: locale.section_titles || {},
-    field_labels: locale.field_labels || {},
-    labels: localLabels,
-    reviewer: {
-      heading: reviewer.heading_local || '',
-      bible_label: reviewer.bible_label_local || '',
-      bible_note: reviewer.bible_note_local || '',
-      rows: reviewerRows
-    }
-  }
-}
 
 export default class GlossaryMigration extends BaseMigration {
   id = 101
@@ -220,8 +180,10 @@ export default class GlossaryMigration extends BaseMigration {
   }
 
   /**
-   * Load the English glossary and every drafted language from data/glossary.
-   * Runs only when the glossary is empty, so an edited term is never
+   * Load the English glossary and every reviewed language in
+   * data/glossary/languages. Languages still awaiting a reviewer live in
+   * data/glossary/unreviewed and are seeded by their own migration once
+   * reviewed. Runs only when the glossary is empty, so an edited term is never
    * overwritten by a later re-run.
    */
   async seed(sql) {
@@ -254,38 +216,9 @@ export default class GlossaryMigration extends BaseMigration {
     }
     console.log(`  ✅ seeded ${termIdByTerm.size} English glossary terms`)
 
-    const localeFiles = readdirSync(join(DATA_DIR, 'languages')).filter(f => f.endsWith('.json')).sort()
+    const localeFiles = readdirSync(LANGUAGES_DIR).filter(f => f.endsWith('.json')).sort()
     for (const file of localeFiles) {
-      const locale = JSON.parse(readFileSync(join(DATA_DIR, 'languages', file), 'utf8'))
-      const chrome = localChrome(locale)
-
-      const [language] = await sql`
-        INSERT INTO glossary_languages (code, name_en, name_local, text_direction, chrome)
-        VALUES (
-          ${locale.locale_code},
-          ${locale.language_name_en || locale.output_name || locale.locale_code},
-          ${locale.language_name_local || ''},
-          ${locale.text_direction === 'rtl' ? 'rtl' : 'ltr'},
-          ${sql.json(chrome)}::jsonb
-        )
-        RETURNING id
-      `
-
-      // A seeded term is either the bare wording or { value, note, status }:
-      // the note carries why the wording was chosen, and a term whose choice is
-      // still contested ships flagged so the next reviewer sees the question.
-      let seeded = 0
-      for (const [term, entry] of Object.entries(locale.suggested_terms || {})) {
-        const termId = termIdByTerm.get(term)
-        if (!termId) continue
-        const { value, note = null, status = 'draft' } = typeof entry === 'string' ? { value: entry } : entry
-        await sql`
-          INSERT INTO glossary_translations (language_id, term_id, value, status, note)
-          VALUES (${language.id}, ${termId}, ${value}, ${status}, ${note})
-        `
-        seeded++
-      }
-      console.log(`  ✅ seeded ${locale.locale_code} with ${seeded} drafted terms`)
+      await seedGlossaryLanguage(sql, file.slice(0, -'.json'.length))
     }
   }
 }
