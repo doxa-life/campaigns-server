@@ -1,7 +1,7 @@
 import type { Sql, TransactionSql } from 'postgres'
 import { getSql } from './db'
 
-export type JobType = 'marketing_email' | 'translation_batch' | 'import' | 'outbound_email' | 'inbox_email'
+export type JobType = 'marketing_email' | 'translation_batch' | 'import' | 'outbound_email' | 'inbox_email' | 'people_group_translation'
 
 export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
@@ -56,6 +56,13 @@ export interface TranslationBatchPayload {
 
 export interface OutboundEmailPayload {
   message_id: number
+}
+
+/** Fill the missing languages of one translatable people-group field from its source language. */
+export interface PeopleGroupTranslationPayload {
+  people_group_id: number
+  field_key: string
+  source_language: string
 }
 
 /**

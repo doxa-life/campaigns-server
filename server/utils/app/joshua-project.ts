@@ -1,6 +1,10 @@
 import { useRuntimeConfig } from '#imports'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import { join, dirname } from 'path'
+import countries from 'i18n-iso-countries'
+import countriesEn from 'i18n-iso-countries/langs/en.json'
+
+countries.registerLocale(countriesEn)
 
 /**
  * Joshua Project people group search.
@@ -197,4 +201,19 @@ export async function searchJoshuaProject(query: string, limit = 20): Promise<Jo
     }
   }
   return results
+}
+
+/**
+ * The cached Joshua Project record for a PeopleID3. The id is shared by every
+ * country the group lives in, so the report's ISO alpha-3 country picks the
+ * right record when given; otherwise the first match is returned.
+ */
+export async function findJoshuaProjectGroup(jpPeopleId: string, countryCode?: string | null): Promise<JoshuaProjectGroup | null> {
+  const dataset = await getJpDataset()
+  const matches = dataset.filter((group) => group.jp_people_id === jpPeopleId)
+  if (matches.length === 0) return null
+  const inCountry = countryCode
+    ? matches.find((group) => group.country && countries.getAlpha3Code(group.country, 'en') === countryCode)
+    : undefined
+  return inCountry ?? matches[0]!
 }

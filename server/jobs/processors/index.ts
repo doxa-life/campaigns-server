@@ -3,6 +3,7 @@ import { processMarketingEmail } from './marketing-email'
 import { processBatchTranslation } from './translation'
 import { processOutboundEmail } from './outbound-email'
 import { processInboxEmail } from './inbox-email'
+import { processPeopleGroupTranslation } from './people-group-translation'
 
 export interface ProcessorResult {
   success: boolean
@@ -17,7 +18,8 @@ const processors: Record<string, JobProcessor> = {
   marketing_email: processMarketingEmail,
   translation_batch: processBatchTranslation,
   outbound_email: processOutboundEmail,
-  inbox_email: processInboxEmail
+  inbox_email: processInboxEmail,
+  people_group_translation: processPeopleGroupTranslation
 }
 
 export function getProcessor(type: string): JobProcessor {

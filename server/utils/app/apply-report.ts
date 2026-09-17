@@ -2,11 +2,20 @@ import type { H3Event } from 'h3'
 import { createError } from 'h3'
 import { peopleGroupReportService, type PeopleGroupReportWithDetails } from '../../database/people-group-reports'
 import { peopleGroupService, type PeopleGroup, type UpdatePeopleGroupData } from '../../database/people-groups'
+import { jobQueueService } from '../../database/job-queue'
 import { isTableColumn } from '~/utils/people-group-fields'
+import { addReportFieldKeys, pickExtraMetadata, placeholderImageUrl, type AddReportFields } from './add-report-fields'
 import { logUpdate, logCreate } from '../activity-logger'
 import { trackEventInBackground } from '../tracking'
 import { getSuggestionImageObject, isSuggestionImageKey } from './suggestion-images'
 import { uploadPublicImage } from './public-image-storage'
+
+export interface ApplyReportOptions {
+  /** The editor's completion fields for an "add" report, already validated. */
+  addFields?: AddReportFields
+  /** IMB detail metadata proposed by auto-populate for an "add" report. */
+  addMetadata?: Record<string, any>
+}
 
 /**
  * Apply an accepted/approved report to the people_groups data. Shared by the
@@ -19,7 +28,8 @@ import { uploadPublicImage } from './public-image-storage'
 export async function applyReport(
   reportId: number,
   userId: string,
-  event?: H3Event
+  event?: H3Event,
+  options: ApplyReportOptions = {}
 ): Promise<{ report: PeopleGroupReportWithDetails | null; peopleGroup: PeopleGroup | null }> {
   const report = await peopleGroupReportService.getById(reportId)
   if (!report) {
@@ -41,7 +51,7 @@ export async function applyReport(
   }
 
   if (report.type === 'add') {
-    return applyAdd(report, userId, suggestedImageUrl, event)
+    return applyAdd(report, userId, suggestedImageUrl, event, options)
   }
   return applyUpdateOrRemove(report, userId, suggestedImageUrl, event)
 }
@@ -74,7 +84,8 @@ async function applyAdd(
   report: PeopleGroupReportWithDetails,
   userId: string,
   suggestedImageUrl: string | null,
-  event?: H3Event
+  event: H3Event | undefined,
+  options: ApplyReportOptions
 ): Promise<{ report: PeopleGroupReportWithDetails | null; peopleGroup: PeopleGroup | null }> {
   const name = String(report.suggested_changes.name || report.people_group_name || '').trim()
   if (!name) {
@@ -85,14 +96,33 @@ async function applyAdd(
   }
 
   const { columns, metadata } = splitChanges(report.suggested_changes)
+  const fields = options.addFields ?? {}
+  Object.assign(metadata, pickExtraMetadata(options.addMetadata))
+  for (const key of addReportFieldKeys) {
+    const value = fields[key]
+    if (value === undefined || value === null) continue
+    if (isTableColumn(key)) columns[key] = value
+    else metadata[key] = value
+  }
+
+  // A group without a photo of its own shows its region's placeholder; the
+  // flag is what the public API reports as has_photo.
+  const hasPhoto = suggestedImageUrl !== null
+  metadata.imb_has_photo = hasPhoto
+  if (hasPhoto && fields.picture_credit?.length) metadata.picture_credit = fields.picture_credit
+  const imageUrl = suggestedImageUrl ?? placeholderImageUrl(metadata.doxa_wagf_region, metadata.imb_reg_of_people_1)
+  const descriptions = fields.description_en ? { en: fields.description_en } : null
+
   const slug = await peopleGroupService.generateUniqueSlug(name)
 
   const created = await peopleGroupService.createPeopleGroup({
     name,
     slug,
-    image_url: suggestedImageUrl,
-    metadata: Object.keys(metadata).length > 0 ? metadata : null,
+    image_url: imageUrl,
+    metadata,
+    descriptions,
     country_code: columns.country_code ?? null,
+    region: columns.region ?? null,
     latitude: columns.latitude ?? null,
     longitude: columns.longitude ?? null,
     population: columns.population ?? null,
@@ -102,6 +132,16 @@ async function applyAdd(
     primary_language: columns.primary_language ?? null,
     joshua_project_id: columns.joshua_project_id ?? null
   })
+
+  // The English description phrase is translated into the other enabled
+  // languages in the background.
+  if (descriptions) {
+    await jobQueueService.createJob(
+      'people_group_translation',
+      { people_group_id: created.id, field_key: 'descriptions', source_language: 'en' },
+      { referenceType: 'people_group', referenceId: created.id }
+    )
+  }
 
   await peopleGroupReportService.link(report.id, created.id)
   await peopleGroupReportService.updateStatus(report.id, 'accepted', userId, { previousValues: {} })
