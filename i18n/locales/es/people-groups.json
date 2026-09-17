@@ -15,8 +15,10 @@
       "blocOnly": "Están en el bloque de afinidad {bloc}.",
       "religion": "Su religión principal es {religion}.",
       "language": "Hablan principalmente {language}.",
-      "andUnreached": "y No Alcanzados",
-      "butUnreached": "pero No Alcanzados"
+      "statusEngaged": "comprometidos",
+      "statusUnengaged": "no comprometidos",
+      "statusEngagedUnreached": "comprometidos pero no alcanzados",
+      "statusUnengagedUnreached": "no comprometidos y no alcanzados"
     },
     "categories": {
       "engagement": "Estado",
