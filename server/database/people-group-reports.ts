@@ -174,6 +174,34 @@ class PeopleGroupReportService {
     return Number(row?.count ?? 0)
   }
 
+  /**
+   * Public reports that entered review within [start, end). Submissions still
+   * awaiting email verification are excluded: approvers never see them.
+   */
+  async countPublicReceived(start: Date, end: Date): Promise<number> {
+    const [row] = await this.sql`
+      SELECT COUNT(*) as count
+      FROM people_group_reports
+      WHERE source = 'public'
+        AND status <> 'awaiting_verification'
+        AND created_at >= ${start.toISOString()}
+        AND created_at < ${end.toISOString()}
+    `
+    return Number(row?.count ?? 0)
+  }
+
+  /** Pending public reports the given approver has not approved yet. */
+  async countAwaitingApprovalBy(userId: string): Promise<number> {
+    const [row] = await this.sql`
+      SELECT COUNT(*) as count
+      FROM people_group_reports
+      WHERE status = 'pending'
+        AND source = 'public'
+        AND NOT (approvals @> ${this.sql.json([{ user_id: userId }])})
+    `
+    return Number(row?.count ?? 0)
+  }
+
   async updateStatus(
     id: number,
     status: ReportStatus,
