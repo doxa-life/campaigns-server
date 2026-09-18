@@ -12,6 +12,11 @@ interface OnboardingRow {
   prompts_pending: boolean
   translation_pending_locales: string[]
   needs_tags: string[]
+  // The whole tags column, not just the `needs:` ones. The resource pipeline clears a
+  // `needs:` tag once the artefact is in R2, and the update endpoint replaces `tags`
+  // whole -- so it has to write back every tag it is not removing, and can only do that
+  // if it was sent them.
+  tags: string[]
 }
 
 export default defineEventHandler(async (event): Promise<{ peopleGroups: OnboardingRow[] }> => {
@@ -81,6 +86,7 @@ export default defineEventHandler(async (event): Promise<{ peopleGroups: Onboard
       prompts_pending: promptsPending,
       translation_pending_locales: translationPendingLocales,
       needs_tags: needsTags,
+      tags: r.tags || [],
     })
   }
 
