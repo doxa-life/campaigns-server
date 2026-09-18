@@ -36,6 +36,7 @@ export const field: FieldDefinition = {
     { value: 'H', labelKey: 'peopleGroups.options.religion.H' },
     { value: 'HOF', labelKey: 'peopleGroups.options.religion.HOF' },
     { value: 'MOF', labelKey: 'peopleGroups.options.religion.MOF', alternateKeys: ['peopleGroups.options.religionAlternates.muslim'] },
+    { value: 'MIB', labelKey: 'peopleGroups.options.religion.MIB', alternateKeys: ['peopleGroups.options.religionAlternates.muslim'] },
     { value: 'MSH', labelKey: 'peopleGroups.options.religion.MSH', alternateKeys: ['peopleGroups.options.religionAlternates.muslim', 'peopleGroups.options.religionAlternates.shiite'] },
     { value: 'MIS', labelKey: 'peopleGroups.options.religion.MIS', alternateKeys: ['peopleGroups.options.religionAlternates.muslim'] },
     { value: 'MSN', labelKey: 'peopleGroups.options.religion.MSN', alternateKeys: ['peopleGroups.options.religionAlternates.muslim'] },
