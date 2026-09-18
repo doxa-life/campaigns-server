@@ -15,10 +15,10 @@
       "blocOnly": "Fac parte din blocul de afinitate {bloc}.",
       "religion": "Religia lor principală este {religion}.",
       "language": "Limba lor principală este {language}.",
-      "statusEngaged": "angajat",
-      "statusUnengaged": "neangajat",
-      "statusEngagedUnreached": "angajat, dar neatins",
-      "statusUnengagedUnreached": "neangajat și neatins"
+      "statusEngaged": "angajat misionar",
+      "statusUnengaged": "neangajat misionar",
+      "statusEngagedUnreached": "angajat misionar, dar neatins cu Evanghelia",
+      "statusUnengagedUnreached": "neangajat misionar și neatins cu Evanghelia"
     },
     "categories": {
       "engagement": "Stare",
@@ -36,18 +36,18 @@
       "media": "Media"
     },
     "fields": {
-      "name": "Numele grupului etnic",
+      "name": "Numele grupului etnolingvistic",
       "imb_display_name": "Nume afișat",
       "imb_alternate_name": "Nume alternativ",
       "imb_people_name": "Numele poporului (ROP3)",
-      "descriptions": "Descrierea grupului etnic",
+      "descriptions": "Descrierea grupului etnolingvistic",
       "imb_people_description": "Descriere (din API)",
       "imb_location_description": "Descrierea locației",
       "joshua_project_id": "Joshua Project ID",
       "doxa_masteruid": "Doxa Master UID",
       "doxa_wagf_uid": "WAGF UID",
       "imb_uid": "IMB UID",
-      "imb_pgid": "ID grup etnic (PGID)",
+      "imb_pgid": "ID grup etnolingvistic (PGID)",
       "imb_peid": "IMB PEID",
       "country_code": "Țară",
       "region": "Regiune",
@@ -59,7 +59,7 @@
       "imb_population_class": "Clasă de populație",
       "evangelical_pct": "% Evanghelici",
       "imb_evangelical_level": "Nivel evanghelic",
-      "engagement_status": "Statut de angajare",
+      "engagement_status": "Statut de angajare misionară",
       "believers_count": "Believers Count",
       "imb_congregation_existing": "Congregație existentă",
       "imb_church_planting": "Statut plantare de biserici",
@@ -75,7 +75,7 @@
       "imb_reg_of_religion_3": "ROR3 (Categorie religioasă)",
       "imb_reg_of_religion_4": "ROR4 (Subcategorie religioasă)",
       "imb_reg_of_people_3": "ID ROP3",
-      "imb_reg_of_people_2": "ROP2 Grup etnic",
+      "imb_reg_of_people_2": "ROP2 Grup etnolingvistic",
       "imb_reg_of_people_1": "ROP1 Bloc de afinitate",
       "imb_reg_of_people_25": "ROP25 Ethne",
       "imb_bible_available": "Statut traducere Biblie",
@@ -161,8 +161,8 @@
         "10": "75% sau mai mult"
       },
       "engagementStatus": {
-        "engaged": "Angajat",
-        "unengaged": "Neangajat"
+        "engaged": "Angajat misionar",
+        "unengaged": "Neangajat misionar"
       },
       "yesNo": {
         "no": "Nu",
@@ -184,18 +184,18 @@
         "6": "10% sau mai mult evanghelici"
       },
       "strategicPriorityIndex": {
-        "0": "Neangajat și neatins",
-        "1": "Angajat, dar neatins",
-        "2": "Nu mai este neatins"
+        "0": "Neangajat misionar și neatins cu Evanghelia",
+        "1": "Angajat misionar, dar neatins cu Evanghelia",
+        "2": "Nu mai este neatins cu Evanghelia"
       },
       "lostnessPriorityIndex": {
-        "0": "Grup etnic neatins de frontieră",
-        "1": "Grup etnic neatins pionier",
-        "2": "Grup etnic neatins în extindere",
-        "3": "Grup etnic minimal atins",
-        "4": "Grup etnic marginal atins",
-        "5": "Grup etnic moderat atins",
-        "6": "Grup etnic semnificativ atins"
+        "0": "Grup etnolingvistic neatins de frontieră",
+        "1": "Grup etnolingvistic neatins pionier",
+        "2": "Grup etnolingvistic neatins în extindere",
+        "3": "Grup etnolingvistic minimal atins",
+        "4": "Grup etnolingvistic marginal atins",
+        "5": "Grup etnolingvistic moderat atins",
+        "6": "Grup etnolingvistic semnificativ atins"
       },
       "affinityCode": {
         "AG800": "Popoare americane",

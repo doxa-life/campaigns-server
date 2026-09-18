@@ -6,8 +6,8 @@
       "namePopulation": "{name}人约有{population}人。",
       "peopleDescWithAltNames": "他们是{peopleDesc}，也被称为{altNames}。",
       "peopleDesc": "他们是{peopleDesc}。",
-      "indigenousClusterBloc": "他们是原住民族群，属于{bloc}亲缘集团中的{cluster}族群群。",
-      "diasporaClusterBloc": "他们是散居族群，属于{bloc}亲缘集团中的{cluster}族群群。",
+      "indigenousClusterBloc": "他们是原住民族群，属于{bloc}亲缘集团中的{cluster}族群集群。",
+      "diasporaClusterBloc": "他们是散居族群，属于{bloc}亲缘集团中的{cluster}族群集群。",
       "indigenousBloc": "他们是原住民族群，属于{bloc}亲缘集团。",
       "diasporaBloc": "他们是散居族群，属于{bloc}亲缘集团。",
       "indigenousOnly": "他们是原住民族群。",
@@ -15,10 +15,10 @@
       "blocOnly": "他们属于{bloc}亲缘集团。",
       "religion": "他们的主要宗教是{religion}。",
       "language": "他们主要使用{language}。",
-      "statusEngaged": "已接触",
-      "statusUnengaged": "未接触",
-      "statusEngagedUnreached": "已接触但未得之民",
-      "statusUnengagedUnreached": "未接触且未得之民"
+      "statusEngaged": "属于已接触族群",
+      "statusUnengaged": "属于未接触族群",
+      "statusEngagedUnreached": "属于已接触但仍未得之民",
+      "statusUnengagedUnreached": "属于未接触且未得之民"
     },
     "categories": {
       "engagement": "状态",
@@ -31,7 +31,7 @@
       "religion": "宗教",
       "rop": "族群分类 (ROP)",
       "resources": "可用资源",
-      "workers": "Engagement Criteria",
+      "workers": "接触标准",
       "wagf": "WAGF/Doxa",
       "media": "媒体"
     },
@@ -60,7 +60,7 @@
       "evangelical_pct": "福音派比例",
       "imb_evangelical_level": "福音派程度",
       "engagement_status": "接触状态",
-      "believers_count": "Believers Count",
+      "believers_count": "信徒人数",
       "imb_congregation_existing": "是否有教会",
       "imb_church_planting": "植堂状态",
       "imb_gsec": "GSEC",
@@ -94,9 +94,9 @@
       "imb_picture_credit_html": "图片来源",
       "imb_has_photo": "是否有照片",
       "imb_people_search_text": "族群搜索文本",
-      "workers_long_term": "Long-Term Presence",
-      "work_in_local_language": "Operating in Local Language",
-      "disciple_and_church_multiplication": "Disciple & Church Multiplication"
+      "workers_long_term": "长期驻地",
+      "work_in_local_language": "使用当地语言事工",
+      "disciple_and_church_multiplication": "门徒与教会倍增"
     },
     "options": {
       "regions": {
@@ -274,7 +274,7 @@
         "CPR": "新教，源自宗教改革的传统。新教徒反对教皇至上的观念，强调唯独圣经的权威、唯独因信称义和唯独通过基督得救。",
         "CRC": "罗马天主教，基督教最大的分支，也是世界上最古老的宗教机构之一。罗马天主教教导它是耶稣基督建立的唯一真教会，其主教是基督的继承者。",
         "E": "民族宗教，由深深植根于该群体民族认同的习俗组成。",
-        "EAF": "非洲传统宗教，是各非洲民族群体独有的信仰和习俗的集合。",
+        "EAF": "非洲传统宗教，是各非洲族群独有的信仰和习俗的集合。",
         "EAW": "祖先崇拜，基于已故者拥有持续存在并具有影响在世者命运的能力的信仰。",
         "EAN": "泛灵论，一种认为自然物质实体——包括动物、植物甚至无生命物体——都拥有精神本质的宗教世界观。",
         "ECF": "中国民间宗教，融合了佛教、道教和祖先崇拜元素的复杂信仰和习俗。",

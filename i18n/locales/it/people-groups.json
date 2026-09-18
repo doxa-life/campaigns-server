@@ -21,7 +21,7 @@
       "statusUnengagedUnreached": "non coinvolti e non raggiunti"
     },
     "categories": {
-      "engagement": "Stato",
+      "engagement": "Coinvolgimento",
       "basic": "Informazioni di Base",
       "identifiers": "Identificatori",
       "geography": "Geografia",
@@ -31,7 +31,7 @@
       "religion": "Religione",
       "rop": "Classificazione dei Popoli (ROP)",
       "resources": "Risorse Disponibili",
-      "workers": "Engagement Criteria",
+      "workers": "Criteri di coinvolgimento",
       "wagf": "WAGF/Doxa",
       "media": "Media"
     },

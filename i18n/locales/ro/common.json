@@ -39,12 +39,12 @@
       },
       "prayerStatus": {
         "title": "Statutul rugăciunii",
-        "description": "persoane care se roagă zilnic pentru acest grup etnic."
+        "description": "persoane care se roagă zilnic pentru acest grup etnolingvistic."
       }
     },
     "header": {
       "prayFor": "Roagă-te pentru {campaign}",
-      "championedBy": "Un grup etnic susținut de {link}.",
+      "championedBy": "Un grup etnolingvistic susținut de {link}.",
       "doxaFoundation": "Doxa.Life"
     },
     "share": {
@@ -146,7 +146,7 @@
         "submitting": "Se înscrie...",
         "consent": {
           "description": "Pe lângă memento-urile de rugăciune, ține-mă la curent cu:",
-          "campaignUpdates": "Actualizări despre acest grup etnic: {campaign}",
+          "campaignUpdates": "Actualizări despre acest grup etnolingvistic: {campaign}",
           "doxaGeneral": "Progres și actualizări de la {link}"
         }
       },
@@ -164,7 +164,7 @@
       "title": "De ce să ne rugăm?",
       "noOne": {
         "title": "Nu au pe nimeni",
-        "description": "Multe grupuri etnice neangajate nu au biserici, nici misionari și adesea nici credincioși."
+        "description": "Multe grupuri etnolingvistice neangajate misionar nu au biserici, nici misionari și adesea nici credincioși."
       },
       "opensDoors": {
         "title": "Rugăciunea deschide uși",
@@ -178,10 +178,10 @@
     "sampleContent": {
       "title": "Primește conținut zilnic de rugăciune",
       "description": "Iată o previzualizare a conținutului zilnic de rugăciune.",
-      "peopleGroupName": "Grup etnic",
+      "peopleGroupName": "Grup etnolingvistic",
       "scripture": "Scriptura",
-      "prayerPoints": "Subiecte de rugăciune",
-      "peopleGroupOfDay": "Grupul etnic al zilei"
+      "prayerPoints": "Motive de rugăciune",
+      "peopleGroupOfDay": "Grupul etnolingvistic al zilei"
     },
     "mobileApp": {
       "title": "Descarcă aplicația mobilă",
@@ -356,7 +356,7 @@
         "wrong_time": "Ora nu mi s-a potrivit",
         "life_busy": "Viața a devenit prea aglomerată",
         "no_longer_praying": "Nu mă mai rog",
-        "different_people_group": "Mă rog pentru un alt grup etnic",
+        "different_people_group": "Mă rog pentru un alt grup etnolingvistic",
         "emails_only": "Încă mă rog, doar că nu vreau e-mailurile",
         "other": "Altceva"
       }
@@ -394,7 +394,7 @@
     },
     "thankYou": "Mulțumim că te-ai rugat!",
     "meetThePeople": "Grupul meu etnic",
-    "peopleGroupOfTheDay": "Grupul etnic al zilei",
+    "peopleGroupOfTheDay": "Grupul etnolingvistic al zilei",
     "dayInTheLife": "O zi din viață",
     "pauseAndPray": "Oprește-te și roagă-te",
     "mapTitle": "Hartă care arată locația grupului {name}",
@@ -408,11 +408,11 @@
     }
   },
   "home": {
-    "subtitle": "Găsește un grup etnic pentru care să te rogi",
-    "searchPlaceholder": "Caută grupuri etnice...",
-    "errorLoading": "Nu s-au putut încărca grupurile etnice. Vă rugăm să încercați din nou.",
-    "noResults": "Nu s-au găsit grupuri etnice.",
-    "showingCount": "Se afișează {shown} din {total} grupuri etnice"
+    "subtitle": "Găsește un grup etnolingvistic pentru care să te rogi",
+    "searchPlaceholder": "Caută grupuri etnolingvistice...",
+    "errorLoading": "Nu s-au putut încărca grupurile etnolingvistice. Vă rugăm să încercați din nou.",
+    "noResults": "Nu s-au găsit grupuri etnolingvistice.",
+    "showingCount": "Se afișează {shown} din {total} grupuri etnolingvistice"
   },
   "common": {
     "save": "Salvează",
@@ -447,13 +447,13 @@
     }
   },
   "updates": {
-    "pageTitle": "Actualizări despre grupurile etnice",
-    "heading": "Actualizări despre grupurile etnice",
-    "intro": "Bine ai venit și îți mulțumim că ne ajuți să păstrăm exacte informațiile despre grupurile etnice. Acest scurt formular îți va cere câteva informații de bază despre tine și despre grupul etnic. Echipa noastră analizează fiecare sugestie înainte de a face o modificare.",
+    "pageTitle": "Actualizări despre grupurile etnolingvistice",
+    "heading": "Actualizări despre grupurile etnolingvistice",
+    "intro": "Bine ai venit și îți mulțumim că ne ajuți să păstrăm exacte informațiile despre grupurile etnolingvistice. Acest scurt formular îți va cere câteva informații de bază despre tine și despre grupul etnolingvistic. Echipa noastră analizează fiecare sugestie înainte de a face o modificare.",
     "steps": {
-      "group": "Grup etnic",
+      "group": "Grup etnolingvistic",
       "eligibility": "Eligibilitate",
-      "engagement": "Angajare",
+      "engagement": "Angajare misionară",
       "details": "Detalii",
       "resources": "Resurse",
       "reason": "Motiv",
@@ -461,18 +461,18 @@
     },
     "back": "Înapoi",
     "next": "Înainte",
-    "searchLabel": "Despre ce grup etnic ai vrea să ne spui?",
-    "searchPlaceholder": "Scrie numele grupului etnic...",
+    "searchLabel": "Despre ce grup etnolingvistic ai vrea să ne spui?",
+    "searchPlaceholder": "Scrie numele grupului etnolingvistic...",
     "searchHint": "Vom căuta în lista noastră, precum și în bazele de date IMB și Joshua Project.",
-    "searchNoResults": "Nu am găsit nicio potrivire — încearcă o altă ortografie sau adaugă-l mai jos ca grup etnic nou.",
+    "searchNoResults": "Nu am găsit nicio potrivire — încearcă o altă ortografie sau adaugă-l mai jos ca grup etnolingvistic nou.",
     "sectionDoxa": "În lista noastră",
     "sectionExternal": "IMB / Joshua Project",
     "sourceImb": "IMB",
     "sourceJp": "Joshua Project",
     "alreadyInDoxa": "Deja în lista noastră",
     "alsoKnownAs": "cunoscut și ca {names}",
-    "searchMissingNote": "Un grup care lipsește din lista noastră poate fi o populație din diaspora sau poate să nu îndeplinească criteriile DOXA. Dacă crezi că ar trebui să fie pe listă, selectează-l mai sus sau adaugă-l ca grup etnic nou și spune-ne de ce.",
-    "addNewCta": "Nu îl găsești? Spune-ne despre un grup etnic nou",
+    "searchMissingNote": "Un grup care lipsește din lista noastră poate fi o populație din diaspora sau poate să nu îndeplinească criteriile DOXA. Dacă crezi că ar trebui să fie pe listă, selectează-l mai sus sau adaugă-l ca grup etnolingvistic nou și spune-ne de ce.",
+    "addNewCta": "Nu îl găsești? Spune-ne despre un grup etnolingvistic nou",
     "newGroupBadge": "Nou",
     "actionQuestion": "Ce ai vrea să faci?",
     "actionUpdate": "Să actualizez informațiile",
@@ -483,30 +483,31 @@
     "currentValue": "Actual",
     "suggestedValue": "Sugerat",
     "updateFieldsHint": "Completează doar ce trebuie schimbat — restul poate rămâne necompletat.",
-    "criteriaTitle": "Criterii de angajare",
+    "criteriaTitle": "Criterii de angajare misionară",
     "criteria": {
-      "workers_long_term": "Există lucrători interculturali rezidenți în mijlocul grupului etnic?",
-      "work_in_local_language": "Lucrătorii interculturali rezidenți lucrează în limba și cultura locală?",
-      "disciple_and_church_multiplication": "Lucrătorii interculturali rezidenți lucrează într-un mod care va duce la o biserică autohtonă?"
+      "workers_long_term": "Există lucrători transculturali rezidenți în mijlocul grupului etnolingvistic?",
+      "work_in_local_language": "Lucrătorii transculturali rezidenți lucrează în limba și cultura locală?",
+      "disciple_and_church_multiplication": "Lucrătorii transculturali rezidenți lucrează într-un mod care va duce la o biserică autohtonă?"
     },
     "resourcesTitle": "Resurse disponibile",
-    "detailsTitle": "Detalii despre grupul etnic",
+    "detailsTitle": "Detalii despre grupul etnolingvistic",
     "addNotice": "Ceri ca {name} să fie adăugat în lista de rugăciune DOXA.",
-    "addNoticeNew": "Ceri ca un grup etnic nou să fie adăugat în lista de rugăciune DOXA.",
+    "addNoticeNew": "Ceri ca un grup etnolingvistic nou să fie adăugat în lista de rugăciune DOXA.",
     "eligibilityTitle": "Cine poate fi adăugat pe lista DOXA",
     "eligibility": {
       "indigenous": "Indigen în țara sa, nu o populație din diaspora",
-      "unengaged": "Neangajat — nu există lucrare de plantare de biserici în desfășurare printre ei",
+      "unengaged": "Neangajat misionar — nu există lucrare de plantare de biserici în desfășurare printre ei",
       "notChristian": "Religia lor principală nu este creștină și nu au fost considerați istoric creștini",
       "otherCriteria": "Eligibil în rest conform criteriilor DOXA stabilite"
     },
-    "engagedBlockedTitle": "Grupurile angajate nu pot fi adăugate",
-    "engagedBlockedText": "Lista DOXA se concentrează pe grupurile etnice neangajate, așa că un grup angajat este în afara domeniului ei. Dacă crezi că informațiile despre angajare sunt învechite, selectează Neangajat și spune-ne mai multe în comentarii.",
-    "addManualHint": "Acest grup etnic nu se află încă în listele IMB sau Joshua Project, așa că te rugăm să ne împărtășești toate detaliile pe care le poți oferi — inclusiv starea sa de angajare.",    "addImbReasonsTitle": "De ce acest grup nu este în lista DOXA",
+    "engagedBlockedTitle": "Grupurile angajate misionar nu pot fi adăugate",
+    "engagedBlockedText": "Lista DOXA se concentrează pe grupurile etnolingvistice neangajate misionar, așa că un grup angajat misionar este în afara domeniului ei. Dacă crezi că informațiile despre angajarea misionară sunt învechite, selectează Neangajat misionar și spune-ne mai multe în comentarii.",
+    "addManualHint": "Acest grup etnolingvistic nu se află încă în listele IMB sau Joshua Project, așa că te rugăm să ne împărtășești toate detaliile pe care le poți oferi — inclusiv starea sa de angajare misionară.",
+    "addImbReasonsTitle": "De ce acest grup nu este în lista DOXA",
     "addImbReasonsHint": "Dacă ceva din acestea este depășit, corectează mai jos și spune-ne mai multe în comentarii.",
     "addImbEligibleHint": "Acest grup îndeplinește criteriile DOXA și pur și simplu nu a fost încă adăugat — confirmarea detaliilor de mai jos ne va ajuta să îl adăugăm rapid.",
     "exclusionReasons": {
-      "engaged": "IMB îl înregistrează ca angajat",
+      "engaged": "IMB îl înregistrează ca angajat misionar",
       "gsec_above_2": "Scorul său GSEC este peste 2",
       "christian_religion": "Religia sa este înregistrată ca fond creștin",
       "diaspora": "Este clasificat ca grup de diaspora"
@@ -521,23 +522,23 @@
     },
     "verifier": {
       "title": "Verificator",
-      "hint": "Fiecare sugestie are nevoie de o a doua persoană care o poate confirma independent — un membru al echipei, un lider de teren sau un reprezentant al unei organizații cu cunoaștere directă a grupului etnic, alta decât tine.",
+      "hint": "Fiecare sugestie are nevoie de o a doua persoană care o poate confirma independent — un membru al echipei, un lider de teren sau un reprezentant al unei organizații cu cunoaștere directă a grupului etnolingvistic, alta decât tine.",
       "name": "Numele verificatorului",
       "entity": "Organizația verificatorului",
       "email": "Emailul verificatorului"
     },
     "commentsLabel": "Comentarii",
-    "commentsHint": "Ne-ar plăcea să aflăm orice altceva ne-ar putea ajuta — cum ești legat de acest grup etnic, cum ai aflat aceste informații sau orice alt context.",
+    "commentsHint": "Ne-ar plăcea să aflăm orice altceva ne-ar putea ajuta — cum ești legat de acest grup etnolingvistic, cum ai aflat aceste informații sau orice alt context.",
     "pictureLabel": "Fotografie",
     "pictureHint": "JPEG, PNG, GIF sau WebP, până la 10 MB.",
     "pictureDropLabel": "Trage o fotografie aici sau dă clic pentru a răsfoi",
     "capturedPhotoNote": "Fotografie de la {source} — încarcă una proprie pentru a o înlocui.",
-    "removeReasonLabel": "De ce ar trebui eliminat acest grup etnic?",
+    "removeReasonLabel": "De ce ar trebui eliminat acest grup etnolingvistic?",
     "removeReasons": {
-      "no_longer_exists": "Grupul etnic nu mai există.",
-      "merged_or_deleted": "Grupul etnic a fost asimilat în alt grup.",
-      "is_diaspora": "Grupul etnic a fost reclasificat ca diaspora.",
-      "historically_christian": "Grupul etnic a fost reclasificat ca având un fond creștin."
+      "no_longer_exists": "Grupul etnolingvistic nu mai există.",
+      "merged_or_deleted": "Grupul etnolingvistic a fost asimilat în alt grup.",
+      "is_diaspora": "Grupul etnolingvistic a fost reclasificat ca diaspora.",
+      "historically_christian": "Grupul etnolingvistic a fost reclasificat ca având un fond creștin."
     },
     "removeFieldsToggle": "Aș vrea să corectez și o parte din informațiile sale",
     "removeFieldsHint": "Dacă unele detalii ar trebui corectate cu această ocazie, le poți introduce aici.",
@@ -556,14 +557,14 @@
       "generic": "Ceva nu a mers bine. Te rugăm să încerci din nou.",
       "nameRequired": "Te rugăm să ne spui numele tău",
       "emailRequired": "Te rugăm să introduci o adresă de email validă",
-      "groupRequired": "Te rugăm să alegi un grup etnic",
-      "groupNameRequired": "Te rugăm să ne spui numele grupului etnic",
+      "groupRequired": "Te rugăm să alegi un grup etnolingvistic",
+      "groupNameRequired": "Te rugăm să ne spui numele grupului etnolingvistic",
       "reasonRequired": "Te rugăm să ne spui de ce ar trebui eliminat acest grup",
       "changesRequired": "Te rugăm să sugerezi cel puțin o modificare sau să lași un comentariu",
       "commentsRequired": "Te rugăm să adaugi un comentariu care să ne ajute să înțelegem cererea ta",
       "uploadFailed": "Nu am putut încărca fotografia — te rugăm să încerci din nou",
-      "engagementRequired": "Selectează statutul de angajare al grupului",
-      "engagedBlocked": "Grupurile etnice angajate sunt în afara domeniului listei DOXA",
+      "engagementRequired": "Selectează statutul de angajare misionară al grupului",
+      "engagedBlocked": "Grupurile etnolingvistice angajate misionar sunt în afara domeniului listei DOXA",
       "verifierNameRequired": "Spune-ne numele verificatorului",
       "verifierEmailRequired": "Introdu o adresă de e-mail validă a verificatorului",
       "verifierEmailSame": "Verificatorul trebuie să fie altcineva decât tine"
@@ -667,7 +668,7 @@
     "verification": {
       "subject": "Confirmă adresa ta de email",
       "header": "Verifică-ți emailul",
-      "thankYou": "Mulțumim că te-ai înscris pentru a te ruga pentru un grup etnic.",
+      "thankYou": "Mulțumim că te-ai înscris pentru a te ruga pentru un grup etnolingvistic.",
       "pleaseVerify": "Te rugăm să verifici adresa de email făcând click pe butonul de mai jos:",
       "verifyButton": "Verifică emailul",
       "linkInstructions": "Dacă butonul nu funcționează, poți copia și lipi acest link în browser:",
@@ -679,8 +680,8 @@
       "subject": "Bun venit la {appName} - {campaign}",
       "header": "Bun venit la {appName}",
       "doxaMeaning": "În greacă, doxa înseamnă „slavă”, și exact asta oferim atunci când ne unim în rugăciune pentru milioanele de oameni care trăiesc cu puțină sau nicio mărturie a Evangheliei. Împreună, Îi aducem slavă lui Dumnezeu printr-o rugăciune credincioasă și plină de așteptare.",
-      "reminderExplanation": "Ca parte a acestei campanii de rugăciune, vei începe în curând să primești emailuri memento cu linkuri către conținutul zilnic de rugăciune. Fiecare link va include subiecte de rugăciune ghidate și alte materiale care te vor ajuta să te rogi strategic și cu credincioșie pentru grupul etnic neangajat pe care l-ai ales.",
-      "sharedGoal": "Prin această mișcare, scopul nostru comun este să vedem peste 100 de oameni rugându-se zilnic pentru fiecare dintre cele peste 2.000 de grupuri etnice neangajate, bărbați și femei trimiși să ajungă la aceste grupuri etnice cu Evanghelia până în anul 2033, și dăruire susținută pentru a sprijini acest efort.",
+      "reminderExplanation": "Ca parte a acestei campanii de rugăciune, vei începe în curând să primești emailuri memento cu linkuri către conținutul zilnic de rugăciune. Fiecare link va include motive de rugăciune ghidate și alte materiale care te vor ajuta să te rogi strategic și cu credincioșie pentru grupul etnolingvistic neangajat misionar pe care l-ai ales.",
+      "sharedGoal": "Prin această mișcare, scopul nostru comun este să vedem peste 100 de oameni rugându-se zilnic pentru fiecare dintre cele peste 2.000 de grupuri etnolingvistice neangajate misionar, bărbați și femei trimiși să ajungă la aceste grupuri etnolingvistice cu Evanghelia până în anul 2033, și dăruire susținută pentru a sprijini acest efort.",
       "closing": "Suntem profund recunoscători să ne alăturăm întregii Biserici în efortul de a duce întreaga Evanghelie în întreaga lume.",
       "reminderTimeNote": "Memento-ul tău zilnic este setat pentru {time}.",
       "thankYou": "Mulțumim că te-ai înscris pentru rugăciune. Emailul tău a fost verificat și ești pregătit să primești memento-uri de rugăciune pentru {campaign}.",
@@ -754,20 +755,20 @@
       "subject": "Actualizare adoptare DOXA: Angajamentul tău pentru {peopleGroupName}",
       "headerTitle": "Actualizare de adoptare DOXA",
       "greeting": "Dragă {firstName},",
-      "intro": "Astăzi, ca parte a parteneriatului DOXA, ai schimbat statutul {peopleGroupName} din [waiting] în [adopted] — primul pas vital spre angajare.",
-      "introContinued": "Ești acum un principal apărător, mijlocitor și mobilizator pentru un grup etnic care, până în acest moment, nu avea nicio mărturie constantă și niciun efort dedicat de rugăciune.",
+      "intro": "Astăzi, ca parte a parteneriatului DOXA, ai schimbat statutul {peopleGroupName} din [waiting] în [adopted] — primul pas vital spre angajarea misionară.",
+      "introContinued": "Ești acum un principal apărător, mijlocitor și mobilizator pentru un grup etnolingvistic care, până în acest moment, nu avea nicio mărturie constantă și niciun efort dedicat de rugăciune.",
       "waiting": "în așteptare",
       "adopted": "adoptat",
       "resourcesIntro": "Următoarele resurse te vor ajuta să gestionezi această oportunitate.",
-      "section1Title": "1. Grupul tău etnic adoptat",
+      "section1Title": "1. Grupul tău etnolingvistic adoptat",
       "resourcesButton": "Vezi resursele de adoptare",
-      "section1Item1": "URL și cod QR pentru grupul tău etnic, sfaturi, răspunsuri la întrebări frecvente și multe altele",
+      "section1Item1": "URL și cod QR pentru grupul tău etnolingvistic, sfaturi, răspunsuri la întrebări frecvente și multe altele",
       "section1Item2": "Imagini care te ajută să prezinți acest lucru bisericii tale sau grupului mic",
       "section1Item3": "Un link dedicat pentru a facilita contribuția financiară la Fundația DOXA",
       "section2Title": "2. Resursele tale de adoptare",
-      "section2Intro": "Am pregătit o serie de resurse specifice grupului tău etnic pentru a te ajuta să mobilizezi și să distribui rapid și ușor informații despre această inițiativă. Vei găsi:",
-      "fullProfileText": "Consultă detaliile grupului tău etnic vizitând",
-      "fullProfileButton": "Profilul complet al grupului etnic",
+      "section2Intro": "Am pregătit o serie de resurse specifice grupului tău etnolingvistic pentru a te ajuta să mobilizezi și să distribui rapid și ușor informații despre această inițiativă. Vei găsi:",
+      "fullProfileText": "Consultă detaliile grupului tău etnolingvistic vizitând",
+      "fullProfileButton": "Profilul complet al grupului etnolingvistic",
       "prayerPageText": "Mobilizează oameni să se roage prin această",
       "prayerPageButton": "pagină de rugăciune",
       "section3Title": "3. Primele tale 30 de zile",
@@ -776,13 +777,13 @@
       "step1Text": "Roagă-te 10 minute zilnic pentru {peopleGroupName}. Cere-I lui Dumnezeu să-ți dea o inimă pentru acest loc și acești oameni. Cere-I înțelepciune pentru pașii următori și favoare la toți cei care vor auzi datorită eforturilor tale de a împărtăși viziunea. Cere-I să pregătească inimile. Așteaptă-te ca El să răspundă — El lucrează deja! Începe prin a vizita {prayerPageLink} lor.",
       "step1PrayerPage": "pagină de rugăciune",
       "step2Label": "Planifică și socializează:",
-      "step2Text": "Creează un plan cu conducerea bisericii tale despre cum să prezinți acest lucru bisericii și comunității tale. Împărtășește materialele tale digitale și alte resurse din {adoptionResourcesLink} tale cu familia bisericii tale și pe platformele tale sociale. Fă cunoscut că acest grup etnic este prioritatea ta.",
+      "step2Text": "Creează un plan cu conducerea bisericii tale despre cum să prezinți acest lucru bisericii și comunității tale. Împărtășește materialele tale digitale și alte resurse din {adoptionResourcesLink} tale cu familia bisericii tale și pe platformele tale sociale. Fă cunoscut că acest grup etnolingvistic este prioritatea ta.",
       "step2AdoptionResources": "resursele de adoptare",
       "step3Label": "Mobilizează nucleul:",
       "step3Text": "Identifică 5 persoane care se vor înscrie să se roage cu tine. Ia în considerare lideri de rugăciune, membri ai grupurilor mici și prieteni spiritual credincioși care sunt probabil aliniați în priorități și viziune. Un mic nucleu în acord susținut și plin de așteptare poate fi începutul unei mișcări.",
       "section4Title": "4. Fii încurajat de actualizările DOXA",
-      "section4Text": "În fiecare lună, vei primi o actualizare strategică lunară — informându-te despre orice progrese regionale, resurse noi sau repere de mobilizare legate de grupul tău etnic. Dacă ai întrebări, ai nevoie de încurajare sau de ajutor pentru a gândi pașii următori, vrem să te ajutăm. Te rugăm să ne contactezi la {contactEmail}.",
-      "closingCount": "Erau {beforeCount} grupuri etnice care așteptau să fie adoptate. Datorită \"da\"-ului tău de astăzi, acel număr este acum {afterCount}. Suntem recunoscători că putem fi parteneri cu tine în acest demers valoros.",
+      "section4Text": "În fiecare lună, vei primi o actualizare strategică lunară — informându-te despre orice progrese regionale, resurse noi sau repere de mobilizare legate de grupul tău etnolingvistic. Dacă ai întrebări, ai nevoie de încurajare sau de ajutor pentru a gândi pașii următori, vrem să te ajutăm. Te rugăm să ne contactezi la {contactEmail}.",
+      "closingCount": "Erau {beforeCount} grupuri etnolingvistice care așteptau să fie adoptate. Datorită \"da\"-ului tău de astăzi, acel număr este acum {afterCount}. Suntem recunoscători că putem fi parteneri cu tine în acest demers valoros.",
       "signoff": "Pentru slava lui Dumnezeu,",
       "teamName": "Echipa DOXA"
     }
@@ -1006,7 +1007,7 @@
           }
         },
         "focus": {
-          "label": "Subiectele zilnice de rugăciune mă ajută să mă concentrez și să mă implic în rugăciunea pentru grupurile etnice neatinse.",
+          "label": "Motivele zilnice de rugăciune mă ajută să mă concentrez și să mă implic în rugăciunea pentru grupurile etnolingvistice neatinse cu Evanghelia.",
           "scale": {
             "1": "Deloc",
             "3": "Oarecum",
@@ -1017,7 +1018,7 @@
           "label": "Spune-ne mai multe despre experiența ta: ce parte a paginii zilnice de rugăciune ți-a fost cea mai utilă și de ce?"
         },
         "clarity": {
-          "label": "Subiectele de rugăciune comunică clar pentru ce să te rogi și de ce este important.",
+          "label": "Motivele de rugăciune comunică clar pentru ce să te rogi și de ce este important.",
           "scale": {
             "1": "Deloc",
             "3": "Oarecum",
@@ -1033,7 +1034,7 @@
           }
         },
         "scripted_preference": {
-          "label": "Conținutul de rugăciune cuprinde atât puncte de rugăciune cu sugestii strategice despre cum să te rogi (de ex.: Te rugăm să te rogi ca Dumnezeu să ridice misionari din toată lumea pentru a planta împreună Biserica printre grupurile etnice neatinse.), cât și rugăciuni redactate dinainte (de ex.: Tată, astăzi ne rugăm ca acest grup etnic să experimenteze promisiunea pe care i-ai făcut-o lui Avraam, că vor fi binecuvântați prin el. Amin.). Ce ai prefera:",
+          "label": "Conținutul de rugăciune cuprinde atât motive de rugăciune cu sugestii strategice despre cum să te rogi (de ex.: Te rugăm să te rogi ca Dumnezeu să ridice misionari din toată lumea pentru a planta împreună Biserica printre grupurile etnolingvistice neatinse cu Evanghelia.), cât și rugăciuni redactate dinainte (de ex.: Tată, astăzi ne rugăm ca acest grup etnolingvistic să experimenteze promisiunea pe care i-ai făcut-o lui Avraam, că vor fi binecuvântați prin el. Amin.). Ce ai prefera:",
           "options": {
             "1": "Toate cererile de rugăciune să fie redactate dinainte",
             "2": "Aproximativ jumătate dintre cererile de rugăciune să fie redactate dinainte",
@@ -1042,14 +1043,14 @@
           }
         },
         "new_pg_daily": {
-          "label": "Îți place secțiunea care te încurajează să te rogi în fiecare zi pentru un alt grup etnic neangajat, pe lângă grupul tău etnic specific?",
+          "label": "Îți place secțiunea care te încurajează să te rogi în fiecare zi pentru un alt grup etnolingvistic neangajat misionar, pe lângă grupul tău etnolingvistic specific?",
           "options": {
             "1": "Da",
             "2": "Nu"
           }
         },
         "background_info": {
-          "label": "Îți este util să vezi în fiecare zi informațiile de context despre grupul tău etnic la finalul conținutului de rugăciune?",
+          "label": "Îți este util să vezi în fiecare zi informațiile de context despre grupul tău etnolingvistic la finalul conținutului de rugăciune?",
           "options": {
             "1": "Da",
             "2": "Nu"
@@ -1064,8 +1065,8 @@
         "header": "Ne-ar plăcea să aflăm părerea ta",
         "greeting": "Bună, {name},",
         "greetingFallback": "Bună,",
-        "p1": "A fost un privilegiu să ne unim cu tine în mijlocire pentru grupurile etnice neatinse ale lumii.",
-        "p2": "Căutăm mereu să facem subiectele zilnice de rugăciune mai utile și, înainte de a ne întâlni ca echipă pentru a planifica pașii următori, ne-ar plăcea să te ascultăm. Ai putea să acorzi câteva minute pentru a răspunde la câteva întrebări scurte despre experiența ta?",
+        "p1": "A fost un privilegiu să ne unim cu tine în mijlocire pentru grupurile etnolingvistice ale lumii neatinse cu Evanghelia.",
+        "p2": "Căutăm mereu să facem motivele zilnice de rugăciune mai utile și, înainte de a ne întâlni ca echipă pentru a planifica pașii următori, ne-ar plăcea să te ascultăm. Ai putea să acorzi câteva minute pentru a răspunde la câteva întrebări scurte despre experiența ta?",
         "p3": "Părerea ta sinceră — ce funcționează și ce nu — modelează direct conținutul de rugăciune pe care îl creăm.",
         "cta": "Completează sondajul",
         "signoff": "Cu recunoștință,",
