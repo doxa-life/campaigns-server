@@ -2,7 +2,8 @@ import { inboxTagService } from '../database/inbox-tags'
 
 /**
  * Seed the three feedback inbox tags into the tag palette at startup so messages
- * from the app's feedback form (/api/feedback) render a filterable, colour-coded
+ * that carry a feedback type — the app's feedback form (/api/feedback) and the
+ * doxa.life contact form (/api/contact) — render a filterable, colour-coded
  * folder in the admin inbox rail. inboxTagService.create() is idempotent — it
  * returns the existing tag when the slug is already present — so this is safe to
  * run on every boot.

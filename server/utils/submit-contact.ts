@@ -80,6 +80,15 @@ export interface SubmitContactInput {
   feedbackType?: FeedbackType | null
   /** App-provided device diagnostics (already sanitised by the caller). */
   device?: Record<string, string> | null
+  /**
+   * Overrides the recorded origin of the conversation and subscriber. Defaults to
+   * 'feedback'/'contact_form' from `feedbackType`. Callers that share the feedback
+   * pipeline but arrive from somewhere else pass their own marker here — the
+   * doxa.life contact form sends 'doxa_life' — so the inbox can tell them apart
+   * from in-app feedback. Callers must pass an allowlisted value (see the
+   * `inbox.source.*` i18n keys), never raw user input.
+   */
+  source?: string | null
 }
 
 /**
@@ -100,6 +109,10 @@ export async function submitContactMessage(event: H3Event, input: SubmitContactI
   const name = input.name
   const feedbackType = input.feedbackType ?? null
   const isFeedback = !!feedbackType
+  // The conversation's origin marker. `isFeedback` still drives the subject prefix,
+  // tag and device block — the two are deliberately independent so a caller can use
+  // the feedback shape while staying identifiable as its own channel.
+  const source = input.source || (isFeedback ? 'feedback' : 'contact_form')
 
   // Identity: when the caller supplies a tracking_id, attach to that existing
   // anonymous subscriber (email stays canonical); otherwise match on email alone.
@@ -121,7 +134,7 @@ export async function submitContactMessage(event: H3Event, input: SubmitContactI
     await subscriberService.updateSubscriber(subscriber.id, { country })
   }
 
-  await subscriberService.addSource(subscriber.id, isFeedback ? 'feedback' : 'contact')
+  await subscriberService.addSource(subscriber.id, input.source || (isFeedback ? 'feedback' : 'contact'))
 
   const emailContact = await contactMethodService.getByValue('email', email)
   if (emailContact && input.consentDoxaGeneral) {
@@ -155,7 +168,7 @@ export async function submitContactMessage(event: H3Event, input: SubmitContactI
     subscriber_id: subscriber.id,
     subject,
     status: 'open',
-    source: isFeedback ? 'feedback' : 'contact_form',
+    source,
   })
 
   // Filterable, colour-coded inbox tag for the feedback type (palette seeded at startup).
@@ -167,7 +180,7 @@ export async function submitContactMessage(event: H3Event, input: SubmitContactI
   // origin trail (source + the address it arrived on) even if the message step fails.
   logCreate('conversations', String(conversation.id), event, {
     message: isFeedback ? 'Feedback conversation opened' : 'Contact form conversation opened',
-    source: isFeedback ? 'feedback' : 'contact_form',
+    source,
     received_on: contactAddress,
     direction: 'inbound',
   })
@@ -215,7 +228,7 @@ export async function submitContactMessage(event: H3Event, input: SubmitContactI
     userHash: userHashFromEmail(email),
     language,
     metadata: {
-      source: isFeedback ? 'feedback' : 'contact_form',
+      source,
       country,
       consent_doxa_general: input.consentDoxaGeneral ?? false,
       language,
