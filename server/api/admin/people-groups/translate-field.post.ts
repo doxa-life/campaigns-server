@@ -8,6 +8,41 @@ interface PeopleGroupWithEnglish {
   pg: PeopleGroup
   englishText: string
   fieldValue: Record<string, string>
+  changed: boolean
+}
+
+function isPlainObject(value: unknown): value is Record<string, string> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+/**
+ * A translations map out of whatever the column holds.
+ *
+ * A jsonb `||` merge against a JSON string instead of an object concatenates
+ * rather than merging, so a row can hold `["{}", { en: "..." }]`. Reading `.en`
+ * off that is undefined, which would drop the group from the run unnoticed.
+ */
+function normalizeTranslations(value: unknown): Record<string, string> | null {
+  if (isPlainObject(value)) return value
+
+  if (Array.isArray(value)) {
+    const merged: Record<string, string> = {}
+    for (const entry of value) {
+      const normalized = normalizeTranslations(entry)
+      if (normalized) Object.assign(merged, normalized)
+    }
+    return Object.keys(merged).length > 0 ? merged : null
+  }
+
+  if (typeof value === 'string') {
+    try {
+      return normalizeTranslations(JSON.parse(value))
+    } catch {
+      return null
+    }
+  }
+
+  return null
 }
 
 /**
@@ -77,22 +112,21 @@ export default defineEventHandler(async (event) => {
     const peopleGroupsWithEnglish: PeopleGroupWithEnglish[] = []
 
     for (const pg of allPeopleGroups) {
-      let fieldValue: Record<string, string> | null = null
+      const rawValue = field.tableColumn
+        ? (pg as any)[fieldKey]
+        : pg.metadata?.[fieldKey]
 
-      if (field.tableColumn) {
-        fieldValue = (pg as any)[fieldKey] as Record<string, string> | null
-      } else {
-        if (pg.metadata) {
-          fieldValue = pg.metadata[fieldKey] as Record<string, string> | null
-        }
-      }
+      const fieldValue = normalizeTranslations(rawValue)
 
       const englishText = fieldValue?.en
       if (englishText && englishText.trim() !== '') {
         peopleGroupsWithEnglish.push({
           pg,
           englishText: englishText.trim(),
-          fieldValue: fieldValue || {}
+          fieldValue: fieldValue || {},
+          // A value that was not already a plain object is rewritten in the
+          // normalized shape even when no new translation is added.
+          changed: !isPlainObject(rawValue)
         })
       }
     }
@@ -156,6 +190,7 @@ export default defineEventHandler(async (event) => {
           const translatedText = translatedTexts[i]!
 
           item.fieldValue[targetLang] = translatedText
+          item.changed = true
 
           // Send progress every 10 items
           if (i % 10 === 0 || i === needsTranslation.length - 1) {
@@ -182,14 +217,17 @@ export default defineEventHandler(async (event) => {
     }
 
     // Save all updates to database
+    const toSave = peopleGroupsWithEnglish.filter(item => item.changed)
+    stats.skipped = peopleGroupsWithEnglish.length - toSave.length
+
     sendEvent('progress', {
       phase: 'saving',
-      message: 'Saving all translations to database...',
+      message: `Saving ${toSave.length} of ${totalPeopleGroups} people groups...`,
       totalPeopleGroups
     })
 
-    for (let i = 0; i < peopleGroupsWithEnglish.length; i++) {
-      const item = peopleGroupsWithEnglish[i]!
+    for (let i = 0; i < toSave.length; i++) {
+      const item = toSave[i]!
 
       try {
         if (field.tableColumn) {
@@ -213,12 +251,12 @@ export default defineEventHandler(async (event) => {
       }
 
       // Send progress every 10 items
-      if (i % 10 === 0 || i === peopleGroupsWithEnglish.length - 1) {
+      if (i % 10 === 0 || i === toSave.length - 1) {
         sendEvent('progress', {
           phase: 'saving',
-          message: `Saved ${i + 1} of ${totalPeopleGroups} people groups`,
+          message: `Saved ${i + 1} of ${toSave.length} people groups`,
           saved: i + 1,
-          totalPeopleGroups
+          totalPeopleGroups: toSave.length
         })
       }
     }
