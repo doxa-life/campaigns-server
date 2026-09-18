@@ -4,8 +4,11 @@ Task-progresser discovery — print the next people group(s) needing onboarding 
 
 Reads:
   - GET /api/admin/people-groups/onboarding-status (server truth)
-  - ../people-groups/todo.csv (local truth: research_done / prompts_done / reviewed / upload_done)
+  - todo.csv in the people-groups checkout (local truth: research_done / prompts_done / reviewed / upload_done)
   - Local existence of research/findings/{slug}.md and day-in-the-life/prompts/{slug}.csv
+
+The people-groups checkout is wherever this developer keeps it, so its path
+comes from --repo or the doxa-repos registry, never from a fixed layout.
 
 Prints one row per PG with outstanding work, listing what step comes next:
   RESEARCH | PROMPTS | UPLOAD | TRANSLATE | NEEDS_TAG
@@ -78,6 +81,31 @@ def load_todo(todo_path):
     return result
 
 
+def resolve_repo(explicit):
+    """The people-groups checkout: the flag, then the shared registry.
+
+    No fixed relative path, because developers do not lay their machines out
+    the same way. Returns None when there is nothing usable to read.
+    """
+    if explicit:
+        candidate = Path(explicit).expanduser().resolve()
+        return candidate if (candidate / 'todo.csv').exists() else None
+
+    registry = Path(__file__).resolve().parent.parent / 'doxa-repos' / 'repos.py'
+    if registry.exists():
+        sys.path.insert(0, str(registry.parent))
+        try:
+            import repos
+            recorded = repos.load().get('people-groups')
+            if recorded:
+                ok, detail = repos.check('people-groups', recorded)
+                if ok:
+                    return Path(detail)
+        except Exception:
+            pass
+    return None
+
+
 def next_step(pg, todo_row, repo_dir):
     """Return the next required step for a PG, or None if fully done."""
     slug = pg.get('slug')
@@ -119,15 +147,20 @@ def main():
     parser = argparse.ArgumentParser(description='Task-progresser discovery: list outstanding onboarding work')
     parser.add_argument('--api-key', required=True, help='Admin API key (dxk_*)')
     parser.add_argument('--base-url', default='http://localhost:3000', help='API base URL')
-    parser.add_argument('--repo', default=None, help='Path to the people-groups repo root (default: ../people-groups)')
+    parser.add_argument('--repo', default=None, help='Path to the people-groups repo root (default: the doxa-repos registry)')
     parser.add_argument('--limit', type=int, default=0, help='Cap output rows (0 = no limit)')
     parser.add_argument('--json', action='store_true', help='Output raw JSON list')
     args = parser.parse_args()
 
-    if args.repo:
-        repo_dir = Path(args.repo)
-    else:
-        repo_dir = Path(__file__).parent.parent.parent.parent.parent / 'people-groups'
+    repo_dir = resolve_repo(args.repo)
+    if repo_dir is None:
+        print(
+            'ERROR: no people-groups checkout. Pass --repo PATH, or register it once:\n'
+            '  python3 .claude/skills/doxa-repos/repos.py set people-groups /path/to/checkout\n'
+            '  (clone from https://github.com/doxa-life/people-groups)',
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
     todo_path = repo_dir / 'todo.csv'
     todo_map = load_todo(todo_path)

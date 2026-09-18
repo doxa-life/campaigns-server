@@ -256,6 +256,30 @@ describe('Glossary', async () => {
       expect(result.bible_translation).toBe('Testish Standard Version 1998')
     })
 
+    it('records the language-wide notes and attributes them', async () => {
+      const result = await $fetch<any>(`/api/glossary/review/${passToken}/notes`, {
+        method: 'PATCH',
+        body: { notes: '## Register\nAddress the reader informally.' }
+      })
+      expect(result.notes).toContain('Address the reader informally.')
+
+      const [revision] = await sql`
+        SELECT reviewer_name, source FROM glossary_language_note_revisions
+        WHERE language_id = ${languageId}
+        ORDER BY created_at DESC LIMIT 1
+      `
+      expect(revision!.reviewer_name).toBe('Rodica T')
+      expect(revision!.source).toBe('review')
+    })
+
+    it('refuses notes longer than the prompt budget', async () => {
+      const error = await $fetch(`/api/glossary/review/${passToken}/notes`, {
+        method: 'PATCH',
+        body: { notes: 'x'.repeat(4001) }
+      }).catch(e => e)
+      expect(error.statusCode).toBe(400)
+    })
+
     it('submits the pass and keeps the link working', async () => {
       const pass = await $fetch<any>(`/api/glossary/review/${passToken}/submit`, { method: 'POST' })
       expect(pass.status).toBe('submitted')
@@ -319,6 +343,54 @@ describe('Glossary', async () => {
       `
       expect(translation!.status).toBe('draft')
       expect(translation!.stale).toBe(true)
+    })
+  })
+
+  describe('Translation notes', () => {
+    it('publishes the notes on the public glossary, in both formats', async () => {
+      const data = await $fetch<any>('/api/glossary/zz')
+      expect(data.notes).toContain('Address the reader informally.')
+
+      const markdown = await $fetch<string>('/api/glossary/zz?format=markdown')
+      expect(markdown).toContain('## Rules for Testish')
+      expect(markdown).toContain('Address the reader informally.')
+    })
+
+    it('lets an admin rewrite them and keeps the reviewer version restorable', async () => {
+      await $fetch('/api/admin/glossary/languages/zz/notes', {
+        method: 'PATCH',
+        body: { notes: '## Register\nAddress the reader formally.' },
+        ...adminAuth
+      })
+
+      const { revisions } = await $fetch<any>('/api/admin/glossary/languages/zz/notes/revisions', adminAuth)
+      expect(revisions[0].source).toBe('admin')
+
+      const reviewerRevision = revisions.find((revision: any) => revision.source === 'review')
+      await $fetch(`/api/admin/glossary/note-revisions/${reviewerRevision.id}/revert`, {
+        method: 'POST',
+        ...adminAuth
+      })
+
+      const data = await $fetch<any>('/api/glossary/zz')
+      expect(data.notes).toContain('Address the reader informally.')
+    })
+
+    it('refuses an over-long write from the admin too', async () => {
+      const error = await $fetch('/api/admin/glossary/languages/zz/notes', {
+        method: 'PATCH',
+        body: { notes: 'x'.repeat(4001) },
+        ...adminAuth
+      }).catch(e => e)
+      expect(error.statusCode).toBe(400)
+    })
+
+    it('starts empty for a language nobody has written notes for', async () => {
+      const [language] = await sql`
+        INSERT INTO glossary_languages (code, name_en) VALUES ('zzc', 'Testish C') RETURNING code
+      `
+      const data = await $fetch<any>(`/api/glossary/${language!.code}`)
+      expect(data.notes).toBe('')
     })
   })
 

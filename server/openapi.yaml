@@ -2213,6 +2213,18 @@ paths:
                         description: >
                           The translation reviewers report their church
                           communities use, which biblical phrasing follows.
+                  notes:
+                    type: string
+                    description: >
+                      Markdown. Rules that hold for the whole language rather
+                      than for one term — how the reader is addressed, the verbs
+                      prayer prompts use, which acronyms translate, how numbers
+                      and years are written, which names stay in Latin script.
+                      Apply them alongside the terms. Empty until a reviewer or
+                      an admin writes them.
+                    example: |
+                      ## Register and address
+                      Address the reader as "tú" throughout, except in the privacy policy.
                   generated_at:
                     type: string
                     format: date-time

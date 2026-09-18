@@ -48,6 +48,14 @@ export interface GlossaryLanguage {
   bible_id: string | null
   bible_translation: string | null
   bible_translation_note: string | null
+  /**
+   * Rules that hold for the whole language rather than for one term: register
+   * and form of address, the verb pair prayer prompts use, acronym policy,
+   * number and date conventions, script and name handling. Markdown, written in
+   * English or in the language itself, and injected verbatim into every
+   * translation prompt.
+   */
+  notes: string
   created_at: string
   updated_at: string
 }
@@ -98,6 +106,17 @@ export interface GlossaryRevision {
   created_at: string
 }
 
+/** One saved state of a language's translation notes. */
+export interface GlossaryNoteRevision {
+  id: string
+  language_id: string
+  notes: string
+  reviewer_name: string | null
+  pass_id: string | null
+  source: string
+  created_at: string
+}
+
 /** Who made a change, for the revision trail. */
 export interface GlossaryActor {
   name?: string | null
@@ -119,7 +138,7 @@ function jsonValue(sql: ReturnType<typeof getSql>, value: unknown) {
 const SECTION_COLUMNS = 'id, title, intro, position'
 const TERM_COLUMNS = 'id, section_id, term, seed, fields, position'
 const LANGUAGE_COLUMNS =
-  'id, code, name_en, name_local, text_direction, chrome, bible_id, bible_translation, bible_translation_note, created_at, updated_at'
+  'id, code, name_en, name_local, text_direction, chrome, bible_id, bible_translation, bible_translation_note, notes, created_at, updated_at'
 const TRANSLATION_COLUMNS =
   'id, language_id, term_id, value, status, note, stale, updated_by_name, updated_by_pass_id, updated_at'
 const PASS_COLUMNS =
@@ -255,7 +274,7 @@ export async function listLanguages(): Promise<GlossaryLanguageSummary[]> {
   return (await sql`
     SELECT
       l.id, l.code, l.name_en, l.name_local, l.text_direction, l.chrome,
-      l.bible_id, l.bible_translation, l.bible_translation_note,
+      l.bible_id, l.bible_translation, l.bible_translation_note, l.notes,
       l.created_at, l.updated_at,
       (SELECT COUNT(*)::int FROM glossary_terms) AS term_count,
       COUNT(*) FILTER (WHERE t.status = 'confirmed')::int AS confirmed_count,
@@ -339,6 +358,62 @@ export async function deleteLanguage(id: string): Promise<boolean> {
   const sql = getSql()
   const result = await sql`DELETE FROM glossary_languages WHERE id = ${id}`
   return result.count > 0
+}
+
+// ---------------------------------------------------------------- Language notes
+
+/**
+ * Replace a language's translation notes and append a revision. Notes are
+ * written here rather than through `updateLanguage` so that no path can change
+ * them without leaving a restorable record — the magic link is unauthenticated.
+ */
+export async function writeLanguageNotes(
+  languageId: string,
+  notes: string,
+  actor: GlossaryActor
+): Promise<GlossaryLanguage | null> {
+  const sql = getSql()
+
+  const [row] = await sql`
+    UPDATE glossary_languages
+    SET notes = ${notes}, updated_at = NOW()
+    WHERE id = ${languageId}
+    RETURNING ${sql.unsafe(LANGUAGE_COLUMNS)}
+  `
+  if (!row) return null
+
+  await sql`
+    INSERT INTO glossary_language_note_revisions (language_id, notes, reviewer_name, pass_id, source)
+    VALUES (${languageId}, ${notes}, ${actor.name ?? null}, ${actor.passId ?? null}, ${actor.source})
+  `
+  return row as GlossaryLanguage
+}
+
+export async function listLanguageNoteRevisions(languageId: string): Promise<GlossaryNoteRevision[]> {
+  const sql = getSql()
+  return (await sql`
+    SELECT id, language_id, notes, reviewer_name, pass_id, source, created_at
+    FROM glossary_language_note_revisions
+    WHERE language_id = ${languageId}
+    ORDER BY created_at DESC
+  `) as unknown as GlossaryNoteRevision[]
+}
+
+/** Restore an earlier set of notes by writing it as a new change. */
+export async function revertLanguageNotes(
+  revisionId: string,
+  actorName: string | null
+): Promise<GlossaryLanguage | null> {
+  const sql = getSql()
+  const [revision] = await sql`
+    SELECT language_id, notes FROM glossary_language_note_revisions WHERE id = ${revisionId}
+  `
+  if (!revision) return null
+
+  return await writeLanguageNotes(revision.language_id, revision.notes, {
+    name: actorName,
+    source: 'revert'
+  })
 }
 
 // ---------------------------------------------------------------- Translations
@@ -597,4 +672,24 @@ export async function getGlossaryPairs(code: string): Promise<GlossaryPair[]> {
     WHERE gl.code = ${code} AND tr.value <> ''
     ORDER BY gs.position, gt.position
   `) as unknown as GlossaryPair[]
+}
+
+/** Everything a translation request needs from the glossary for one language. */
+export interface GlossaryContext {
+  pairs: GlossaryPair[]
+  notes: string
+}
+
+/**
+ * The term list plus the language-wide rules. The two travel together because
+ * a prompt needs both: the pairs fix individual words, the notes fix register,
+ * acronyms, numerals and the other decisions no single term carries.
+ */
+export async function getGlossaryContext(code: string): Promise<GlossaryContext> {
+  const sql = getSql()
+  const [pairs, [language]] = await Promise.all([
+    getGlossaryPairs(code),
+    sql`SELECT notes FROM glossary_languages WHERE code = ${code}`
+  ])
+  return { pairs, notes: (language?.notes as string) || '' }
 }

@@ -31,6 +31,12 @@ export interface GlossaryExport {
     bible_id: string | null
     bible_translation: string | null
   }
+  /**
+   * The language's rules, as markdown: register, the prayer-prompt verbs,
+   * acronym policy, numerals, script and name handling. Empty until a reviewer
+   * or an admin writes them.
+   */
+  notes: string
   generated_at: string
   term_count: number
   confirmed_count: number
@@ -61,6 +67,7 @@ export function buildGlossaryExport(language: GlossaryLanguage, entries: Glossar
       bible_id: language.bible_id,
       bible_translation: language.bible_translation
     },
+    notes: language.notes || '',
     generated_at: new Date().toISOString(),
     term_count: terms.length,
     confirmed_count: terms.filter(term => term.status === 'confirmed').length,
@@ -81,6 +88,14 @@ export function renderGlossaryMarkdown(data: GlossaryExport): string {
   if (data.language.bible_translation) {
     lines.push('')
     lines.push(`Biblical wording follows **${data.language.bible_translation}**.`)
+  }
+  // Ahead of the terms, because these rules govern how every one of them is
+  // used and a reader who stops after the table should still have seen them.
+  if (data.notes.trim()) {
+    lines.push('')
+    lines.push(`## Rules for ${data.language.name_en}`)
+    lines.push('')
+    lines.push(data.notes.trim())
   }
   lines.push('')
   lines.push('| English | ' + data.language.name_en + ' | Status |')

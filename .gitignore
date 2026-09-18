@@ -47,3 +47,6 @@ wip
 # also ignore source directories named context (app/components/context, etc).
 /context
 .claude/plans/
+
+# Per-developer paths to the other DOXA checkouts, recorded by the doxa-repos skill
+.claude/doxa-repos.json

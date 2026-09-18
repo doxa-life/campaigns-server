@@ -56,9 +56,16 @@ After completion:
 - Open `/admin/onboarding` in the admin UI — newly imported groups should appear with `needs:*` tag badges and translation-pending badges (until the SSE stream completes).
 - Spot-check a few records on `/admin/people-groups/[id]` — confirm description in English, six `needs:` tags present, IMB metadata populated.
 
-### 5. Hand off to task-progresser
+### 5. Hand off
 
-Once import succeeds, run the `task-progresser` skill to advance research + 365-prompt generation for the new groups. The colleague handles the `needs:X` adoption assets in parallel.
+Once import succeeds:
+
+- Run the `task-progresser` skill to advance research and 365-prompt generation for the new groups.
+- Run `/group-assets` in the resource pipeline repository to render and publish the six downloadable adoption assets and clear the `needs:` tags. `/doxa-repos` holds the path to that checkout.
+
+Both can run in parallel; neither depends on the other.
+
+`/onboard-people-groups` is the full monthly checklist these two steps sit inside.
 
 ## Editing the seed tag list
 
@@ -68,5 +75,5 @@ The seed `NEEDS_TAGS` constant is at the top of `imb-import.py`. Edit that list 
 
 - It does not update existing records — use `imb-update` for that.
 - It does not generate research or prayer prompts — that's the `task-progresser` skill.
-- It does not produce adoption assets (cards, slides, certificates, QR codes) — those are produced by the colleague and tracked via the `needs:X` tags.
-- It does not translate prayer prompts — those stay English-only for now.
+- It does not produce adoption assets (cards, slides, certificates, QR codes) — the resource pipeline's `/group-assets` skill renders them and clears the `needs:X` tags.
+- It does not translate prayer prompts — that is per group, on demand, and paid for per group. See `/translate-prompts` in the people-groups repository.

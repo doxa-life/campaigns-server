@@ -256,6 +256,61 @@
             </div>
           </div>
         </template>
+
+        <template #notes>
+          <div class="flex flex-col gap-4 pt-4 max-w-2xl">
+            <p class="text-sm text-[var(--ui-text-muted)]">
+              Rules that hold for all {{ language.name_en }} rather than for one term — how the reader is
+              addressed, the verbs prayer prompts use, which acronyms translate, how numbers are written.
+              This text is sent with every machine translation and is what a developer or agent reads before
+              translating a repository's strings, so keep it short and concrete.
+            </p>
+
+            <UFormField
+              label="Notes"
+              :help="`${notesForm.length} of ${notesMaxLength} characters. Markdown. Written in English or in ${language.name_en}.`"
+            >
+              <UTextarea
+                v-model="notesForm"
+                :rows="16"
+                :disabled="!canManage"
+                :placeholder="notesTemplate"
+                class="w-full font-mono text-sm"
+              />
+            </UFormField>
+
+            <UAlert
+              v-if="notesForm.length > notesMaxLength"
+              color="error"
+              variant="subtle"
+              :title="`Too long by ${notesForm.length - notesMaxLength} characters`"
+              description="A point that applies to a single term belongs in that term's own note, where it is read only by whoever opens it."
+            />
+
+            <div class="flex items-center gap-2">
+              <UButton v-if="canManage" :loading="savingNotes" :disabled="notesForm.length > notesMaxLength" @click="saveNotes">
+                Save
+              </UButton>
+              <UButton
+                v-if="canManage && !notesForm.trim()"
+                variant="outline"
+                color="neutral"
+                icon="i-lucide-list-plus"
+                @click="() => { notesForm = notesTemplate }"
+              >
+                Start from the headings
+              </UButton>
+              <UButton
+                variant="ghost"
+                color="neutral"
+                icon="i-lucide-history"
+                @click="openNoteHistory"
+              >
+                History
+              </UButton>
+            </div>
+          </div>
+        </template>
       </UTabs>
     </template>
 
@@ -330,10 +385,48 @@
         </ul>
       </template>
     </UModal>
+
+    <UModal v-model:open="showNoteHistory" title="Notes history">
+      <template #body>
+        <div v-if="noteHistoryLoading" class="flex items-center justify-center py-8">
+          <UIcon name="i-lucide-loader" class="w-5 h-5 animate-spin" />
+        </div>
+        <ul v-else class="flex flex-col gap-3">
+          <li
+            v-for="revision in noteHistory"
+            :key="revision.id"
+            class="border border-[var(--ui-border)] rounded-lg p-3 flex items-start justify-between gap-3"
+          >
+            <div class="min-w-0">
+              <pre class="text-xs whitespace-pre-wrap break-words font-mono">{{ revision.notes || '—' }}</pre>
+              <p class="text-xs text-[var(--ui-text-muted)] mt-1">
+                {{ revision.reviewer_name || revision.source }} · {{ formatDate(revision.created_at) }}
+              </p>
+            </div>
+            <UButton
+              v-if="canManage"
+              size="xs"
+              variant="ghost"
+              color="neutral"
+              icon="i-lucide-undo-2"
+              class="shrink-0"
+              @click="revertNotes(revision)"
+            >
+              Restore
+            </UButton>
+          </li>
+          <li v-if="noteHistory.length === 0" class="text-sm text-[var(--ui-text-muted)] py-4">
+            No notes recorded yet.
+          </li>
+        </ul>
+      </template>
+    </UModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import { GLOSSARY_NOTES_MAX_LENGTH, GLOSSARY_NOTES_TEMPLATE } from '~~/config/glossary-chrome'
+
 definePageMeta({
   layout: 'admin',
   middleware: 'auth'
@@ -380,7 +473,16 @@ interface Language {
   bible_id: string | null
   bible_translation: string | null
   bible_translation_note: string | null
+  notes: string
   registered_in_code: boolean
+}
+
+interface NoteRevision {
+  id: string
+  notes: string
+  reviewer_name: string | null
+  source: string
+  created_at: string
 }
 
 const route = useRoute()
@@ -410,6 +512,7 @@ const statusFilterOptions = [
 
 const tabs = [
   { label: 'Terms', value: 'terms', slot: 'terms' },
+  { label: 'Translation notes', value: 'notes', slot: 'notes' },
   { label: 'Reviews', value: 'reviews', slot: 'reviews' },
   { label: 'Bible translation', value: 'bible', slot: 'bible' }
 ]
@@ -426,6 +529,14 @@ const history = ref<Revision[]>([])
 
 const bibleForm = ref({ bible_id: '', bible_translation: '', bible_translation_note: '' })
 const savingBible = ref(false)
+
+const notesForm = ref('')
+const savingNotes = ref(false)
+const showNoteHistory = ref(false)
+const noteHistoryLoading = ref(false)
+const noteHistory = ref<NoteRevision[]>([])
+const notesMaxLength = GLOSSARY_NOTES_MAX_LENGTH
+const notesTemplate = GLOSSARY_NOTES_TEMPLATE
 
 const confirmedCount = computed(() => entries.value.filter(entry => entry.status === 'confirmed').length)
 
@@ -509,6 +620,7 @@ async function load() {
       bible_translation: data.language.bible_translation || '',
       bible_translation_note: data.language.bible_translation_note || ''
     }
+    notesForm.value = data.language.notes || ''
   } catch (e: any) {
     error.value = e?.data?.statusMessage || 'Failed to load the language'
   } finally {
@@ -650,6 +762,49 @@ async function revert(revision: Revision) {
     await load()
   } catch (e: any) {
     toast.add({ title: 'Could not restore the wording', description: e?.data?.statusMessage, color: 'error' })
+  }
+}
+
+async function saveNotes() {
+  savingNotes.value = true
+  try {
+    await $fetch(`/api/admin/glossary/languages/${code.value}/notes`, {
+      method: 'PATCH',
+      body: { notes: notesForm.value }
+    })
+    toast.add({ title: 'Notes saved', color: 'success' })
+    await load()
+  } catch (e: any) {
+    toast.add({ title: 'Could not save the notes', description: e?.data?.statusMessage, color: 'error' })
+  } finally {
+    savingNotes.value = false
+  }
+}
+
+async function openNoteHistory() {
+  showNoteHistory.value = true
+  noteHistoryLoading.value = true
+  noteHistory.value = []
+  try {
+    const data = await $fetch<{ revisions: NoteRevision[] }>(
+      `/api/admin/glossary/languages/${code.value}/notes/revisions`
+    )
+    noteHistory.value = data.revisions
+  } catch (e: any) {
+    toast.add({ title: 'Could not load the history', description: e?.data?.statusMessage, color: 'error' })
+  } finally {
+    noteHistoryLoading.value = false
+  }
+}
+
+async function revertNotes(revision: NoteRevision) {
+  try {
+    await $fetch(`/api/admin/glossary/note-revisions/${revision.id}/revert`, { method: 'POST' })
+    showNoteHistory.value = false
+    toast.add({ title: 'Notes restored', color: 'success' })
+    await load()
+  } catch (e: any) {
+    toast.add({ title: 'Could not restore the notes', description: e?.data?.statusMessage, color: 'error' })
   }
 }
 

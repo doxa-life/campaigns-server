@@ -23,6 +23,11 @@ export interface GlossaryChrome {
     bible_note: string
     rows: Record<string, string>
   }
+  notes: {
+    heading: string
+    purpose: string
+    items: string[]
+  }
 }
 
 export const GLOSSARY_CHROME_EN: GlossaryChrome = {
@@ -65,8 +70,46 @@ export const GLOSSARY_CHROME_EN: GlossaryChrome = {
       bible_translation_primary: 'Bible translation used most regularly',
       bible_translation_edition_year: 'Exact abbreviation, edition, and year'
     }
+  },
+  notes: {
+    heading: 'Notes on translating into {language}',
+    purpose:
+      'Rules that apply to all {language} text rather than to a single term. Everything written here is given to translators and to the machine translation of every page. Write in {language} or in English, whichever is easier, and keep it brief.',
+    items: [
+      'How the reader is addressed — formal or familiar — and anywhere that differs.',
+      'The verbs prayer prompts use for "Pray that…" and "Ask that…".',
+      'Which acronyms stay in English and which have a {language} form.',
+      'Thousands separator, decimal mark, and how a year is written.',
+      'Names that stay in Latin script, and the forms used for biblical names.',
+      'Any word that changes with context, any word to avoid, and any phrase {language} churches already use.'
+    ]
   }
 }
+
+/**
+ * The scaffold offered when a language's notes are still empty. English and
+ * code-owned: it is a prompt for the writer, not content, and a reviewer is
+ * free to replace the headings with their own.
+ */
+export const GLOSSARY_NOTES_TEMPLATE = `## Register and address
+
+## Prayer prompt verbs
+
+## Acronyms
+
+## Numbers and dates
+
+## Script and names
+
+## Usage notes
+`
+
+/**
+ * Ceiling on a language's notes. They are sent with every translation request,
+ * so the cost of this text is paid on each one; anything longer belongs in the
+ * per-term notes, where it is read only by whoever opens that term.
+ */
+export const GLOSSARY_NOTES_MAX_LENGTH = 4000
 
 /** English glossary field labels, in the order a term's annotations are shown. */
 export const GLOSSARY_FIELD_LABELS = [

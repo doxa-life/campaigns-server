@@ -191,7 +191,9 @@ Email templates in `server/utils/`: `prayer-reminder-email.ts`, `welcome-email.t
 - URL strategy: `prefix_except_default` (English has no prefix)
 - Use `$t('key')` in templates, `useI18n()` in scripts
 - Use `localePath()` for navigation links
-- **Translation glossaries**: Approved terminology lives in the database and is managed at `/admin/glossary`. Machine translation injects it automatically; a developer or agent translating a repo's strings reads `GET /api/glossary/{lang}` (public, no auth).
+- **Translation glossaries**: Approved terminology lives in the database and is managed at `/admin/glossary`. Machine translation injects it automatically; a developer or agent translating a repo's strings reads `GET /api/glossary/{lang}` (public, no auth). Each language also carries `notes` — register, the prayer-prompt verbs, acronym policy, number format — which ride in every translation prompt alongside the terms.
+- **A language is born in the glossary**, not in code. `config/languages.ts` is derived from its glossary record, Bible edition included, and the glossary wins when the two disagree.
+- **Language skills**: `/language-status <code>` surveys every surface. `/add-language <code>` and `/sync-language <code>` do this repository; `/add-language-everywhere` and `/sync-language-everywhere` drive the same skills across all five repositories, finding them through `/doxa-repos`.
 
 ## Styling
 
@@ -278,10 +280,15 @@ All three use: `CrmLayout`, `CrmDetailPanel` with side tabs, `RecordComments`, `
 
 ## Documentation
 
-Reference documentation in `documentation/` folder:
-- `BASE_LAYER.md` - Base layer (authentication, theme, email, storage, database)
-- `nuxt-ui-modals.md` - Modal implementation patterns
-- `wysiwyg-editor.md` - Tiptap editor implementation
-- `nuxt-4x-*.md` - Nuxt 4.x framework documentation
+Reference documentation lives in `docs/`.
 
-Team-facing docs are written here and mirrored to the Doxa context portfolios (apps-context MCP, org `doxa`). The repo copy is the source of truth because it is publicly shareable. After editing a file in `documentation/feature-descriptions/`, push the same text to its section in the DOXA FEATURES portfolio; after editing `documentation/onboarding-new-people-groups.md`, push it to the page of the same name in DOXA TECH. Each portfolio page opens with a line naming its source file. Use `update_section` so the two stay in sync.
+**A procedure is written as the skill that runs it**, in `.claude/skills/`, so the
+steps and the automation are one document, reviewed with the code they drive.
+`/onboard-people-groups` is the monthly people-group checklist;
+`/add-language-everywhere` and `/sync-language-everywhere` are the language
+procedures.
+
+The Doxa context portfolios (apps-context MCP, org `doxa`) hold policy — which
+languages, who reviews, what the human checkpoints are — and link to the skill
+rather than repeating its steps. Nothing is mirrored between the two, because a
+mirrored copy is a copy that goes stale.

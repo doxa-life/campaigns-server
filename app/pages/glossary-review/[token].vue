@@ -217,6 +217,43 @@
         </section>
       </div>
 
+      <!-- Rules no single term holds. Placed after the terms because working
+           through them is what brings these to mind. -->
+      <UCard class="mt-10">
+        <template #header>
+          <h2 class="font-semibold">
+            {{ data.chrome_en.notes.heading }}
+            <span v-if="chrome('notes.heading')" class="text-[var(--ui-text-muted)] font-normal">
+              · {{ chrome('notes.heading') }}
+            </span>
+          </h2>
+        </template>
+
+        <p class="text-sm text-[var(--ui-text-muted)]">{{ data.chrome_en.notes.purpose }}</p>
+        <ul class="text-sm text-[var(--ui-text-muted)] list-disc pl-5 mt-2 space-y-1">
+          <li v-for="(item, index) in data.chrome_en.notes.items" :key="index">{{ item }}</li>
+        </ul>
+
+        <div v-if="localNotesChrome.purpose" :dir="data.language.text_direction" class="mt-4">
+          <p class="text-sm">{{ localNotesChrome.purpose }}</p>
+          <ul v-if="localNotesChrome.items.length" class="text-sm list-disc pl-5 mt-2 space-y-1">
+            <li v-for="(item, index) in localNotesChrome.items" :key="index">{{ item }}</li>
+          </ul>
+        </div>
+
+        <UTextarea
+          v-model="languageNotes"
+          :rows="10"
+          :disabled="!canEdit"
+          :dir="data.language.text_direction"
+          class="w-full mt-4"
+          @change="saveLanguageNotes"
+        />
+        <p class="text-xs text-[var(--ui-text-muted)] mt-2">
+          {{ languageNotes.length }} / {{ notesMaxLength }}
+        </p>
+      </UCard>
+
       <div class="mt-10 flex items-center justify-between gap-4 flex-wrap">
         <p class="text-sm text-[var(--ui-text-muted)]">
           {{ confirmedCount }} of {{ entries.length }} terms confirmed.
@@ -243,6 +280,8 @@
 </template>
 
 <script setup lang="ts">
+import { GLOSSARY_NOTES_MAX_LENGTH } from '~~/config/glossary-chrome'
+
 definePageMeta({
   layout: 'default'
 })
@@ -282,11 +321,13 @@ interface ReviewData {
     text_direction: 'ltr' | 'rtl'
     bible_id: string | null
     bible_translation: string | null
+    notes: string
   }
   chrome_en: {
     instructions: { heading: string; purpose_label: string; purpose: string; items: string[] }
     labels: Record<string, string>
     reviewer: { heading: string; bible_label: string; bible_note: string; rows: Record<string, string> }
+    notes: { heading: string; purpose: string; items: string[] }
   }
   chrome_local: Record<string, any>
   bible_translations: Array<{ short_name: string; full_name: string }>
@@ -308,6 +349,8 @@ const reviewerEmail = ref('')
 const savingName = ref(false)
 const submitting = ref(false)
 const bibleForm = ref({ bible_id: '', bible_translation: '' })
+const languageNotes = ref('')
+const notesMaxLength = GLOSSARY_NOTES_MAX_LENGTH
 
 const canEdit = computed(() => !!data.value?.pass.reviewer_name)
 const confirmedCount = computed(() => entries.value.filter(entry => entry.status === 'confirmed').length)
@@ -317,6 +360,13 @@ const localInstructions = computed(() => ({
   purpose_label: data.value?.chrome_local?.instructions?.purpose_label || '',
   purpose: data.value?.chrome_local?.instructions?.purpose || '',
   items: (data.value?.chrome_local?.instructions?.items || []) as string[]
+}))
+
+// Languages seeded before the notes field existed have no translated wording
+// for it, so each piece falls back to the English shown above it.
+const localNotesChrome = computed(() => ({
+  purpose: data.value?.chrome_local?.notes?.purpose || '',
+  items: (data.value?.chrome_local?.notes?.items || []) as string[]
 }))
 
 // No empty sentinel option: a select item may not carry an empty value, so the
@@ -371,6 +421,7 @@ async function load() {
       bible_id: result.language.bible_id || '',
       bible_translation: result.language.bible_translation || ''
     }
+    languageNotes.value = result.language.notes || ''
   } catch (e: any) {
     error.value = e?.data?.statusMessage || 'This review link is no longer valid'
   } finally {
@@ -439,6 +490,18 @@ async function saveBible() {
     })
   } catch (e: any) {
     toast.add({ title: 'Could not save the Bible translation', description: e?.data?.statusMessage, color: 'error' })
+  }
+}
+
+async function saveLanguageNotes() {
+  try {
+    await $fetch(`/api/glossary/review/${token.value}/notes`, {
+      method: 'PATCH',
+      body: { notes: languageNotes.value }
+    })
+    toast.add({ title: 'Notes saved', color: 'success' })
+  } catch (e: any) {
+    toast.add({ title: 'Could not save your notes', description: e?.data?.statusMessage, color: 'error' })
   }
 }
 

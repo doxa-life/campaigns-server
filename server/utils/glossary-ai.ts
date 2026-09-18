@@ -40,10 +40,16 @@ function termDecisions(language: string, bibleTranslation: string | null): strin
 12. Propose the term itself, not a definition or an explanation of it.`
 }
 
-function termPrompt(language: string, bibleTranslation: string | null, count: number): string {
+function termPrompt(language: string, bibleTranslation: string | null, notes: string, count: number): string {
+  // A language whose reviewer has already written down its register, acronym
+  // policy or numerals should have drafts that obey them from the start.
+  const notesBlock = notes.trim()
+    ? `\n\nRules already settled for ${language}. They outrank the general decisions above wherever the two disagree:\n${notes.trim()}`
+    : ''
+
   return `You are a missiological terminologist producing a ${language} glossary for a Christian prayer platform. For each English glossary entry you are given the term, its section, and the annotations a human reviewer will judge it against — the site definition or meaning, an example of real usage, and why the term matters.
 
-${termDecisions(language, bibleTranslation)}
+${termDecisions(language, bibleTranslation)}${notesBlock}
 
 Return a JSON object of the form {"terms": [{"term": "<the English term, copied exactly>", "translation": "<the ${language} term>"}]} with exactly ${count} entries, one per English term, in the order given. Add no commentary.`
 }
@@ -78,7 +84,7 @@ function parseDraftedTerms(content: string, expected: TermToDraft[]): Map<string
  * proposed wording; a term the model skipped is absent rather than blank.
  */
 export async function draftGlossaryTerms(
-  language: Pick<GlossaryLanguage, 'name_en' | 'bible_translation'>,
+  language: Pick<GlossaryLanguage, 'name_en' | 'bible_translation' | 'notes'>,
   terms: TermToDraft[]
 ): Promise<Map<string, string>> {
   if (terms.length === 0) return new Map()
@@ -95,7 +101,7 @@ export async function draftGlossaryTerms(
   const body = {
     model,
     messages: [
-      { role: 'system', content: termPrompt(language.name_en, language.bible_translation, terms.length) },
+      { role: 'system', content: termPrompt(language.name_en, language.bible_translation, language.notes || '', terms.length) },
       { role: 'user', content: JSON.stringify(payload) }
     ],
     response_format: { type: 'json_object' }
@@ -161,6 +167,7 @@ export async function draftGlossaryChrome(
     instructions: english.instructions,
     labels: english.labels,
     reviewer: english.reviewer,
+    notes: english.notes,
     section_titles: Object.fromEntries(sectionTitles.map(title => [title, title])),
     field_labels: Object.fromEntries(fieldLabels.map(label => [label, label]))
   }

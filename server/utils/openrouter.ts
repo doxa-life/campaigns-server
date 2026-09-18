@@ -13,7 +13,7 @@
  */
 
 import { getLanguageByCode, getLanguageName } from '~/utils/languages'
-import { getGlossaryPairs, type GlossaryPair } from '../database/glossary'
+import { getGlossaryContext, type GlossaryContext } from '../database/glossary'
 import { appConfigService } from '../database/app-config'
 
 /** app_config key holding the default OpenRouter model used for translation. */
@@ -104,29 +104,32 @@ function promptLanguageName(code: string): string {
 /** How long a language's glossary is reused before it is read again. */
 const GLOSSARY_CACHE_MS = 5 * 60 * 1000
 
-const glossaryCache = new Map<string, { pairs: GlossaryPair[]; expires: number }>()
+const EMPTY_GLOSSARY: GlossaryContext = { pairs: [], notes: '' }
+
+const glossaryCache = new Map<string, { context: GlossaryContext; expires: number }>()
 
 /**
- * The approved wording for a language, as reviewers left it. Cached briefly so
- * a batch of translation calls does not re-read the table for every request,
- * and short enough that a confirmed term reaches translation without a deploy.
+ * The approved wording for a language and its language-wide rules, as reviewers
+ * left them. Cached briefly so a batch of translation calls does not re-read the
+ * table for every request, and short enough that a confirmed term reaches
+ * translation without a deploy.
  */
-async function loadGlossary(code: string): Promise<GlossaryPair[]> {
+async function loadGlossary(code: string): Promise<GlossaryContext> {
   const cached = glossaryCache.get(code)
-  if (cached && cached.expires > Date.now()) return cached.pairs
+  if (cached && cached.expires > Date.now()) return cached.context
 
-  let pairs: GlossaryPair[] = []
+  let context: GlossaryContext
   try {
-    pairs = await getGlossaryPairs(code)
+    context = await getGlossaryContext(code)
   } catch (e: any) {
     // A translation without its glossary is worse than ideal but still usable;
     // failing the whole request over a glossary read is not.
     console.warn(`[Translate] could not load the ${code} glossary: ${e?.message}`)
-    return cached?.pairs ?? []
+    return cached?.context ?? EMPTY_GLOSSARY
   }
 
-  glossaryCache.set(code, { pairs, expires: Date.now() + GLOSSARY_CACHE_MS })
-  return pairs
+  glossaryCache.set(code, { context, expires: Date.now() + GLOSSARY_CACHE_MS })
+  return context
 }
 
 /** Drop cached glossaries so the next translation picks up an edited term. */
@@ -139,13 +142,20 @@ function buildSystemPrompt(
   targetLanguage: string,
   sourceLanguage: string,
   fragmentCount: number,
-  glossary: GlossaryPair[]
+  glossary: GlossaryContext
 ): string {
   const source = promptLanguageName(sourceLanguage)
   const target = promptLanguageName(targetLanguage)
 
-  const glossaryBlock = glossary.length
-    ? `\nGlossary — always use these translations, inflected correctly for the surrounding grammar:\n${glossary.map(({ term, value }) => `${term} → ${value}`).join('\n')}\n`
+  const glossaryBlock = glossary.pairs.length
+    ? `\nGlossary — always use these translations, inflected correctly for the surrounding grammar:\n${glossary.pairs.map(({ term, value }) => `${term} → ${value}`).join('\n')}\n`
+    : ''
+
+  // The reviewer's language-wide rules: register, acronym policy, numerals and
+  // anything else no single term carries. They follow the term list so a rule
+  // about how to inflect or address overrides the bare pair above it.
+  const notesBlock = glossary.notes.trim()
+    ? `\nRules for ${target}, from the reviewer who approved the glossary. Follow them everywhere they apply:\n${glossary.notes.trim()}\n`
     : ''
 
   return `You are a professional translator for a Christian prayer platform. Translate daily prayer content from ${source} into ${target}.
@@ -156,7 +166,7 @@ Rules:
 - Return exactly one translation per fragment, in the same order. Never merge, split, reorder, or skip fragments, and add no commentary.
 - If a fragment begins or ends with whitespace, preserve that whitespace.
 - Render names of people, places, and Scripture references using standard ${target} conventions.
-${glossaryBlock}
+${glossaryBlock}${notesBlock}
 Respond with a JSON object of the form {"translations": ["...", "..."]} containing exactly ${fragmentCount} strings.`
 }
 

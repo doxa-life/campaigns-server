@@ -35,7 +35,8 @@ export default defineEventHandler(async (event) => {
         text_direction: language.text_direction,
         bible_id: language.bible_id,
         bible_translation: language.bible_translation,
-        bible_translation_note: language.bible_translation_note
+        bible_translation_note: language.bible_translation_note,
+        notes: language.notes
       },
       chrome_en: fillChrome(GLOSSARY_CHROME_EN, language.name_en),
       chrome_local: language.chrome,
