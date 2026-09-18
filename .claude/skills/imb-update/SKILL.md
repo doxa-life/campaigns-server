@@ -5,17 +5,34 @@ Update Doxa people group data from the latest IMB export.
 ## When to use
 When the user wants to update people group data from IMB (typically quarterly).
 
+## Which server
+
+Say which server this run is for, and say it once:
+
+| | |
+|---|---|
+| `--target local` | `http://localhost:3000` |
+| `--target prod` | `https://pray.doxa.life` |
+| `--base-url URL` | staging, or anywhere else |
+
+**There is no default.** A script that guesses eventually writes production
+records to a development database or the reverse, and every script here prints
+the target it resolved before its first request, so the choice is visible in the
+transcript.
+
+Use the same target for every command in the run. A run that is half local and
+half production leaves records pointing at things that do not exist.
+
 ## Process
 
 ### 1. Run the comparison script (dry run first)
 
 ```bash
-python3 .claude/skills/imb-update/imb-update.py --api-key API_KEY [--base-url URL] [--csv PATH]
+python3 .claude/skills/imb-update/imb-update.py --target prod [--csv PATH]
 ```
 
 - Without `--csv`, the script downloads from https://peoplegroups.org/wp-content/uploads/people_groups.csv and caches it in `data/tmp/`.
-- Default `--base-url` is `http://localhost:3000`. For production use `https://pray.doxa.life`.
-- The user must provide the `--api-key`. Check `.env` for `ADMIN_API_KEY` or ask the user.
+- The admin API key is read from `.env` per target: `PRODUCTION_ADMIN_API_KEY` for prod, `ADMIN_API_KEY` otherwise, so a normal run passes no key. The script names the variable it used, never the value. Ask for a key only when it reports the variable is unset, then pass `--api-key`.
 
 ### 2. Review the report with the user
 
@@ -40,7 +57,7 @@ Add any missing codes before applying updates.
 After user approval, run with `--apply`. The script will show the report again and prompt for confirmation before sending.
 
 ```bash
-python3 .claude/skills/imb-update/imb-update.py --api-key API_KEY [--base-url URL] [--csv PATH] --apply
+python3 .claude/skills/imb-update/imb-update.py --target prod [--csv PATH] --apply
 ```
 
 **IMPORTANT:** Always wait for the user to confirm before running `--apply`. Do NOT run it automatically after the dry run.

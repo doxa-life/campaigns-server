@@ -26,7 +26,36 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "doxa-repos"))
 import repos  # noqa: E402
 
-DEFAULT_BASE_URL = "https://pray.doxa.life"
+TARGETS = {
+    "local": "http://localhost:3000",
+    "prod": "https://pray.doxa.life",
+}
+
+
+def add_target_args(parser):
+    """Register --target / --base-url. Deliberately without a default.
+
+    A default is a guess about which environment was meant, and a wrong guess
+    either reports on the wrong data or edits it.
+    """
+    group = parser.add_argument_group("which server")
+    group.add_argument("--target", choices=sorted(TARGETS),
+                       help=f"local ({TARGETS['local']}) or prod ({TARGETS['prod']})")
+    group.add_argument("--base-url", help="an explicit host, for staging or another environment")
+
+
+def resolve_target(parser, args) -> str:
+    """The base URL for this run, announced so it is visible in the transcript."""
+    if args.target and args.base_url:
+        parser.error("pass --target or --base-url, not both")
+    base_url = args.base_url or TARGETS.get(args.target or "")
+    if not base_url:
+        parser.error("say which server this run is for: --target local, --target prod, or --base-url URL")
+    base_url = base_url.rstrip("/")
+    label = "PRODUCTION" if base_url == TARGETS["prod"] else (args.target or "custom")
+    print(f"Target: {label}  {base_url}", file=sys.stderr)
+    return base_url
+
 
 
 # ----------------------------------------------------------------- helpers
@@ -363,12 +392,13 @@ MARKS = {
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("code", help="language code, e.g. ro")
-    parser.add_argument("--base-url", default=DEFAULT_BASE_URL, help="campaigns server to read the glossary from")
+    add_target_args(parser)
     parser.add_argument("--root", default=".", help="campaigns server checkout (default: current directory)")
     parser.add_argument("--json", action="store_true", help="machine-readable output")
     args = parser.parse_args()
+    base_url = resolve_target(parser, args)
 
-    results = collect(args.code, args.base_url.rstrip("/"), Path(args.root).resolve())
+    results = collect(args.code, base_url, Path(args.root).resolve())
 
     if args.json:
         print(json.dumps({"code": args.code, "surfaces": results}, indent=2))

@@ -11,20 +11,38 @@ After the `imb-import` skill has created new groups, or after an approved `/upda
 3. Theological review (`day-in-the-life/reviews/{slug}.md`)
 4. Upload to the campaigns server as the group's `day_in_life` library
 
-Prompt translation is a separate, optional, paid step — `/translate-prompts` in the people-groups repository. Description translation is fired by `imb-import` after creation, or from the translate button on the detail page for a manual group. Adoption assets are rendered by the resource pipeline's `/group-assets` skill, which also clears the `needs:X` tags.
+Prompt translation is a separate, optional, paid step — `/translate-prompts` in the people-groups repository. Descriptions arrive in English only and are translated in `/onboard-people-groups` step 4. Adoption assets are rendered by the resource pipeline's `/group-assets` skill, which also clears the `needs:X` tags.
 
 ## Required environment
 
-- An admin API key with `people_groups.edit` and `content.edit` permissions (`Authorization: Bearer dxk_*`)
+- An admin API key with `people_groups.edit` and `content.edit` permissions (`Authorization: Bearer dxk_*`), read from `.env` per target: `PRODUCTION_ADMIN_API_KEY` for prod, `ADMIN_API_KEY` otherwise. Ask for a key only when the script reports the variable is unset, then pass `--api-key`.
 - A checkout of the people-groups repository (https://github.com/doxa-life/people-groups), registered with `/doxa-repos`. Each stage below is one of that repository's own skills; every repo path is relative to its checkout root, and everything runs from there.
 - The campaigns-sever dev server running, OR a production base URL if pushing live
+
+## Which server
+
+Say which server this run is for, and say it once:
+
+| | |
+|---|---|
+| `--target local` | `http://localhost:3000` |
+| `--target prod` | `https://pray.doxa.life` |
+| `--base-url URL` | staging, or anywhere else |
+
+**There is no default.** A script that guesses eventually writes production
+records to a development database or the reverse, and every script here prints
+the target it resolved before its first request, so the choice is visible in the
+transcript.
+
+Use the same target for every command in the run. A run that is half local and
+half production leaves records pointing at things that do not exist.
 
 ## Process
 
 ### Step 1 - Discover what needs work
 
 ```bash
-python3 .claude/skills/task-progresser/discover.py --api-key API_KEY [--base-url URL] [--repo PATH] [--limit N]
+python3 .claude/skills/task-progresser/discover.py --target prod [--api-key KEY] [--repo PATH] [--limit N]
 ```
 
 This prints one line per people group with outstanding work, sorted so research-pending groups come first. Each line shows the next required step:
@@ -33,7 +51,7 @@ This prints one line per people group with outstanding work, sorted so research-
 - `PROMPTS` - dossier exists, prompts CSV not generated
 - `REVIEW` - prompts CSV exists, theological review (`reviewed` in `todo.csv`) has not run
 - `UPLOAD` - reviewed, prompts CSV exists locally, server has no `day_in_life` content
-- `TRANSLATE` - descriptions missing translations (fire the batch translate again, or use the detail page's translate button)
+- `TRANSLATE` - descriptions missing translations (write them yourself against `GET /api/glossary/{lang}` and save with `PUT /api/admin/people-groups/[id]`; the detail page's translate button is the admin UI's OpenRouter path, not this one)
 - `NEEDS_TAG` - only adoption-asset tags remain; the resource pipeline's `/group-assets` skill handles those
 
 Pick **one** group to advance. Default to the top of the list (research-pending first).
@@ -109,7 +127,7 @@ So re-running the skill on a group that is mid-flight picks up where the prior s
 ## What this skill does NOT do
 
 - Does not create people-group records (use `imb-import` or an approved `/updates` suggestion).
-- Does not translate descriptions (fired by `imb-import`, or the detail page's translate button).
+- Does not translate descriptions; `/onboard-people-groups` step 4 covers them.
 - Does not translate prayer prompts (optional and paid; `/translate-prompts` in the people-groups repository).
 - Does not produce or upload adoption assets; the resource pipeline's `/group-assets` skill does, and clears the `needs:X` tags.
 - Does not work on more than one group per invocation. The operator re-runs to advance the next.

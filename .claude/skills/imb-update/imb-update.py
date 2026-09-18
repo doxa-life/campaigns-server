@@ -6,10 +6,10 @@ Downloads the latest IMB people groups CSV, compares it against the Doxa
 database via the admin API, and generates/applies bulk updates.
 
 Usage:
-  python3 scripts/imb-update.py --api-key KEY [--base-url URL] [--apply] [--csv PATH]
+  python3 .claude/skills/imb-update/imb-update.py (--target local|prod) [--api-key KEY] [--apply] [--csv PATH]
 
 Options:
-  --api-key KEY      Admin API key (required)
+  --api-key KEY      Admin API key; defaults to this target's key from .env
   --base-url URL     API base URL (default: http://localhost:3000)
   --csv PATH         Use a local CSV instead of downloading
   --apply            Actually send updates (default: dry run)
@@ -410,14 +410,100 @@ def apply_updates(base_url, api_key, updates, archive_updates, diaspora_updates,
 # Main
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# The admin API key
+# ---------------------------------------------------------------------------
+KEY_VARS = {
+    'prod': 'PRODUCTION_ADMIN_API_KEY',
+    'local': 'ADMIN_API_KEY',
+}
+
+
+def read_env_file(name):
+    """One variable out of the repository's .env, without loading the rest."""
+    env_path = Path(__file__).resolve().parents[3] / '.env'
+    if not env_path.exists():
+        return None
+    for line in env_path.read_text(encoding='utf-8', errors='replace').splitlines():
+        line = line.strip()
+        if line.startswith('export '):
+            line = line[len('export '):].lstrip()
+        key, sep, value = line.partition('=')
+        if not sep or key.strip() != name:
+            continue
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in '"\'':
+            value = value[1:-1]
+        return value or None
+    return None
+
+
+def resolve_api_key(parser, args):
+    """The key for this target: the flag, then the process environment, then .env.
+
+    The variable is named per target, so a development key is never sent to
+    production and the production key is never spent on localhost. Only the
+    source is announced; the key itself stays out of the transcript.
+    """
+    if args.api_key:
+        print('Admin key: --api-key', file=sys.stderr)
+        return args.api_key
+
+    var = KEY_VARS['prod'] if args.base_url == TARGETS['prod'] else KEY_VARS['local']
+    for source, value in (('environment', os.environ.get(var)), ('.env', read_env_file(var))):
+        if value:
+            print(f'Admin key: {var} ({source})', file=sys.stderr)
+            return value
+
+    parser.error(f'no admin API key for this target: set {var} in .env, or pass --api-key')
+
+
+# ---------------------------------------------------------------------------
+# Which server
+# ---------------------------------------------------------------------------
+TARGETS = {
+    'local': 'http://localhost:3000',
+    'prod': 'https://pray.doxa.life',
+}
+
+
+def add_target_args(parser):
+    """Register --target / --base-url. Deliberately without a default.
+
+    This script reads and writes real people group records. A default is a
+    guess about which environment was meant, and a wrong guess either edits
+    production or silently does nothing useful against a development database.
+    """
+    group = parser.add_argument_group('which server')
+    group.add_argument('--target', choices=sorted(TARGETS),
+                       help="local (%s) or prod (%s)" % (TARGETS['local'], TARGETS['prod']))
+    group.add_argument('--base-url', help='an explicit host, for staging or another environment')
+
+
+def resolve_target(parser, args):
+    """The base URL for this run, announced so it is visible in the transcript."""
+    if args.target and args.base_url:
+        parser.error('pass --target or --base-url, not both')
+    base_url = args.base_url or TARGETS.get(args.target or '')
+    if not base_url:
+        parser.error('say which server this run is for: --target local, --target prod, or --base-url URL')
+    base_url = base_url.rstrip('/')
+    label = 'PRODUCTION' if base_url == TARGETS['prod'] else (args.target or 'custom')
+    print(f'Target: {label}  {base_url}', file=sys.stderr)
+    return base_url
+
+
 def main():
     parser = argparse.ArgumentParser(description='IMB People Groups Data Update')
-    parser.add_argument('--api-key', required=True, help='Admin API key')
-    parser.add_argument('--base-url', default='http://localhost:3000', help='API base URL')
+    parser.add_argument('--api-key', default=None,
+                        help="Admin API key (dxk_*); default: this target's key from .env")
+    add_target_args(parser)
     parser.add_argument('--csv', default=None, help='Local CSV path (skip download)')
     parser.add_argument('--apply', action='store_true', help='Apply updates (default: dry run)')
     parser.add_argument('--skip-archive', action='store_true', help='Skip archiving removed PEIDs')
     args = parser.parse_args()
+    args.base_url = resolve_target(parser, args)
+    args.api_key = resolve_api_key(parser, args)
 
     # 1. Get CSV
     csv_path = download_csv(args.csv)

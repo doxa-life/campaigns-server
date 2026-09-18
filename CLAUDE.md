@@ -284,7 +284,7 @@ Reference documentation lives in `docs/`.
 
 **A procedure is written as the skill that runs it**, in `.claude/skills/`, so the
 steps and the automation are one document, reviewed with the code they drive.
-`/onboard-people-groups` is the monthly people-group checklist;
+`/onboard-people-groups` carries already-added people groups to a live campaign;
 `/add-language-everywhere` and `/sync-language-everywhere` are the language
 procedures.
 

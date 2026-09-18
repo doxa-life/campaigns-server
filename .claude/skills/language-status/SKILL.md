@@ -7,12 +7,18 @@ user-invocable: true
 # Where a language stands
 
 ```bash
-python3 .claude/skills/language-status/language_status.py ro
-python3 .claude/skills/language-status/language_status.py ro --json
+python3 .claude/skills/language-status/language_status.py ro --target prod
+python3 .claude/skills/language-status/language_status.py ro --target prod --json
 ```
 
 Run from the campaigns server checkout. Reads files and makes public GET
 requests; changes nothing.
+
+`--target` says which campaigns server the glossary is read from: `prod` for
+`https://pray.doxa.life`, `local` for a development server, or `--base-url` for
+anywhere else. There is no default, and the resolved target is printed before
+the first request. Terminology is maintained in production, so `prod` is the
+normal answer even when the repositories on disk are a work in progress.
 
 Paths to the other repositories come from the `doxa-repos` registry. A
 repository that is not registered prints `-` with its GitHub URL, and the survey
