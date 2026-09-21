@@ -66,7 +66,7 @@ describe('People Group Suggestions (/updates)', async () => {
   })
 
   afterAll(async () => {
-    await sql`DELETE FROM app_config WHERE key = 'people_group_report_approvers'`
+    await sql`DELETE FROM app_config WHERE key IN ('people_group_report_approvers', 'people_group_report_notify_emails')`
     await cleanupTestData(sql)
     await closeTestDatabase()
   })
@@ -435,6 +435,42 @@ describe('People Group Suggestions (/updates)', async () => {
         method: 'PUT', body: { approvers: [approver1.user.id, uuidv4()] }, ...otherAdmin.auth
       }).catch((e) => e)
       expect(unknown.statusCode).toBe(400)
+    })
+
+    it('stores the extra notification addresses normalized and deduplicated', async () => {
+      const approverIds = [approver1.user.id, approver2.user.id]
+      const saved = await $fetch<{ notify_emails: string[] }>('/api/admin/people-group-reports/approvers', {
+        method: 'PUT',
+        body: { approvers: approverIds, notify_emails: [' Third@Example.org ', 'third@example.org', 'fourth@example.org', ''] },
+        ...otherAdmin.auth
+      })
+      expect(saved.notify_emails).toEqual(['third@example.org', 'fourth@example.org'])
+
+      const listed = await $fetch<{ notify_emails: string[] }>('/api/admin/people-group-reports/approvers', otherAdmin.auth)
+      expect(listed.notify_emails).toEqual(['third@example.org', 'fourth@example.org'])
+
+      // Saving the approvers alone leaves the addresses as they are.
+      await $fetch('/api/admin/people-group-reports/approvers', {
+        method: 'PUT', body: { approvers: approverIds }, ...otherAdmin.auth
+      })
+      const unchanged = await $fetch<{ notify_emails: string[] }>('/api/admin/people-group-reports/approvers', otherAdmin.auth)
+      expect(unchanged.notify_emails).toEqual(['third@example.org', 'fourth@example.org'])
+
+      // An empty list clears them.
+      await $fetch('/api/admin/people-group-reports/approvers', {
+        method: 'PUT', body: { approvers: approverIds, notify_emails: [] }, ...otherAdmin.auth
+      })
+      const cleared = await $fetch<{ notify_emails: string[] }>('/api/admin/people-group-reports/approvers', otherAdmin.auth)
+      expect(cleared.notify_emails).toEqual([])
+    })
+
+    it('rejects a malformed notification address', async () => {
+      const bad = await $fetch('/api/admin/people-group-reports/approvers', {
+        method: 'PUT',
+        body: { approvers: [approver1.user.id, approver2.user.id], notify_emails: ['not-an-email'] },
+        ...otherAdmin.auth
+      }).catch((e) => e)
+      expect(bad.statusCode).toBe(400)
     })
   })
 

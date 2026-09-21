@@ -305,6 +305,7 @@
       <div class="flex flex-col gap-4">
         <p class="text-sm text-[var(--ui-text-muted)]">
           Public suggestions from /updates require approval from both of these users before they can be applied.
+          They are emailed when a suggestion comes in; the submitter is emailed once it is applied or denied.
         </p>
         <UFormField label="Approver 1" required>
           <USelectMenu
@@ -321,6 +322,19 @@
             :items="approverUserOptions"
             value-key="value"
             placeholder="Select a user..."
+            class="w-full"
+          />
+        </UFormField>
+        <UFormField
+          label="Also notify when applied"
+          description="Extra email addresses told each time a suggestion is approved by both reviewers and applied. Press Enter after each address."
+        >
+          <UInputTags
+            v-model="notifyEmailsForm"
+            placeholder="name@example.org"
+            add-on-blur
+            add-on-paste
+            :delimiter="/[,;\s]+/"
             class="w-full"
           />
         </UFormField>
@@ -616,6 +630,9 @@ const linkPeopleGroupId = ref<number | undefined>(undefined)
 // Public-suggestion approval flow
 interface ApproverInfo { id: string; display_name: string | null; email: string }
 const approvers = ref<ApproverInfo[]>([])
+// Extra addresses emailed when a public suggestion is applied.
+const notifyEmails = ref<string[]>([])
+const notifyEmailsForm = ref<string[]>([])
 const approving = ref(false)
 const showDenyModal = ref(false)
 const showApproversModal = ref(false)
@@ -643,10 +660,12 @@ function approvalDate(userId: string): string | null {
 
 async function loadApprovers() {
   try {
-    const res = await $fetch<{ approvers: ApproverInfo[] }>('/api/admin/people-group-reports/approvers')
+    const res = await $fetch<{ approvers: ApproverInfo[]; notify_emails: string[] }>('/api/admin/people-group-reports/approvers')
     approvers.value = res.approvers
+    notifyEmails.value = res.notify_emails || []
   } catch {
     approvers.value = []
+    notifyEmails.value = []
   }
 }
 
@@ -686,6 +705,7 @@ function closeApproversModal() {
 
 async function openApproversModal() {
   approverForm.value = [approvers.value[0]?.id, approvers.value[1]?.id]
+  notifyEmailsForm.value = [...notifyEmails.value]
   showApproversModal.value = true
   try {
     const res = await $fetch<{ users: { id: string; display_name: string | null; email: string }[] }>('/api/admin/users')
@@ -700,7 +720,7 @@ async function saveApprovers() {
     savingApprovers.value = true
     await $fetch('/api/admin/people-group-reports/approvers', {
       method: 'PUT',
-      body: { approvers: approverForm.value.filter(Boolean) }
+      body: { approvers: approverForm.value.filter(Boolean), notify_emails: notifyEmailsForm.value }
     })
     toast.add({ title: 'Approvers updated', color: 'success' })
     showApproversModal.value = false

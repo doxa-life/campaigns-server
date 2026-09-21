@@ -1,7 +1,7 @@
 import { peopleGroupReportService } from '../../../../database/people-group-reports'
 import { getIntParam } from '#server/utils/api-helpers'
 import { applyReport } from '#server/utils/app/apply-report'
-import { sendReportOutcomeEmail } from '#server/utils/app/report-emails'
+import { sendReportOutcomeEmail, notifyReportApplied } from '#server/utils/app/report-emails'
 
 /**
  * Accept a report and apply its changes. Admin-sourced reports apply on a
@@ -32,6 +32,9 @@ export default defineEventHandler(async (event) => {
   if (report.source === 'public' && result.report) {
     sendReportOutcomeEmail(result.report, 'applied').catch((err) =>
       console.error('Failed to send report outcome email:', err)
+    )
+    notifyReportApplied(result.report, result.peopleGroup).catch((err) =>
+      console.error('Failed to send applied-suggestion notifications:', err)
     )
   }
 

@@ -1,8 +1,10 @@
 import { useRuntimeConfig } from '#imports'
 import { sendEmail } from '../email'
 import { userService } from '../../database/users'
-import { getReportApprovers } from './report-approvers'
+import { getReportApprovers, getReportNotifyEmails } from './report-approvers'
 import type { PeopleGroupReport } from '../../database/people-group-reports'
+import type { PeopleGroup } from '../../database/people-groups'
+import { peopleGroupFieldLabel, peopleGroupFieldDisplay } from './people-group-field-labels'
 import type { ReportMonthlySummary } from './report-summary'
 
 const TYPE_LABELS: Record<string, string> = {
@@ -90,6 +92,101 @@ export async function notifyReportApprovers(report: PeopleGroupReport & { people
   }
 }
 
+type AppliedReport = PeopleGroupReport & { people_group_name?: string | null; people_group_slug?: string | null }
+
+// Columns shown first in an applied-suggestion email, in this order; any other
+// submitted field follows.
+const HEADLINE_FIELDS = ['name', 'country_code', 'population', 'engagement_status', 'primary_religion', 'primary_language']
+
+function detailRows(rows: [string, unknown][]): string {
+  const items = rows
+    .map(([key, value]) => [peopleGroupFieldLabel(key), peopleGroupFieldDisplay(key, value)] as const)
+    .filter(([, display]) => display !== '')
+    .map(([label, display]) => `<li><strong>${escapeHtml(label)}:</strong> ${escapeHtml(display)}</li>`)
+    .join('')
+  return items ? `<ul style="font-size: 15px; padding-left: 20px;">${items}</ul>` : ''
+}
+
+/** Headline columns from the applied group, then every other submitted field. */
+function appliedDetails(report: AppliedReport, peopleGroup?: PeopleGroup | null): [string, unknown][] {
+  const rows: [string, unknown][] = []
+  const seen = new Set<string>()
+  for (const key of HEADLINE_FIELDS) {
+    const value = peopleGroup ? (peopleGroup as any)[key] : report.suggested_changes?.[key]
+    if (value === null || value === undefined || value === '') continue
+    rows.push([key, value])
+    seen.add(key)
+  }
+  for (const [key, value] of Object.entries(report.suggested_changes || {})) {
+    if (seen.has(key) || key === 'image_url') continue
+    rows.push([key, value])
+  }
+  return rows
+}
+
+/**
+ * Tell the extra notification addresses that a public suggestion has been
+ * applied: a new group on the list with its details, a group's changed fields,
+ * or a removal with its reason. Recipients need not have admin access, so the
+ * only link is the public people group page. Sent alongside the reporter's
+ * outcome email; each address gets its own copy so recipients never see one
+ * another.
+ */
+export function buildReportAppliedNotification(
+  report: AppliedReport,
+  peopleGroup?: PeopleGroup | null
+): { subject: string; html: string } {
+  const baseUrl = useRuntimeConfig().public.siteUrl || 'http://localhost:3000'
+  const slug = peopleGroup?.slug || report.people_group_slug
+  const group = groupLabel(report)
+  const reporter = escapeHtml(
+    report.reporter_org ? `${report.reporter_name} (${report.reporter_org})` : report.reporter_name
+  )
+
+  let title: string
+  let subject: string
+  let lead: string
+  if (report.type === 'add') {
+    title = 'New people group added'
+    subject = `New people group added to the DOXA list: ${group}`
+    lead = `<strong>${group}</strong> has been added to the DOXA list.`
+  } else if (report.type === 'remove') {
+    title = 'People group removed'
+    subject = `People group removed from the DOXA list: ${group}`
+    lead = `<strong>${group}</strong> has been removed from the DOXA list.`
+  } else {
+    title = 'People group updated'
+    subject = `People group updated on the DOXA list: ${group}`
+    lead = `<strong>${group}</strong> has been updated on the DOXA list.`
+  }
+
+  const html = layout(
+    title,
+    `
+      <p style="font-size: 16px;">${lead}</p>
+      <p style="font-size: 15px; color: #666666;">Suggested by ${reporter} and approved by both reviewers.</p>
+      ${detailRows(appliedDetails(report, report.type === 'add' ? peopleGroup : null))}
+      ${slug && report.type !== 'remove' ? button(`${baseUrl}/${slug}`, 'View People Group') : ''}
+    `
+  )
+  return { subject, html }
+}
+
+/** Email each configured extra address about an applied suggestion; returns the addresses reached. */
+export async function notifyReportApplied(report: AppliedReport, peopleGroup?: PeopleGroup | null): Promise<string[]> {
+  const emails = await getReportNotifyEmails()
+  if (emails.length === 0) return []
+
+  const { subject, html } = buildReportAppliedNotification(report, peopleGroup)
+  const sentTo: string[] = []
+  for (const to of emails) {
+    if (await sendEmail({ to, subject, html })) {
+      sentTo.push(to)
+    }
+  }
+  return sentTo
+}
+
 function plural(count: number, singular: string, pluralForm: string): string {
   return `<strong>${count}</strong> ${count === 1 ? singular : pluralForm}`
 }
@@ -153,29 +250,42 @@ export async function sendReportSummaryEmail(summary: ReportMonthlySummary): Pro
  * Tell the reporter what happened to their suggestion. Outcome only — the
  * report's notes and the reviewers' comments are internal and never forwarded.
  */
-export async function sendReportOutcomeEmail(
-  report: PeopleGroupReport & { people_group_name?: string | null },
+export function buildReportOutcomeEmail(
+  report: AppliedReport,
   outcome: 'applied' | 'denied'
-): Promise<boolean> {
-  if (!report.reporter_email) return false
+): { subject: string; html: string } {
+  const group = groupLabel(report)
+  const accepted = outcome === 'applied'
 
-  const applied = outcome === 'applied'
+  let summary: string
+  if (!accepted) {
+    summary = `Your suggestion (<strong>${TYPE_LABELS[report.type] || report.type}</strong>: ${group}) was reviewed by the DOXA team and was not applied.`
+  } else if (report.type === 'add') {
+    summary = `Your suggestion to add <strong>${group}</strong> has been accepted, and the group is now on the DOXA list.`
+  } else if (report.type === 'remove') {
+    summary = `Your suggestion to remove <strong>${group}</strong> has been accepted, and the group is no longer on the DOXA list.`
+  } else {
+    summary = `Your suggested update to <strong>${group}</strong> has been accepted and applied to the DOXA list.`
+  }
+
   const html = layout(
-    applied ? 'Your suggestion was applied' : 'Your suggestion was not applied',
+    accepted ? 'Your suggestion was accepted' : 'Your suggestion was not applied',
     `
       <p style="font-size: 16px;">Hello ${escapeHtml(report.reporter_name)},</p>
-      <p style="font-size: 16px;">
-        Your suggestion (<strong>${TYPE_LABELS[report.type] || report.type}</strong>: ${groupLabel(report)})
-        was reviewed by the DOXA team and ${applied ? 'has been applied. Thank you for helping keep the list accurate!' : 'was not applied.'}
-      </p>
-      <p style="font-size: 15px;">Thank you for taking the time to contribute.</p>
+      <p style="font-size: 16px;">${summary}</p>
+      <p style="font-size: 16px;">Thank you for your contribution.</p>
     `
   )
-  return sendEmail({
-    to: report.reporter_email,
-    subject: applied
-      ? `Your people group suggestion was applied: ${groupLabel(report)}`
-      : `Your people group suggestion: ${groupLabel(report)}`,
+  return {
+    subject: accepted
+      ? `Your people group suggestion was accepted: ${group}`
+      : `Your people group suggestion: ${group}`,
     html
-  })
+  }
+}
+
+export async function sendReportOutcomeEmail(report: AppliedReport, outcome: 'applied' | 'denied'): Promise<boolean> {
+  if (!report.reporter_email) return false
+  const { subject, html } = buildReportOutcomeEmail(report, outcome)
+  return sendEmail({ to: report.reporter_email, subject, html })
 }
