@@ -14,7 +14,7 @@ This project includes the former base-layer auth, theme, email, storage, databas
 - **NEVER edit `.env` directly** - Ask the user to make environment variable changes
 - **Always kill dev servers you start**
 - **Never use `alert()` or `confirm()`** - Use toasts and modals instead
-- **Reference `documentation/nuxt-ui-modals.md`** when building modals
+- **Reference https://ui.nuxt.com/components/modal** when building modals
 - **Use Nuxt UI components** - See https://ui.nuxt.com/llms.txt for documentation
 - **Type-check after editing `.ts`/`.vue` files** — Run `npx nuxi typecheck` to catch type errors you introduced. Fix any you caused; do not fix pre-existing ones unless asked.
 - **Update `server/openapi.yaml`** when adding or changing a public API endpoint — keep its request/response shape, auth, validation, and required fields in sync with the handler so the published API docs stay accurate.
@@ -288,7 +288,8 @@ steps and the automation are one document, reviewed with the code they drive.
 `/add-language-everywhere` and `/sync-language-everywhere` are the language
 procedures.
 
-The Doxa context portfolios (apps-context MCP, org `doxa`) hold policy — which
-languages, who reviews, what the human checkpoints are — and link to the skill
-rather than repeating its steps. Nothing is mirrored between the two, because a
-mirrored copy is a copy that goes stale.
+The Doxa context portfolios at https://pray.doxa.life/admin/context (read and
+written through `/api/admin/context/portfolios`) hold policy — which languages,
+who reviews, what the human checkpoints are — and link to the skill rather than
+repeating its steps. Nothing is mirrored between the two, because a mirrored
+copy is a copy that goes stale.

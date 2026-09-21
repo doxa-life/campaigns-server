@@ -4,16 +4,19 @@ import { inboxKnowledgeService } from '#server/database/inbox-knowledge'
 import { groundingDocumentService } from '#server/database/grounding-documents'
 import { subscriberService } from '#server/database/subscribers'
 import { peopleGroupAdoptionService } from '#server/database/people-group-adoptions'
+import { getPortfolioBySlug, contextDb } from '#server/database/context-portfolios'
+import { getPortfolioSections } from '#server/database/context-sections'
 
 // The static pack rarely changes, so cache it in process memory. groundingKey is the
-// cross-instance invalidation signal: a grounding sync on ANY instance changes
-// max(fetched_at), and the cache-hit path checks it so other instances rebuild on
-// their next draft instead of serving stale snapshots. The TTL covers the
-// filesystem-sourced parts (tone guide, feature docs) in dev.
+// cross-instance invalidation signal (see groundingFreshnessKey): a grounding sync or
+// a feature-portfolio edit on ANY instance changes it, and the cache-hit path checks
+// it so other instances rebuild on their next draft instead of serving stale content.
+// The TTL covers the filesystem-sourced tone guide in dev.
 const STATIC_PACK_TTL_MS = 10 * 60 * 1000
 let staticPackCache: { text: string; builtAt: number; groundingKey: string | null } | null = null
 
-const FEATURE_DOCS_DIR = 'documentation/feature-descriptions'
+// Slug of the context portfolio whose sections describe the platform feature by feature.
+const FEATURE_DOCS_PORTFOLIO_SLUG = 'doxa-features'
 const TONE_GUIDE_PATH = 'server/utils/inbox/ai-draft-tone-guide.md'
 
 async function readFileSafe(relPath: string): Promise<string | null> {
@@ -24,30 +27,39 @@ async function readFileSafe(relPath: string): Promise<string | null> {
   }
 }
 
-// Recursively collect *.md files under a directory (feature-descriptions has subfolders).
-async function collectMarkdown(relDir: string): Promise<{ rel: string; body: string }[]> {
-  const root = path.join(process.cwd(), relDir)
-  const out: { rel: string; body: string }[] = []
-  async function walk(dir: string) {
-    let entries: import('node:fs').Dirent[]
-    try {
-      entries = await fs.readdir(dir, { withFileTypes: true })
-    } catch {
-      return
-    }
-    for (const entry of entries) {
-      const full = path.join(dir, entry.name)
-      if (entry.isDirectory()) {
-        await walk(full)
-      } else if (entry.name.endsWith('.md')) {
-        const body = await fs.readFile(full, 'utf8').catch(() => '')
-        if (body.trim()) out.push({ rel: path.relative(root, full), body })
-      }
-    }
+/** The feature portfolio's sections that have content, in display order. */
+async function collectFeatureDocs(): Promise<{ title: string; body: string }[]> {
+  const sql = contextDb()
+  const portfolio = await getPortfolioBySlug(FEATURE_DOCS_PORTFOLIO_SLUG, sql)
+  if (!portfolio) return []
+  const definitions = await getPortfolioSections(portfolio.id, sql)
+  const rows = await sql`
+    SELECT section_key, content FROM context_sections WHERE portfolio_id = ${portfolio.id}
+  ` as unknown as Array<{ section_key: string; content: string }>
+  const byKey = new Map(rows.map(r => [r.section_key, r.content]))
+  return definitions
+    .map(d => ({ title: d.title, body: (byKey.get(d.key) ?? '').trim() }))
+    .filter(d => d.body)
+}
+
+/**
+ * Freshness key for the cached pack: the latest doxa.life snapshot and the latest
+ * edit to any section of the feature portfolio.
+ */
+async function groundingFreshnessKey(): Promise<string> {
+  const sql = contextDb()
+  const [pages, portfolio] = await Promise.all([
+    groundingDocumentService.latestFetchedAt('doxa_page'),
+    getPortfolioBySlug(FEATURE_DOCS_PORTFOLIO_SLUG, sql),
+  ])
+  let docs: string | null = null
+  if (portfolio) {
+    const [row] = await sql`
+      SELECT max(last_edited_at) AS latest FROM context_sections WHERE portfolio_id = ${portfolio.id}
+    ` as unknown as Array<{ latest: unknown }>
+    docs = row?.latest == null ? null : String(row.latest)
   }
-  await walk(root)
-  out.sort((a, b) => a.rel.localeCompare(b.rel))
-  return out
+  return `${pages ?? ''}|${docs ?? ''}`
 }
 
 export function resetGroundingCache(): void {
@@ -55,23 +67,23 @@ export function resetGroundingCache(): void {
 }
 
 /**
- * The static grounding pack: tone guide + cached doxa.life CMS pages + the app's
- * feature descriptions. This block is identical across requests, so it's the part
+ * The static grounding pack: tone guide + cached doxa.life CMS pages + the feature
+ * portfolio's sections. This block is identical across requests, so it's the part
  * we mark cacheable on the AI call.
  */
 export async function getStaticPack(): Promise<string> {
   if (staticPackCache && Date.now() - staticPackCache.builtAt < STATIC_PACK_TTL_MS) {
-    // Serve the cache only while the DB snapshots are unchanged. If the freshness
+    // Serve the cache only while the DB content is unchanged. If the freshness
     // check itself fails, serve the cache rather than rebuilding from a flaky DB.
-    const latest = await groundingDocumentService.latestFetchedAt('doxa_page').catch(() => undefined)
+    const latest = await groundingFreshnessKey().catch(() => undefined)
     if (latest === undefined || latest === staticPackCache.groundingKey) {
       return staticPackCache.text
     }
   }
 
-  // Read before the snapshots: a sync landing mid-build makes the stored key stale,
-  // which triggers a rebuild on the next draft rather than being missed.
-  const groundingKey = await groundingDocumentService.latestFetchedAt('doxa_page').catch(() => null)
+  // Read before the content: a sync or edit landing mid-build makes the stored key
+  // stale, which triggers a rebuild on the next draft rather than being missed.
+  const groundingKey = await groundingFreshnessKey().catch(() => null)
 
   const sections: string[] = []
 
@@ -87,10 +99,10 @@ export async function getStaticPack(): Promise<string> {
     sections.push(`# DOXA.LIFE WEBSITE CONTENT\n\n${body}`)
   }
 
-  // App feature descriptions — how the platform actually works.
-  const docs = await collectMarkdown(FEATURE_DOCS_DIR)
+  // Feature portfolio sections — how the platform actually works.
+  const docs = await collectFeatureDocs().catch(() => [])
   if (docs.length) {
-    const body = docs.map(d => `## ${d.rel}\n\n${d.body.trim()}`).join('\n\n')
+    const body = docs.map(d => `## ${d.title}\n\n${d.body}`).join('\n\n')
     sections.push(`# HOW THE DOXA PLATFORM WORKS (internal feature reference)\n\n${body}`)
   }
 
