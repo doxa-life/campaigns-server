@@ -50,6 +50,7 @@ describe('Inbox AI drafting', async () => {
   afterAll(async () => {
     if (createdEntryIds.length) await sql`DELETE FROM inbox_knowledge_entries WHERE id = ANY(${createdEntryIds})`
     if (createdSubscriberIds.length) await sql`DELETE FROM subscribers WHERE id = ANY(${createdSubscriberIds})`
+    await sql`DELETE FROM context_portfolios WHERE slug = 'doxa-features'`
     await cleanupTestData(sql)
     await closeTestDatabase()
   })
@@ -187,6 +188,36 @@ describe('Inbox AI drafting', async () => {
 
     const [countries] = await sql`SELECT body_text FROM grounding_documents WHERE source = 'doxa_page' AND doc_key = 'countries'`
     expect(countries!.body_text).toContain('/regions/india')
+  })
+
+  it('grounds drafts in the feature portfolio and picks up its sections without a restart', async () => {
+    const heading = 'HOW THE DOXA PLATFORM WORKS (internal feature reference)'
+    const { conversationId } = await makeConversationWithInbound()
+    const preview = () => $fetch<any>(`/api/admin/inbox/conversations/${conversationId}/draft-reply`, {
+      method: 'POST', body: { preview: true }, ...agentAuth,
+    })
+
+    const before = await preview()
+    expect(before.sources_used).not.toContain(heading)
+
+    const [portfolio] = await sql`
+      INSERT INTO context_portfolios (slug, name) VALUES ('doxa-features', 'DOXA FEATURES')
+      ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name
+      RETURNING id
+    `
+    await sql`
+      INSERT INTO context_section_definitions (portfolio_id, key, title)
+      VALUES (${portfolio!.id}, 'people-group-suggestions', 'People Group Suggestions')
+      ON CONFLICT (portfolio_id, key) DO NOTHING
+    `
+    await sql`
+      INSERT INTO context_sections (portfolio_id, section_key, content)
+      VALUES (${portfolio!.id}, 'people-group-suggestions', ${'# People Group Suggestions\n\nPartners report changes through the public form at /updates.'})
+      ON CONFLICT (portfolio_id, section_key) DO UPDATE SET content = EXCLUDED.content, last_edited_at = NOW()
+    `
+
+    const after = await preview()
+    expect(after.sources_used).toContain(heading)
   })
 
   it('blocks users without permission on every knowledge-base and grounding endpoint', async () => {

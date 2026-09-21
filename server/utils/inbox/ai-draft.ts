@@ -77,15 +77,18 @@ function buildThread(messages: (ConversationMessage & { sender_name?: string | n
 }
 
 // Deterministic offline stub so e2e tests never call the live API (mirrors how the
-// schedulers and Mailgun signature check short-circuit under VITEST).
-function stubDraft(): InboxDraftResult {
+// schedulers and Mailgun signature check short-circuit under VITEST). sources_used
+// lists the top-level headings of the assembled system prompt so tests can see which
+// grounding blocks were built.
+function stubDraft(system: AiSystemBlock[]): InboxDraftResult {
   const text = 'Thank you for reaching out — we are glad you wrote in. [AI drafting is stubbed in the test environment.]'
+  const headings = system.flatMap(block => [...block.text.matchAll(/^# (.+)$/gm)].map(m => m[1]!))
   return {
     draft_language: 'en',
     draft_html: `<p>${text}</p>`,
     draft_text: text,
     english_gloss: text,
-    sources_used: [],
+    sources_used: headings,
     uncertainty: [],
   }
 }
@@ -148,7 +151,7 @@ export async function generateInboxDraft(
 
   // Stub at the network boundary: tests exercise everything above (DB reads, thread
   // building, prompt assembly) and skip only the API call.
-  if (process.env.VITEST) return stubDraft()
+  if (process.env.VITEST) return stubDraft(system)
 
   // The tool input carries the reply roughly three times over (html + text + gloss),
   // so the cap needs generous headroom — a truncated forced-tool response yields
