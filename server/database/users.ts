@@ -6,6 +6,7 @@ export type NotificationPreferences = {
   stats: { daily: boolean; weekly: boolean; monthly: boolean; yearly: boolean }
   adoption: boolean
   contact_us: boolean
+  glossary_review: boolean
 }
 
 // Opt-in by default: a user receives nothing until an admin (or the user, for stats)
@@ -16,6 +17,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   stats: { daily: false, weekly: false, monthly: false, yearly: false },
   adoption: false,
   contact_us: false,
+  glossary_review: false,
 }
 
 // Merge a stored value (possibly null, or missing newer keys) over the defaults above.
@@ -28,6 +30,7 @@ export function resolveNotificationPreferences(
     stats: { ...DEFAULT_NOTIFICATION_PREFERENCES.stats, ...(s.stats ?? {}) },
     adoption: typeof s.adoption === 'boolean' ? s.adoption : DEFAULT_NOTIFICATION_PREFERENCES.adoption,
     contact_us: typeof s.contact_us === 'boolean' ? s.contact_us : DEFAULT_NOTIFICATION_PREFERENCES.contact_us,
+    glossary_review: typeof s.glossary_review === 'boolean' ? s.glossary_review : DEFAULT_NOTIFICATION_PREFERENCES.glossary_review,
   }
 }
 
@@ -151,6 +154,14 @@ export class UserService {
     return await this.sql`
       SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences, email_alias, email_signature
       FROM users WHERE notification_preferences->>'adoption' = 'true'
+    ` as any
+  }
+
+  // Users opted in to glossary review notifications.
+  async getUsersOptedIntoGlossaryReview(): Promise<User[]> {
+    return await this.sql`
+      SELECT id, email, display_name, verified, superadmin, roles, token_key, created, updated, notification_preferences, email_alias, email_signature
+      FROM users WHERE notification_preferences->>'glossary_review' = 'true'
     ` as any
   }
 

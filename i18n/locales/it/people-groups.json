@@ -15,11 +15,13 @@
       "blocOnly": "Fanno parte del blocco di affinità {bloc}.",
       "religion": "La loro religione principale è {religion}.",
       "language": "Parlano principalmente {language}.",
-      "andUnreached": "e Non Raggiunti",
-      "butUnreached": "ma Non Raggiunti"
+      "statusEngaged": "coinvolti",
+      "statusUnengaged": "non coinvolti",
+      "statusEngagedUnreached": "coinvolti ma non raggiunti",
+      "statusUnengagedUnreached": "non coinvolti e non raggiunti"
     },
     "categories": {
-      "engagement": "Stato",
+      "engagement": "Coinvolgimento",
       "basic": "Informazioni di Base",
       "identifiers": "Identificatori",
       "geography": "Geografia",
@@ -29,7 +31,7 @@
       "religion": "Religione",
       "rop": "Classificazione dei Popoli (ROP)",
       "resources": "Risorse Disponibili",
-      "workers": "Engagement Criteria",
+      "workers": "Criteri di coinvolgimento",
       "wagf": "WAGF/Doxa",
       "media": "Media"
     },
@@ -230,6 +232,7 @@
         "H": "Induismo",
         "HOF": "Induismo - Popolare",
         "MOF": "Islam - Popolare",
+        "MIB": "Islam - Ibadita",
         "MSH": "Islam - Sciita",
         "MIS": "Islam - Sciita Imami Ismailita",
         "MSN": "Islam - Sunnita",
@@ -285,6 +288,7 @@
         "H": "Induismo, la tradizione religiosa predominante del subcontinente indiano. Esistono molte forme di induismo, ciascuna con le proprie divinità e credenze.",
         "HOF": "Induismo popolare, caratterizzato da tradizioni locali e culti di divinità locali venerate a livello comunitario.",
         "J": "Ebraismo, una religione sviluppata tra gli antichi ebrei, caratterizzata dalla credenza in un Dio trascendente che si è rivelato ad Abramo, Mosè e ai profeti ebrei, e da una vita religiosa conforme alle Scritture e alle tradizioni rabbiniche.",
+        "MIB": "Islam ibadita, la più antica scuola dell'islam ancora esistente e un ramo distinto sia dal sunnismo sia dallo sciismo. I musulmani ibaditi sono la maggioranza in Oman e formano comunità antiche tra gli amazigh di Algeria, Tunisia e Libia.",
         "MIS": "Ismailismo, il secondo ramo più grande dell'islam sciita.",
         "MOF": "Islam popolare, un sistema di credenze sincretico che mescola elementi tradizionali dell'islam con pratiche superstiziose come allontanare gli spiriti con incantesimi e amuleti magici, e recitare versetti del Corano per provocare guarigioni miracolose.",
         "MSH": "Islam sciita, una delle due principali denominazioni dell'islam. I seguaci dell'islam sciita sono chiamati 'sciiti'.",

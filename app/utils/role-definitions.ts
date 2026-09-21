@@ -36,7 +36,9 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
       'marketing.send',
       'context.view',
       'context.edit',
-      'context.manage'
+      'context.manage',
+      'glossary.view',
+      'glossary.manage'
     ]
   },
   progress_admin: {
@@ -83,7 +85,8 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
       'content.create',
       'content.edit',
       'content.delete',
-      'context.view'
+      'context.view',
+      'glossary.view'
     ]
   },
   language_editor: {
@@ -95,7 +98,9 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
       'content.create_language_scoped',
       'content.edit_language_scoped',
       'content.delete_language_scoped',
-      'context.view'
+      'context.view',
+      'glossary.view',
+      'glossary.manage'
     ]
   },
   inbox_agent: {

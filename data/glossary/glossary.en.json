@@ -1,0 +1,772 @@
+{
+  "schema_version": 1,
+  "source_language": "en",
+  "glossary_id": "doxa-life-core",
+  "title": "Doxa.Life English Glossary Master",
+  "term_count": 39,
+  "sections": [
+    {
+      "title": "People-group terminology",
+      "intro": "These are the most definitionally precise terms on the site. The Definitions page gives exact numeric thresholds; translations must carry those thresholds intact.",
+      "entries": [
+        {
+          "term": "People group",
+          "seed": true,
+          "fields": [
+            [
+              "Site definition",
+              "\"An ethnolinguistic group who perceive themselves to have a common affinity for one another based on language, culture, religion, and worldview … the largest possible group within which the gospel can spread as a viable, indigenous church-planting movement without encountering barriers of understanding or acceptance.\" (Definitions page)"
+            ],
+            [
+              "Example",
+              "\"2,085 unengaged people groups\" (homepage headline)"
+            ],
+            [
+              "Why it matters",
+              "This is the fundamental unit of measurement for the entire site. The concept is ethnic/linguistic, not political — \"people group\" must not be rendered as \"nation-state\", \"tribe\" (with primitive connotations), or \"social group\". An imprecise translation invalidates every statistic."
+            ]
+          ]
+        },
+        {
+          "term": "Unreached people group",
+          "acronym": "UPG",
+          "seed": true,
+          "fields": [
+            [
+              "Site definition",
+              "\"Has approximately 2 disciples or fewer out of 100 (≤ 2%) and lacks the capacity to establish indigenous churches without cross-cultural assistance.\" (Definitions page)"
+            ],
+            [
+              "Example",
+              "\"Global Partnership for the Unreached\" (site tagline)"
+            ],
+            [
+              "Why it matters",
+              "The threshold (≤ 2%) must be reproducible in the translation. The concept of lack of capacity for self-propagation is as important as the percentage. Avoid wording that implies the group is spiritually \"unchosen\" or socially marginal."
+            ]
+          ]
+        },
+        {
+          "term": "Unengaged",
+          "seed": true,
+          "fields": [
+            [
+              "Context",
+              "an unengaged people group"
+            ],
+            [
+              "Site definition",
+              "A people group with no known believers or a tiny few and lacking the four primary levels of effective engagement (apostolic effort in residence; commitment to the local culture and heart language; long-term ministry commitment; sowing the gospel aimed at a CPM). (Definitions page)"
+            ],
+            [
+              "Example",
+              "\"2,085 unengaged people groups\" / \"Unengaged people groups have no missionaries, no churches, and often no known believers.\" (Adopt page)"
+            ],
+            [
+              "Why it matters",
+              "\"Unengaged\" is a technical term meaning no active church-planting work, not \"socially unengaged\" or \"emotionally unresponsive\". A mistranslation here obscures the entire urgency of the site's call to action."
+            ]
+          ]
+        },
+        {
+          "term": "Unengaged unreached people group",
+          "acronym": "UUPG",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "The combined category — unreached AND lacking the four levels of effective engagement. The research page uses \"Find a UUPG\" as a UI label."
+            ],
+            [
+              "Example",
+              "\"Daily prayer for each of the 2,085 UUPGs\" (Vision page)"
+            ],
+            [
+              "Why it matters",
+              "UUPG is an established acronym in global missions. Keep a stable equivalent acronym (e.g., \"UUPG\") or a consistently used phrase in each language to align with international prayer tools."
+            ]
+          ]
+        },
+        {
+          "term": "Under-engaged",
+          "seed": true,
+          "fields": [
+            [
+              "Context",
+              "an under-engaged people group"
+            ],
+            [
+              "Site definition",
+              "\"Has approximately 1 disciple or fewer out of 100 (≤ 1%). More church planting teams are needed to increase fruitful engagement.\" (Definitions page)"
+            ],
+            [
+              "Example",
+              "\"Fruitful engagement among frontier peoples and the under-engaged\" (homepage)"
+            ],
+            [
+              "Why it matters",
+              "The hyphenated compound form appears consistently. Convey that work has begun but is insufficient in scale — not that the people themselves are indifferent."
+            ]
+          ]
+        },
+        {
+          "term": "Frontier people",
+          "seed": true,
+          "fields": [
+            [
+              "Context",
+              "a frontier people group; frontier peoples"
+            ],
+            [
+              "Site definition",
+              "\"Has approximately 1 disciple or fewer out of 1,000 (≤ 0.1%) with no confirmed, sustained movement to Jesus. Often geographically isolated with little to no access to the gospel; pioneer work generally must begin with nonbelievers.\" (Definitions page)"
+            ],
+            [
+              "Example",
+              "\"Fruitful engagement among frontier peoples\" (homepage goal)"
+            ],
+            [
+              "Why it matters",
+              "\"Frontier\" signals the missiological cutting-edge — the most unreached of the unreached. Avoid military connotations where culturally sensitive; preserve the sense of work among them might be their \"first-ever\" gospel contact."
+            ]
+          ]
+        },
+        {
+          "term": "Ethnolinguistic group",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "The technical descriptor of what constitutes a people group (shared language, culture, religion, worldview). Not used as a standalone label in the UI, but embedded in the Definitions page definition."
+            ],
+            [
+              "Why it matters",
+              "Translators should understand this is the underlying concept so they choose ethnicity/language-oriented words, not political ones."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Engagement and mission language",
+      "intro": "",
+      "entries": [
+        {
+          "term": "Engagement / engaged",
+          "seed": false,
+          "fields": [
+            [
+              "Context",
+              "engagement with a people group; an engaged people group"
+            ],
+            [
+              "Site definition (Vision page — \"What is Engagement?\")",
+              "\"There is sustained activity to share Christ and make disciples; there are efforts to establish self-sustaining churches; the work occurs in culturally appropriate and locally relevant ways.\" For WAGF: cross-cultural workers are resident."
+            ],
+            [
+              "Example",
+              "\"To engage every Unengaged People Group by 2033\" (Priority)"
+            ],
+            [
+              "Why it matters",
+              "\"Engagement\" is a precision term — resident, sustained, cross-cultural, CPM-oriented. A vague rendering like \"involvement\" or \"contact\" strips the core meaning. The whole priority statement depends on it."
+            ]
+          ]
+        },
+        {
+          "term": "Fruitful engagement",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "Engagement that is visibly producing disciples and churches, not just activity. Used in homepage goals and the About page declaration."
+            ],
+            [
+              "Example",
+              "\"Fruitful, long-term, residential engagement of the world's unengaged peoples\" (Sending Summit Declaration)"
+            ],
+            [
+              "Why it matters",
+              "The qualifier \"fruitful\" is theologically and strategically intentional — it distinguishes activity from results."
+            ]
+          ]
+        },
+        {
+          "term": "Gospel access",
+          "seed": true,
+          "fields": [
+            [
+              "Meaning",
+              "The condition of a people group having the gospel available to them — through workers, churches, or gospel content. Its absence is the defining tragedy of unengaged people groups."
+            ],
+            [
+              "Example",
+              "\"They have no gospel access\" (Adopt page heading); \"A church-led commitment to pray, give, and send so that gospel access begins\" (Adopt page)"
+            ],
+            [
+              "Why it matters",
+              "\"Access\" implies availability and reachability, not just geographic presence. Mistranslating as \"gospel knowledge\" or \"gospel hearing\" changes the meaning subtly but importantly."
+            ]
+          ]
+        },
+        {
+          "term": "Gospel engagement",
+          "seed": true,
+          "fields": [
+            [
+              "Meaning",
+              "Active, ongoing proclamation and living-out of the gospel among a people group; used in the prayer context (\"prepare the way for gospel engagement through prayer\")."
+            ],
+            [
+              "Example",
+              "\"Help prepare the way for gospel engagement through prayer\" (Pray page)"
+            ],
+            [
+              "Why it matters",
+              "Distinct from \"gospel access\" (availability) — \"gospel engagement\" is the active missional work itself. Avoid rendering as a marketing or media campaign."
+            ]
+          ]
+        },
+        {
+          "term": "Church-planting movement",
+          "acronym": "CPM",
+          "seed": true,
+          "fields": [
+            [
+              "Site definition",
+              "\"A multiplication of indigenous churches planting churches that includes at least four streams of four spiritual generations together totaling more than 1,000 persons.\" (Definitions page)"
+            ],
+            [
+              "Example",
+              "\"Church planting movements among every unreached people on earth\" (homepage goal)"
+            ],
+            [
+              "Why it matters",
+              "\"Movement\" implies self-multiplying momentum, not a single church plant or program. The metrics (4 streams × 4 generations × 1,000 persons) must be translatable; avoid wording that sounds like a social or political movement."
+            ]
+          ]
+        },
+        {
+          "term": "Indigenous church",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "A church arising from within the people group that is self-sustaining and maturing in the \"five selfs\"."
+            ],
+            [
+              "Example",
+              "\"There is an indigenous church planted among every people group on earth\" (Vision goals); \"lacks the capacity to establish indigenous churches without cross-cultural assistance\" (Definitions)"
+            ],
+            [
+              "Why it matters",
+              "\"Indigenous\" means locally rooted and self-governing, not \"native religion\" or \"animist\". Clarify if necessary to avoid syncretism associations."
+            ]
+          ]
+        },
+        {
+          "term": "The five \"selfs\"",
+          "seed": false,
+          "fields": [
+            [
+              "Context",
+              "the five \"selfs\" of an indigenous church"
+            ],
+            [
+              "Meaning",
+              "The five markers of a mature indigenous church: self-propagating, self-governing, self-supporting, self-theologizing, self-missionizing. (Definitions page)"
+            ],
+            [
+              "Why it matters",
+              "This is a standard missions framework. Translators should use established equivalents if they exist in the target language; if not, each \"self-\" compound needs a consistent rendering."
+            ]
+          ]
+        },
+        {
+          "term": "Residential engagement / workers in residence",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "Cross-cultural workers who live among the people group (not remote or visiting). A requirement for WAGF's definition of engagement."
+            ],
+            [
+              "Example",
+              "\"Cross-cultural workers are resident\" (Vision page); \"Apostolic (pioneering) effort in residence\" (Definitions page)"
+            ],
+            [
+              "Why it matters",
+              "\"Resident\" versus \"nonresident\" is a key distinction on the site. Translations must not flatten this to simply \"missionaries\"."
+            ]
+          ]
+        },
+        {
+          "term": "Cross-cultural workers",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "Mission workers from a different culture serving among a people group. Used as the preferred term over \"missionary\" in some contexts."
+            ],
+            [
+              "Example",
+              "\"lacks the capacity to establish indigenous churches without cross-cultural assistance\" (Definitions)"
+            ],
+            [
+              "Why it matters",
+              "The \"cross-cultural\" qualifier is intentional — these are not workers from within the group. Use a term that conveys cultural difference, not just \"foreign\"."
+            ]
+          ]
+        },
+        {
+          "term": "Apostolic effort",
+          "seed": false,
+          "fields": [
+            [
+              "Context",
+              "apostolic (pioneering) effort in residence; \"pioneering\" is the site's gloss for \"apostolic\""
+            ],
+            [
+              "Meaning",
+              "Front-edge mission work that begins where there are no churches or believers. One of the four criteria for a people group being \"engaged\"."
+            ],
+            [
+              "Example",
+              "\"Apostolic (pioneering) effort in residence\" (Definitions page)"
+            ],
+            [
+              "Why it matters",
+              "\"Apostolic\" here means sent/pioneering, not a denominational title. The parenthetical \"(pioneering)\" signals this; retain that clarity in translation."
+            ]
+          ]
+        },
+        {
+          "term": "Pioneer work",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "The initial evangelism phase among a frontier people group where there are no believers to begin with."
+            ],
+            [
+              "Example",
+              "\"Pioneer work generally must begin with nonbelievers\" (Definitions page)"
+            ],
+            [
+              "Why it matters",
+              "Translators should convey \"starting from scratch\" in terms of gospel presence."
+            ]
+          ]
+        },
+        {
+          "term": "Heart language",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "A person's first/mother tongue — the language in which they think and feel most deeply."
+            ],
+            [
+              "Example",
+              "\"Commitment to work in the local culture and heart language\" (Definitions page)"
+            ],
+            [
+              "Why it matters",
+              "A well-established missions phrase. Distinguish from \"official language\" or \"trade language\". The concept is that gospel and discipleship work must happen in this language to be fully effective."
+            ]
+          ]
+        },
+        {
+          "term": "Movement to Jesus",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "A collective, multiplying movement of people from a group turning to follow Jesus — as opposed to isolated conversions."
+            ],
+            [
+              "Example",
+              "\"No confirmed, sustained movement to Jesus\" (frontier people group definition)"
+            ],
+            [
+              "Why it matters",
+              "This is specifically about a sustained, multiplying spiritual movement, not individual conversion or social activism."
+            ]
+          ]
+        },
+        {
+          "term": "Nonresident partners",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "Churches, agencies, or individuals who support engagement from outside the field — through prayer, giving, Bible translation, media, etc. Broader engagement includes important contributing components that can be done by nonresident partners."
+            ],
+            [
+              "Example",
+              "\"Broader engagement includes important contributing components that can be done by nonresident partners, including intercessory prayer, Bible translation, compassion/disaster ministry outreaches…\" (Definitions page)"
+            ],
+            [
+              "Why it matters",
+              "Helps people understand they can participate in mission even without going to the field."
+            ]
+          ]
+        },
+        {
+          "term": "Broader engagement",
+          "seed": false,
+          "fields": [
+            [
+              "Context",
+              "the components of broader engagement"
+            ],
+            [
+              "Meaning",
+              "The contributing (but not sufficient alone) elements of mission that nonresident partners can do: intercessory prayer, Bible translation, compassion/disaster ministry, media reach, mobilization efforts, leadership training, work among diaspora."
+            ],
+            [
+              "Example",
+              "\"Broader engagement includes important contributing components\" (Definitions page)"
+            ],
+            [
+              "Why it matters",
+              "This list clarifies that adoption and prayer are genuine participation in the mission, even without going."
+            ]
+          ]
+        },
+        {
+          "term": "Diaspora",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "Members of a people group living outside their homeland. Listed as a component of broader engagement."
+            ],
+            [
+              "Example",
+              "\"Work among diaspora\" (Definitions page)"
+            ],
+            [
+              "Why it matters",
+              "Often a loanword in many languages; if so, it may be kept. Clarify it means scattered communities of a people group, not refugees in general."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Prayer and intercession",
+      "intro": "",
+      "entries": [
+        {
+          "term": "Daily prayer",
+          "seed": true,
+          "fields": [
+            [
+              "Context",
+              "daily prayer for a people group"
+            ],
+            [
+              "Meaning",
+              "Committing to pray for a specific unengaged people group every day, typically using the daily prayer guide from Doxa.Life."
+            ],
+            [
+              "Example",
+              "\"Choose an unengaged people group you will commit to pray for daily.\" (Pray page)"
+            ],
+            [
+              "Why it matters",
+              "\"Daily\" is intentional and describes a consistent every-day commitment. Avoid rendering it as \"regular prayer\" or \"occasional prayer\"."
+            ]
+          ]
+        },
+        {
+          "term": "Intercessor / intercessors",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "A person who commits to pray on behalf of a UUPG. Goal: 100+ daily intercessors per UUPG."
+            ],
+            [
+              "Example",
+              "\"Raise up 100+ daily intercessors to pray for each UUPG.\" (Adopt page)"
+            ],
+            [
+              "Why it matters",
+              "Use the established church term for intercessor/prayer warrior, not a courtroom or governmental connotation."
+            ]
+          ]
+        },
+        {
+          "term": "Intercessory prayer",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "Prayer offered on behalf of others — specifically for people groups who have no one praying for them."
+            ],
+            [
+              "Example",
+              "\"Broader engagement includes… intercessory prayer\" (Definitions)"
+            ],
+            [
+              "Why it matters",
+              "Distinguish from personal devotional prayer; emphasize the on behalf of others dimension."
+            ]
+          ]
+        },
+        {
+          "term": "Daily prayer guide / daily prayer points",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "The daily email or content resource that Doxa.Life sends to registered intercessors — including Scripture themes, prayer needs from the field, photos, stories, and key insights about the people group."
+            ],
+            [
+              "Example",
+              "\"Receive daily prayer points and join believers worldwide in prayer\" (homepage); \"Your daily prayer guide: Scripture-centered prayer themes, Spirit-led reflection and guidance, Real prayer needs from the field, Photos, stories and testimonies, Key insights about the people group\" (Pray)"
+            ],
+            [
+              "Why it matters",
+              "The \"guide\" and \"points\" are distinct from general devotionals — they are specific, people-group-focused, field-connected."
+            ]
+          ]
+        },
+        {
+          "term": "Prayer prepares the way",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "A theological conviction that intercession creates spiritual conditions for gospel breakthroughs before workers even arrive."
+            ],
+            [
+              "Example",
+              "\"Prayer softens hearts, opens doors, and invites the work of the Holy Spirit long before workers arrive or the gospel is proclaimed.\" (Pray page)"
+            ],
+            [
+              "Why it matters",
+              "A key motivational phrase used to explain why prayer is the first step of engagement, not just a supplement to it."
+            ]
+          ]
+        },
+        {
+          "term": "Lord of the harvest",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "A biblical title for Jesus (Matthew 9:38), used in the call to pray that He would send workers to the unengaged."
+            ],
+            [
+              "Example",
+              "\"Pray earnestly to the Lord of the harvest … that He would send laborers to the [Unengaged].\" (Pray page)"
+            ],
+            [
+              "Why it matters",
+              "Align with the established Bible translation phrase in the target language. The agricultural metaphor (harvest = people ready to respond) should carry over."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Adoption and mobilization",
+      "intro": "",
+      "entries": [
+        {
+          "term": "Adopt",
+          "seed": true,
+          "fields": [
+            [
+              "Context",
+              "adopt an unengaged people group"
+            ],
+            [
+              "Meaning",
+              "A formal, long-term church-led commitment to pray, give, and send so that gospel access begins for a specific unengaged people group."
+            ],
+            [
+              "Example",
+              "\"A church-led commitment to pray, give, and send so that gospel access begins\" (Adopt page)"
+            ],
+            [
+              "Why it matters",
+              "Avoid family-law adoption language (children, legal custody). The concept is missional sponsorship/commitment — a church takes strategic responsibility for a people group's engagement."
+            ]
+          ]
+        },
+        {
+          "term": "Pray, give, and send",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "The three pillars of adoption — intercessory prayer, financial support, and sending workers."
+            ],
+            [
+              "Example",
+              "\"Churches and networks take ownership – praying, giving, and preparing the way for gospel workers.\" (homepage); \"Partner through prayer, giving, and sending\" (Adopt page)"
+            ],
+            [
+              "Why it matters",
+              "This triad is used consistently. All three actions should be translated with active, participatory verbs, not passive or devotional ones."
+            ]
+          ]
+        },
+        {
+          "term": "Mobilize / mobilization",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "Raising up and activating intercessors and participants across a congregation or network."
+            ],
+            [
+              "Example",
+              "\"Raise up 100+ daily intercessors\" / \"Tools to mobilize prayer and participation across your congregation\" (Adopt page)"
+            ],
+            [
+              "Why it matters",
+              "\"Mobilize\" implies active movement toward a goal. Avoid passive words like \"inform\" or \"invite\"."
+            ]
+          ]
+        },
+        {
+          "term": "Sending agency / sending agencies",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "Organizations authorized to recruit, train, support, and send missionaries. DOXA works with but does not replace sending agencies."
+            ],
+            [
+              "Example",
+              "\"Every World Assemblies of God Fellowship affiliated missions department (129 different sending agencies as of 2026) is automatically a DOXA partner.\" (About page)"
+            ],
+            [
+              "Why it matters",
+              "A technical term in mission structures. Translators should use the established local equivalent if one exists."
+            ]
+          ]
+        },
+        {
+          "term": "Our gift to Jesus",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "The framing metaphor for the mission — engaging every people group is the church's collective gift of worship to Jesus."
+            ],
+            [
+              "Example",
+              "\"Our gift to Jesus: Engage every people by 2033\" (homepage)"
+            ],
+            [
+              "Why it matters",
+              "A motivational/worshipful frame. Should feel sacrificial and offering-like, not transactional."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Vision and goals language",
+      "intro": "",
+      "entries": [
+        {
+          "term": "Priority — \"Engage every Unengaged People Group by 2033\"",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "The time-bound, measurable strategic focus of Doxa.Life."
+            ],
+            [
+              "Example",
+              "\"To engage every Unengaged People Group by 2033\" (Vision page)"
+            ],
+            [
+              "Why it matters",
+              "\"Priority\" signals this is the single most important strategic objective, not one among many. The 2033 deadline must be kept exact."
+            ]
+          ]
+        },
+        {
+          "term": "Vision 2033",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "The overarching vision heading in the UI, referring to the 2033 goals listed on the Vision page."
+            ],
+            [
+              "Example",
+              "\"Vision 2033\" (homepage heading)"
+            ],
+            [
+              "Why it matters",
+              "A proper-noun label for the initiative's goal set. Keep the year intact."
+            ]
+          ]
+        },
+        {
+          "term": "Every tribe, tongue, people, and nation",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "The biblical vision from Revelation 7:9 — the picture of ultimate worship that motivates the mission."
+            ],
+            [
+              "Example",
+              "\"Jesus is worthy of glory from every tribe, tongue, people, and nation.\" (About page — Sending Summit Declaration)"
+            ],
+            [
+              "Why it matters",
+              "Align with the established Bible translation in the target language. All four nouns are theologically intentional — tribe (clan/family), tongue (language), people (ethnic group), nation (political unit) — each capturing a different dimension of human diversity."
+            ]
+          ]
+        },
+        {
+          "term": "A multitude of every people around the throne",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "The eschatological worship scene of Revelation 7:9; the ultimate goal motivating all engagement."
+            ],
+            [
+              "Example",
+              "\"One day there will be a multitude of every people around the throne worshipping God.\" (About page)"
+            ],
+            [
+              "Why it matters",
+              "Align with local Bible translation phrasing. Should feel worshipful and ultimate, not merely organizational."
+            ]
+          ]
+        },
+        {
+          "term": "DOXA partnership missionaries",
+          "seed": false,
+          "fields": [
+            [
+              "Meaning",
+              "Missionaries who serve within the Doxa.Life partnership network, coordinated through sending agencies."
+            ],
+            [
+              "Example",
+              "\"Mobilization of 20,000+ DOXA partnership missionaries\" (homepage goal)"
+            ],
+            [
+              "Why it matters",
+              "\"Partnership\" signals these are not DOXA employees but workers from member agencies collaborating through the network."
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

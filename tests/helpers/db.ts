@@ -99,6 +99,10 @@ export async function cleanupTestData(sql: ReturnType<typeof postgres>) {
   // Clean context portfolios (sections, versions, comments, and chats cascade)
   await sql`DELETE FROM context_portfolios WHERE slug LIKE 'test-context-%'`
 
+  // Clean glossary test data (translations, passes, and terms cascade)
+  await sql`DELETE FROM glossary_languages WHERE code LIKE 'zz%'`
+  await sql`DELETE FROM glossary_sections WHERE title LIKE 'Test Glossary %'`
+
   // Clean users last
   await sql`DELETE FROM users WHERE email LIKE 'test-%@example.com'`
 }

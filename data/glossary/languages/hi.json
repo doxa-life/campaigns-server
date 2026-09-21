@@ -1,0 +1,238 @@
+{
+  "schema_version": 1,
+  "locale_code": "hi",
+  "language_name_en": "Hindi",
+  "language_name_local": "हिन्दी",
+  "output_name": "Hindi",
+  "text_direction": "ltr",
+  "version_display": "In-use terminology · 2026-09-18",
+  "instructions": {
+    "local_heading": "हिंदी में निर्देश",
+    "local_purpose_label": "उद्देश्य",
+    "local_purpose": "अंग्रेज़ी शब्दावली की प्रत्येक प्रविष्टि के लिए सुझाए गए हिंदी शब्द की पुष्टि करें या उसे बदलें। ये सुझाव आरंभिक विकल्प हैं, स्वीकृत अनुवाद नहीं।",
+    "local_items": [
+      "निर्णय लेने से पहले अंग्रेज़ी शब्द, परिभाषा या अर्थ, उदाहरण और ‘यह क्यों महत्त्वपूर्ण है’ टिप्पणी पढ़ें।",
+      "≤ 2%, ≤ 1%, ≤ 0.1%, प्रतिदिन 100 से अधिक मध्यस्थों के लक्ष्य और CPM मापों सहित सभी संख्यात्मक सीमाएँ ठीक रखें।",
+      "मानक हिंदी और देवनागरी का प्रयोग करें। Doxa.Life और DOXA न बदलें। UPG, UUPG और CPM को हिंदी पद के साथ रखें, जब तक कि आप कोई स्थिर हिंदी संक्षेप सुझाकर टिप्पणियों में न समझाएँ।",
+      "बाइबिलीय वाक्यांशों के लिए उस बाइबिल अनुवाद की भाषा लें जिसे आपकी स्थानीय कलीसिया या क्षेत्र की असेंबलीज़ ऑफ गॉड/पेंटेकोस्टल संगति सबसे अधिक प्रयोग करती है, केवल अपनी व्यक्तिगत पसंद नहीं। उसका सही नाम, संक्षेप, संस्करण और वर्ष लिखें।",
+      "संबंधित शब्दों की एकरूपता जाँचें, विशेषकर संलग्नता / संपर्कित / अनसंपर्कित / कम-संपर्कित / फलदायी सहभागिता के परिवार की।",
+      "यदि सुझाया शब्द सटीक, हिंदी सुसमाचारी और मिशन-विज्ञान के प्रयोग में स्वाभाविक तथा पाठ और इंटरफ़ेस दोनों के लिए उपयुक्त है, तो पुष्टि करें चुनें।",
+      "यदि आप दूसरा शब्द चाहते हैं, तो संशोधित चुनें और अंतिम हिंदी शब्द वाले खाने में पूरा शब्द लिखें, केवल परिवर्तन का वर्णन न करें। यदि किसी शब्द पर पहले चर्चा करनी हो, तो उसे चर्चा के लिए चिह्नित करें।"
+    ]
+  },
+  "section_titles": {
+    "People-group terminology": "जनसमूह की शब्दावली",
+    "Engagement and mission language": "संलग्नता और मिशन की भाषा",
+    "Prayer and intercession": "प्रार्थना और मध्यस्थता",
+    "Adoption and mobilization": "अपनाना और मोबिलाइज़ेशन",
+    "Vision and goals language": "दर्शन और लक्ष्यों की भाषा"
+  },
+  "field_labels": {
+    "Context": "अंग्रेज़ी में संदर्भ",
+    "Meaning": "अंग्रेज़ी में अर्थ",
+    "Site definition": "वेबसाइट की परिभाषा (अंग्रेज़ी)",
+    "Site definition (Vision page — \"What is Engagement?\")": "विज़न पृष्ठ की परिभाषा (अंग्रेज़ी)",
+    "Example": "अंग्रेज़ी उदाहरण",
+    "Why it matters": "यह क्यों महत्त्वपूर्ण है"
+  },
+  "labels": {
+    "seed_term_local": "आधार शब्द",
+    "suggested_term_local": "सुझाया गया हिंदी शब्द",
+    "section_note_local": "खंड टिप्पणी",
+    "decision_local": "निर्णय",
+    "approve_local": "पुष्टि करें",
+    "confirm_local": "पुष्टि करें",
+    "edit_local": "संशोधित करें",
+    "flag_local": "चर्चा के लिए चिह्नित करें",
+    "final_term_local": "अंतिम हिंदी शब्द",
+    "acronym_en": "Acronym",
+    "acronym_local": "संक्षिप्त रूप",
+    "translator_notes_local": "अनुवादक की टिप्पणियाँ",
+    "submit_local": "मैंने यह समीक्षा पूरी कर ली है",
+    "submitted_local": "समीक्षा भेज दी गई"
+  },
+  "reviewer": {
+    "heading_local": "समीक्षक का विवरण",
+    "bible_label_local": "बाइबिल अनुवाद",
+    "bible_note_local": "वह अनुवाद बताएँ जिसे आपकी स्थानीय कलीसिया नियमित रूप से प्रयोग करती है, भले आपकी व्यक्तिगत पसंद अलग हो।",
+    "rows": [
+      {
+        "tag": "reviewer_name",
+        "local": "आपका नाम"
+      },
+      {
+        "tag": "reviewer_email",
+        "local": "आपका ईमेल"
+      },
+      {
+        "tag": "bible_translation_primary",
+        "local": "सबसे अधिक प्रयोग होने वाला बाइबिल अनुवाद"
+      },
+      {
+        "tag": "bible_translation_edition_year",
+        "local": "सही संक्षेप, संस्करण और वर्ष"
+      }
+    ]
+  },
+  "suggested_terms": {
+    "People group": {
+      "value": "जनसमूह",
+      "note": "The human Hindi translation of the DOXA Access and Alignment playbook heads its definitions section \"जनसमूह (People Groups)\" and uses जनसमूह throughout; the printed Hindi adoption certificate says \"इस जनसमूह को\"; doxa.life/hi already says जनसमूह in 33 places. It replaces जातीय समूह, which campaigns-sever says in 77 places — जाति carries the caste sense in India, so जातीय समूह reads as a caste grouping. जनजाति, which the site reviewer uses loosely, is rejected for the tribal connotation the English entry warns against."
+    },
+    "Unreached people group": {
+      "value": "अप्राप्य जनसमूह",
+      "note": "The playbook's definitions section writes \"एक अप्राप्य जनसमूह (Unreached People Group - UPG) वह होता है जिसमें लगभग 100 में से 2 या उससे कम शिष्य (≤2%) होते हैं\", and the printed adoption certificate calls the adopted group \"एक अप्राप्य लोग\". Flagged because the doxa.life/hi reviewer wrote अनपहुचे and अपहुँचे throughout their corrections and the playbook's own infographics do the same, while अप्राप्य means unobtainable rather than not-yet-reached. The Latin acronym is kept per the review-form instruction. campaigns-sever's अगम्य is machine output and is not carried forward.",
+      "status": "flagged"
+    },
+    "Unengaged": {
+      "value": "अनसंपर्कित",
+      "note": "The playbook's definitions section — \"3. अनसंपर्कित (Unengaged)\" — and every headline count (\"2,085 अनसंपर्कित जनसमूह\", \"202 करोड़ लोग अनसंपर्कित हैं\"). No other Hindi source is usable: doxa.life/hi renders unengaged six different ways, among them अविवाहित (unmarried) and अनियोजित (unplanned), and campaigns-sever says अप्रवेशित. The site reviewer's अनपहुचे does not separate unengaged from unreached, a distinction the platform's data depends on."
+    },
+    "Unengaged unreached people group": {
+      "value": "अनसंपर्कित-अप्राप्य जनसमूह",
+      "note": "The playbook's chart wording, \"अनसंपर्कित-अप्राप्य जनसमूह (UUPGs)\", with unengaged first as in English. The Latin acronym stays; no Hindi acronym appears in any source."
+    },
+    "Under-engaged": {
+      "value": "कम-संपर्कित",
+      "note": "The playbook's definitions section, \"1. कम-संपर्कित (Under-Engaged)\", and its Vision page, \"फ्रंटियर और कम-संपर्कित जनसमूहों के बीच फलदायी सहभागिता\". Its concentric-circle chart says अल्प-संपर्कित; the definitions form is taken. doxa.life/hi says कम-संलग्न, which the site reviewer rewrote away."
+    },
+    "Frontier people": {
+      "value": "फ्रंटियर जनसमूह",
+      "note": "The playbook transliterates throughout — the definitions heading \"2. फ्रंटियर (Frontier)\", the charts (\"4,788 फ्रंटियर जनसमूह\") and the Vision page. सीमांत, used once in the playbook and by both doxa.life/hi and campaigns-sever, reads as borderland or marginal and loses the missiological sense."
+    },
+    "Ethnolinguistic group": {
+      "value": "जातीय-भाषाई समूह",
+      "note": "The playbook glosses it in place: \"एक जनसमूह एक जातीय-भाषाई (ethnolinguistic) समूह होता है\". This is the one entry where जातीय is right, because it is about ethnicity and language together rather than about caste."
+    },
+    "Engagement / engaged": {
+      "value": "संलग्नता / संपर्कित",
+      "note": "Hindi spreads this family over three roots and no source settles it. The playbook glosses the noun twice with the English beside it — \"संलग्नता (engagement)\" and \"प्रभावी संलग्नता (effective engagement)\" — and titles its engagement chapter \"संलग्नता के मापदंड\"; the people-group categories are built on संपर्कित (अनसंपर्कित, कम-संपर्कित); the verb in the 2033 goal is सहभागिता करना (\"प्रत्येक जनसमूह के साथ सक्रिय रूप से सहभागिता की जा रही होगी\"). Flagged so a reviewer can collapse the three or confirm the split. Whatever is chosen, it must not be सगाई, which doxa.life/hi used and which means betrothal; the site reviewer replaced it with कार्य in one place and प्रतिबद्धता in another.",
+      "status": "flagged"
+    },
+    "Fruitful engagement": {
+      "value": "फलदायी सहभागिता",
+      "note": "The playbook's Vision page, \"फ्रंटियर और कम-संपर्कित जनसमूहों के बीच फलदायी सहभागिता\", and the doxa.life/hi reviewer independently rewrote the same line to सार्थक सहभागिता — two human sources choosing सहभागिता for this phrase even though the bare noun is संलग्नता. See the engagement entry for the split."
+    },
+    "Gospel access": {
+      "value": "सुसमाचार तक पहुँच",
+      "note": "Glossed by the playbook — \"सुसमाचार तक पहुँच (Gospel Access)\" — used throughout it, and already on doxa.life/hi. Settled in every Hindi source."
+    },
+    "Gospel engagement": {
+      "value": "सुसमाचार के साथ सहभागिता",
+      "note": "No Hindi source carries this phrase. Built on सहभागिता so it names the work, keeping it distinct from सुसमाचार तक पहुँच, which names the availability. The playbook's समन्वय renders \"alignment\" — its cover reads \"पहुँच + समन्वय\" — and must not be reused here."
+    },
+    "Church-planting movement": {
+      "value": "कलीसिया स्थापना आंदोलन",
+      "note": "The playbook's definitions section spells it out: \"कलीसिया स्थापना आंदोलन (Church Planting Movement) स्वदेशी कलीसियाओं के उस गुणन को कहते हैं…\". It also uses the transliteration चर्च प्लांटिंग मूवमेंट in running text. The doxa.life/hi reviewer asked for अभियान in place of आंदोलन in one Vision line, because आंदोलन carries the political-agitation sense in modern Hindi; the playbook's glossed term is kept."
+    },
+    "Indigenous church": {
+      "value": "स्वदेशी कलीसिया",
+      "note": "The playbook's wording — \"स्वदेशी (स्थानीय) कलीसियाओं की स्थापना\", \"स्वदेशी कलीसिया पाँच 'स्व-क्षमताओं' में परिपक्व होती है\". स्थानीय कलीसिया alone means merely local; देशी or आदिवासी would point at India's indigenous peoples."
+    },
+    "The five \"selfs\"": {
+      "value": "पाँच \"स्व-क्षमताएँ\"",
+      "note": "The playbook's phrase, which leaves the five English words untranslated beside it. In Hindi prose they are स्वयं फैलने वाली, स्वयं शासित, स्वयं का भरण-पोषण करने वाली, अपनी धर्मविद्या गढ़ने वाली और स्वयं मिशनरी भेजने वाली. Coined nouns on the स्व- prefix are not Hindi; use the verbal forms."
+    },
+    "Residential engagement / workers in residence": {
+      "value": "निवासी मिशनरी / निवास-आधारित संलग्नता",
+      "note": "Both halves are the playbook's: \"निवासी मिशनरी\" in its engagement diagram and \"प्रेरितिक (अग्रणी) निवास-आधारित प्रयास\" in the definitions. निवासी is the load-bearing word — the worker lives among the people rather than visiting."
+    },
+    "Cross-cultural workers": {
+      "value": "अंतर-सांस्कृतिक कार्यकर्ता",
+      "note": "The playbook defines \"अंतर-सांस्कृतिक मिशनरी\" at length and uses क्रॉस-सांस्कृतिक मिशनरी once. कार्यकर्ता is kept for the English entry's \"workers\", as doxa.life/hi already has it, which leaves मिशनरी free for the DOXA partnership missionaries entry; the adoption certificate uses the same noun in \"राज्य के कार्यकर्ता\"."
+    },
+    "Apostolic effort": {
+      "value": "प्रेरितिक अग्रणी प्रयास",
+      "note": "The playbook's definitions wording, glossed in place as \"प्रेरितिक (apostolic / pioneering) प्रयास\". प्रेरितिक here means sent or pioneering, not a church office."
+    },
+    "Pioneer work": {
+      "value": "अग्रणी कार्य",
+      "note": "The playbook's frontier definition — \"अग्रणी कार्य सामान्यत: गैर-विश्वासियों से शुरू होता है\" — pairing with प्रेरितिक (अग्रणी) प्रयास."
+    },
+    "Heart language": {
+      "value": "हृदय की भाषा",
+      "note": "The playbook renders it स्थानीय भाषा (\"स्थानीय भाषा और संस्कृति में कार्य करने की प्रतिबद्धता\"), which is merely the local language. हृदय की भाषा keeps the distinction the English entry rests on and is what the Hindi prayer-prompt corpus uses. मातृभाषा, more frequent in that corpus, is the mother tongue, which is not always the heart language."
+    },
+    "Movement to Jesus": {
+      "value": "यीशु की ओर आंदोलन",
+      "note": "The playbook's frontier definition — \"यीशु की ओर किसी भी स्थायी आंदोलन की पुष्टि नहीं होती\". Same आंदोलन caution as the church-planting movement entry."
+    },
+    "Nonresident partners": {
+      "value": "गैर-निवासी साझेदार",
+      "note": "The playbook's wording in its broader-engagement definition, pairing with निवासी मिशनरी."
+    },
+    "Broader engagement": {
+      "value": "व्यापक सहभागिता",
+      "note": "Glossed by the playbook: \"व्यापक सहभागिता (Broader Engagement) में महत्वपूर्ण सहायक घटक शामिल होते हैं\". The English entry's \"(components)\" is the list it contains, not part of the term."
+    },
+    "Diaspora": {
+      "value": "प्रवासी",
+      "note": "Glossed by the playbook — \"प्रवासी (diaspora) लोगों के बीच कार्य\" — which also says प्रवासी जनसमूह for diaspora people groups. डायस्पोरा appears only in machine output."
+    },
+    "Daily prayer": {
+      "value": "दैनिक प्रार्थना",
+      "note": "दैनिक for the label, प्रतिदिन in sentences, as the playbook writes it: \"प्रत्येक अनसंपर्कित जनसमूह के लिए प्रतिदिन 24 घंटे की प्रार्थना स्थापित हो\". Daily is deliberate and carries the 24-hour arithmetic of 144 intercessors at ten minutes each, so it must not soften to नियमित."
+    },
+    "Intercessor / intercessors": {
+      "value": "मध्यस्थ",
+      "note": "How the playbook counts them — \"1,000 मध्यस्थ प्रार्थना करने वाले\", \"144 मध्यस्थ यदि प्रतिदिन 10 मिनट प्रार्थना करें\" — and what campaigns-sever and doxa.life/hi already say. Where the bare noun could read as an arbitrator, the prose form is प्रार्थना में मध्यस्थ or मध्यस्थता करने वाले."
+    },
+    "Intercessory prayer": {
+      "value": "मध्यस्थ प्रार्थना",
+      "note": "The playbook lists मध्यस्थ प्रार्थना among the broader-engagement components, and the printed adoption certificate's Pray commitment reads \"24 घंटे की मध्यस्थता को संगठित करें\"."
+    },
+    "Daily prayer guide / daily prayer points": {
+      "value": "दैनिक प्रार्थना मार्गदर्शिका / प्रार्थना विषय",
+      "note": "प्रार्थना विषय is what Indian churches call prayer points and what campaigns-sever shows most often. प्रार्थना बिंदु is the calque, and प्रार्थना संकेत, the prayer-prompt corpus's word, means a prayer signal or hint."
+    },
+    "Prayer prepares the way": {
+      "value": "प्रार्थना मार्ग तैयार करती है",
+      "note": "No Hindi source carries the phrase, so the plain rendering stands. doxa.life/hi turned the related line \"Prayer opens the door for engagement\" into \"प्रार्थना संवाद का द्वार खोलती है\" — prayer opens the door to dialogue — which is the drift this entry exists to prevent."
+    },
+    "Lord of the harvest": {
+      "value": "खेत का स्वामी",
+      "note": "The wording of Matthew 9:38 in the Hindi Old Version (HIOV), the edition config/languages.ts configures for Hindi: \"इसलिये खेत के स्वामी से विनती करो कि वह अपने खेत काटने के लिए मजदूर भेज दे।\" The prayer-prompt corpus says फसल का प्रभु and doxa.life/hi says फसल के स्वामी; both are machine output. A reviewer who names a different Bible edition changes this entry."
+    },
+    "Adopt": {
+      "value": "अपनाना",
+      "note": "The printed Hindi adoption certificate says \"ने विश्वासपूर्वक अपनाया है\" and \"इस अपनाने के द्वारा\", and the doxa.life/hi reviewer replaced the site's गोद with अपनाएँ and asked that \"How adoption works\" become \"जनसमूह को कैसे अपनाएँ\". For the noun the same reviewer replaced दत्तक ग्रहण with गोद, so the commitment is गोद लेना; दत्तक ग्रहण is legal child adoption and is rejected wherever it appears, which on doxa.life/hi is 22 places."
+    },
+    "Pray, give, and send": {
+      "value": "प्रार्थना करें, दान दें और भेजें",
+      "note": "The three commitments word for word as the printed Hindi adoption certificate prints them."
+    },
+    "Mobilize / mobilization": {
+      "value": "मोबिलाइज़ेशन",
+      "note": "The playbook's body uses the transliteration (\"मोबिलाइज़ेशन से आगे बढ़कर\", \"मोबिलाइज़ेशन प्रयास\") while its own table of contents says लामबंदी; flagged so a reviewer settles the two. प्रेरित करना, which the earlier Hindi draft and doxa.life/hi use, is too soft — mobilization implies movement towards a goal, not merely informing or inviting.",
+      "status": "flagged"
+    },
+    "Sending agency / sending agencies": {
+      "value": "भेजने वाली एजेंसी / भेजने वाली एजेंसियाँ",
+      "note": "The playbook's wording throughout its partnership declaration: \"यह साझेदारी कोई भेजने वाली एजेंसी नहीं होगी\", \"भेजने वाली एजेंसियाँ अपने मिशनरियों पर अंतिम अधिकार बनाए रखेंगी\"."
+    },
+    "Our gift to Jesus": {
+      "value": "यीशु को हमारा उपहार",
+      "note": "The playbook's opening letter — \"DOXA साझेदारी का गठन इस उद्देश्य से किया गया है कि हम मिलकर यीशु को एक उपहार दे सकें\". An offering register, not a commercial one."
+    },
+    "Priority — \"Engage every Unengaged People Group by 2033\"": {
+      "value": "प्राथमिकता — \"2033 तक हर अनसंपर्कित जनसमूह के साथ सहभागिता स्थापित करना\"",
+      "note": "Built from the playbook's own goal sentence: \"2033 तक संसार में कोई भी अनसंपर्कित जनसमूह न रहे, क्योंकि प्रत्येक जनसमूह के साथ सक्रिय रूप से सहभागिता की जा रही होगी\". The year is written 2033 with no separator; counts take Indian grouping instead (2,085 and 20,000)."
+    },
+    "Vision 2033": {
+      "value": "दर्शन 2033",
+      "note": "The playbook's Vision page is headed दर्शन, and the doxa.life/hi reviewer asked for exactly this against the site's दृष्टि 2033. Two human sources agree."
+    },
+    "Every tribe, tongue, people, and nation": {
+      "value": "हर कुल, हर भाषा, हर लोग और हर जाति",
+      "note": "The order and the words of Revelation 5:9 in the Hindi Old Version — \"हर एक कुल और भाषा और लोग और जाति में से\" — which map onto the English term one for one. Revelation 7:9 in the same edition reverses them (\"हर एक जाति और कुल और लोग और भाषा में से\") and the printed certificate prints its own rendering (\"हर जाति, गोत्र, लोगों और भाषाओं में से\"); a quoted verse keeps the OV wording, while this entry is the site's summary phrase. जनजाति, which the playbook's closing line uses for tribe, is avoided for its Scheduled-Tribe reading."
+    },
+    "A multitude of every people around the throne": {
+      "value": "सिंहासन के चारों ओर हर जनसमूह की बड़ी भीड़",
+      "note": "The playbook's closing vision — \"एक दिन हर एक जनसमूह की भीड़ सिंहासन के चारों ओर एकत्र होकर परमेश्वर की आराधना करेगी\". Worship and finality, not an organisational statement."
+    },
+    "DOXA partnership missionaries": {
+      "value": "DOXA साझेदारी मिशनरी",
+      "note": "The playbook's Vision page prints \"20,000+ DOXA साझेदारी मिशनरी\". साझेदारी is load-bearing — they are sent by affiliated agencies rather than employed by DOXA — even though the doxa.life/hi reviewer asked for the word to come out of one crowded sentence."
+    }
+  }
+}

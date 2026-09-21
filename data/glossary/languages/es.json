@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "locale_code": "es",
+  "language_name_en": "Spanish",
+  "language_name_local": "español",
+  "output_name": "Spanish",
+  "text_direction": "ltr",
+  "version_display": "Reviewed glossary (translator, glossary document final) · 2026-09-17",
+  "running_header": "DOXA.LIFE  ·  SPANISH TERMINOLOGY REVIEW",
+  "cover": {
+    "kicker": "Translator review form · Formulario de revisión para el traductor",
+    "title": "Doxa.Life Spanish Glossary Review",
+    "subtitle": "English context · Términos sugeridos en español · Aprobación y cambios",
+    "term_count_template": "{count} terms for review · {count} términos para revisar"
+  },
+  "instructions": {
+    "english_heading": "Instructions in English",
+    "english_purpose_label": "Purpose",
+    "english_purpose": "Please confirm or edit the suggested Spanish term for each English glossary entry. The Spanish suggestions are starting points, not approved translations.",
+    "english_items": [
+      "Read the English term, definition or meaning, example, and ‘Why it matters’ note before deciding.",
+      "Keep every numeric threshold and distinction exact, including ≤ 2%, ≤ 1%, ≤ 0.1%, the 100+ daily-intercessor goal, and the CPM measures.",
+      "Use standard Spanish spelling and script. Keep Doxa.Life and DOXA unchanged. Retain UPG, UUPG, and CPM alongside the Spanish phrase unless you recommend a stable Spanish acronym and explain it in Notes.",
+      "For biblical phrases, use the wording of the Bible translation most commonly used by your local church or Assemblies of God/Pentecostal community—not merely your personal preference. Record its exact title, abbreviation, edition, and year below. If local communities commonly use more than one translation, list the primary one first and note the others.",
+      "Check that related terms form a coherent family, especially engage / engaged / engagement / unengaged / under-engaged / fruitful engagement.",
+      "Choose Approve if the suggested Spanish term is accurate, natural in Spanish evangelical and missional usage, and suitable for both prose and interface labels.",
+      "Choose Edit if you prefer another term. Write the complete preferred term in the Final Spanish term field; do not merely describe the change."
+    ],
+    "local_heading": "Instrucciones en español",
+    "local_purpose_label": "Propósito",
+    "local_purpose": "Confirme o modifique el término sugerido en español para cada entrada del glosario inglés. Las sugerencias son puntos de partida, no traducciones aprobadas.",
+    "local_items": [
+      "Lea el término inglés, la definición o significado, el ejemplo y la nota «Por qué importa» antes de decidir.",
+      "Mantenga exactos todos los umbrales y distinciones numéricas, incluidos ≤ 2 %, ≤ 1 %, ≤ 0,1 %, la meta de más de 100 intercesores diarios y las medidas de CPM.",
+      "Use la ortografía y los signos diacríticos correctos del español. Mantenga Doxa.Life y DOXA sin cambios. Conserve UPG, UUPG y CPM junto a la expresión española salvo que recomiende una sigla española estable y la explique en Notas.",
+      "Para las expresiones bíblicas, use la redacción de la traducción de la Biblia más utilizada por su iglesia local o comunidad de las Asambleas de Dios/pentecostal. Anote el título exacto, la abreviatura, la edición y el año.",
+      "Compruebe que los términos relacionados formen una familia coherente, especialmente engage / engaged / engagement / unengaged / under-engaged / fruitful engagement.",
+      "Marque Aprobar si el término sugerido es exacto, natural en el uso evangélico y misionológico y sirve para texto y etiquetas de interfaz.",
+      "Marque Modificar si prefiere otro término. Escriba el término completo en el campo Término final en español; no describa solamente el cambio."
+    ]
+  },
+  "section_titles": {
+    "People-group terminology": "Terminología de grupos étnicos",
+    "Engagement and mission language": "Lenguaje de compromiso y misión",
+    "Prayer and intercession": "Oración e intercesión",
+    "Adoption and mobilization": "Adopción y movilización",
+    "Vision and goals language": "Lenguaje de visión y metas"
+  },
+  "field_labels": {
+    "Context": "Contexto en inglés",
+    "Meaning": "Significado en inglés",
+    "Site definition": "Definición del sitio (en inglés)",
+    "Site definition (Vision page — \"What is Engagement?\")": "Definición del sitio, página Visión (en inglés)",
+    "Example": "Ejemplo en inglés",
+    "Why it matters": "Por qué importa"
+  },
+  "labels": {
+    "seed_term": "TÉRMINO BASE",
+    "suggested_term_en": "Suggested Spanish term",
+    "suggested_term_local": "Término sugerido en español",
+    "section_note_en": "Section note",
+    "section_note_local": "Nota de sección",
+    "decision_en": "Decision",
+    "decision_local": "Decisión",
+    "approve_en": "Approve",
+    "approve_local": "Aprobar",
+    "edit_en": "Edit",
+    "edit_local": "Modificar",
+    "final_term_en": "Final Spanish term",
+    "final_term_local": "Término final en español",
+    "acronym_en": "Acronym",
+    "acronym_local": "Sigla",
+    "translator_notes_en": "Translator notes",
+    "translator_notes_local": "Notas del traductor"
+  },
+  "reviewer": {
+    "heading_en": "Reviewer details",
+    "heading_local": "Datos del revisor",
+    "bible_label_en": "Bible translation",
+    "bible_label_local": "Traducción de la Biblia",
+    "bible_note_en": "Please report the translation most regularly used by your local church community, even if your personal preference is different.",
+    "bible_note_local": "Indique la traducción que su comunidad eclesial local utiliza habitualmente, aunque su preferencia personal sea distinta.",
+    "rows": [
+      {
+        "tag": "reviewer_name",
+        "en": "Translator",
+        "local": "Traductor"
+      },
+      {
+        "tag": "review_date",
+        "en": "Date",
+        "local": "Fecha"
+      },
+      {
+        "tag": "reviewer_church_region",
+        "en": "Church, community, or region",
+        "local": "Iglesia, comunidad o región"
+      },
+      {
+        "tag": "bible_translation_primary",
+        "en": "Bible translation used most regularly",
+        "local": "Traducción bíblica de uso más habitual"
+      },
+      {
+        "tag": "bible_translation_edition_year",
+        "en": "Exact abbreviation, edition, and year",
+        "local": "Abreviatura, edición y año exactos"
+      }
+    ],
+    "version_label_en": "Glossary version",
+    "version_label_local": "Versión del glosario"
+  },
+  "signoff": {
+    "heading_en": "Final sign-off",
+    "heading_local": "Aprobación final",
+    "confirmation_label_en": "Confirmation",
+    "confirmation_label_local": "Confirmación",
+    "confirmation_en": "I have reviewed all {count} entries and entered a final Spanish term for every edited item.",
+    "confirmation_local": "He revisado las {count} entradas y he escrito un término final en español para cada elemento modificado.",
+    "rows": [
+      {
+        "tag": "signoff_approved_count",
+        "en": "Approved without edits",
+        "local": "Aprobados sin cambios"
+      },
+      {
+        "tag": "signoff_edited_count",
+        "en": "Edited",
+        "local": "Modificados"
+      },
+      {
+        "tag": "signoff_questions",
+        "en": "Questions remaining",
+        "local": "Preguntas pendientes"
+      },
+      {
+        "tag": "signoff_name_date",
+        "en": "Name and date",
+        "local": "Nombre y fecha"
+      }
+    ]
+  },
+  "suggested_terms": {
+    "People group": {
+      "value": "grupo étnico",
+      "note": "Asked whether \"grupo de personas\" should stay, the reviewer answered \"grupo étnico\". It carries the ethnolinguistic sense more tightly and is the base the Spanish acronyms build on: \"if we will use the term 'grupo étnico' instead of 'grupo de personas', we can replace [PNANC] for 'GENANC'\". The marketing site's Definitions draft still reads \"pueblo étnico\"; the reviewed glossary supersedes it."
+    },
+    "Unreached people group": {
+      "value": "grupo étnico no alcanzado",
+      "note": "The reviewer's policy is a Spanish acronym in place of the English one, but the reviewed glossary gives none for UPG, so none is set. The marketing Definitions draft abbreviated it PNA (pueblo étnico no alcanzado), which predates the switch to grupo étnico."
+    },
+    "Unengaged": {
+      "value": "grupo étnico no comprometido",
+      "note": "Asked to review \"no comprometido\" because it can sound as if the group itself lacks commitment, the reviewer kept it: \"'comprometido' is the right word to engage someone with responsibility and commitment. 'Involucramiento' means to involve someone in a project or an action. For that reason, 'comprometido' is a correct term.\" The marketing Definitions draft's \"sin compromiso\" and \"grupo desvinculado\" are superseded. Lowercase in running text: \"In Spanish, 'Unengaged or Unreached' go as lowercase letters.\""
+    },
+    "Unengaged unreached people group": {
+      "value": "grupo étnico no alcanzado no comprometido",
+      "acronym": "GENANC",
+      "note": "A Spanish acronym replaces UUPG everywhere: \"I have used a Spanish abbreviation instead of the English one … Please add this where all the UUPG are in the English version.\" The reviewer first worked with PNANC (pueblo no alcanzado no comprometido) on the marketing site, then, once grupo étnico was chosen, offered \"'GENANC' (grupo étnico no alcanzado no comprometido) or 'GNANC' (grupo no alcanzado no comprometido)\"; the reviewed glossary uses GENANC throughout (\"Busca un GENANC\", \"2.085 GENANC\"). As a technical term or acronym expansion use the form without \"y\"; in descriptive prose \"grupo étnico no alcanzado y no comprometido\" reads more naturally."
+    },
+    "Under-engaged": {
+      "value": "grupo étnico poco comprometido",
+      "note": "Conveys that work has begun but is insufficient in scale, not that the people are indifferent, and keeps the comprometido family together. The marketing form's worked example (\"pocos comprometidos\" → \"pocos alcanzados\") is not followed; the reviewed glossary keeps \"poco comprometido\"."
+    },
+    "Frontier people": {
+      "value": "grupo fronterizo",
+      "note": "The reviewed glossary headword; its Definitions draft reads \"grupo étnico fronterizo\" in full. For the homepage statistic label the reviewer corrected \"gente de la frontera\" to \"gente fronteriza\"."
+    },
+    "Ethnolinguistic group": "grupo etnolingüístico",
+    "Engagement / engaged": {
+      "value": "compromiso / comprometido",
+      "note": "Asked to consider \"compromiso\" carefully because it can blur engagement as technical resident ministry with commitment as attitude, the reviewer confirmed it: \"'comprometido' is the right word to engage someone with responsibility and commitment. 'Involucramiento' means to involve someone in a project or an action.\" The verb is \"comprometer\" (\"Comprometer a todos los grupos étnicos no comprometidos para 2033\"); \"involucrar\" and \"participación\" from the earlier marketing drafts are superseded."
+    },
+    "Fruitful engagement": {
+      "value": "compromiso fructífero",
+      "note": "Word order corrected by the reviewer on the homepage: \"'Fructífero compromiso' replace with 'Compromiso fructífero'\"."
+    },
+    "Gospel access": "acceso al evangelio",
+    "Gospel engagement": "compromiso con el evangelio",
+    "Church-planting movement": {
+      "value": "movimiento de plantación de iglesias",
+      "acronym": "MPI",
+      "note": "Spanish acronym MPI, following the reviewer's policy of replacing English acronyms; the reviewed glossary uses MPI in both the CPM entry and the unengaged definition."
+    },
+    "Indigenous church": {
+      "value": "iglesia autóctona",
+      "note": "\"Autóctona\" means locally rooted and self-governing; the marketing Vision-page draft's \"iglesia indígena\" is superseded by the reviewed glossary."
+    },
+    "The five \"selfs\"": {
+      "value": "los cinco «auto» de una iglesia autóctona",
+      "note": "The five per the reviewed glossary: autogobierno, autosustento, autopropagación, autoteologización y automisionología. The marketing Definitions draft's variants (autosostenimiento, automisión) are superseded."
+    },
+    "Residential engagement / workers in residence": "compromiso residencial / trabajadores residentes",
+    "Cross-cultural workers": {
+      "value": "obreros transculturales",
+      "note": "\"Obreros\" is the reviewed glossary's word (\"Los obreros transculturales son residentes\"); the marketing Vision-page draft reads \"trabajadores transculturales\"."
+    },
+    "Apostolic effort": "esfuerzo apostólico pionero",
+    "Pioneer work": {
+      "value": "trabajo pionero",
+      "note": "The reviewed glossary headword; the marketing Definitions draft reads \"la obra pionera\"."
+    },
+    "Heart language": {
+      "value": "lengua del corazón",
+      "note": "The reviewed glossary headword; its quoted Definitions text reads \"idioma del corazón\"."
+    },
+    "Movement to Jesus": "movimiento hacia Jesús",
+    "Nonresident partners": {
+      "value": "asociados no residentes",
+      "note": "The marketing Definitions draft reads \"socios no residentes\"; the reviewed glossary settles on \"asociados\", matching \"misioneros asociados a DOXA\" and \"Asociarse\" for Partner."
+    },
+    "Broader engagement": {
+      "value": "componentes de un compromiso más amplio",
+      "note": "Asked whether \"componentes de mayor compromiso\" could be smoothed, the reviewer chose \"componentes de un compromiso más amplio\", which maps \"broader engagement\" directly. The marketing Definitions draft's \"una participación más amplia\" is superseded."
+    },
+    "Diaspora": "diáspora",
+    "Daily prayer": "oración diaria",
+    "Intercessor / intercessors": "intercesor / intercesores",
+    "Intercessory prayer": "oración intercesora",
+    "Daily prayer guide / daily prayer points": {
+      "value": "guía diaria de oración / motivos diarios de oración",
+      "note": "The reviewed glossary headword. Its own example still quotes the site's \"puntos de oración diarios\" and \"Tu guía de oración diaria\", and on the marketing form the reviewer rendered daily prayer points as \"pedidos de oración\" (\"Reciba diariamente pedidos de oración\")."
+    },
+    "Prayer prepares the way": "la oración prepara el camino",
+    "Lord of the harvest": {
+      "value": "Señor de la cosecha",
+      "note": "The reviewed glossary's wording, which matches the NVI (Mateo 9:38); Reina-Valera 1960 reads \"Señor de la mies\", and the glossary's own gloss keeps that word (\"mies = personas listas para responder\"). The reviewer did not record which Bible translation their community uses."
+    },
+    "Adopt": "adoptar",
+    "Pray, give, and send": {
+      "value": "orar, dar y enviar",
+      "note": "In the triad \"dar\" stays (\"orando, dando y preparando el camino\"); as a standalone footer label the reviewer replaced \"DAR\" with \"DONAR\", and the noun is \"donaciones\" (\"Asociarse mediante la oración, las donaciones y el envío\")."
+    },
+    "Mobilize / mobilization": "movilizar / movilización",
+    "Sending agency / sending agencies": {
+      "value": "agencia enviadora / agencias enviadoras",
+      "note": "World Assemblies of God Fellowship in the example is \"Fraternidad Mundial de las Asambleas de Dios (FMAD)\": \"WAGF, the Spanish translation is 'FMAD'\"."
+    },
+    "Our gift to Jesus": "nuestro regalo para Jesús",
+    "Priority — \"Engage every Unengaged People Group by 2033\"": {
+      "value": "Prioridad: «Comprometer a todos los grupos étnicos no comprometidos para el año 2033»",
+      "note": "\"Comprometer\" follows the reviewer's compromiso family; the marketing Vision-page draft's \"Involucrar\" is superseded. The reviewed glossary writes the year as 2033 throughout (Visión 2033, para el año 2033); the marketing form's \"EL 2.033\" for the homepage headline is not followed. The reviewer's dot-for-thousands rule applies to counts (2.085, 20.000, 3.900 millones)."
+    },
+    "Vision 2033": "Visión 2033",
+    "Every tribe, tongue, people, and nation": {
+      "value": "cada tribu, lengua, pueblo y nación",
+      "note": "The reviewed glossary keeps the English order of the four nouns and asks to align with the established Bible translation; the reviewer's Vision-page draft quotes Apocalipsis 7:9 as \"todas las naciones y familias y pueblos y lenguas\"."
+    },
+    "A multitude of every people around the throne": "una multitud de todos los pueblos alrededor del trono",
+    "DOXA partnership missionaries": "misioneros asociados a DOXA"
+  }
+}

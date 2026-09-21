@@ -1,9 +1,10 @@
-import { getReportApprovers } from '#server/utils/app/report-approvers'
+import { getReportApprovers, getReportNotifyEmails } from '#server/utils/app/report-approvers'
 import { userService } from '#server/database/users'
 
 /**
  * GET /api/admin/people-group-reports/approvers
- * The two designated users who review public /updates suggestions.
+ * The two designated users who review public /updates suggestions, plus the
+ * extra addresses notified when a suggestion is applied.
  */
 export default defineEventHandler(async (event) => {
   await requirePermission(event, 'people_groups.view')
@@ -16,5 +17,6 @@ export default defineEventHandler(async (event) => {
       approvers.push({ id: user.id, display_name: user.display_name, email: user.email })
     }
   }
-  return { approvers }
+  const notifyEmails = await getReportNotifyEmails()
+  return { approvers, notify_emails: notifyEmails }
 })

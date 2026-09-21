@@ -48,19 +48,22 @@ export function generatePeopleGroupDescription(peopleGroup: PeopleGroupData, loc
   // First sentence: name, country, population, engagement status
   const country = getFieldOptionLabel('country_code', peopleGroup.country_code || '', locale) || peopleGroup.country_code
   const population = peopleGroup.population ? Number(peopleGroup.population).toLocaleString(locale) : null
-  const engagementLabel = getFieldOptionLabel('engagement_status', peopleGroup.engagement_status || '', locale) || peopleGroup.engagement_status
 
   // GSEC 0-3 = Unreached (< 2% evangelical)
   const gsecValue = metadata.imb_gsec !== undefined ? Number(metadata.imb_gsec) : null
   const isUnreached = gsecValue !== null && gsecValue <= 3
 
-  // Combine engagement status with unreached status
-  let engagementStatus = engagementLabel
-  if (engagementStatus && isUnreached) {
-    const isEngaged = peopleGroup.engagement_status === 'engaged'
-    const unreachedKey = isEngaged ? 'butUnreached' : 'andUnreached'
-    const unreachedSuffix = getTranslatedLabel(`peopleGroups.descriptionTemplates.${unreachedKey}`, locale)
-    engagementStatus = `${engagementStatus} ${unreachedSuffix}`
+  // The status is a predicate inside the sentence, so each locale supplies the
+  // whole phrase, including its own conjunction and punctuation.
+  const status = peopleGroup.engagement_status
+  let engagementStatus: string | null = null
+  if (status === 'engaged' || status === 'unengaged') {
+    const key = status === 'engaged'
+      ? (isUnreached ? 'statusEngagedUnreached' : 'statusEngaged')
+      : (isUnreached ? 'statusUnengagedUnreached' : 'statusUnengaged')
+    engagementStatus = getTranslatedLabel(`peopleGroups.descriptionTemplates.${key}`, locale)
+  } else if (status) {
+    engagementStatus = getFieldOptionLabel('engagement_status', status, locale) || status
   }
 
   if (country && population && engagementStatus) {

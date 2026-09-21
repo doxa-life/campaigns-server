@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "locale_code": "ro",
+  "language_name_en": "Romanian",
+  "language_name_local": "română",
+  "output_name": "Romanian",
+  "text_direction": "ltr",
+  "version_display": "Reviewed glossary (translator form, 8 September 2026) · 2026-09-18",
+  "instructions": {
+    "local_heading": "Instrucțiuni în limba română",
+    "local_purpose_label": "Scop",
+    "local_purpose": "Vă rugăm să confirmați sau să modificați termenul românesc sugerat pentru fiecare intrare din glosarul englez. Sugestiile în limba română sunt puncte de pornire, nu traduceri aprobate.",
+    "local_items": [
+      "Citiți termenul în engleză, definiția sau sensul, exemplul și explicația „De ce contează” înainte de a lua o decizie.",
+      "Păstrați cu exactitate toate pragurile numerice și distincțiile, inclusiv ≤ 2%, ≤ 1%, ≤ 0,1%, obiectivul de cel puțin 100 de mijlocitori zilnici și criteriile CPM.",
+      "Folosiți diacriticele românești. Păstrați neschimbate denumirile Doxa.Life și DOXA. Păstrați UPG, UUPG și CPM alături de expresia românească, cu excepția cazului în care recomandați un acronim românesc stabil și îl explicați la Note.",
+      "Pentru expresiile biblice, folosiți formularea traducerii Bibliei utilizate cel mai frecvent de biserica dumneavoastră locală sau de comunitatea penticostală/Assemblies of God din zonă, nu doar versiunea pe care o preferați personal. Consemnați mai jos titlul exact, abrevierea, ediția și anul. Dacă în comunitățile locale se folosesc frecvent mai multe traduceri, treceți-o mai întâi pe cea principală și menționați-le pe celelalte.",
+      "Verificați ca termenii înrudiți să formeze o familie coerentă, în special engage / engaged / engagement / unengaged / under-engaged / fruitful engagement.",
+      "Bifați Confirm dacă termenul românesc sugerat este exact, firesc în limbajul evanghelic și misiologic românesc și potrivit atât în texte, cât și în etichetele interfeței.",
+      "Modificați termenul dacă preferați altă formulare: scrieți termenul complet, nu doar descrierea schimbării. Dacă doriți să discutați un termen înainte de a-l stabili, semnalați-l pentru discuție."
+    ]
+  },
+  "section_titles": {
+    "People-group terminology": "Terminologia grupurilor etnolingvistice",
+    "Engagement and mission language": "Terminologia angajării misionare și a misiunii",
+    "Prayer and intercession": "Rugăciune și mijlocire",
+    "Adoption and mobilization": "Adoptare misionară și mobilizare",
+    "Vision and goals language": "Terminologia viziunii și a obiectivelor"
+  },
+  "field_labels": {
+    "Context": "Context în engleză",
+    "Meaning": "Sens în engleză",
+    "Site definition": "Definiție pe site (în engleză)",
+    "Site definition (Vision page — \"What is Engagement?\")": "Definiție pe site, pagina Vision (în engleză)",
+    "Example": "Exemplu în engleză",
+    "Why it matters": "De ce contează"
+  },
+  "labels": {
+    "seed_term_local": "TERMEN DE BAZĂ",
+    "suggested_term_local": "Termen românesc sugerat",
+    "section_note_local": "Notă pentru secțiune",
+    "decision_local": "Decizie",
+    "approve_local": "Aprob",
+    "confirm_local": "Confirm",
+    "edit_local": "Modific",
+    "flag_local": "Semnalez pentru discuție",
+    "final_term_local": "Termen românesc final",
+    "acronym_en": "Acronym",
+    "acronym_local": "Acronim",
+    "translator_notes_local": "Notele traducătorului",
+    "submit_local": "Am terminat această verificare",
+    "submitted_local": "Verificare trimisă"
+  },
+  "reviewer": {
+    "heading_local": "Datele recenzentului",
+    "bible_label_local": "Traducerea Bibliei",
+    "bible_note_local": "Vă rugăm să indicați traducerea folosită în mod obișnuit de comunitatea bisericii locale, chiar dacă preferința dumneavoastră personală este diferită.",
+    "rows": [
+      {
+        "tag": "reviewer_name",
+        "local": "Numele dumneavoastră"
+      },
+      {
+        "tag": "reviewer_email",
+        "local": "Adresa dumneavoastră de e-mail"
+      },
+      {
+        "tag": "bible_translation_primary",
+        "local": "Traducerea Bibliei folosită cel mai frecvent"
+      },
+      {
+        "tag": "bible_translation_edition_year",
+        "local": "Abrevierea, ediția și anul exact"
+      }
+    ]
+  },
+  "suggested_terms": {
+    "People group": {
+      "value": "grup etnolingvistic",
+      "note": "Approved as suggested. It replaces grup etnic, which the campaigns server still says in 45 places across the Romanian locale; the form's own note rules out the political and tribal readings grup etnic invites. Entry 7, Ethnolinguistic group, is the same wording — Romanian uses the technical phrase as the everyday one."
+    },
+    "Unreached people group": {
+      "value": "grup etnolingvistic neatins cu Evanghelia",
+      "note": "Edited from grup etnolingvistic neatins: the reviewer added cu Evanghelia to say what the group is untouched by, since neatins alone reads as untouched in general. The Latin acronym was dropped here and at UUPG although instruction 3 asked for it to be kept; the UUPG note carries that question."
+    },
+    "Unengaged": {
+      "value": "grup etnolingvistic neangajat misionar",
+      "note": "Edited from fără angajare misionară activă to the adjective neangajat misionar, and the family follows it: neangajat misionar, puțin angajat misionar, angajare misionară. The campaigns server already says neangajat in 11 places, without the misionar that fixes the sense."
+    },
+    "Unengaged unreached people group": {
+      "value": "grup etnolingvistic neatins și neangajat misionar",
+      "note": "Edited, and the (UUPG) acronym that both the suggestion and instruction 3 carried was dropped, while (CPM) was approved at entry 12. Flagged because the acronym is a policy for the language rather than for one term: the research page uses \"Find a UUPG\" as a UI label, and the Romanian phrase alone is long for a button. The same question stands over UPG.",
+      "status": "flagged"
+    },
+    "Under-engaged": {
+      "value": "grup etnolingvistic puțin angajat misionar",
+      "note": "Edited from cu angajare misionară insuficientă. puțin angajat misionar keeps the family's adjective shape against neangajat misionar and says the work is small, not that the people are indifferent."
+    },
+    "Frontier people": {
+      "value": "grup etnolingvistic de frontieră",
+      "note": "Approved as suggested; de frontieră carries the missiological edge without the military reading the form warns against."
+    },
+    "Ethnolinguistic group": {
+      "value": "grup etnolingvistic",
+      "note": "Approved as suggested, and identical to entry 1."
+    },
+    "Engagement / engaged": {
+      "value": "angajare misionară / angajat misionar",
+      "note": "Approved as suggested, parenthesis included; the parenthesis names what the adjective attaches to rather than being part of the term. The bare angajare / angajat, which the campaigns server uses in 26 places, reads as employment — misionară is what makes it mission engagement."
+    },
+    "Fruitful engagement": {
+      "value": "angajare misionară roditoare",
+      "note": "Approved. roditoare is the biblical fruit-bearing word, which keeps the distinction between activity and results."
+    },
+    "Gospel access": {
+      "value": "acces la Evanghelie",
+      "note": "Approved as suggested; acces keeps availability and reachability rather than hearing or knowledge."
+    },
+    "Gospel engagement": {
+      "value": "lucrare activă de vestire și trăire a Evangheliei",
+      "note": "Approved as suggested. It is a description, not a label: Romanian has no short phrase that separates gospel engagement from gospel access, and the reviewer let the long form stand."
+    },
+    "Church-planting movement": {
+      "value": "mișcare de plantare de biserici",
+      "note": "Approved with the Latin acronym kept — the reviewer's only acronym retention, against the edits at UPG and UUPG."
+    },
+    "Indigenous church": {
+      "value": "biserică autohtonă",
+      "note": "Approved. autohtonă is locally rooted and self-governing, without the native-religion reading the form warns against."
+    },
+    "The five \"selfs\"": {
+      "value": "cele cinci caracteristici de autonomie ale unei biserici autohtone",
+      "note": "Approved as suggested. Romanian has no established five-selfs formula, so the descriptive phrase stands; each self- compound still needs a consistent rendering wherever the list is spelled out."
+    },
+    "Residential engagement / workers in residence": {
+      "value": "angajare misionară prin prezență activă / lucrători rezidenți",
+      "note": "Edited: rezidențială became prezență activă in the first half, while lucrători rezidenți stands in the second. The resident/nonresident distinction therefore survives on the worker but not on the engagement — entry 21 makes the same move, rendering nonresident as de la distanță."
+    },
+    "Cross-cultural workers": {
+      "value": "lucrători transculturali",
+      "note": "Edited from lucrători interculturali, which the campaigns server says in 3 places. inter- is between cultures, trans- is across them, and the form asks for a term that conveys cultural difference."
+    },
+    "Apostolic effort": {
+      "value": "lucrare apostolică de pionierat",
+      "note": "Edited from efort apostolic. lucrare is the Romanian church's word for ministry work and matches entry 18, lucrare de pionierat; efort reads as exertion."
+    },
+    "Pioneer work": {
+      "value": "lucrare de pionierat",
+      "note": "Approved as suggested, and the model for the entry 17 edit."
+    },
+    "Heart language": {
+      "value": "limba maternă",
+      "note": "Edited from limba inimii to the ordinary Romanian phrase for mother tongue. It is plainer and it does separate the first language from an official or trade language, but it loses the missions idiom the English keeps. Nothing downstream changes: limba inimii appears nowhere in the repository."
+    },
+    "Movement to Jesus": {
+      "value": "oameni care se întorc în mod colectiv la Isus",
+      "note": "Edited, dropping mișcare in favour of describing people who turn to Jesus together. Flagged: the English term is specifically a sustained, multiplying movement, and the frontier definition turns on \"no confirmed, sustained movement to Jesus\" — a phrase about people rather than about a movement cannot carry that negation.",
+      "status": "flagged"
+    },
+    "Nonresident partners": {
+      "value": "parteneri de la distanță",
+      "note": "Edited from parteneri nerezidenți, which is accurate but reads as a tax term in Romanian. de la distanță says the partner supports the work from elsewhere, and pairs with entry 22."
+    },
+    "Broader engagement": {
+      "value": "implicare de la distanță",
+      "note": "Edited to implicare de la distanță, which narrows the term to what nonresident partners do and drops components. The English names the contributing parts of mission — intercession, Bible translation, compassion and disaster ministry, media, mobilization, leadership training, diaspora work — and some of those are done on the field. Flagged: recorded as the reviewer wrote it, but the component list needs wording of its own wherever it is spelled out.",
+      "status": "flagged"
+    },
+    "Diaspora": "diaspora",
+    "Daily prayer": {
+      "value": "rugăciune zilnică",
+      "note": "Approved as suggested, with the parenthesis naming what the prayer is for rather than being part of the term; the term is rugăciune zilnică."
+    },
+    "Intercessor / intercessors": {
+      "value": "mijlocitor / mijlocitori în rugăciune",
+      "note": "Approved as suggested. mijlocitor alone — what the campaigns server says — is also Christ's title as mediator; în rugăciune keeps it to a praying person and is worth carrying wherever the bare noun would be ambiguous."
+    },
+    "Intercessory prayer": "rugăciune de mijlocire",
+    "Daily prayer guide / daily prayer points": {
+      "value": "ghid zilnic de rugăciune / motive zilnice de rugăciune",
+      "note": "Edited: subiecte became motive, the word Romanian churches use for the things a prayer meeting prays about. The campaigns server says subiecte de rugăciune in 5 places."
+    },
+    "Prayer prepares the way": "rugăciunea pregătește calea",
+    "Lord of the harvest": {
+      "value": "Domnul secerișului",
+      "note": "Approved with the final-term field left blank, so the suggestion stands. It is the wording of both Romanian editions in play — VDC \"Rugați dar pe Domnul secerișului\" and NTR \"rugați-L fierbinte pe Domnul secerișului\" (Mt. 9:38) — so nothing here turns on the edition question at entry 37."
+    },
+    "Adopt": {
+      "value": "adoptă un grup etnolingvistic neangajat misionar",
+      "note": "The reviewer wrote the whole call to action rather than the term, and it is recorded as written. Flagged because the interface needs a noun and a bare verb — adoptare for the page and the certificate, adoptă for the button — and the reviewer has not ruled on those. adoptare is what the campaigns server uses, in 23 places.",
+      "status": "flagged"
+    },
+    "Pray, give, and send": "roagă-te, dăruiește și trimite",
+    "Mobilize / mobilization": {
+      "value": "mobilizează / mobilizare",
+      "note": "Approved as suggested, giving both the imperative and the noun; the seed carried only the stem mobiliza."
+    },
+    "Sending agency / sending agencies": "agenție misionară de trimitere / agenții misionare de trimitere",
+    "Our gift to Jesus": "darul nostru pentru Isus",
+    "Priority — \"Engage every Unengaged People Group by 2033\"": {
+      "value": "Prioritate — „Să inițiem până în 2033 o lucrare misionară activă în fiecare grup etnolingvistic încă neangajat misionar”",
+      "note": "Approved as suggested. Romanian has no verb that carries to engage, so the priority is stated as beginning active mission work: \"Să inițiem până în 2033 o lucrare misionară activă…\". The 2033 date and încă neangajat misionar are exact."
+    },
+    "Vision 2033": "Viziunea 2033",
+    "Every tribe, tongue, people, and nation": {
+      "value": "din orice neam, din orice seminție, din orice popor și de orice limbă",
+      "note": "Approved as suggested, which is the Cornilescu (VDC) sentence with one word modernized: VDC reads \"din orice neam, din orice seminție, din orice norod și de orice limbă\" (Rev. 7:9). Flagged because the reviewer names VDC 1924 as their community's edition while config/languages.ts fetches NTR, whose Rev. 7:9 reads \"din toate neamurile, semințiile, popoarele și limbile\" — the approved phrase matches neither exactly, and which edition the site quotes is still open.",
+      "status": "flagged"
+    },
+    "A multitude of every people around the throne": {
+      "value": "o mare mulțime din toate popoarele în jurul tronului",
+      "note": "Approved as suggested. o mare mulțime and tron are NTR's wording of Rev. 7:9; VDC has o mare gloată and scaunul de domnie. The English here is site prose rather than a quotation, so it need not match an edition — but see entry 37."
+    },
+    "DOXA partnership missionaries": {
+      "value": "misionari parteneri ai DOXA",
+      "note": "Edited from misionari ai parteneriatului DOXA. The shorter form makes the missionaries themselves the partners, which is what the English means: they come from member agencies rather than from DOXA."
+    }
+  }
+}

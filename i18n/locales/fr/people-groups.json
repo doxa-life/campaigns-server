@@ -15,8 +15,10 @@
       "blocOnly": "Ils font partie du bloc d'affinité {bloc}.",
       "religion": "Leur religion principale est {religion}.",
       "language": "Ils parlent principalement {language}.",
-      "andUnreached": "et non atteints",
-      "butUnreached": "mais non atteints"
+      "statusEngaged": "engagés",
+      "statusUnengaged": "non engagés",
+      "statusEngagedUnreached": "engagés mais non atteints",
+      "statusUnengagedUnreached": "non engagés et non atteints"
     },
     "categories": {
       "engagement": "Statut",
@@ -230,6 +232,7 @@
         "H": "Hindouisme",
         "HOF": "Hindouisme - populaire",
         "MOF": "Islam - populaire",
+        "MIB": "Islam - ibadite",
         "MSH": "Islam - chiite",
         "MIS": "Islam - chiite Ismaili Imami",
         "MSN": "Islam - sunnite",
@@ -285,6 +288,7 @@
         "H": "Hindouisme, la tradition religieuse prédominante du sous-continent indien. Il existe de nombreuses formes d'hindouisme, chacune avec ses propres divinités et croyances.",
         "HOF": "Hindouisme populaire, caractérisé par des traditions locales et des cultes de divinités locales vénérées au niveau communautaire.",
         "J": "Judaïsme, une religion développée parmi les anciens Hébreux, caractérisée par la croyance en un Dieu transcendant qui s'est révélé à Abraham, Moïse et les prophètes hébreux, et par une vie religieuse conforme aux Écritures et aux traditions rabbiniques.",
+        "MIB": "Islam ibadite, la plus ancienne école de l'islam encore vivante et une branche distincte du sunnisme comme du chiisme. Les musulmans ibadites sont majoritaires à Oman et forment des communautés anciennes chez les Amazighs d'Algérie, de Tunisie et de Libye.",
         "MIS": "Ismaélisme, la deuxième plus grande branche de l'islam chiite.",
         "MOF": "Islam populaire, un système de croyances syncrétique qui mêle des éléments traditionnels de l'islam à des pratiques superstitieuses telles que conjurer les esprits avec des incantations et des amulettes magiques, et réciter des versets du Coran pour provoquer des guérisons miraculeuses.",
         "MSH": "Islam chiite, l'une des deux principales dénominations de l'islam. Les adeptes de l'islam chiite sont appelés « chiites ».",

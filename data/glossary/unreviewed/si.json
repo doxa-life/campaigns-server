@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "locale_code": "si",
+  "language_name_en": "Sinhala",
+  "language_name_local": "සිංහල",
+  "output_name": "Sinhala",
+  "text_direction": "ltr",
+  "version_display": "Sinhala review draft · 14 August 2026",
+  "running_header": "DOXA.LIFE  ·  SINHALA TERMINOLOGY REVIEW",
+  "cover": {
+    "kicker": "Translator review form · පරිවර්තක සමාලෝචන පෝරමය",
+    "title": "Doxa.Life Sinhala Glossary Review",
+    "subtitle": "English context · යෝජිත සිංහල පද · අනුමැතිය සහ සංස්කරණ",
+    "term_count_template": "{count} terms for review · සමාලෝචනය සඳහා පද {count}"
+  },
+  "instructions": {
+    "english_heading": "Instructions in English",
+    "english_purpose_label": "Purpose",
+    "english_purpose": "Please confirm or edit the suggested Sinhala term for each English glossary entry. The Sinhala suggestions are starting points, not approved translations.",
+    "english_items": [
+      "Read the English term, definition or meaning, example, and ‘Why it matters’ note before deciding.",
+      "Keep every numeric threshold and distinction exact, including ≤ 2%, ≤ 1%, ≤ 0.1%, the 100+ daily-intercessor goal, and the CPM measures.",
+      "Use standard Sinhala spelling and script. Keep Doxa.Life and DOXA unchanged. Retain UPG, UUPG, and CPM alongside the Sinhala phrase unless you recommend a stable Sinhala acronym and explain it in Notes.",
+      "For biblical phrases, use the wording of the Bible translation most commonly used by your local church or Assemblies of God/Pentecostal community—not merely your personal preference. Record its exact title, abbreviation, edition, and year below. If local communities commonly use more than one translation, list the primary one first and note the others.",
+      "Check that related terms form a coherent family, especially engage / engaged / engagement / unengaged / under-engaged / fruitful engagement.",
+      "Choose Approve if the suggested Sinhala term is accurate, natural in Sinhala evangelical and missional usage, and suitable for both prose and interface labels.",
+      "Choose Edit if you prefer another term. Write the complete preferred term in the Final Sinhala term field; do not merely describe the change."
+    ],
+    "local_heading": "සිංහල උපදෙස්",
+    "local_purpose_label": "අරමුණ",
+    "local_purpose": "ඉංග්‍රීසි ශබ්දකෝෂයේ සෑම ප්‍රවේශයක් සඳහාම යෝජිත සිංහල පදය තහවුරු කරන්න හෝ සංස්කරණය කරන්න. මේවා ආරම්භක යෝජනා මිස අනුමත පරිවර්තන නොවේ.",
+    "local_items": [
+      "තීරණයක් ගැනීමට පෙර ඉංග්‍රීසි පදය, අර්ථ දැක්වීම හෝ අර්ථය, උදාහරණය සහ ‘මෙය වැදගත් වන්නේ ඇයි’ සටහන කියවන්න.",
+      "≤ 2%, ≤ 1%, ≤ 0.1%, දිනකට මැදිහත්කරුවන් 100කට වැඩි ඉලක්කය සහ CPM මිනුම් ඇතුළු සියලු සංඛ්‍යාත්මක සීමා නිවැරදිව තබන්න.",
+      "සම්මත සිංහල භාවිත කරන්න. Doxa.Life සහ DOXA වෙනස් නොකරන්න. ස්ථාවර සිංහල කෙටි නාමයක් යෝජනා කර සටහන්වල පැහැදිලි නොකරන්නේ නම් UPG, UUPG සහ CPM සිංහල ප්‍රකාශය සමඟ තබන්න.",
+      "බයිබල් වාක්‍ය සඳහා ඔබේ ප්‍රාදේශීය සභාව හෝ ප්‍රදේශයේ Assemblies of God/පෙන්තකොස්ත ප්‍රජාව වැඩිපුර භාවිත කරන බයිබල් පරිවර්තනයේ වචන භාවිත කරන්න. නිවැරදි නම, කෙටි නාමය, සංස්කරණය සහ වර්ෂය ලියන්න.",
+      "engage / engaged / engagement / unengaged / under-engaged / fruitful engagement යන සම්බන්ධ පද එකම සංගත පවුලක් දැයි පරීක්ෂා කරන්න.",
+      "යෝජිත පදය නිවැරදි, සිංහල එවැන්ජලික හා දූතවිද්‍යාත්මක භාවිතයේ ස්වාභාවික, සහ පෙළ හා අතුරුමුහුණත් සඳහා සුදුසු නම් අනුමත කරන්න තෝරන්න.",
+      "වෙනත් පදයක් කැමති නම් සංස්කරණය කරන්න තෝරා අවසාන සිංහල පදය යන ක්ෂේත්‍රයේ සම්පූර්ණ පදය ලියන්න."
+    ]
+  },
+  "section_titles": {
+    "People-group terminology": "ජනවාර්ගික-භාෂා කණ්ඩායම් පද",
+    "Engagement and mission language": "දූත සේවා සම්බන්ධතාව සහ මෙහෙවර භාෂාව",
+    "Prayer and intercession": "යාච්ඤාව සහ මැදිහත් යාච්ඤාව",
+    "Adoption and mobilization": "භාරගැනීම සහ බලමුළු ගැන්වීම",
+    "Vision and goals language": "දර්ශනය සහ ඉලක්ක භාෂාව"
+  },
+  "field_labels": {
+    "Context": "ඉංග්‍රීසි සන්දර්භය",
+    "Meaning": "ඉංග්‍රීසි අර්ථය",
+    "Site definition": "වෙබ් අඩවි අර්ථ දැක්වීම (ඉංග්‍රීසි)",
+    "Site definition (Vision page — \"What is Engagement?\")": "දර්ශන පිටුවේ අර්ථ දැක්වීම (ඉංග්‍රීසි)",
+    "Example": "ඉංග්‍රීසි උදාහරණය",
+    "Why it matters": "මෙය වැදගත් වන්නේ ඇයි"
+  },
+  "labels": {
+    "seed_term": "මූලික පදය",
+    "suggested_term_en": "Suggested Sinhala term",
+    "suggested_term_local": "යෝජිත සිංහල පදය",
+    "section_note_en": "Section note",
+    "section_note_local": "කොටස් සටහන",
+    "decision_en": "Decision",
+    "decision_local": "තීරණය",
+    "approve_en": "Approve",
+    "approve_local": "අනුමත කරන්න",
+    "edit_en": "Edit",
+    "edit_local": "සංස්කරණය කරන්න",
+    "final_term_en": "Final Sinhala term",
+    "final_term_local": "අවසාන සිංහල පදය",
+    "acronym_en": "Acronym",
+    "acronym_local": "කෙටි යෙදුම",
+    "translator_notes_en": "Translator notes",
+    "translator_notes_local": "පරිවර්තක සටහන්"
+  },
+  "reviewer": {
+    "heading_en": "Reviewer details",
+    "heading_local": "සමාලෝචක විස්තර",
+    "bible_label_en": "Bible translation",
+    "bible_label_local": "බයිබල් පරිවර්තනය",
+    "bible_note_en": "Please report the translation most regularly used by your local church community, even if your personal preference is different.",
+    "bible_note_local": "ඔබේ පුද්ගලික කැමැත්ත වෙනස් වුවද, ඔබේ ප්‍රාදේශීය සභාව නිතර භාවිත කරන පරිවර්තනය සඳහන් කරන්න.",
+    "rows": [
+      {
+        "tag": "reviewer_name",
+        "en": "Translator",
+        "local": "පරිවර්තක"
+      },
+      {
+        "tag": "review_date",
+        "en": "Date",
+        "local": "දිනය"
+      },
+      {
+        "tag": "reviewer_church_region",
+        "en": "Church, community, or region",
+        "local": "සභාව, ප්‍රජාව හෝ ප්‍රදේශය"
+      },
+      {
+        "tag": "bible_translation_primary",
+        "en": "Bible translation used most regularly",
+        "local": "වැඩිපුරම භාවිත වන බයිබල් පරිවර්තනය"
+      },
+      {
+        "tag": "bible_translation_edition_year",
+        "en": "Exact abbreviation, edition, and year",
+        "local": "නිවැරදි කෙටි නාමය, සංස්කරණය සහ වර්ෂය"
+      }
+    ],
+    "version_label_en": "Glossary version",
+    "version_label_local": "ශබ්දකෝෂ අනුවාදය"
+  },
+  "signoff": {
+    "heading_en": "Final sign-off",
+    "heading_local": "අවසාන තහවුරු කිරීම",
+    "confirmation_label_en": "Confirmation",
+    "confirmation_label_local": "තහවුරු කිරීම",
+    "confirmation_en": "I have reviewed all {count} entries and entered a final Sinhala term for every edited item.",
+    "confirmation_local": "මම ප්‍රවේශ {count} සියල්ල සමාලෝචනය කර සංස්කරණය කළ සෑම අයිතමයකටම අවසාන සිංහල පදයක් ඇතුළත් කළෙමි.",
+    "rows": [
+      {
+        "tag": "signoff_approved_count",
+        "en": "Approved without edits",
+        "local": "වෙනස්කම් නොමැතිව අනුමත"
+      },
+      {
+        "tag": "signoff_edited_count",
+        "en": "Edited",
+        "local": "සංස්කරණය කළ"
+      },
+      {
+        "tag": "signoff_questions",
+        "en": "Questions remaining",
+        "local": "ඉතිරි ප්‍රශ්න"
+      },
+      {
+        "tag": "signoff_name_date",
+        "en": "Name and date",
+        "local": "නම සහ දිනය"
+      }
+    ]
+  },
+  "suggested_terms": {
+    "People group": "ජනවාර්ගික-භාෂා ජන කණ්ඩායම",
+    "Unreached people group": "ළඟා නොවූ ජනවාර්ගික-භාෂා ජන කණ්ඩායම",
+    "Unengaged": "සක්‍රීය දූත සේවා සම්බන්ධතාවක් නොමැති ජන කණ්ඩායම",
+    "Unengaged unreached people group": "ළඟා නොවූ සහ දූත සේවාවෙන් සම්බන්ධ නොවූ ජන කණ්ඩායම",
+    "Under-engaged": "ප්‍රමාණවත් නොවන දූත සේවා සම්බන්ධතාවක් ඇති ජන කණ්ඩායම",
+    "Frontier people": "සීමාන්ත ජන කණ්ඩායම",
+    "Ethnolinguistic group": "ජනවාර්ගික-භාෂා කණ්ඩායම",
+    "Engagement / engaged": "දූත සේවා සම්බන්ධතාව / දූත සේවාවෙන් සම්බන්ධ",
+    "Fruitful engagement": "ඵලදායී දූත සේවා සම්බන්ධතාව",
+    "Gospel access": "ශුභාරංචියට ප්‍රවේශය",
+    "Gospel engagement": "ශුභාරංචිය සමඟ සක්‍රීය සම්බන්ධතාව",
+    "Church-planting movement": "සභා පිහිටුවීමේ ව්‍යාපාරය",
+    "Indigenous church": "දේශීය සභාව",
+    "The five \"selfs\"": "දේශීය සභාවක ස්වයංපෝෂිත ලක්ෂණ පහ",
+    "Residential engagement / workers in residence": "පදිංචි දූත සේවා සම්බන්ධතාව / පදිංචි සේවකයන්",
+    "Cross-cultural workers": "අන්තර්සංස්කෘතික සේවකයන්",
+    "Apostolic effort": "අපෝස්තලික පුරෝගාමී උත්සාහය",
+    "Pioneer work": "පුරෝගාමී සේවය",
+    "Heart language": "හදවතේ භාෂාව",
+    "Movement to Jesus": "යේසුස් වෙතට ජනතා ව්‍යාපාරයක්",
+    "Nonresident partners": "නේවාසික නොවන හවුල්කරුවන්",
+    "Broader engagement": "පුළුල් දූත සේවා සම්බන්ධතාවයේ අංග",
+    "Diaspora": "විදේශගත ප්‍රජාව",
+    "Daily prayer": "ජන කණ්ඩායමක් සඳහා දෛනික යාච්ඤාව",
+    "Intercessor / intercessors": "මැදිහත් යාච්ඤාකරු / මැදිහත් යාච්ඤාකරුවන්",
+    "Intercessory prayer": "මැදිහත් යාච්ඤාව",
+    "Daily prayer guide / daily prayer points": "දෛනික යාච්ඤා මාර්ගෝපදේශය / දෛනික යාච්ඤා කරුණු",
+    "Prayer prepares the way": "යාච්ඤාව මාර්ගය සූදානම් කරයි",
+    "Lord of the harvest": "අස්වැන්නේ ස්වාමියා",
+    "Adopt": "සම්බන්ධ නොවූ ජන කණ්ඩායමක් දූත සේවා වගකීමක් ලෙස භාරගැනීම",
+    "Pray, give, and send": "යාච්ඤා කරන්න, දෙන්න, යවන්න",
+    "Mobilize / mobilization": "බලමුළු ගැන්වීම",
+    "Sending agency / sending agencies": "දූත සේවකයන් යවන ආයතනය",
+    "Our gift to Jesus": "යේසුස්ට අපගේ තෑග්ග",
+    "Priority — \"Engage every Unengaged People Group by 2033\"": "ප්‍රමුඛතාව: 2033 වන විට සෑම සම්බන්ධ නොවූ ජන කණ්ඩායමකම සේවය ආරම්භ කිරීම",
+    "Vision 2033": "දර්ශනය 2033",
+    "Every tribe, tongue, people, and nation": "සෑම ගෝත්‍රයක්, භාෂාවක්, ජනතාවක් සහ ජාතියක්",
+    "A multitude of every people around the throne": "සිංහාසනය වටා සියලු ජනතාවගෙන් මහත් සමූහයක්",
+    "DOXA partnership missionaries": "DOXA හවුල්කාරිත්ව දූත සේවකයන්"
+  },
+  "script_font": "Noto Sans Sinhala",
+  "pdf_font_family": "Noto Sans Sinhala"
+}

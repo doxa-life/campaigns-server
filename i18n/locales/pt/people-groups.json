@@ -1,22 +1,24 @@
 {
   "peopleGroups": {
     "descriptionTemplates": {
-      "nameCountryPopulationEngagement": "Os {name} de {country}, somando aproximadamente {population} pessoas, estão {engagementStatus}.",
+      "nameCountryPopulationEngagement": "Os {name} de {country}, somando aproximadamente {population} pessoas, são um grupo étnico {engagementStatus}.",
       "nameCountryPopulation": "Os {name} de {country} somam aproximadamente {population} pessoas.",
       "namePopulation": "Os {name} somam aproximadamente {population} pessoas.",
       "peopleDescWithAltNames": "Eles são {peopleDesc} e também podem ser conhecidos como {altNames}.",
       "peopleDesc": "Eles são {peopleDesc}.",
-      "indigenousClusterBloc": "Eles são um povo Indígena, no grupo de povos {cluster} do bloco de afinidade {bloc}.",
-      "diasporaClusterBloc": "Eles são um povo da Diáspora, no grupo de povos {cluster} do bloco de afinidade {bloc}.",
-      "indigenousBloc": "Eles são um povo Indígena, no bloco de afinidade {bloc}.",
-      "diasporaBloc": "Eles são um povo da Diáspora, no bloco de afinidade {bloc}.",
-      "indigenousOnly": "Eles são um povo Indígena.",
-      "diasporaOnly": "Eles são um povo da Diáspora.",
+      "indigenousClusterBloc": "Eles são um povo indígena do grupo de povos {cluster} do bloco de afinidade {bloc}.",
+      "diasporaClusterBloc": "Eles são um povo da diáspora do grupo de povos {cluster} do bloco de afinidade {bloc}.",
+      "indigenousBloc": "Eles são um povo indígena do bloco de afinidade {bloc}.",
+      "diasporaBloc": "Eles são um povo da diáspora do bloco de afinidade {bloc}.",
+      "indigenousOnly": "Eles são um povo indígena.",
+      "diasporaOnly": "Eles são um povo da diáspora.",
       "blocOnly": "Eles estão no bloco de afinidade {bloc}.",
       "religion": "Sua religião principal é {religion}.",
       "language": "Eles falam principalmente {language}.",
-      "andUnreached": "e Não Alcançados",
-      "butUnreached": "mas Não Alcançados"
+      "statusEngaged": "engajado",
+      "statusUnengaged": "não engajado",
+      "statusEngagedUnreached": "engajado, mas ainda não alcançado",
+      "statusUnengagedUnreached": "não engajado e ainda não alcançado"
     },
     "categories": {
       "engagement": "Status",
@@ -29,7 +31,7 @@
       "religion": "Religião",
       "rop": "Classificação de Povos (ROP)",
       "resources": "Recursos Disponíveis",
-      "workers": "Engagement Criteria",
+      "workers": "Critérios de engajamento",
       "wagf": "WAGF/Doxa",
       "media": "Mídia"
     },
@@ -160,7 +162,7 @@
       },
       "engagementStatus": {
         "engaged": "Engajado",
-        "unengaged": "Não Engajado"
+        "unengaged": "Não engajado"
       },
       "yesNo": {
         "no": "Não",
@@ -182,12 +184,12 @@
         "6": "10% ou mais Evangélicos"
       },
       "strategicPriorityIndex": {
-        "0": "Não Engajado e Não Alcançado",
-        "1": "Engajado, porém Não Alcançado",
-        "2": "Não Mais Classificado como Não Alcançado"
+        "0": "Não alcançado e não engajado (PNANE)",
+        "1": "Engajado, porém não alcançado",
+        "2": "Não mais classificado como não alcançado"
       },
       "lostnessPriorityIndex": {
-        "0": "Grupo Étnico de Fronteira Não Alcançado",
+        "0": "Povo de Fronteira Não Alcançado",
         "1": "Grupo Étnico Pioneiro Não Alcançado",
         "2": "Grupo Étnico em Expansão Não Alcançado",
         "3": "Grupo Étnico Minimamente Alcançado",
@@ -230,6 +232,7 @@
         "H": "Hinduísmo",
         "HOF": "Hinduísmo - Folclórico",
         "MOF": "Islã - Folclórico",
+        "MIB": "Islã - Ibadita",
         "MSH": "Islã - Xiita",
         "MIS": "Islã - Xiita Imami Ismaili",
         "MSN": "Islã - Sunita",
@@ -285,6 +288,7 @@
         "H": "Hinduísmo, a tradição religiosa predominante do subcontinente indiano. Existem muitas formas de hinduísmo, cada uma com suas próprias divindades e crenças.",
         "HOF": "Hinduísmo popular, caracterizado por tradições locais e cultos a divindades locais veneradas ao nível comunitário.",
         "J": "Judaísmo, uma religião desenvolvida entre os antigos hebreus, caracterizada pela crença em um Deus transcendente que se revelou a Abraão, Moisés e os profetas hebreus, e por uma vida religiosa de acordo com as Escrituras e tradições rabínicas.",
+        "MIB": "Islã ibadita, a escola mais antiga do islã ainda existente e um ramo distinto tanto do sunismo quanto do xiismo. Os muçulmanos ibaditas são maioria em Omã e formam comunidades antigas entre os amazigues da Argélia, Tunísia e Líbia.",
         "MIS": "Ismaelismo, o segundo maior ramo do islã xiita.",
         "MOF": "Islã popular, um sistema de crenças sincrético que mistura elementos tradicionais do islã com práticas supersticiosas como afastar espíritos com encantamentos e amuletos mágicos, e recitar versículos do Alcorão para provocar curas milagrosas.",
         "MSH": "Islã xiita, uma das duas principais denominações do islã. Os seguidores do islã xiita são chamados de 'xiitas'.",

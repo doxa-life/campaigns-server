@@ -218,6 +218,9 @@ ${stopReminders}: ${stopRemindersUrl}
     to: data.to,
     subject,
     html,
-    text
+    text,
+    // Marks the reminder as machine-generated so out-of-office responders
+    // (RFC 3834 Auto-Submitted, Exchange X-Auto-Response-Suppress) don't reply to it.
+    headers: { 'Auto-Submitted': 'auto-generated', 'X-Auto-Response-Suppress': 'All' }
   })
 }

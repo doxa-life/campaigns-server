@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "locale_code": "ru",
+  "language_name_en": "Russian",
+  "language_name_local": "русский",
+  "output_name": "Russian",
+  "text_direction": "ltr",
+  "version_display": "In-use terminology · 2026-09-18",
+  "instructions": {
+    "local_heading": "Инструкции на русском языке",
+    "local_purpose_label": "Цель",
+    "local_purpose": "Подтвердите или измените предложенный русский термин для каждой статьи английского глоссария. Предложения являются исходными вариантами, а не утверждёнными переводами.",
+    "local_items": [
+      "Перед решением прочитайте английский термин, определение или значение, пример и пояснение «Почему это важно».",
+      "Точно сохраняйте все числовые пороги: ≤ 2 %, ≤ 1 %, ≤ 0,1 %, цель более 100 ежедневных ходатаев и показатели CPM.",
+      "Используйте нормативный русский язык. Не изменяйте Doxa.Life и DOXA. Сохраняйте UPG, UUPG и CPM рядом с русским выражением, если не предлагаете устойчивую русскую аббревиатуру с пояснением.",
+      "Для библейских выражений используйте формулировку перевода Библии, которым чаще всего пользуется ваша местная церковь или региональное пятидесятническое сообщество/Ассамблеи Бога. Укажите точное название, сокращение, издание и год.",
+      "Проверьте согласованность семейства engage / engaged / engagement / unengaged / under-engaged / fruitful engagement.",
+      "Отметьте Подтвердить, если термин точен, естественен в евангельском и миссиологическом употреблении и подходит для текста и интерфейса.",
+      "Измените термин, если предпочитаете другую формулировку: впишите его полностью, а не описывайте правку. Если термин нужно сначала обсудить, отметьте его для обсуждения."
+    ]
+  },
+  "section_titles": {
+    "People-group terminology": "Терминология этнолингвистических групп",
+    "Engagement and mission language": "Язык миссионерского вовлечения и миссии",
+    "Prayer and intercession": "Молитва и ходатайство",
+    "Adoption and mobilization": "Принятие ответственности и мобилизация",
+    "Vision and goals language": "Язык видения и целей"
+  },
+  "field_labels": {
+    "Context": "Контекст на английском",
+    "Meaning": "Значение на английском",
+    "Site definition": "Определение на сайте (английский)",
+    "Site definition (Vision page — \"What is Engagement?\")": "Определение на странице Vision (английский)",
+    "Example": "Пример на английском",
+    "Why it matters": "Почему это важно"
+  },
+  "labels": {
+    "seed_term_local": "БАЗОВЫЙ ТЕРМИН",
+    "suggested_term_local": "Предлагаемый русский термин",
+    "section_note_local": "Примечание к разделу",
+    "decision_local": "Решение",
+    "approve_local": "Подтвердить",
+    "confirm_local": "Подтвердить",
+    "edit_local": "Изменить",
+    "flag_local": "Отметить для обсуждения",
+    "final_term_local": "Окончательный русский термин",
+    "acronym_en": "Acronym",
+    "acronym_local": "Аббревиатура",
+    "translator_notes_local": "Примечания переводчика",
+    "submit_local": "Я завершил(а) эту проверку",
+    "submitted_local": "Проверка отправлена"
+  },
+  "reviewer": {
+    "heading_local": "Сведения о рецензенте",
+    "bible_label_local": "Перевод Библии",
+    "bible_note_local": "Укажите перевод, которым обычно пользуется ваша местная церковная община, даже если лично вы предпочитаете другой.",
+    "rows": [
+      {
+        "tag": "reviewer_name",
+        "local": "Ваше имя"
+      },
+      {
+        "tag": "reviewer_email",
+        "local": "Ваша электронная почта"
+      },
+      {
+        "tag": "bible_translation_primary",
+        "local": "Наиболее употребительный перевод Библии"
+      },
+      {
+        "tag": "bible_translation_edition_year",
+        "local": "Точное сокращение, издание и год"
+      }
+    ]
+  },
+  "suggested_terms": {
+    "People group": {
+      "value": "народ",
+      "note": "The reviewer's glossary heads the entry «Народ (Этнолингвистическая Группа)» and uses народ in every example («2 085 невовлечённых народов»); the human translation of the DOXA Access and Alignment document does the same («6 600 народов (этнолингвистических групп)»). It replaces этническая группа, still the campaigns server's wording in 61 places, and the Official adoption certificate's «не охваченная благовестием группа людей». The reviewer notes that народ also carries the biblical register of Rev. 7:9."
+    },
+    "Unreached people group": {
+      "value": "недостигнутый народ",
+      "note": "недостигнутый is settled across every Russian source — the glossary, the Access and Alignment translation, and the certificates. The Latin acronym is kept per the review form's instruction; see UUPG for the reviewer's counter-proposal."
+    },
+    "Unengaged": {
+      "value": "невовлечённый",
+      "note": "The glossary and the Access and Alignment translation agree, and the campaigns server already says невовлечённый. The marketing-site reviewer wrote незадействованный throughout their corrections to doxa.life/ru; that is the outlier."
+    },
+    "Unengaged unreached people group": {
+      "value": "недостигнутый невовлечённый народ",
+      "note": "The glossary's heading reads «Недостигнутый и Невовлеченный Народ», but its own examples drop the и («2 085 недостигнутых невовлечённых народов»), as does the Access and Alignment translation; the shorter form is taken. Flagged for the acronym: the reviewer's note calls ННН an established abbreviation, which would replace the Latin acronym here and in UPG and CPM. Every other Russian source writes the Latin form.",
+      "status": "flagged"
+    },
+    "Under-engaged": {
+      "value": "недостаточно вовлечённый",
+      "note": "The glossary and the Access and Alignment translation agree, and it holds the вовлеч- family together with the server's existing «Статус вовлечённости»."
+    },
+    "Frontier people": {
+      "value": "народ фронтира",
+      "note": "The glossary's heading, and the marketing-site reviewer asked for exactly this change («Replace Люди на границу with Народ Фронтира»). The Access and Alignment translation says фронтирные народы; the glossary wins. приграничный, which the earlier draft used and which the glossary's own rationale paragraph still argues over, was rejected by the site reviewer."
+    },
+    "Ethnolinguistic group": "этнолингвистическая группа",
+    "Engagement / engaged": {
+      "value": "вовлечение / вовлечённый",
+      "note": "The family the campaigns server already ships — вовлечён / не вовлечён / Статус вовлечённости — and the one the glossary and the Access and Alignment translation both use."
+    },
+    "Fruitful engagement": {
+      "value": "плодотворное вовлечение",
+      "note": "Both Russian sources say плодотворное вовлечение. It replaces плодотворное взаимодействие, which broke the вовлечение family and reads as mutual interaction rather than missionary work."
+    },
+    "Gospel access": "доступ к Евангелию",
+    "Gospel engagement": {
+      "value": "евангельское вовлечение",
+      "note": "Distinct from доступ к Евангелию: the reviewer's note is explicit that access is availability and engagement is the work itself. Replaces проповедь Евангелия, which collapses the distinction."
+    },
+    "Church-planting movement": {
+      "value": "движение по открытию церквей",
+      "note": "The glossary's heading, corroborated by the marketing-site reviewer's corrected vision bullet. The Access and Alignment translation says движение насаждения церквей throughout and the campaigns server says «работа по насаждению церквей»; the glossary wins, so both will need aligning."
+    },
+    "Indigenous church": {
+      "value": "поместная церковь",
+      "note": "The glossary and the Access and Alignment translation agree. It replaces местная церковь (merely local) and коренная церковь; the reviewer's note warns against any reading that suggests indigenous religion."
+    },
+    "The five \"selfs\"": {
+      "value": "пять признаков поместной церкви",
+      "note": "The reviewer lists them as самораспространяющаяся, самоуправляемая, самофинансируемая, имеющая свои богословские ресурсы, самостоятельно участвующая в миссионерской работе."
+    },
+    "Residential engagement / workers in residence": {
+      "value": "служители, проживающие на месте",
+      "note": "The reviewer supplied only the workers half of this entry. The Access and Alignment translation has резидентное вовлечение for the engagement half; the reviewer did not adopt it, so no Russian noun phrase is settled for it yet."
+    },
+    "Cross-cultural workers": {
+      "value": "межкультурные служители",
+      "note": "The Access and Alignment translation says межкультурные миссионеры; the glossary's служители wins. The reviewer's note is that межкультурный is the load-bearing word — these are workers from another culture, not from the people being reached."
+    },
+    "Apostolic effort": {
+      "value": "апостольское первопроходческое служение",
+      "note": "The Access and Alignment translation says апостольское (пионерское) служение; the glossary's первопроходческое wins and pairs with труд первопроходца. The reviewer's note: апостольский here means sent or pioneering, not a church office."
+    },
+    "Pioneer work": "труд первопроходца",
+    "Heart language": {
+      "value": "родной язык / язык сердца",
+      "note": "Both forms are the reviewer's. The Access and Alignment translation makes the same pairing («на родном («сердечном») языке»). The reviewer's note asks that it be kept distinct from the national or official language."
+    },
+    "Movement to Jesus": "движение ко Христу",
+    "Nonresident partners": {
+      "value": "партнёры, не находящиеся на месте",
+      "note": "The Access and Alignment translation says нерезидентные партнёры; the glossary's plain phrase wins."
+    },
+    "Broader engagement": {
+      "value": "расширенное вовлечение",
+      "note": "Both Russian sources agree. The English entry's «(components)» is the list of what it contains, not part of the term."
+    },
+    "Diaspora": "диаспора",
+    "Daily prayer": {
+      "value": "ежедневная молитва",
+      "note": "The reviewer's note: ежедневно is deliberate and tied to the 24-hour arithmetic, so it must not soften to регулярная or периодическая."
+    },
+    "Intercessor / intercessors": {
+      "value": "молитвенный ходатай / ходатаи",
+      "note": "ходатай is what the campaigns server already ships («Опрос ходатаев»); молитвенный is the reviewer's addition, keeping it clear of the legal and administrative sense of the word."
+    },
+    "Intercessory prayer": "ходатайственная молитва",
+    "Daily prayer guide / daily prayer points": {
+      "value": "ежедневное молитвенное руководство / молитвенные темы дня",
+      "note": "The marketing-site reviewer proposed «Руководство и справочник для ежедневной молитвы» and «Темы молитв»; the glossary wins."
+    },
+    "Prayer prepares the way": {
+      "value": "молитва прокладывает путь",
+      "note": "The marketing-site reviewer wrote «Молитва готовит путь для Евангелия»; the glossary wins."
+    },
+    "Lord of the harvest": {
+      "value": "Господь жатвы",
+      "note": "The reviewer's wording. Note it is not the Synodal text of Matt. 9:38, which reads «молите Господина жатвы» — Господин, not Господь. Господь жатвы is used where the phrase is a term; a quoted verse keeps the Synodal wording, as the CMS pages now do."
+    },
+    "Adopt": {
+      "value": "взять ответственность за невовлечённый народ",
+      "note": "Three sources, three words: the glossary's взять ответственность, the adoption certificates' «принял(а) на молитвенное попечение» and «усыновление в молитве», and the Access and Alignment translation's «молитвенное усыновление народа». The glossary wins, and the reviewer's note is explicit that the family-law sense of усыновление is to be avoided. Flagged because the certificates are already printed and the server still says «ресурсы усыновления»: a noun for the commitment needs settling alongside the verb.",
+      "status": "flagged"
+    },
+    "Pray, give, and send": {
+      "value": "молиться, жертвовать и отправлять",
+      "note": "The glossary's heading says отправлять, but its own entries say «молиться, жертвовать и посылать» twice and the Official adoption certificate prints ПОСЫЛАТЬ. The heading is taken as the term and flagged, because посылать has the wider support.",
+      "status": "flagged"
+    },
+    "Mobilize / mobilization": {
+      "value": "мобилизовать / мобилизация",
+      "note": "The reviewer's note: мобилизация implies movement towards a goal, so it must not soften to информировать or пригласить."
+    },
+    "Sending agency / sending agencies": {
+      "value": "посылающая миссионерская организация / посылающие миссионерские организации",
+      "note": "The Access and Alignment translation says посылающее агентство, and for the WAGF bodies национальные миссионерские отделы; the glossary's wording wins."
+    },
+    "Our gift to Jesus": {
+      "value": "наш дар Иисусу",
+      "note": "дар, not подарок: the reviewer asks for an offering register rather than a commercial one."
+    },
+    "Priority — \"Engage every Unengaged People Group by 2033\"": {
+      "value": "приоритет — «Вовлечь каждый невовлечённый народ к 2033 году»",
+      "note": "The reviewer's note: приоритет marks this as the single strategic goal, and the year 2033 is kept exactly."
+    },
+    "Vision 2033": "Видение 2033",
+    "Every tribe, tongue, people, and nation": {
+      "value": "из всякого колена, языка, народа и племени",
+      "note": "The reviewer's wording, matching the Access and Alignment translation. It is the site's summary phrase, not a quotation: the Synodal text of Rev. 7:9, which both adoption certificates print, reads «из всех племен и колен, и народов и языков»."
+    },
+    "A multitude of every people around the throne": {
+      "value": "множество людей из всех народов перед престолом",
+      "note": "The reviewer asks that it read as worship and as final, not as an organisational statement."
+    },
+    "DOXA partnership missionaries": {
+      "value": "миссионеры в рамках партнёрства DOXA",
+      "note": "The marketing-site reviewer wrote миссионеров-партнёров DOXA; the glossary wins, because the point of партнёрство is that they are sent by affiliated agencies rather than employed by DOXA."
+    }
+  }
+}

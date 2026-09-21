@@ -75,7 +75,7 @@
     "signup": {
       "title": "Anmelden zum Beten",
       "description": "Verpflichten Sie sich zum täglichen oder wöchentlichen Gebet und erhalten Sie Gebetserinnerungen.",
-      "success": "✓ Willkommen! Sie haben sich der Gebetsbewegung angeschlossen. Sie werden bald Ihre erste Gebetsaufforderung erhalten.",
+      "success": "✓ Willkommen! Sie haben sich der Gebetsbewegung angeschlossen. Sie werden bald Ihre ersten Gebetsanliegen erhalten.",
       "successEmail": "✓ Fast geschafft! Bitte überprüfen Sie Ihre E-Mail und klicken Sie auf den Bestätigungslink, um Ihre Anmeldung abzuschließen.",
       "checkSpam": "Keine E-Mail erhalten? Überprüfen Sie Ihren Spam-Ordner.",
       "modal": {
@@ -90,7 +90,7 @@
           "placeholder": "Ihr Name"
         },
         "deliveryMethod": {
-          "label": "Wie möchten Sie Ihre täglichen Gebetsaufforderungen erhalten?",
+          "label": "Wie möchten Sie Ihre täglichen Gebetsanliegen erhalten?",
           "placeholder": "Methode auswählen...",
           "email": "E-Mail",
           "whatsapp": "WhatsApp",
@@ -164,7 +164,7 @@
       "title": "Warum beten?",
       "noOne": {
         "title": "Sie haben niemanden",
-        "description": "Viele nicht-engagierte Volksgruppen haben keine Gemeinden, keine Missionare und oft keine Gläubigen."
+        "description": "Viele unberührte Volksgruppen haben keine Gemeinden, keine Missionare und oft keine Gläubigen."
       },
       "opensDoors": {
         "title": "Gebet öffnet Türen",
@@ -453,7 +453,7 @@
     "steps": {
       "group": "Volksgruppe",
       "eligibility": "Voraussetzungen",
-      "engagement": "Engagement",
+      "engagement": "Arbeit vor Ort",
       "details": "Details",
       "resources": "Ressourcen",
       "reason": "Grund",
@@ -483,11 +483,11 @@
     "currentValue": "Aktuell",
     "suggestedValue": "Vorgeschlagen",
     "updateFieldsHint": "Füllen Sie nur aus, was sich ändern soll — alles andere kann leer bleiben.",
-    "criteriaTitle": "Engagement-Kriterien",
+    "criteriaTitle": "Kriterien für Arbeit vor Ort",
     "criteria": {
-      "workers_long_term": "Gibt es interkulturelle Mitarbeiter vor Ort, die unter der Volksgruppe leben?",
-      "work_in_local_language": "Arbeiten die ansässigen interkulturellen Mitarbeiter in der lokalen Sprache und Kultur?",
-      "disciple_and_church_multiplication": "Arbeiten die ansässigen interkulturellen Mitarbeiter so, dass daraus eine einheimische Gemeinde entstehen wird?"
+      "workers_long_term": "Gibt es kulturübergreifende Mitarbeiter/innen, die vor Ort unter der Volksgruppe leben?",
+      "work_in_local_language": "Arbeiten die vor Ort ansässigen kulturübergreifenden Mitarbeiter/innen in der lokalen Sprache und Kultur?",
+      "disciple_and_church_multiplication": "Arbeiten die vor Ort ansässigen kulturübergreifenden Mitarbeiter/innen so, dass daraus eine einheimische Gemeinde entstehen wird?"
     },
     "resourcesTitle": "Verfügbare Ressourcen",
     "detailsTitle": "Details zur Volksgruppe",
@@ -496,13 +496,14 @@
     "eligibilityTitle": "Wer in die DOXA-Liste aufgenommen werden kann",
     "eligibility": {
       "indigenous": "In ihrem Land beheimatet, keine Diaspora-Bevölkerung",
-      "unengaged": "Nicht-engagiert — es läuft keine Gemeindegründungsarbeit unter ihnen",
+      "unengaged": "Unberührt — es läuft keine Gemeindegründungsarbeit unter ihnen",
       "notChristian": "Ihre Hauptreligion ist nicht christlich, und sie galten auch historisch nicht als christlich",
       "otherCriteria": "Erfüllt im Übrigen die festgelegten DOXA-Kriterien"
     },
     "engagedBlockedTitle": "Engagierte Gruppen können nicht hinzugefügt werden",
-    "engagedBlockedText": "Die DOXA-Liste konzentriert sich auf nicht-engagierte Volksgruppen; eine engagierte Gruppe liegt daher außerhalb ihres Rahmens. Wenn Sie glauben, dass die Engagement-Angaben veraltet sind, wählen Sie Nicht-engagiert und erzählen Sie uns mehr in den Kommentaren.",
-    "addManualHint": "Diese Volksgruppe ist noch nicht in den Listen der IMB oder von Joshua Project enthalten — bitte teilen Sie daher alle Details mit, die Sie kennen, einschließlich ihres Engagement-Status.",    "addImbReasonsTitle": "Warum diese Gruppe nicht auf der DOXA-Liste steht",
+    "engagedBlockedText": "Die DOXA-Liste konzentriert sich auf unberührte Volksgruppen; eine engagierte Gruppe liegt daher außerhalb ihres Rahmens. Wenn Sie glauben, dass die Angaben zur Arbeit vor Ort veraltet sind, wählen Sie Unberührt und erzählen Sie uns mehr in den Kommentaren.",
+    "addManualHint": "Diese Volksgruppe ist noch nicht in den Listen der IMB oder von Joshua Project enthalten — bitte teilen Sie daher alle Details mit, die Sie kennen, einschließlich des Status der Arbeit vor Ort.",
+    "addImbReasonsTitle": "Warum diese Gruppe nicht auf der DOXA-Liste steht",
     "addImbReasonsHint": "Wenn etwas davon veraltet ist, korrigieren Sie es unten und erzählen Sie uns mehr in den Kommentaren.",
     "addImbEligibleHint": "Diese Gruppe erfüllt die DOXA-Kriterien und wurde einfach noch nicht hinzugefügt — die Bestätigung der Details unten hilft uns, sie schnell aufzunehmen.",
     "exclusionReasons": {
@@ -562,7 +563,7 @@
       "changesRequired": "Bitte schlagen Sie mindestens eine Änderung vor oder hinterlassen Sie einen Kommentar",
       "commentsRequired": "Bitte fügen Sie einen Kommentar hinzu, damit wir Ihr Anliegen besser verstehen",
       "uploadFailed": "Das Foto konnte nicht hochgeladen werden — bitte versuchen Sie es erneut",
-      "engagementRequired": "Bitte wählen Sie den Engagement-Status der Gruppe",
+      "engagementRequired": "Bitte wählen Sie den Status der Arbeit vor Ort für diese Gruppe",
       "engagedBlocked": "Engagierte Volksgruppen liegen außerhalb des Rahmens der DOXA-Liste",
       "verifierNameRequired": "Bitte nennen Sie uns den Namen der bestätigenden Person",
       "verifierEmailRequired": "Bitte geben Sie eine gültige E-Mail-Adresse der bestätigenden Person ein",
@@ -605,10 +606,10 @@
   },
   "adoption": {
     "verify": {
-      "pageTitle": "Adoption Bestätigen",
+      "pageTitle": "Adoption bestätigen",
       "verifying": "Ihre Adoption wird bestätigt...",
       "success": {
-        "title": "Adoption Bestätigt!",
+        "title": "Adoption bestätigt!",
         "message": "Ihre Adoption der {peopleGroupName} wurde bestätigt. Willkommen an Bord!"
       },
       "alreadyVerified": {
@@ -634,7 +635,7 @@
     "goHome": "Zur Startseite",
     "committed": {
       "title": "Danke für Ihre Treue!",
-      "message": "Wir freuen uns zu hören, dass Sie treu im Gebet bleiben. Ihr Engagement macht einen Unterschied!",
+      "message": "Wir freuen uns zu hören, dass Sie treu im Gebet bleiben. Ihre Treue macht einen Unterschied!",
       "checkInNotice": "Wir melden uns in ein paar Monaten wieder.",
       "continueButton": "Zur Kampagne"
     },
@@ -679,8 +680,8 @@
       "subject": "Willkommen bei Doxa! - {campaign}",
       "header": "Willkommen bei Doxa!",
       "doxaMeaning": "Im Griechischen bedeutet Doxa ‚Herrlichkeit’, und genau das bieten wir an, wenn wir uns im Gebet für die Millionen von Menschen vereinen, die mit wenig oder gar keinem Zeugnis des Evangeliums leben. Gemeinsam bringen wir Gott durch treues, erwartungsvolles Gebet die Ehre.",
-      "reminderExplanation": "Im Rahmen dieser Gebetskampagne werden Sie bald Erinnerungs-E-Mails mit Links zu täglichen Gebetsinhalten erhalten. Jeder Link enthält angeleitete Gebetsimpulse und weitere Materialien, die Ihnen helfen, strategisch und treu für die von Ihnen gewählte nicht-engagierte Volksgruppe zu beten.",
-      "sharedGoal": "Durch diese Bewegung ist unser gemeinsames Ziel, dass über 100 Menschen täglich für jede der über 2.000 nicht-engagierten Volksgruppen beten, Männer und Frauen auszusenden, die diese Volksgruppen bis zum Jahr 2033 mit dem Evangelium erreichen, und nachhaltige Spenden zur Unterstützung dieses Vorhabens.",
+      "reminderExplanation": "Im Rahmen dieser Gebetskampagne werden Sie bald Erinnerungs-E-Mails mit Links zu täglichen Gebetsinhalten erhalten. Jeder Link enthält angeleitete Gebetsanliegen und weitere Materialien, die Ihnen helfen, strategisch und treu für die von Ihnen gewählte unberührte Volksgruppe zu beten.",
+      "sharedGoal": "Durch diese Bewegung ist unser gemeinsames Ziel, dass über 100 Menschen täglich für jede der über 2.000 unberührten Volksgruppen beten, Männer und Frauen auszusenden, die bis zum Jahr 2033 unter diesen Volksgruppen mit dem Evangelium eine missionarische Arbeit vor Ort beginnen, und nachhaltige Spenden zur Unterstützung dieses Vorhabens.",
       "closing": "Wir sind zutiefst dankbar, uns mit der gesamten Kirche zusammenzuschließen, um das ganze Evangelium in die ganze Welt zu tragen.",
       "reminderTimeNote": "Ihre tägliche Erinnerung ist auf {time} eingestellt.",
       "startPraying": "Mit dem Beten beginnen",
@@ -697,8 +698,8 @@
       "automatedReminder": "Dies ist eine automatische Gebetserinnerung von {appName}."
     },
     "followup": {
-      "subject": "{campaign}: Wie geht es mit Ihrem Gebetsengagement?",
-      "subjectReminder": "Erinnerung: {campaign}: Wie geht es mit Ihrem Gebetsengagement?",
+      "subject": "{campaign}: Wie geht es mit Ihrer Gebetszusage?",
+      "subjectReminder": "Erinnerung: {campaign}: Wie geht es mit Ihrer Gebetszusage?",
       "header": "Gebets-Check-In",
       "reminderIntro": "Wir haben Ihnen letzte Woche eine Nachricht gesendet und wollten nachfragen.",
       "standardIntro": "Wir würden gerne hören, wie Ihre Gebetsreise verläuft!",
@@ -711,7 +712,7 @@
       "noLonger": "Nein, ich bete nicht mehr",
       "feedbackHelps": "Ihr Feedback hilft uns zu verstehen, wie wir Ihre Gebetsreise besser unterstützen können.",
       "pauseNotice": "Wenn wir nichts von Ihnen hören, stoppen wir Ihre Gebetserinnerungen, um Ihren Posteingang nicht zu überfüllen. Sie können sie jederzeit in Ihrem Profil wieder starten.",
-      "commitmentCheckIn": "Dies ist ein Engagement-Check-In von {appName}."
+      "commitmentCheckIn": "Dies ist eine Rückfrage zu Ihrer Gebetszusage von {appName}."
     },
     "marketing": {
       "headerCampaign": "{campaign} Neuigkeiten",
@@ -741,7 +742,7 @@
     "adoptionVerification": {
       "subject": "Bestätigen Sie Ihre E-Mail, um die {peopleGroupName} zu adoptieren",
       "header": "Bestätigen Sie Ihre E-Mail",
-      "thankYou": "Vielen Dank für Ihr Engagement, die {peopleGroupName} zu adoptieren.",
+      "thankYou": "Vielen Dank für Ihre Zusage, die {peopleGroupName} zu adoptieren.",
       "pleaseVerify": "Bitte bestätigen Sie Ihre E-Mail-Adresse, indem Sie auf die Schaltfläche unten klicken, um Ihre Adoption zu bestätigen:",
       "verifyButton": "E-Mail bestätigen",
       "linkInstructions": "Wenn die Schaltfläche nicht funktioniert, können Sie auch diesen Link kopieren und in Ihren Browser einfügen:",
@@ -750,10 +751,10 @@
       "ignoreMessage": "Wenn Sie kein Adoptionsformular eingereicht haben, können Sie diese E-Mail ignorieren."
     },
     "adoptionWelcome": {
-      "subject": "DOXA-Adoptionsupdate: Ihr Engagement für die {peopleGroupName}",
+      "subject": "DOXA-Adoptionsupdate: Ihre Zusage für die {peopleGroupName}",
       "headerTitle": "DOXA-Adoptionsaktualisierung",
       "greeting": "Liebe/r {firstName},",
-      "intro": "Heute haben Sie im Rahmen der DOXA-Partnerschaft den Status der {peopleGroupName} von [waiting] auf [adopted] geändert — der entscheidende erste Schritt zum Engagement.",
+      "intro": "Heute haben Sie im Rahmen der DOXA-Partnerschaft den Status der {peopleGroupName} von [waiting] auf [adopted] geändert — der entscheidende erste Schritt zur missionarischen Arbeit vor Ort.",
       "introContinued": "Sie sind jetzt ein Hauptfürsprecher, Fürbitter und Mobilisierer für eine Volksgruppe, die bis zu diesem Moment kein beständiges Zeugnis und keinen gezielten Gebetseinsatz hatte.",
       "waiting": "wartend",
       "adopted": "adoptiert",
@@ -807,6 +808,7 @@
     "noMessage": "Keine Nachricht",
     "source": {
       "contact_form": "Kontaktformular",
+      "doxa_life": "doxa.life",
       "inbound_email": "E-Mail",
       "staff": "Team",
       "feedback": "Feedback"
@@ -1041,7 +1043,7 @@
           }
         },
         "new_pg_daily": {
-          "label": "Gefällt Ihnen der Abschnitt, der Sie dazu ermutigt, jeden Tag für eine andere nicht-engagierte Volksgruppe zu beten – zusätzlich zu Ihrer eigenen Volksgruppe?",
+          "label": "Gefällt Ihnen der Abschnitt, der Sie dazu ermutigt, jeden Tag für eine andere unberührte Volksgruppe zu beten – zusätzlich zu Ihrer eigenen Volksgruppe?",
           "options": {
             "1": "Ja",
             "2": "Nein"

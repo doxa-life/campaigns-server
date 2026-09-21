@@ -349,6 +349,7 @@
       <div class="flex flex-col gap-4">
         <p class="text-sm text-[var(--ui-text-muted)]">
           Public suggestions from /updates require approval from both of these users before they can be applied.
+          They are emailed when a suggestion comes in; the submitter is emailed once it is applied or denied.
         </p>
         <UFormField label="Approver 1" required>
           <USelectMenu
@@ -365,6 +366,19 @@
             :items="approverUserOptions"
             value-key="value"
             placeholder="Select a user..."
+            class="w-full"
+          />
+        </UFormField>
+        <UFormField
+          label="Also notify when applied"
+          description="Extra email addresses told each time a suggestion is approved by both reviewers and applied. Press Enter after each address."
+        >
+          <UInputTags
+            v-model="notifyEmailsForm"
+            placeholder="name@example.org"
+            add-on-blur
+            add-on-paste
+            :delimiter="/[,;\s]+/"
             class="w-full"
           />
         </UFormField>
@@ -721,6 +735,9 @@ const linkPeopleGroupId = ref<number | undefined>(undefined)
 // Public-suggestion approval flow
 interface ApproverInfo { id: string; display_name: string | null; email: string }
 const approvers = ref<ApproverInfo[]>([])
+// Extra addresses emailed when a public suggestion is applied.
+const notifyEmails = ref<string[]>([])
+const notifyEmailsForm = ref<string[]>([])
 const approving = ref(false)
 const showDenyModal = ref(false)
 const showApproversModal = ref(false)
@@ -748,10 +765,12 @@ function approvalDate(userId: string): string | null {
 
 async function loadApprovers() {
   try {
-    const res = await $fetch<{ approvers: ApproverInfo[] }>('/api/admin/people-group-reports/approvers')
+    const res = await $fetch<{ approvers: ApproverInfo[]; notify_emails: string[] }>('/api/admin/people-group-reports/approvers')
     approvers.value = res.approvers
+    notifyEmails.value = res.notify_emails || []
   } catch {
     approvers.value = []
+    notifyEmails.value = []
   }
 }
 
@@ -791,6 +810,7 @@ function closeApproversModal() {
 
 async function openApproversModal() {
   approverForm.value = [approvers.value[0]?.id, approvers.value[1]?.id]
+  notifyEmailsForm.value = [...notifyEmails.value]
   showApproversModal.value = true
   try {
     const res = await $fetch<{ users: { id: string; display_name: string | null; email: string }[] }>('/api/admin/users')
@@ -805,7 +825,7 @@ async function saveApprovers() {
     savingApprovers.value = true
     await $fetch('/api/admin/people-group-reports/approvers', {
       method: 'PUT',
-      body: { approvers: approverForm.value.filter(Boolean) }
+      body: { approvers: approverForm.value.filter(Boolean), notify_emails: notifyEmailsForm.value }
     })
     toast.add({ title: 'Approvers updated', color: 'success' })
     showApproversModal.value = false
@@ -825,14 +845,17 @@ const newGroupMode = ref(false)
 const peopleGroups = ref<PeopleGroupSummary[]>([])
 const createPeopleGroup = ref<PeopleGroupSummary | null>(null)
 
-const statusOptions = [
-  { label: 'All Statuses', value: null },
+// 'awaiting_mine' is a per-viewer view of the pending queue, offered only to the
+// designated approvers. The monthly summary email links straight to it.
+const statusOptions = computed(() => [
+  { label: 'All Statuses', value: null as string | null },
+  ...(isCurrentUserApprover.value ? [{ label: 'Awaiting My Approval', value: 'awaiting_mine' }] : []),
   { label: 'Awaiting Verification', value: 'awaiting_verification' },
   { label: 'Pending', value: 'pending' },
   { label: 'Approved', value: 'approved' },
   { label: 'Accepted', value: 'accepted' },
   { label: 'Denied', value: 'denied' }
-]
+])
 
 const detailTabs = [
   { label: 'Changes', slot: 'changes', icon: 'i-lucide-file-diff' }
@@ -878,7 +901,13 @@ const canSubmit = computed(() => {
 // Filter
 const filteredReports = computed(() => {
   let filtered = reports.value
-  if (filterStatus.value) {
+  if (filterStatus.value === 'awaiting_mine') {
+    filtered = filtered.filter(r =>
+      r.status === 'pending' &&
+      r.source === 'public' &&
+      !r.approvals?.some(a => a.user_id === currentUserId.value)
+    )
+  } else if (filterStatus.value) {
     filtered = filtered.filter(r => r.status === filterStatus.value)
   }
   if (searchQuery.value) {
@@ -1361,6 +1390,13 @@ async function loadPeopleGroups() {
 
 onMounted(async () => {
   await Promise.all([loadReports(), loadPeopleGroups(), loadApprovers()])
+
+  // Preselect the filter from the link that brought the reviewer here. Approvers
+  // are loaded first so 'awaiting_mine' is a valid option for the ones who have it.
+  const statusParam = route.query.status
+  if (typeof statusParam === 'string' && statusOptions.value.some(o => o.value === statusParam)) {
+    filterStatus.value = statusParam
+  }
 
   const idParam = route.query.id as string | undefined
   if (idParam) {

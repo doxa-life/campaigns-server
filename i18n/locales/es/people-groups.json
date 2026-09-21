@@ -1,22 +1,24 @@
 {
   "peopleGroups": {
     "descriptionTemplates": {
-      "nameCountryPopulationEngagement": "Los {name} de {country}, que suman aproximadamente {population} personas, están {engagementStatus}.",
+      "nameCountryPopulationEngagement": "Los {name} de {country}, que suman aproximadamente {population} personas, son un grupo étnico {engagementStatus}.",
       "nameCountryPopulation": "Los {name} de {country} suman aproximadamente {population} personas.",
       "namePopulation": "Los {name} suman aproximadamente {population} personas.",
       "peopleDescWithAltNames": "Son {peopleDesc} y también pueden ser conocidos como {altNames}.",
       "peopleDesc": "Son {peopleDesc}.",
-      "indigenousClusterBloc": "Son un pueblo Indígena, en el grupo de pueblos {cluster} del bloque de afinidad {bloc}.",
-      "diasporaClusterBloc": "Son un pueblo de la Diáspora, en el grupo de pueblos {cluster} del bloque de afinidad {bloc}.",
-      "indigenousBloc": "Son un pueblo Indígena, en el bloque de afinidad {bloc}.",
-      "diasporaBloc": "Son un pueblo de la Diáspora, en el bloque de afinidad {bloc}.",
-      "indigenousOnly": "Son un pueblo Indígena.",
-      "diasporaOnly": "Son un pueblo de la Diáspora.",
+      "indigenousClusterBloc": "Son un pueblo indígena del grupo de pueblos {cluster} del bloque de afinidad {bloc}.",
+      "diasporaClusterBloc": "Son un pueblo de la diáspora del grupo de pueblos {cluster} del bloque de afinidad {bloc}.",
+      "indigenousBloc": "Son un pueblo indígena del bloque de afinidad {bloc}.",
+      "diasporaBloc": "Son un pueblo de la diáspora del bloque de afinidad {bloc}.",
+      "indigenousOnly": "Son un pueblo indígena.",
+      "diasporaOnly": "Son un pueblo de la diáspora.",
       "blocOnly": "Están en el bloque de afinidad {bloc}.",
       "religion": "Su religión principal es {religion}.",
-      "language": "Hablan principalmente {language}.",
-      "andUnreached": "y No Alcanzados",
-      "butUnreached": "pero No Alcanzados"
+      "language": "Hablan principalmente el {language}.",
+      "statusEngaged": "comprometido",
+      "statusUnengaged": "no comprometido",
+      "statusEngagedUnreached": "comprometido pero aún no alcanzado",
+      "statusUnengagedUnreached": "no comprometido y aún no alcanzado"
     },
     "categories": {
       "engagement": "Estado",
@@ -29,7 +31,7 @@
       "religion": "Religión",
       "rop": "Clasificación de Pueblos (ROP)",
       "resources": "Recursos Disponibles",
-      "workers": "Engagement Criteria",
+      "workers": "Criterios de compromiso",
       "wagf": "WAGF/Doxa",
       "media": "Medios"
     },
@@ -160,7 +162,7 @@
       },
       "engagementStatus": {
         "engaged": "Comprometido",
-        "unengaged": "No Comprometido"
+        "unengaged": "No comprometido"
       },
       "yesNo": {
         "no": "No",
@@ -182,9 +184,9 @@
         "6": "10% o Más Evangélico"
       },
       "strategicPriorityIndex": {
-        "0": "No Comprometido y No Alcanzado",
-        "1": "Comprometido pero No Alcanzado",
-        "2": "Ya Alcanzado"
+        "0": "No alcanzado no comprometido (GENANC)",
+        "1": "Comprometido pero no alcanzado",
+        "2": "Ya alcanzado"
       },
       "lostnessPriorityIndex": {
         "0": "Grupo Étnico Fronterizo No Alcanzado",
@@ -230,6 +232,7 @@
         "H": "Hinduismo",
         "HOF": "Hinduismo - Popular",
         "MOF": "Islam - Popular",
+        "MIB": "Islam - Ibadí",
         "MSH": "Islam - Chiita",
         "MIS": "Islam - Chiita Ismaelita Imamí",
         "MSN": "Islam - Sunita",
@@ -285,6 +288,7 @@
         "H": "Hinduismo, la tradición religiosa predominante del subcontinente indio. Existen muchas formas de hinduismo, cada una con sus propias deidades y creencias.",
         "HOF": "Hinduismo popular, caracterizado por tradiciones locales y cultos a deidades locales veneradas a nivel comunitario.",
         "J": "Judaísmo, una religión desarrollada entre los antiguos hebreos, caracterizada por la creencia en un Dios trascendente que se reveló a Abraham, Moisés y los profetas hebreos, y por una vida religiosa conforme a las Escrituras y las tradiciones rabínicas.",
+        "MIB": "Islam ibadí, la escuela más antigua del islam que sobrevive y una rama distinta tanto del sunismo como del chiismo. Los musulmanes ibadíes son mayoría en Omán y forman comunidades antiguas entre los amazigh de Argelia, Túnez y Libia.",
         "MIS": "Ismaelismo, la segunda rama más grande del islam chiita.",
         "MOF": "Islam popular, un sistema de creencias sincrético que mezcla elementos tradicionales del islam con prácticas supersticiosas como alejar espíritus con conjuros y amuletos mágicos, y recitar versículos del Corán para lograr curaciones milagrosas.",
         "MSH": "Islam chiita, una de las dos principales denominaciones del islam. Los seguidores del islam chiita son llamados 'chiitas'.",

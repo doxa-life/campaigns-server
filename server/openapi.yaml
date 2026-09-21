@@ -27,6 +27,8 @@ tags:
     description: Public people group change suggestions (/updates form)
   - name: Context
     description: Context portfolios — organizational knowledge as markdown sections, readable and writable by AI tools
+  - name: Glossary
+    description: Approved Doxa terminology per language, for translating interface strings and marketing copy
 
 paths:
   /api/app/version:
@@ -2111,6 +2113,189 @@ paths:
           description: Requires the context.edit permission
         '404':
           description: Section or version not found
+
+  /api/glossary:
+    get:
+      tags:
+        - Glossary
+      summary: List the languages the glossary covers
+      description: >
+        Public. Glossary languages are independent of the languages the app
+        itself serves — terminology work on a language starts before it is
+        registered in the app.
+      responses:
+        '200':
+          description: Languages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  languages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          example: ro
+                        name_en:
+                          type: string
+                          example: Romanian
+                        name_local:
+                          type: string
+                          example: română
+                        text_direction:
+                          type: string
+                          enum: [ltr, rtl]
+                        term_count:
+                          type: integer
+                        confirmed_count:
+                          type: integer
+
+  /api/glossary/{lang}:
+    get:
+      tags:
+        - Glossary
+      summary: Approved terminology for one language
+      description: >
+        Public. Each term carries the English annotations a translator needs —
+        the site definition, an example, and why the term matters — alongside
+        the approved wording and its review status.
+
+
+        Terms a reviewer has not yet confirmed are included and labelled
+        `draft`: a term applied consistently is cheap to correct once a reviewer
+        rules on it, while a term with no glossary entry drifts differently in
+        every file. `stale` marks a wording whose English term changed after it
+        was reviewed.
+
+
+        A term known by an acronym carries it separately from the wording:
+        `acronym` is the English one and `acronym_translation` the one the
+        language uses, which is the English acronym unless its reviewer chose
+        another.
+      parameters:
+        - name: lang
+          in: path
+          required: true
+          schema:
+            type: string
+          example: ro
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [json, markdown, md]
+          description: '`markdown` returns the same content as a document.'
+      responses:
+        '200':
+          description: The language's glossary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  language:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      name_en:
+                        type: string
+                      name_local:
+                        type: string
+                      text_direction:
+                        type: string
+                        enum: [ltr, rtl]
+                      bible_id:
+                        type: string
+                        nullable: true
+                        description: The bolls.life edition verses are fetched from.
+                      bible_translation:
+                        type: string
+                        nullable: true
+                        description: >
+                          The translation reviewers report their church
+                          communities use, which biblical phrasing follows.
+                  notes:
+                    type: string
+                    description: >
+                      Markdown. Rules that hold for the whole language rather
+                      than for one term — how the reader is addressed, the verbs
+                      prayer prompts use, which acronyms translate, how numbers
+                      and years are written, which names stay in Latin script.
+                      Apply them alongside the terms. Empty until a reviewer or
+                      an admin writes them.
+                    example: |
+                      ## Register and address
+                      Address the reader as "tú" throughout, except in the privacy policy.
+                  generated_at:
+                    type: string
+                    format: date-time
+                  term_count:
+                    type: integer
+                  confirmed_count:
+                    type: integer
+                  terms:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        term:
+                          type: string
+                          example: Unreached people group
+                        acronym:
+                          type: string
+                          nullable: true
+                          description: The English acronym, for a term known by one.
+                          example: UPG
+                        section:
+                          type: string
+                          example: People-group terminology
+                        fields:
+                          type: array
+                          description: English annotations, in display order.
+                          items:
+                            type: object
+                            properties:
+                              label:
+                                type: string
+                                example: Why it matters
+                              value:
+                                type: string
+                        translation:
+                          type: string
+                          example: grup etnolingvistic neatins cu Evanghelia
+                        acronym_translation:
+                          type: string
+                          nullable: true
+                          description: >
+                            The acronym this language uses: its own where a
+                            reviewer chose one, otherwise the English one. Null
+                            for a term with no acronym.
+                          example: UPG
+                        status:
+                          type: string
+                          enum: [draft, confirmed, flagged]
+                        stale:
+                          type: boolean
+                        note:
+                          type: string
+                          nullable: true
+                        reviewed_by:
+                          type: string
+                          nullable: true
+                        updated_at:
+                          type: string
+                          format: date-time
+                          nullable: true
+            text/markdown:
+              schema:
+                type: string
+        '404':
+          description: No glossary for that language
 
 components:
   securitySchemes:

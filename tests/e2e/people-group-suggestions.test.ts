@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { $fetch, fetch as rawFetch } from '@nuxt/test-utils/e2e'
 import { v4 as uuidv4 } from 'uuid'
 import { getTestDatabase, closeTestDatabase, cleanupTestData } from '../helpers/db'
-import { createAdminUser, type TestUser, type AuthHeaders } from '../helpers/auth'
+import { createAdminUser, createNoRoleUser, type TestUser, type AuthHeaders } from '../helpers/auth'
 
 // Public /updates suggestion flow: submission + email verification,
 // two-approver review, apply per type, and the admin fast-path regression.
@@ -12,6 +12,7 @@ describe('People Group Suggestions (/updates)', async () => {
   let approver1: { user: TestUser; auth: AuthHeaders }
   let approver2: { user: TestUser; auth: AuthHeaders }
   let otherAdmin: { user: TestUser; auth: AuthHeaders }
+  let noRoleUser: { user: TestUser; auth: AuthHeaders }
   let testGroupId: number
 
   // Each submit gets its own IP so the per-IP rate limit never trips across runs.
@@ -48,6 +49,7 @@ describe('People Group Suggestions (/updates)', async () => {
     approver1 = await createAdminUser(sql)
     approver2 = await createAdminUser(sql)
     otherAdmin = await createAdminUser(sql)
+    noRoleUser = await createNoRoleUser(sql)
 
     await sql`
       INSERT INTO app_config (key, value)
@@ -64,7 +66,7 @@ describe('People Group Suggestions (/updates)', async () => {
   })
 
   afterAll(async () => {
-    await sql`DELETE FROM app_config WHERE key = 'people_group_report_approvers'`
+    await sql`DELETE FROM app_config WHERE key IN ('people_group_report_approvers', 'people_group_report_notify_emails')`
     await cleanupTestData(sql)
     await closeTestDatabase()
   })
@@ -267,14 +269,14 @@ describe('People Group Suggestions (/updates)', async () => {
       report = await getReport(id)
       expect(report!.status).toBe('approved')
 
-      // Non-approver admin cannot apply a public suggestion
+      // Applying still needs edit rights
       const applyForbidden = await $fetch(`/api/admin/people-group-reports/${id}/accept`, {
-        method: 'POST', body: {}, ...otherAdmin.auth
+        method: 'POST', body: {}, ...noRoleUser.auth
       }).catch((e) => e)
       expect(applyForbidden.statusCode).toBe(403)
 
-      // Approver applies
-      await $fetch(`/api/admin/people-group-reports/${id}/accept`, { method: 'POST', body: {}, ...approver1.auth })
+      // Any editor can apply once both approvals are on record
+      await $fetch(`/api/admin/people-group-reports/${id}/accept`, { method: 'POST', body: {}, ...otherAdmin.auth })
       report = await getReport(id)
       expect(report!.status).toBe('accepted')
 
@@ -564,6 +566,42 @@ describe('People Group Suggestions (/updates)', async () => {
         method: 'PUT', body: { approvers: [approver1.user.id, uuidv4()] }, ...otherAdmin.auth
       }).catch((e) => e)
       expect(unknown.statusCode).toBe(400)
+    })
+
+    it('stores the extra notification addresses normalized and deduplicated', async () => {
+      const approverIds = [approver1.user.id, approver2.user.id]
+      const saved = await $fetch<{ notify_emails: string[] }>('/api/admin/people-group-reports/approvers', {
+        method: 'PUT',
+        body: { approvers: approverIds, notify_emails: [' Third@Example.org ', 'third@example.org', 'fourth@example.org', ''] },
+        ...otherAdmin.auth
+      })
+      expect(saved.notify_emails).toEqual(['third@example.org', 'fourth@example.org'])
+
+      const listed = await $fetch<{ notify_emails: string[] }>('/api/admin/people-group-reports/approvers', otherAdmin.auth)
+      expect(listed.notify_emails).toEqual(['third@example.org', 'fourth@example.org'])
+
+      // Saving the approvers alone leaves the addresses as they are.
+      await $fetch('/api/admin/people-group-reports/approvers', {
+        method: 'PUT', body: { approvers: approverIds }, ...otherAdmin.auth
+      })
+      const unchanged = await $fetch<{ notify_emails: string[] }>('/api/admin/people-group-reports/approvers', otherAdmin.auth)
+      expect(unchanged.notify_emails).toEqual(['third@example.org', 'fourth@example.org'])
+
+      // An empty list clears them.
+      await $fetch('/api/admin/people-group-reports/approvers', {
+        method: 'PUT', body: { approvers: approverIds, notify_emails: [] }, ...otherAdmin.auth
+      })
+      const cleared = await $fetch<{ notify_emails: string[] }>('/api/admin/people-group-reports/approvers', otherAdmin.auth)
+      expect(cleared.notify_emails).toEqual([])
+    })
+
+    it('rejects a malformed notification address', async () => {
+      const bad = await $fetch('/api/admin/people-group-reports/approvers', {
+        method: 'PUT',
+        body: { approvers: [approver1.user.id, approver2.user.id], notify_emails: ['not-an-email'] },
+        ...otherAdmin.auth
+      }).catch((e) => e)
+      expect(bad.statusCode).toBe(400)
     })
   })
 

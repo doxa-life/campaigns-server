@@ -223,7 +223,7 @@
         "doxa": "Sei sicuro di voler annullare l'iscrizione dagli aggiornamenti generali da Doxa?",
         "product": "Sei sicuro di voler annullare l'iscrizione dalle email sul prodotto?",
         "peopleGroup": "Sei sicuro di voler annullare l'iscrizione dagli aggiornamenti su {campaign}?",
-        "peopleGroupGeneric": "Sei sicuro di voler annullare l'iscrizione dagli aggiornamenti su questo gruppo di persone?",
+        "peopleGroupGeneric": "Sei sicuro di voler annullare l'iscrizione dagli aggiornamenti su questo gruppo etnico?",
         "reminders": "Sei sicuro di voler annullare l'iscrizione dai promemoria di preghiera per {campaign}?",
         "remindersGeneric": "Sei sicuro di voler annullare l'iscrizione da questi promemoria di preghiera?"
       },
@@ -262,7 +262,7 @@
       "unsubscribedFrom": "Hai annullato l'iscrizione a {item}.",
       "justTurnedOff": "Appena disattivato",
       "remindersUnaffected": "I tuoi promemoria di preghiera quotidiani non sono interessati.",
-      "peopleGroupUpdatesLabel": "aggiornamenti su questo gruppo di persone",
+      "peopleGroupUpdatesLabel": "aggiornamenti su questo gruppo etnico",
       "noActiveSubscriptions": "Non hai iscrizioni attive.",
       "current": "Corrente",
       "reminderFormat": {
@@ -485,9 +485,9 @@
     "updateFieldsHint": "Compila solo ciò che deve cambiare — tutto il resto può rimanere vuoto.",
     "criteriaTitle": "Criteri di coinvolgimento",
     "criteria": {
-      "workers_long_term": "Ci sono operatori interculturali residenti tra il gruppo etnico?",
-      "work_in_local_language": "Gli operatori interculturali residenti lavorano nella lingua e nella cultura locali?",
-      "disciple_and_church_multiplication": "Gli operatori interculturali residenti lavorano in un modo che porterà a una chiesa autoctona?"
+      "workers_long_term": "Ci sono operatori transculturali residenti tra il gruppo etnico?",
+      "work_in_local_language": "Gli operatori transculturali residenti lavorano nella lingua e nella cultura locali?",
+      "disciple_and_church_multiplication": "Gli operatori transculturali residenti lavorano in un modo che porterà a una chiesa autoctona?"
     },
     "resourcesTitle": "Risorse disponibili",
     "detailsTitle": "Dettagli del gruppo etnico",
@@ -807,6 +807,7 @@
     "noMessage": "Nessun messaggio",
     "source": {
       "contact_form": "Modulo di contatto",
+      "doxa_life": "doxa.life",
       "inbound_email": "Email",
       "staff": "Staff",
       "feedback": "Feedback"
@@ -1024,7 +1025,7 @@
           }
         },
         "balance": {
-          "label": "La combinazione di Scrittura, punti di preghiera e riflessione risulta equilibrata per un tempo di preghiera di circa 10 minuti.",
+          "label": "La combinazione di Scrittura, spunti di preghiera e riflessione risulta equilibrata per un tempo di preghiera di circa 10 minuti.",
           "scale": {
             "1": "Per niente",
             "3": "Un po'",

@@ -372,6 +372,13 @@
                       @update:model-value="(val: boolean) => saveNotifications({ contact_us: val })"
                     />
                   </div>
+                  <div class="flex items-center justify-between">
+                    <span>Glossary review notifications</span>
+                    <USwitch
+                      :model-value="notificationsForm.glossary_review"
+                      @update:model-value="(val: boolean) => saveNotifications({ glossary_review: val })"
+                    />
+                  </div>
                 </div>
               </CrmFormSection>
 
@@ -520,6 +527,7 @@ interface User {
     stats: { daily: boolean; weekly: boolean; monthly: boolean; yearly: boolean }
     adoption: boolean
     contact_us: boolean
+    glossary_review: boolean
   } | null
 }
 
@@ -736,11 +744,13 @@ type NotificationPrefs = {
   stats: { daily: boolean; weekly: boolean; monthly: boolean; yearly: boolean }
   adoption: boolean
   contact_us: boolean
+  glossary_review: boolean
 }
 const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   stats: { daily: false, weekly: false, monthly: false, yearly: false },
   adoption: false,
-  contact_us: false
+  contact_us: false,
+  glossary_review: false
 }
 const notificationsForm = ref<NotificationPrefs>(structuredClone(DEFAULT_NOTIFICATION_PREFS))
 const notificationsSaving = ref(false)
@@ -761,6 +771,7 @@ async function saveNotifications(patch: Partial<NotificationPrefs>) {
   if (patch.stats) notificationsForm.value.stats = patch.stats
   if (typeof patch.adoption === 'boolean') notificationsForm.value.adoption = patch.adoption
   if (typeof patch.contact_us === 'boolean') notificationsForm.value.contact_us = patch.contact_us
+  if (typeof patch.glossary_review === 'boolean') notificationsForm.value.glossary_review = patch.glossary_review
   notificationsSaving.value = true
   try {
     await $fetch(`/api/admin/users/${selectedUser.value.id}/notifications`, {
@@ -906,7 +917,8 @@ function openUserSlideover(user: User) {
   notificationsForm.value = {
     stats: { ...DEFAULT_NOTIFICATION_PREFS.stats, ...(np?.stats ?? {}) },
     adoption: typeof np?.adoption === 'boolean' ? np.adoption : DEFAULT_NOTIFICATION_PREFS.adoption,
-    contact_us: typeof np?.contact_us === 'boolean' ? np.contact_us : DEFAULT_NOTIFICATION_PREFS.contact_us
+    contact_us: typeof np?.contact_us === 'boolean' ? np.contact_us : DEFAULT_NOTIFICATION_PREFS.contact_us,
+    glossary_review: typeof np?.glossary_review === 'boolean' ? np.glossary_review : DEFAULT_NOTIFICATION_PREFS.glossary_review
   }
   slideoverOpen.value = true
   if (user.hasScopedAccess) loadPeopleGroupAccess(user)

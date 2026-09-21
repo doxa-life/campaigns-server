@@ -15,8 +15,10 @@
       "blocOnly": "They are in the {bloc} affinity bloc.",
       "religion": "Their primary religion is {religion}.",
       "language": "They primarily speak {language}.",
-      "andUnreached": "and Unreached",
-      "butUnreached": "but Unreached"
+      "statusEngaged": "Engaged",
+      "statusUnengaged": "Unengaged",
+      "statusEngagedUnreached": "Engaged but Unreached",
+      "statusUnengagedUnreached": "Unengaged and Unreached"
     },
     "categories": {
       "status": "Status",
@@ -250,6 +252,7 @@
         "H": "Hinduism",
         "HOF": "Hinduism - Folk",
         "MOF": "Islam - Folk",
+        "MIB": "Islam - Ibadi",
         "MSH": "Islam - Shia",
         "MIS": "Islam - Shia Imami Ismaili",
         "MSN": "Islam - Sunni",
@@ -305,6 +308,7 @@
         "H": "Hinduism, the predominant religious tradition of the Indian subcontinent. There are many forms of Hinduism, each with its own deities and beliefs.",
         "HOF": "folk Hinduism, characterized by local traditions and cults of local deities worshiped at the community level.",
         "J": "Judaism, a religion developed among the ancient Hebrews and characterized by belief in one transcendent God who has revealed himself to Abraham, Moses, and the Hebrew prophets and by a religious life in accordance with Scriptures and rabbinic traditions.",
+        "MIB": "Ibadi Islam, the oldest surviving school of Islam and a branch distinct from both Sunni and Shia. Ibadi Muslims are the majority in Oman and form long-established communities among the Amazigh of Algeria, Tunisia and Libya.",
         "MIS": "Ismailism, the second largest branch of Shia Islam.",
         "MOF": "folk Islam, a syncretistic belief system that blends traditional elements of Islam with superstitious practices such as warding off spirits with incantations and magic amulets, and reciting verses of the Qur'an to bring about miraculous healings.",
         "MSH": "Shia Islam, one of two major denominations of Islam. The followers of Shia Islam are called 'Shi'as' or 'Shiites'.",

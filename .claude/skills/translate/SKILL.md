@@ -15,7 +15,8 @@ Propagate recent English i18n changes to all other locale files.
 3. For each target language, read the corresponding locale file (e.g., `i18n/locales/es/common.json`) and update only the changed keys with translated values.
 
 4. Translation guidelines:
-   - Consult the DeepL glossary at `../translation/deepl-glossaries/{code}.tsv` for the target language to ensure consistent terminology
+   - Consult the approved glossary at `GET /api/glossary/{code}` for the target language to ensure consistent terminology. Its `notes` field carries the language's register, acronym policy and number format; apply those too
+   - A term marked `draft` is still authoritative — it is wording nobody has ruled on yet, not wording to ignore
    - Maintain the exact same JSON structure and key paths as the English file
    - Preserve any existing translations for keys that were NOT changed in English
    - For Arabic (`ar`), text direction is RTL — no special JSON handling needed, just translate the string values
