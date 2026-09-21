@@ -74,6 +74,11 @@ class ImbPeopleGroupService {
     return { upserted, removed: deleted.count }
   }
 
+  async getByPeid(peid: string): Promise<ImbPeopleGroup | null> {
+    const [row] = await this.sql<ImbPeopleGroup[]>`SELECT * FROM imb_people_groups WHERE peid = ${peid}`
+    return row ?? null
+  }
+
   async search(query: string, limit = 20): Promise<ImbPeopleGroup[]> {
     const like = `%${query}%`
     return await this.sql<ImbPeopleGroup[]>`

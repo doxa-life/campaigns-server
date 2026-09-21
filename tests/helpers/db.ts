@@ -81,6 +81,7 @@ export async function cleanupTestData(sql: ReturnType<typeof postgres>) {
   await sql`DELETE FROM people_group_reports WHERE reporter_email LIKE 'test-%@example.com' OR reporter_name LIKE 'Test %'`
   await sql`DELETE FROM imb_people_groups WHERE peid LIKE 'TESTPEID%'`
 
+  await sql`DELETE FROM jobs WHERE reference_type = 'people_group' AND reference_id IN (SELECT id FROM people_groups WHERE slug LIKE 'test-%')`
   await sql`DELETE FROM people_groups WHERE slug LIKE 'test-%'`
   await sql`DELETE FROM activity_logs WHERE metadata->>'email' LIKE 'test-%@example.com'`
   await sql`DELETE FROM subscribers WHERE name LIKE 'Test %'`

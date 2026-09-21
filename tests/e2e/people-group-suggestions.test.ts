@@ -346,7 +346,22 @@ describe('People Group Suggestions (/updates)', async () => {
 
       await $fetch(`/api/admin/people-group-reports/${res.id}/approve`, { method: 'POST', body: {}, ...approver1.auth })
       await $fetch(`/api/admin/people-group-reports/${res.id}/approve`, { method: 'POST', body: {}, ...approver2.auth })
-      await $fetch(`/api/admin/people-group-reports/${res.id}/accept`, { method: 'POST', body: {}, ...approver1.auth })
+
+      // The editor's completion fields are required before an add applies.
+      const incomplete = await $fetch(`/api/admin/people-group-reports/${res.id}/accept`, {
+        method: 'POST', body: { fields: { doxa_wagf_region: 'asia' } }, ...approver1.auth
+      }).catch((e) => e)
+      expect(incomplete.statusCode).toBe(400)
+      expect((await getReport(res.id))!.status).toBe('approved')
+
+      await $fetch(`/api/admin/people-group-reports/${res.id}/accept`, {
+        method: 'POST',
+        body: {
+          fields: { doxa_wagf_region: 'asia', doxa_wagf_block: 'south_asia', imb_reg_of_people_1: 'A012', primary_religion: 'MSN' },
+          metadata: { imb_gsec: '1', population: 999, doxa_wagf_region: 'europe' }
+        },
+        ...approver1.auth
+      })
 
       const report = await getReport(res.id)
       expect(report!.status).toBe('accepted')
@@ -359,6 +374,122 @@ describe('People Group Suggestions (/updates)', async () => {
       expect(Number(group!.population)).toBe(750)
       expect(group!.metadata?.imb_peid).toBe('TESTPEID001')
       expect(group!.status).toBe('active')
+      expect(group!.primary_religion).toBe('MSN')
+      expect(group!.metadata?.doxa_wagf_region).toBe('asia')
+      expect(group!.metadata?.doxa_wagf_block).toBe('south_asia')
+      expect(group!.metadata?.imb_reg_of_people_1).toBe('A012')
+      // Auto-populate extras are limited to registry metadata keys; columns
+      // and the form's own fields cannot be overridden through them.
+      expect(group!.metadata?.imb_gsec).toBe('1')
+      expect(group!.metadata?.population).toBeUndefined()
+      // No photo: the region placeholder, flagged as such for the public API.
+      expect(group!.image_url).toBe('https://s3.doxa.life/no-photo-images/asia.jpg')
+      expect(group!.metadata?.imb_has_photo).toBe(false)
+      expect(group!.random_order).not.toBeNull()
+      expect(group!.descriptions).toBeNull()
+    })
+
+    it('stores the description phrase, queues its translation, and uses the deaf placeholder', async () => {
+      const email = testEmail()
+      await sql`INSERT INTO contact_methods (subscriber_id, type, value, verified) VALUES (NULL, 'email', ${email}, true)`
+      const res = await submitSuggestion({
+        type: 'add',
+        reporter_email: email,
+        comments: 'Deaf community survey',
+        suggested_changes: { name: 'Test Deaf Added Group', country_code: 'NGA', population: 12000 }
+      })
+      await $fetch(`/api/admin/people-group-reports/${res.id}/approve`, { method: 'POST', body: {}, ...approver1.auth })
+      await $fetch(`/api/admin/people-group-reports/${res.id}/approve`, { method: 'POST', body: {}, ...approver2.auth })
+      await $fetch(`/api/admin/people-group-reports/${res.id}/accept`, {
+        method: 'POST',
+        body: {
+          fields: {
+            doxa_wagf_region: 'africa',
+            doxa_wagf_block: 'west_africa',
+            imb_reg_of_people_1: 'A017',
+            primary_religion: 'MSN',
+            description_en: 'a Deaf community of Nigeria',
+            imb_alternate_name: 'Nigerian Deaf'
+          }
+        },
+        ...approver2.auth
+      })
+
+      const report = await getReport(res.id)
+      const [group] = await sql`SELECT * FROM people_groups WHERE id = ${report!.people_group_id}`
+      expect(group!.image_url).toBe('https://s3.doxa.life/no-photo-images/deaf-africa.jpg')
+      expect(group!.descriptions).toEqual({ en: 'a Deaf community of Nigeria' })
+      expect(group!.metadata?.imb_alternate_name).toBe('Nigerian Deaf')
+
+      const [job] = await sql`
+        SELECT * FROM jobs
+        WHERE type = 'people_group_translation' AND reference_type = 'people_group' AND reference_id = ${group!.id}
+      `
+      expect(job).toBeDefined()
+      expect(job!.payload.people_group_id).toBe(group!.id)
+      expect(job!.payload.field_key).toBe('descriptions')
+    })
+
+    it("auto-populates an add from the IMB mirror row and the country's other groups", async () => {
+      await sql`
+        INSERT INTO people_groups (name, slug, country_code, region, status, engagement_status, metadata)
+        VALUES (
+          'Test Country Peer', ${'test-country-peer-' + uuidv4().slice(0, 8)}, 'BTN', 'asia', 'active', 'unengaged',
+          ${sql.json({ doxa_wagf_region: 'asia', doxa_wagf_block: 'south_asia', doxa_wagf_member: 'yes', imb_subregion: 'Southern Asia' })}
+        )
+      `
+      await sql`
+        INSERT INTO imb_people_groups (peid, name, country, country_code, region, subregion, population, primary_religion, primary_language, engagement_status, gsec, is_diaspora, photo_url, raw)
+        VALUES ('TESTPEID902', 'Test Mirror Added', 'Bhutan', 'BTN', 'asia', 'Southern Asia', 4321, 'H', 'dzo', 'unengaged', 1, false, NULL, ${sql.json({
+          ROP1Code: 'A012',
+          ROP2Code: 'C0155',
+          GSEC: '1',
+          AlternateNames: 'Mirror Folk, Test Folk',
+          Description: 'a hill community of Bhutan',
+          LocationDescription: 'Karnali province',
+          EvangelicalLevel: '5% or Greater but Less than 10%',
+          CongregationsExist: 'Yes',
+          ChurchPlantingWithinLast2Years: 'Dispersed Church Planting',
+          BibleAvailability: 'Available',
+          JesusFilmAvailability: 'Not Available',
+          HasPhoto: 'N',
+          Indigenous: 'Indigenous',
+          PhotoCredit: '<div style="font-size: 0.8em">No photo available</div>'
+        })})
+        ON CONFLICT (peid) DO NOTHING
+      `
+      const email = testEmail()
+      await sql`INSERT INTO contact_methods (subscriber_id, type, value, verified) VALUES (NULL, 'email', ${email}, true)`
+      const res = await submitSuggestion({
+        type: 'add',
+        reporter_email: email,
+        comments: 'From the IMB list',
+        suggested_changes: { name: 'Test Mirror Added', country_code: 'BTN', population: 4321, imb_peid: 'TESTPEID902' }
+      })
+
+      const proposal = await $fetch<{ fields: Record<string, any>; metadata: Record<string, any>; source: string }>(
+        `/api/admin/people-group-reports/${res.id}/auto-populate`,
+        { method: 'POST', body: {}, ...otherAdmin.auth }
+      )
+      expect(proposal.source).toBe('imb')
+      expect(proposal.fields.imb_reg_of_people_1).toBe('A012')
+      expect(proposal.fields.primary_religion).toBe('H')
+      expect(proposal.fields.region).toBe('asia')
+      expect(proposal.fields.imb_subregion).toBe('southern_asia')
+      expect(proposal.fields.imb_alternate_name).toBe('Mirror Folk, Test Folk')
+      expect(proposal.fields.description_en).toBe('a hill community of Bhutan')
+      expect(proposal.fields.picture_credit).toBeUndefined()
+      expect(proposal.fields.doxa_wagf_region).toBe('asia')
+      expect(proposal.fields.doxa_wagf_block).toBe('south_asia')
+      expect(proposal.fields.doxa_wagf_member).toBeUndefined()
+      expect(proposal.metadata.imb_reg_of_people_2).toBe('C0155')
+      expect(proposal.metadata.imb_evangelical_level).toBe('3')
+      expect(proposal.metadata.imb_congregation_existing).toBe('1')
+      expect(proposal.metadata.imb_church_planting).toBe('1')
+      expect(proposal.metadata.imb_bible_available).toBe(true)
+      expect(proposal.metadata.imb_jesus_film_available).toBe(false)
+      expect(proposal.metadata.imb_location_description).toBe('Karnali province')
+      expect(proposal.metadata.imb_is_indigenous).toBe('1')
     })
 
     it('applies an approved remove by archiving with the reason', async () => {

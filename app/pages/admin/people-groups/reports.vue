@@ -275,13 +275,50 @@
   </CrmLayout>
 
   <!-- Accept Confirmation Modal -->
-  <UModal v-model:open="showAcceptModal" :title="selectedReport?.source === 'public' ? 'Apply Suggestion' : 'Accept Report'">
+  <UModal
+    v-model:open="showAcceptModal"
+    :title="selectedReport?.source === 'public' ? 'Apply Suggestion' : 'Accept Report'"
+    :ui="selectedReport?.type === 'add' ? { content: 'sm:max-w-2xl' } : undefined"
+  >
     <template #body>
       <p v-if="selectedReport?.source === 'public' && selectedReport?.status === 'approved'" class="mb-2">Both approvers have approved this suggestion.</p>
-      <p>This will apply the suggested changes to <strong>{{ selectedReport?.people_group_name }}</strong>. Continue?</p>
+      <!-- An add creates the group, so the fields the public list and the marketing site rely on are completed here -->
+      <template v-if="selectedReport?.type === 'add'">
+        <p>This will create <strong>{{ selectedReport?.people_group_name }}</strong> as a new people group.</p>
+        <div class="add-fields">
+          <div class="flex items-start justify-between gap-3">
+            <p class="add-fields__hint">Auto populate fills these from the IMB record, or with AI for other sources. Review before applying.</p>
+            <UButton
+              icon="i-lucide-sparkles"
+              label="Auto populate"
+              variant="soft"
+              :loading="autoPopulating"
+              @click="autoPopulateAddFields"
+            />
+          </div>
+          <UFormField v-for="key in addReportRequiredFieldKeys" :key="key" :label="fieldLabel(key)" required>
+            <UpdatesSuggestFieldInput v-model="addFields[key]" :field-key="key" />
+          </UFormField>
+          <UFormField v-if="addReportHasPhoto" label="Picture credit">
+            <PictureCreditEditor v-model="addFields.picture_credit" />
+          </UFormField>
+          <UFormField label="Description" hint="Completes “They are …”. Translated automatically after apply.">
+            <UTextarea v-model="addFields.description_en" :rows="2" placeholder="a community of…" class="w-full" />
+          </UFormField>
+          <UFormField v-for="key in addReportOptionalFieldKeys" :key="key" :label="fieldLabel(key)">
+            <UpdatesSuggestFieldInput v-model="addFields[key]" :field-key="key" />
+          </UFormField>
+        </div>
+      </template>
+      <p v-else>This will apply the suggested changes to <strong>{{ selectedReport?.people_group_name }}</strong>. Continue?</p>
       <div class="flex justify-end gap-2 mt-4">
         <UButton variant="outline" @click="() => { showAcceptModal = false }">Cancel</UButton>
-        <UButton color="success" :loading="accepting" @click="acceptReport">{{ selectedReport?.source === 'public' ? 'Apply' : 'Accept' }}</UButton>
+        <UButton
+          color="success"
+          :loading="accepting"
+          :disabled="selectedReport?.type === 'add' && !addFieldsComplete"
+          @click="acceptReport"
+        >{{ selectedReport?.source === 'public' ? 'Apply' : 'Accept' }}</UButton>
       </div>
     </template>
   </UModal>
@@ -546,7 +583,7 @@
 </template>
 
 <script setup lang="ts">
-import { allFields, getField, isTableColumn, type FieldDefinition } from '~/utils/people-group-fields'
+import { allFields, getField, isTableColumn, addReportRequiredFieldKeys, addReportOptionalFieldKeys, type FieldDefinition } from '~/utils/people-group-fields'
 import { defaultReportFieldKeys } from '~/utils/people-group-report-defaults'
 
 definePageMeta({
@@ -624,6 +661,67 @@ const showCreateModal = ref(false)
 const showFieldPicker = ref(false)
 const showLinkModal = ref(false)
 
+// Completion fields for applying an "add" report (see the accept modal).
+// addMetadata carries the IMB detail keys auto-populate proposed; they are
+// stored with the group but never edited here.
+const addFields = ref<Record<string, any>>({})
+const addMetadata = ref<Record<string, any>>({})
+const autoPopulating = ref(false)
+
+const addReportHasPhoto = computed(() => {
+  const report = selectedReport.value
+  if (!report) return false
+  return !!report.suggested_image_key || /^https?:\/\//.test(String(report.suggested_changes?.image_url || ''))
+})
+const addFieldsComplete = computed(() => addReportRequiredFieldKeys.every((key) => !!addFields.value[key]))
+
+function fieldLabel(key: string): string {
+  const field = getField(key)
+  return field ? t(field.labelKey) : key
+}
+
+// The form starts from what the report already carries (an IMB-prefilled
+// religion, for instance); a captured Joshua Project photo gets its source credit.
+function resetAddFields() {
+  const report = selectedReport.value
+  const changes: Record<string, any> = report?.suggested_changes || {}
+  const next: Record<string, any> = {}
+  for (const key of [...addReportRequiredFieldKeys, ...addReportOptionalFieldKeys]) {
+    if (changes[key]) next[key] = String(changes[key])
+  }
+  if (!report?.suggested_image_key && /joshuaproject\.net/.test(String(changes.image_url || ''))) {
+    next.picture_credit = [
+      { text: 'Photo courtesy of ', link: null },
+      { text: 'Joshua Project', link: 'https://www.joshuaproject.net' }
+    ]
+  }
+  addFields.value = next
+  addMetadata.value = {}
+}
+
+async function autoPopulateAddFields() {
+  if (!selectedReport.value) return
+  try {
+    autoPopulating.value = true
+    const res = await $fetch<{ fields: Record<string, any>; metadata: Record<string, any>; source: string; warning?: string }>(
+      `/api/admin/people-group-reports/${selectedReport.value.id}/auto-populate`,
+      { method: 'POST', body: {} }
+    )
+    for (const [key, value] of Object.entries(res.fields)) {
+      if (value !== null && value !== undefined && value !== '') addFields.value[key] = value
+    }
+    addMetadata.value = res.metadata || {}
+    const sourceLabel = res.source === 'imb'
+      ? 'from the IMB record'
+      : res.source === 'ai' ? 'with AI' : 'from other groups in the same country'
+    toast.add({ title: `Fields filled ${sourceLabel}`, description: res.warning, color: res.warning ? 'warning' : 'success' })
+  } catch (err: any) {
+    toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to auto populate', color: 'error' })
+  } finally {
+    autoPopulating.value = false
+  }
+}
+
 // Linking an unlinked report to an existing people group
 const linkPeopleGroupId = ref<number | undefined>(undefined)
 
@@ -682,7 +780,7 @@ async function approveReport() {
     await loadReports()
     // The final approval hands off straight to apply so the changes don't sit unapplied
     if (res.report.status === 'approved' && canEditPeopleGroups.value) {
-      showAcceptModal.value = true
+      confirmAccept()
     }
   } catch (err: any) {
     toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to approve', color: 'error' })
@@ -994,6 +1092,7 @@ watch(slideoverOpen, (open) => {
 
 // Actions
 function confirmAccept() {
+  if (selectedReport.value?.type === 'add') resetAddFields()
   showAcceptModal.value = true
 }
 
@@ -1001,11 +1100,16 @@ async function acceptReport() {
   if (!selectedReport.value) return
   try {
     accepting.value = true
+    const isAdd = selectedReport.value.type === 'add'
     const res = await $fetch<{ report: Report }>(`/api/admin/people-group-reports/${selectedReport.value.id}/accept`, {
       method: 'POST',
-      body: {}
+      body: isAdd ? { fields: addFields.value, metadata: addMetadata.value } : {}
     })
-    toast.add({ title: 'Report accepted', description: 'Changes applied to people group', color: 'success' })
+    toast.add({
+      title: 'Report accepted',
+      description: isAdd ? 'People group created' : 'Changes applied to people group',
+      color: 'success'
+    })
     showAcceptModal.value = false
     selectedReport.value = res.report
     await loadReports()
@@ -1505,5 +1609,16 @@ onMounted(async () => {
     transform: rotate(90deg);
     align-self: center;
   }
+}
+.add-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.add-fields__hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--ui-text-muted);
 }
 </style>

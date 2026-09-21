@@ -66,9 +66,10 @@ export default defineEventHandler(async (event): Promise<{ peopleGroups: Onboard
   for (const r of rows) {
     const promptsPending = !r.has_day_in_life || Number(r.content_count) < 365
     const descriptions = r.descriptions || {}
-    const translationPendingLocales = locales.filter(
-      l => l !== 'en' && !(descriptions[l] && descriptions[l].trim())
-    )
+    // Only a group with an English description has anything to translate.
+    const translationPendingLocales = descriptions.en?.trim()
+      ? locales.filter(l => l !== 'en' && !(descriptions[l] && descriptions[l].trim()))
+      : []
     const needsTags = (r.tags || []).filter(t => t.startsWith('needs:'))
 
     if (!promptsPending && translationPendingLocales.length === 0 && needsTags.length === 0) {

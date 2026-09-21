@@ -112,34 +112,45 @@ export class PeopleGroupService {
 
     const tagsArr = normalizeTags(tags)
 
-    const [row] = await this.sql`
-      INSERT INTO people_groups (
-        name, slug, image_url, metadata, descriptions, tags,
-        country_code, region, latitude, longitude, population,
-        status, engagement_status, primary_religion, primary_language,
-        joshua_project_id
-      )
-      VALUES (
-        ${name},
-        ${slug},
-        ${image_url},
-        ${metadata ? this.sql.json(metadata) : null},
-        ${descriptions ? this.sql.json(descriptions) : null},
-        ${this.sql.json(tagsArr)},
-        ${country_code},
-        ${region},
-        ${latitude},
-        ${longitude},
-        ${population},
-        ${status},
-        ${engagement_status},
-        ${primary_religion},
-        ${primary_language},
-        ${joshua_project_id}
-      )
-      RETURNING *
-    `
-    return row as PeopleGroup
+    // random_order is the group's slot in the daily people-group rotation:
+    // the next free number. Concurrent creates can collide on the unique
+    // index, in which case the insert is retried.
+    for (let attempt = 1; ; attempt++) {
+      try {
+        const [row] = await this.sql`
+          INSERT INTO people_groups (
+            name, slug, image_url, metadata, descriptions, tags,
+            country_code, region, latitude, longitude, population,
+            status, engagement_status, primary_religion, primary_language,
+            joshua_project_id, random_order
+          )
+          VALUES (
+            ${name},
+            ${slug},
+            ${image_url},
+            ${metadata ? this.sql.json(metadata) : null},
+            ${descriptions ? this.sql.json(descriptions) : null},
+            ${this.sql.json(tagsArr)},
+            ${country_code},
+            ${region},
+            ${latitude},
+            ${longitude},
+            ${population},
+            ${status},
+            ${engagement_status},
+            ${primary_religion},
+            ${primary_language},
+            ${joshua_project_id},
+            (SELECT COALESCE(MAX(random_order), 0) + 1 FROM people_groups)
+          )
+          RETURNING *
+        `
+        return row as PeopleGroup
+      } catch (error: any) {
+        if (error.code === '23505' && error.constraint_name === 'idx_people_groups_random_order' && attempt < 3) continue
+        throw error
+      }
+    }
   }
 
   async getPeopleGroupById(id: number): Promise<PeopleGroup | null> {
