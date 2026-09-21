@@ -20,6 +20,9 @@ describe('SendGrid inbound webhook', async () => {
     html?: string
     text?: string
     messageId?: string
+    headers?: string[]
+    // Top-level MIME type; a delivery report uses multipart/report.
+    contentType?: string
   }): string {
     const boundary = `b-${uuidv4().slice(0, 8)}`
     return [
@@ -28,8 +31,9 @@ describe('SendGrid inbound webhook', async () => {
       `To: ${opts.to}`,
       `Subject: ${opts.subject}`,
       `Date: ${new Date().toUTCString()}`,
+      ...(opts.headers || []),
       'MIME-Version: 1.0',
-      `Content-Type: multipart/alternative; boundary="${boundary}"`,
+      `Content-Type: ${opts.contentType || 'multipart/alternative'}; boundary="${boundary}"`,
       '',
       `--${boundary}`,
       'Content-Type: text/plain; charset=utf-8',
@@ -256,5 +260,60 @@ describe('SendGrid inbound webhook', async () => {
     const res = await postInbound(parseForm(mime, bounceAddress, email))
     expect(res.status).toBe('ignored')
     expect(res.reason).toBe('bounce_address')
+  })
+
+  // An Exchange out-of-office reply is `Auto-Submitted: auto-generated` with a blank
+  // envelope sender, and goes to the reminder's From address rather than the return-path.
+  it('auto-closes an Exchange out-of-office reply to the reminder sender without notifying', async () => {
+    const email = `sg-oof-${uuidv4().slice(0, 8)}@example.com`
+    const [sub] = await sql`
+      INSERT INTO subscribers (tracking_id, profile_id, name)
+      VALUES (${uuidv4()}, ${uuidv4()}, ${'Test SendGrid ' + email})
+      RETURNING id
+    `
+    createdSubscriberIds.push(sub!.id)
+    await sql`
+      INSERT INTO contact_methods (subscriber_id, type, value, verified)
+      VALUES (${sub!.id}, 'email', ${email}, true)
+    `
+    const recipient = `noreply@${INBOX_DOMAIN}`
+    const mime = buildMime({
+      from: email,
+      to: recipient,
+      subject: 'Automatic reply: Prayer Reminder - Persians',
+      html: '<p>I am out of the office until Monday.</p>',
+      text: 'I am out of the office until Monday.',
+      headers: ['Auto-Submitted: auto-generated', 'X-Auto-Response-Suppress: All'],
+    })
+
+    const res = await postInbound(parseForm(mime, recipient, ''))
+    expect(res.status).toBe('contact')
+    const [convo] = await sql`SELECT status, needs_review FROM conversations WHERE id = ${res.conversation_id}`
+    expect((convo as any).status).toBe('closed')
+    expect((convo as any).needs_review).toBe(false)
+    const msgs = await sql`SELECT id FROM conversation_messages WHERE conversation_id = ${res.conversation_id} AND status = 'received'`
+    expect(msgs.length).toBe(1)
+    const jobs = await sql`SELECT payload FROM jobs WHERE type = 'inbox_email' AND reference_id = ${res.conversation_id}`
+    expect(jobs.map((j: any) => j.payload.kind)).toEqual([])
+  })
+
+  it('keeps a delivery status report open for review', async () => {
+    const email = `sg-dsn-${uuidv4().slice(0, 8)}@example.com`
+    const mime = buildMime({
+      from: email,
+      to: CONTACT_ADDRESS,
+      subject: 'Undeliverable: Prayer Reminder - Persians',
+      text: 'Delivery has failed.',
+      headers: ['Auto-Submitted: auto-generated'],
+      contentType: 'multipart/report; report-type=delivery-status',
+    })
+
+    const res = await postInbound(parseForm(mime, CONTACT_ADDRESS, email))
+    expect(res.status).toBe('contact')
+    await trackSubscriberOf(res.conversation_id)
+    const [convo] = await sql`SELECT status FROM conversations WHERE id = ${res.conversation_id}`
+    expect((convo as any).status).toBe('open')
+    const jobs = await sql`SELECT payload FROM jobs WHERE type = 'inbox_email' AND reference_id = ${res.conversation_id}`
+    expect(jobs.map((j: any) => j.payload.kind)).toContain('new_conversation')
   })
 })

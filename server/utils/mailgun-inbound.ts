@@ -134,10 +134,12 @@ export function isVacationAutoReply(headers: InboundHeaders, fromEmail: string |
   const local = (fromEmail || '').split('@')[0]?.toLowerCase() || ''
   if (['mailer-daemon', 'no-reply', 'noreply', 'postmaster'].includes(local)) return false
 
-  // RFC 3834: vacation responders mark themselves `auto-replied`.
-  // Bounces / DSNs use `auto-generated`, which we deliberately do NOT match.
+  // RFC 3834: vacation responders mark themselves `auto-replied`. Exchange marks its
+  // out-of-office replies `auto-generated` — the value DSNs use too — so that value
+  // only counts when the message isn't a delivery report.
   const autoSubmitted = (headers.get('auto-submitted') || '').toLowerCase()
   if (autoSubmitted === 'auto-replied') return true
+  if (autoSubmitted === 'auto-generated' && !isDeliveryReport(headers)) return true
 
   // Non-standard but common auto-reply markers.
   const precedence = (headers.get('precedence') || '').toLowerCase()
@@ -145,6 +147,12 @@ export function isVacationAutoReply(headers: InboundHeaders, fromEmail: string |
   if (headers.get('x-autoreply') || headers.get('x-autorespond')) return true
 
   return false
+}
+
+/** A bounce / delivery status report (RFC 6522 `multipart/report`). */
+function isDeliveryReport(headers: InboundHeaders): boolean {
+  const contentType = (headers.get('content-type') || '').toLowerCase()
+  return contentType.includes('multipart/report') || contentType.includes('report-type=delivery-status')
 }
 
 export function parseSpamScore(headers: InboundHeaders, fields: Record<string, any>): number | null {

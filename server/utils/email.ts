@@ -108,7 +108,7 @@ function getTransporter(): Transporter {
 // request is bounded by a manually-cleared AbortController — AbortSignal.timeout()
 // also leaks per call under Bun, so the timer is cleared the instant the send settles.
 async function sendViaMailgunHttp(
-  mailOptions: { from: string; to: string; subject: string; html: string; text: string },
+  mailOptions: { from: string; to: string; subject: string; html: string; text: string; headers?: Record<string, string> },
   config: ReturnType<typeof getEmailConfig>
 ): Promise<{ messageId?: string }> {
   if (!config.mailgunApiKey || !config.mailgunDomain) {
@@ -125,6 +125,9 @@ async function sendViaMailgunHttp(
   form.append('subject', mailOptions.subject)
   form.append('html', mailOptions.html)
   form.append('text', mailOptions.text)
+  for (const [name, value] of Object.entries(mailOptions.headers || {})) {
+    form.append(`h:${name}`, value)
+  }
 
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 30000)
@@ -152,6 +155,7 @@ export interface EmailOptions {
   html: string
   text?: string
   from?: string
+  headers?: Record<string, string>
 }
 
 export interface TemplateEmailOptions {
@@ -181,7 +185,8 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
       subject: options.subject,
       html: options.html,
-      text: options.text || options.html.replace(/<[^>]*>/g, '')
+      text: options.text || options.html.replace(/<[^>]*>/g, ''),
+      headers: options.headers
     }
 
     const provider = config.provider.toLowerCase()
