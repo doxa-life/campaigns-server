@@ -3,18 +3,28 @@ import { handleApiError } from '#server/utils/api-helpers'
 
 /**
  * POST /api/admin/glossary/terms — add an English term.
- * Body: { section_id, term, fields?: [{ label, value }], seed? }
+ * Body: { section_id, term, acronym?, fields?: [{ label, value }], seed? }
  *
  * The term starts with no wording in any language; each one is drafted by the
  * next AI populate for that language, or written by a reviewer.
  */
 export default defineEventHandler(async (event) => {
   const auth = await requirePermission(event, 'glossary.manage')
-  const body = await readBody<{ section_id?: string; term?: string; fields?: GlossaryField[]; seed?: boolean }>(event)
+  const body = await readBody<{
+    section_id?: string
+    term?: string
+    acronym?: string | null
+    fields?: GlossaryField[]
+    seed?: boolean
+  }>(event)
 
   const term = (body?.term || '').trim()
   if (!term || term.length > 200) {
     throw createError({ statusCode: 400, statusMessage: 'Term is required and must be at most 200 characters' })
+  }
+  const acronym = (body?.acronym || '').trim() || null
+  if (acronym && acronym.length > 20) {
+    throw createError({ statusCode: 400, statusMessage: 'An acronym must be at most 20 characters' })
   }
   if (!body?.section_id) {
     throw createError({ statusCode: 400, statusMessage: 'section_id is required' })
@@ -27,6 +37,7 @@ export default defineEventHandler(async (event) => {
     const created = await createTerm({
       section_id: body.section_id,
       term,
+      acronym,
       fields: body.fields,
       seed: body.seed
     })

@@ -28,6 +28,7 @@
     "Vision and goals language": "Язык видения и целей"
   },
   "field_labels": {
+    "Context": "Контекст на английском",
     "Meaning": "Значение на английском",
     "Site definition": "Определение на сайте (английский)",
     "Site definition (Vision page — \"What is Engagement?\")": "Определение на странице Vision (английский)",
@@ -44,6 +45,8 @@
     "edit_local": "Изменить",
     "flag_local": "Отметить для обсуждения",
     "final_term_local": "Окончательный русский термин",
+    "acronym_en": "Acronym",
+    "acronym_local": "Аббревиатура",
     "translator_notes_local": "Примечания переводчика",
     "submit_local": "Я завершил(а) эту проверку",
     "submitted_local": "Проверка отправлена"
@@ -76,29 +79,29 @@
       "value": "народ",
       "note": "The reviewer's glossary heads the entry «Народ (Этнолингвистическая Группа)» and uses народ in every example («2 085 невовлечённых народов»); the human translation of the DOXA Access and Alignment document does the same («6 600 народов (этнолингвистических групп)»). It replaces этническая группа, still the campaigns server's wording in 61 places, and the Official adoption certificate's «не охваченная благовестием группа людей». The reviewer notes that народ also carries the biblical register of Rev. 7:9."
     },
-    "Unreached people group (UPG)": {
-      "value": "недостигнутый народ (UPG)",
+    "Unreached people group": {
+      "value": "недостигнутый народ",
       "note": "недостигнутый is settled across every Russian source — the glossary, the Access and Alignment translation, and the certificates. The Latin acronym is kept per the review form's instruction; see UUPG for the reviewer's counter-proposal."
     },
-    "Unengaged (people group)": {
+    "Unengaged": {
       "value": "невовлечённый",
       "note": "The glossary and the Access and Alignment translation agree, and the campaigns server already says невовлечённый. The marketing-site reviewer wrote незадействованный throughout their corrections to doxa.life/ru; that is the outlier."
     },
-    "Unengaged unreached people group (UUPG)": {
-      "value": "недостигнутый невовлечённый народ (UUPG)",
+    "Unengaged unreached people group": {
+      "value": "недостигнутый невовлечённый народ",
       "note": "The glossary's heading reads «Недостигнутый и Невовлеченный Народ», but its own examples drop the и («2 085 недостигнутых невовлечённых народов»), as does the Access and Alignment translation; the shorter form is taken. Flagged for the acronym: the reviewer's note calls ННН an established abbreviation, which would replace the Latin acronym here and in UPG and CPM. Every other Russian source writes the Latin form.",
       "status": "flagged"
     },
-    "Under-engaged (people group)": {
+    "Under-engaged": {
       "value": "недостаточно вовлечённый",
       "note": "The glossary and the Access and Alignment translation agree, and it holds the вовлеч- family together with the server's existing «Статус вовлечённости»."
     },
-    "Frontier people (group)": {
+    "Frontier people": {
       "value": "народ фронтира",
       "note": "The glossary's heading, and the marketing-site reviewer asked for exactly this change («Replace Люди на границу with Народ Фронтира»). The Access and Alignment translation says фронтирные народы; the glossary wins. приграничный, which the earlier draft used and which the glossary's own rationale paragraph still argues over, was rejected by the site reviewer."
     },
     "Ethnolinguistic group": "этнолингвистическая группа",
-    "Engagement / engaged (people group)": {
+    "Engagement / engaged": {
       "value": "вовлечение / вовлечённый",
       "note": "The family the campaigns server already ships — вовлечён / не вовлечён / Статус вовлечённости — and the one the glossary and the Access and Alignment translation both use."
     },
@@ -111,15 +114,15 @@
       "value": "евангельское вовлечение",
       "note": "Distinct from доступ к Евангелию: the reviewer's note is explicit that access is availability and engagement is the work itself. Replaces проповедь Евангелия, which collapses the distinction."
     },
-    "Church-planting movement (CPM)": {
-      "value": "движение по открытию церквей (CPM)",
+    "Church-planting movement": {
+      "value": "движение по открытию церквей",
       "note": "The glossary's heading, corroborated by the marketing-site reviewer's corrected vision bullet. The Access and Alignment translation says движение насаждения церквей throughout and the campaigns server says «работа по насаждению церквей»; the glossary wins, so both will need aligning."
     },
     "Indigenous church": {
       "value": "поместная церковь",
       "note": "The glossary and the Access and Alignment translation agree. It replaces местная церковь (merely local) and коренная церковь; the reviewer's note warns against any reading that suggests indigenous religion."
     },
-    "The five \"selfs\" (of an indigenous church)": {
+    "The five \"selfs\"": {
       "value": "пять признаков поместной церкви",
       "note": "The reviewer lists them as самораспространяющаяся, самоуправляемая, самофинансируемая, имеющая свои богословские ресурсы, самостоятельно участвующая в миссионерской работе."
     },
@@ -131,8 +134,8 @@
       "value": "межкультурные служители",
       "note": "The Access and Alignment translation says межкультурные миссионеры; the glossary's служители wins. The reviewer's note is that межкультурный is the load-bearing word — these are workers from another culture, not from the people being reached."
     },
-    "Apostolic (pioneering) effort": {
-      "value": "апостольское (первопроходческое) служение",
+    "Apostolic effort": {
+      "value": "апостольское первопроходческое служение",
       "note": "The Access and Alignment translation says апостольское (пионерское) служение; the glossary's первопроходческое wins and pairs with труд первопроходца. The reviewer's note: апостольский here means sent or pioneering, not a church office."
     },
     "Pioneer work": "труд первопроходца",
@@ -145,12 +148,12 @@
       "value": "партнёры, не находящиеся на месте",
       "note": "The Access and Alignment translation says нерезидентные партнёры; the glossary's plain phrase wins."
     },
-    "Broader engagement (components)": {
+    "Broader engagement": {
       "value": "расширенное вовлечение",
       "note": "Both Russian sources agree. The English entry's «(components)» is the list of what it contains, not part of the term."
     },
     "Diaspora": "диаспора",
-    "Daily prayer (for a people group)": {
+    "Daily prayer": {
       "value": "ежедневная молитва",
       "note": "The reviewer's note: ежедневно is deliberate and tied to the 24-hour arithmetic, so it must not soften to регулярная or периодическая."
     },
@@ -171,7 +174,7 @@
       "value": "Господь жатвы",
       "note": "The reviewer's wording. Note it is not the Synodal text of Matt. 9:38, which reads «молите Господина жатвы» — Господин, not Господь. Господь жатвы is used where the phrase is a term; a quoted verse keeps the Synodal wording, as the CMS pages now do."
     },
-    "Adopt (an unengaged people group)": {
+    "Adopt": {
       "value": "взять ответственность за невовлечённый народ",
       "note": "Three sources, three words: the glossary's взять ответственность, the adoption certificates' «принял(а) на молитвенное попечение» and «усыновление в молитве», and the Access and Alignment translation's «молитвенное усыновление народа». The glossary wins, and the reviewer's note is explicit that the family-law sense of усыновление is to be avoided. Flagged because the certificates are already printed and the server still says «ресурсы усыновления»: a noun for the commitment needs settling alongside the verb.",
       "status": "flagged"

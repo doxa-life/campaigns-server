@@ -47,6 +47,7 @@
     "Vision and goals language": "Lenguaje de visión y metas"
   },
   "field_labels": {
+    "Context": "Contexto en inglés",
     "Meaning": "Significado en inglés",
     "Site definition": "Definición del sitio (en inglés)",
     "Site definition (Vision page — \"What is Engagement?\")": "Definición del sitio, página Visión (en inglés)",
@@ -67,6 +68,8 @@
     "edit_local": "Modificar",
     "final_term_en": "Final Spanish term",
     "final_term_local": "Término final en español",
+    "acronym_en": "Acronym",
+    "acronym_local": "Sigla",
     "translator_notes_en": "Translator notes",
     "translator_notes_local": "Notas del traductor"
   },
@@ -142,28 +145,29 @@
       "value": "grupo étnico",
       "note": "Asked whether \"grupo de personas\" should stay, the reviewer answered \"grupo étnico\". It carries the ethnolinguistic sense more tightly and is the base the Spanish acronyms build on: \"if we will use the term 'grupo étnico' instead of 'grupo de personas', we can replace [PNANC] for 'GENANC'\". The marketing site's Definitions draft still reads \"pueblo étnico\"; the reviewed glossary supersedes it."
     },
-    "Unreached people group (UPG)": {
+    "Unreached people group": {
       "value": "grupo étnico no alcanzado",
       "note": "The reviewer's policy is a Spanish acronym in place of the English one, but the reviewed glossary gives none for UPG, so none is set. The marketing Definitions draft abbreviated it PNA (pueblo étnico no alcanzado), which predates the switch to grupo étnico."
     },
-    "Unengaged (people group)": {
+    "Unengaged": {
       "value": "grupo étnico no comprometido",
       "note": "Asked to review \"no comprometido\" because it can sound as if the group itself lacks commitment, the reviewer kept it: \"'comprometido' is the right word to engage someone with responsibility and commitment. 'Involucramiento' means to involve someone in a project or an action. For that reason, 'comprometido' is a correct term.\" The marketing Definitions draft's \"sin compromiso\" and \"grupo desvinculado\" are superseded. Lowercase in running text: \"In Spanish, 'Unengaged or Unreached' go as lowercase letters.\""
     },
-    "Unengaged unreached people group (UUPG)": {
-      "value": "grupo étnico no alcanzado no comprometido (GENANC)",
+    "Unengaged unreached people group": {
+      "value": "grupo étnico no alcanzado no comprometido",
+      "acronym": "GENANC",
       "note": "A Spanish acronym replaces UUPG everywhere: \"I have used a Spanish abbreviation instead of the English one … Please add this where all the UUPG are in the English version.\" The reviewer first worked with PNANC (pueblo no alcanzado no comprometido) on the marketing site, then, once grupo étnico was chosen, offered \"'GENANC' (grupo étnico no alcanzado no comprometido) or 'GNANC' (grupo no alcanzado no comprometido)\"; the reviewed glossary uses GENANC throughout (\"Busca un GENANC\", \"2.085 GENANC\"). As a technical term or acronym expansion use the form without \"y\"; in descriptive prose \"grupo étnico no alcanzado y no comprometido\" reads more naturally."
     },
-    "Under-engaged (people group)": {
+    "Under-engaged": {
       "value": "grupo étnico poco comprometido",
       "note": "Conveys that work has begun but is insufficient in scale, not that the people are indifferent, and keeps the comprometido family together. The marketing form's worked example (\"pocos comprometidos\" → \"pocos alcanzados\") is not followed; the reviewed glossary keeps \"poco comprometido\"."
     },
-    "Frontier people (group)": {
+    "Frontier people": {
       "value": "grupo fronterizo",
       "note": "The reviewed glossary headword; its Definitions draft reads \"grupo étnico fronterizo\" in full. For the homepage statistic label the reviewer corrected \"gente de la frontera\" to \"gente fronteriza\"."
     },
     "Ethnolinguistic group": "grupo etnolingüístico",
-    "Engagement / engaged (people group)": {
+    "Engagement / engaged": {
       "value": "compromiso / comprometido",
       "note": "Asked to consider \"compromiso\" carefully because it can blur engagement as technical resident ministry with commitment as attitude, the reviewer confirmed it: \"'comprometido' is the right word to engage someone with responsibility and commitment. 'Involucramiento' means to involve someone in a project or an action.\" The verb is \"comprometer\" (\"Comprometer a todos los grupos étnicos no comprometidos para 2033\"); \"involucrar\" and \"participación\" from the earlier marketing drafts are superseded."
     },
@@ -173,15 +177,16 @@
     },
     "Gospel access": "acceso al evangelio",
     "Gospel engagement": "compromiso con el evangelio",
-    "Church-planting movement (CPM)": {
-      "value": "movimiento de plantación de iglesias (MPI)",
+    "Church-planting movement": {
+      "value": "movimiento de plantación de iglesias",
+      "acronym": "MPI",
       "note": "Spanish acronym MPI, following the reviewer's policy of replacing English acronyms; the reviewed glossary uses MPI in both the CPM entry and the unengaged definition."
     },
     "Indigenous church": {
       "value": "iglesia autóctona",
       "note": "\"Autóctona\" means locally rooted and self-governing; the marketing Vision-page draft's \"iglesia indígena\" is superseded by the reviewed glossary."
     },
-    "The five \"selfs\" (of an indigenous church)": {
+    "The five \"selfs\"": {
       "value": "los cinco «auto» de una iglesia autóctona",
       "note": "The five per the reviewed glossary: autogobierno, autosustento, autopropagación, autoteologización y automisionología. The marketing Definitions draft's variants (autosostenimiento, automisión) are superseded."
     },
@@ -190,7 +195,7 @@
       "value": "obreros transculturales",
       "note": "\"Obreros\" is the reviewed glossary's word (\"Los obreros transculturales son residentes\"); the marketing Vision-page draft reads \"trabajadores transculturales\"."
     },
-    "Apostolic (pioneering) effort": "esfuerzo apostólico (pionero)",
+    "Apostolic effort": "esfuerzo apostólico pionero",
     "Pioneer work": {
       "value": "trabajo pionero",
       "note": "The reviewed glossary headword; the marketing Definitions draft reads \"la obra pionera\"."
@@ -204,12 +209,12 @@
       "value": "asociados no residentes",
       "note": "The marketing Definitions draft reads \"socios no residentes\"; the reviewed glossary settles on \"asociados\", matching \"misioneros asociados a DOXA\" and \"Asociarse\" for Partner."
     },
-    "Broader engagement (components)": {
+    "Broader engagement": {
       "value": "componentes de un compromiso más amplio",
       "note": "Asked whether \"componentes de mayor compromiso\" could be smoothed, the reviewer chose \"componentes de un compromiso más amplio\", which maps \"broader engagement\" directly. The marketing Definitions draft's \"una participación más amplia\" is superseded."
     },
     "Diaspora": "diáspora",
-    "Daily prayer (for a people group)": "oración diaria (por un grupo étnico específico)",
+    "Daily prayer": "oración diaria",
     "Intercessor / intercessors": "intercesor / intercesores",
     "Intercessory prayer": "oración intercesora",
     "Daily prayer guide / daily prayer points": {
@@ -221,7 +226,7 @@
       "value": "Señor de la cosecha",
       "note": "The reviewed glossary's wording, which matches the NVI (Mateo 9:38); Reina-Valera 1960 reads \"Señor de la mies\", and the glossary's own gloss keeps that word (\"mies = personas listas para responder\"). The reviewer did not record which Bible translation their community uses."
     },
-    "Adopt (an unengaged people group)": "adoptar",
+    "Adopt": "adoptar",
     "Pray, give, and send": {
       "value": "orar, dar y enviar",
       "note": "In the triad \"dar\" stays (\"orando, dando y preparando el camino\"); as a standalone footer label the reviewer replaced \"DAR\" with \"DONAR\", and the noun is \"donaciones\" (\"Asociarse mediante la oración, las donaciones y el envío\")."

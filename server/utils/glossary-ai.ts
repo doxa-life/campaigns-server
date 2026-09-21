@@ -18,8 +18,15 @@ import type { GlossaryField, GlossaryLanguage } from '../database/glossary'
 
 export interface TermToDraft {
   term: string
+  acronym: string | null
   section_title: string
   fields: GlossaryField[]
+}
+
+/** A proposed wording; the acronym is the language's own or null for the English one. */
+export interface DraftedWording {
+  translation: string
+  acronym: string | null
 }
 
 function termDecisions(language: string, bibleTranslation: string | null): string {
@@ -28,7 +35,7 @@ function termDecisions(language: string, bibleTranslation: string | null): strin
 2. Reproduce every numeric threshold and distinction exactly: ≤ 2%, ≤ 1%, ≤ 0.1%, the 100+ daily-intercessor goal, and the church-planting-movement measures.
 3. Never introduce a 24-hour prayer coverage or 144-intercessor framing. That model is retired; the goal is 100+ daily intercessors.
 4. Keep "Doxa.Life" and "DOXA" unchanged.
-5. Retain the acronyms UPG, UUPG and CPM alongside the ${language} phrase rather than inventing new ones.
+5. A term given with an acronym keeps that English acronym by default. Return an acronym for it only where ${language} has an established acronym of its own, and never invent one.
 6. Do not translate proper nouns or organisation names, including World Assemblies of God Fellowship.
 7. Give verbs in the infinitive.
 8. Render the five "selfs" of an indigenous church as adjectives, not nouns.
@@ -37,7 +44,7 @@ function termDecisions(language: string, bibleTranslation: string | null): strin
 11. ${bibleTranslation
       ? `For biblical phrases, follow the wording of ${bibleTranslation}.`
       : 'Biblical phrases are provisional: propose the most widely recognised wording, which a local reviewer will align to the Bible translation their community uses.'}
-12. Propose the term itself, not a definition or an explanation of it.`
+12. Propose the term itself — not a definition, an explanation, or the phrase given as its Context — and add nothing in parentheses. Where the ${language} word cannot stand alone, give the full phrase in plain words.`
 }
 
 function termPrompt(language: string, bibleTranslation: string | null, notes: string, count: number): string {
@@ -47,19 +54,20 @@ function termPrompt(language: string, bibleTranslation: string | null, notes: st
     ? `\n\nRules already settled for ${language}. They outrank the general decisions above wherever the two disagree:\n${notes.trim()}`
     : ''
 
-  return `You are a missiological terminologist producing a ${language} glossary for a Christian prayer platform. For each English glossary entry you are given the term, its section, and the annotations a human reviewer will judge it against — the site definition or meaning, an example of real usage, and why the term matters.
+  return `You are a missiological terminologist producing a ${language} glossary for a Christian prayer platform. For each English glossary entry you are given the term, its acronym where it has one, its section, and the annotations a human reviewer will judge it against — the site definition or meaning, an example of real usage, and why the term matters.
 
 ${termDecisions(language, bibleTranslation)}${notesBlock}
 
-Return a JSON object of the form {"terms": [{"term": "<the English term, copied exactly>", "translation": "<the ${language} term>"}]} with exactly ${count} entries, one per English term, in the order given. Add no commentary.`
+Return a JSON object of the form {"terms": [{"term": "<the English term, copied exactly>", "translation": "<the ${language} term, without any acronym>", "acronym": "<the established ${language} acronym, only for a term given with one and only where it differs from the English>"}]} with exactly ${count} entries, one per English term, in the order given. Omit "acronym" otherwise. Add no commentary.`
 }
 
 interface DraftedTerm {
   term: string
   translation: string
+  acronym?: string
 }
 
-function parseDraftedTerms(content: string, expected: TermToDraft[]): Map<string, string> {
+function parseDraftedTerms(content: string, expected: TermToDraft[]): Map<string, DraftedWording> {
   const raw = content.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '')
   const parsed = JSON.parse(raw)
   const rows: DraftedTerm[] = parsed?.terms
@@ -68,13 +76,14 @@ function parseDraftedTerms(content: string, expected: TermToDraft[]): Map<string
     throw new Error(`Expected ${expected.length} drafted terms, got ${Array.isArray(rows) ? rows.length : 'invalid output'}`)
   }
 
-  const drafted = new Map<string, string>()
+  const drafted = new Map<string, DraftedWording>()
   rows.forEach((row, index) => {
     const englishTerm = expected[index]!.term
     if (typeof row?.translation !== 'string' || !row.translation.trim()) {
       throw new Error(`No translation returned for "${englishTerm}"`)
     }
-    drafted.set(englishTerm, row.translation.trim())
+    const acronym = typeof row.acronym === 'string' ? row.acronym.trim() : ''
+    drafted.set(englishTerm, { translation: row.translation.trim(), acronym: acronym || null })
   })
   return drafted
 }
@@ -86,13 +95,14 @@ function parseDraftedTerms(content: string, expected: TermToDraft[]): Map<string
 export async function draftGlossaryTerms(
   language: Pick<GlossaryLanguage, 'name_en' | 'bible_translation' | 'notes'>,
   terms: TermToDraft[]
-): Promise<Map<string, string>> {
+): Promise<Map<string, DraftedWording>> {
   if (terms.length === 0) return new Map()
 
   const model = await getTranslationModel()
   const payload = {
     terms: terms.map(term => ({
       term: term.term,
+      ...(term.acronym ? { acronym: term.acronym } : {}),
       section: term.section_title,
       context: Object.fromEntries(term.fields.map(field => [field.label, field.value]))
     }))

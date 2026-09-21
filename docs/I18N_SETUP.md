@@ -177,6 +177,11 @@ language's register, the verbs prayer prompts use, its acronym policy and its
 number format. Machine translation injects both automatically; a person or an
 agent editing locale files has to apply them deliberately.
 
+A term known by an acronym (UPG, UUPG, CPM) carries it separately from the
+wording: `acronym` is the English one and `acronym_translation` the one the
+language uses, which is the English acronym unless its reviewer chose another.
+A bare acronym in a string takes `acronym_translation`.
+
 Terms marked `draft` are still authoritative. A term nobody has ruled on yet is
 applied consistently and corrected once a reviewer rules; a term left to each
 file's own invention drifts differently everywhere.

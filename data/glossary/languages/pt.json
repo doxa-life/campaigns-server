@@ -47,6 +47,7 @@
     "Vision and goals language": "Linguagem de visão e metas"
   },
   "field_labels": {
+    "Context": "Contexto em inglês",
     "Meaning": "Significado em inglês",
     "Site definition": "Definição do site (em inglês)",
     "Site definition (Vision page — \"What is Engagement?\")": "Definição do site, página Visão (em inglês)",
@@ -67,6 +68,8 @@
     "edit_local": "Alterar",
     "final_term_en": "Final Portuguese term",
     "final_term_local": "Termo final em português",
+    "acronym_en": "Acronym",
+    "acronym_local": "Sigla",
     "translator_notes_en": "Translator notes",
     "translator_notes_local": "Notas do tradutor"
   },
@@ -142,28 +145,30 @@
       "value": "grupo étnico",
       "note": "The reviewed document's headword is \"povo\" (\"'povo' não deve ser traduzido como 'estado-nação', 'tribo' … ou 'grupo social'\"), but doxa.life/pt already uses \"grupo étnico\" as the label and count noun (\"2.085 grupos étnicos não engajados\", \"Escolha um grupo étnico\") and its Definitions heading \"Povo (Grupo Étnico)\" treats the two as synonyms; the marketing reviewer corrected \"grupos de pessoas\" to \"grupos étnicos\". Site usage is followed; \"povo\" remains the natural noun in prose, as in the reviewer's own adoption certificate wording, where \"povo\" must precede the group's name: \"Adotou fielmente o 'povo dos' (Iemenitas surdos), um povo não alcançado amado por Deus e não esquecido por Sua Igreja.\""
     },
-    "Unreached people group (UPG)": {
-      "value": "grupo étnico não alcançado (PNA)",
+    "Unreached people group": {
+      "value": "grupo étnico não alcançado",
+      "acronym": "PNA",
       "note": "The site's Definitions page reads \"Um povo (grupo étnico) não alcançado (PNA)\" and the reviewed document's headword is \"Povo não alcançado (PNA)\". The Portuguese acronym PNA replaces UPG, following the document's policy for its sibling: \"UUPG é uma sigla estabelecida nas missões globais; em português, usar PNANE de forma consistente.\""
     },
-    "Unengaged (people group)": {
+    "Unengaged": {
       "value": "não engajado",
       "note": "Document: \"'Não engajado' é um termo técnico que significa sem trabalho ativo de plantação de igrejas, não 'socialmente desligado' ou 'emocionalmente indiferente'.\" The marketing reviewer replaced DeepL's \"Desligado\" with \"Não engajados\" and \"não envolvidas\" with \"não engajados\". The site pairs it with both nouns: \"grupo étnico não engajado\" in labels, \"povo não engajado\" in prose."
     },
-    "Unengaged unreached people group (UUPG)": {
-      "value": "grupo étnico não alcançado e não engajado (PNANE)",
+    "Unengaged unreached people group": {
+      "value": "grupo étnico não alcançado e não engajado",
+      "acronym": "PNANE",
       "note": "The Portuguese acronym replaces UUPG: \"em português, usar PNANE de forma consistente\" (document headword \"Povo não alcançado não engajado (PNANE)\"). The site uses only the acronym (\"Encontre um PNANE\", \"Cada povo não engajado (PNANE)\") and never spells the phrase out, so the expansion is built on the site's \"grupo étnico\" base with \"e\" for readable prose. The reviewer's AI-considerations sheet asks whether the plural should stay \"PNANE\" rather than \"PNANEs\" (\"Brazilian institutional writing often leaves acronyms unchanged in plural\"); the document writes \"2 085 PNANEs\" and the reviewer left no answer."
     },
-    "Under-engaged (people group)": {
+    "Under-engaged": {
       "value": "sub-engajado",
       "note": "Document: \"O composto hifenizado aparece de forma consistente.\" The marketing reviewer replaced \"Subenvolvo\" and \"menos envolvidos\" with \"Sub-engajados\". The site's Vision page has one \"subengajados\" and its About declaration one \"pouco engajados\"; both are outliers to align."
     },
-    "Frontier people (group)": {
+    "Frontier people": {
       "value": "povo de fronteira",
       "note": "The marketing reviewer replaced \"povos fronteiriços\" with \"povos de fronteira\"; the home page statistic label still reads \"Povo da Fronteira\". Document: \"'Fronteira' sinaliza a vanguarda missiológica … Evitar conotações militares onde culturalmente sensíveis.\""
     },
     "Ethnolinguistic group": "grupo etnolinguístico",
-    "Engagement / engaged (people group)": {
+    "Engagement / engaged": {
       "value": "engajamento / engajado",
       "note": "The marketing reviewer replaced \"compromisso\" with \"engajamento\" (\"O engajamento começa com a oração\") and \"Envolver-se\" with \"Engaje-se\". Document: \"'Engajamento' é um termo de precisão — residente, sustentado, transcultural, orientado para o MPI. Uma tradução vaga como 'participação' ou 'contato' retira o significado central.\""
     },
@@ -176,15 +181,16 @@
       "value": "engajamento do evangelho",
       "note": "The site's Pray page reads \"engajamento o evangelho\", a typo (missing \"do\") that the in-use import carried. Document headword \"Engajamento do evangelho\": \"Distinto de 'acesso ao evangelho' (disponibilidade) — 'engajamento do evangelho' é o próprio trabalho misional ativo.\""
     },
-    "Church-planting movement (CPM)": {
-      "value": "movimento de plantação de igrejas (MPI)",
+    "Church-planting movement": {
+      "value": "movimento de plantação de igrejas",
+      "acronym": "MPI",
       "note": "The document uses the Portuguese acronym MPI throughout (\"visando um MPI\", \"orientado para o MPI\"); the site spells the phrase out without an acronym. MPI is kept to match the Portuguese acronyms PNA and PNANE the site already uses."
     },
     "Indigenous church": {
       "value": "igreja autóctone",
       "note": "Document: \"'Autóctone' significa com raízes locais e de autogoverno, não uma religião nativa ou animista.\" The reviewer's AI-considerations sheet said \"Revisit autóctone. It is precise, but somewhat academic in Brazil. If translators chose it, keep it; otherwise igreja local/autóctone …\" — kept. The site currently reads \"igreja indígena\" on the Definitions, Vision and About pages and \"igrejas autóctonas\" once; in Brazil \"indígena\" reads as native peoples, so the site is the thing to align."
     },
-    "The five \"selfs\" (of an indigenous church)": {
+    "The five \"selfs\"": {
       "value": "os cinco «autos» de uma igreja autóctone",
       "note": "The site's Definitions page reads \"os cinco «autos» (autopropagação, autogoverno, autosuficiente, autoteologização e auto-missionária)\" and the document's headword is 'Os cinco \"Autos\"' with \"autopropagação, autogoverno, autossustento, autoteologização, automissionação\"; the document's igreja autóctone entry says \"cinco próprios\" instead, which is not followed."
     },
@@ -196,14 +202,14 @@
       "value": "obreiros transculturais",
       "note": "The reviewer's AI-considerations sheet: \"Revisit transcultural. This is strong in Brazilian missions vocabulary. I'd keep obreiros transculturais and assistência transcultural.\" The site's Vision page reads \"obreiros transculturais\"; its Definitions page has \"assistência intercultural\" once, an outlier."
     },
-    "Apostolic (pioneering) effort": "esforço apostólico (pioneiro)",
+    "Apostolic effort": "esforço apostólico pioneiro",
     "Pioneer work": "trabalho pioneiro",
     "Heart language": "língua do coração",
     "Movement to Jesus": "movimento em direção a Jesus",
     "Nonresident partners": "parceiros não residentes",
-    "Broader engagement (components)": "componentes de um engajamento mais amplo",
+    "Broader engagement": "componentes de um engajamento mais amplo",
     "Diaspora": "diáspora",
-    "Daily prayer (for a people group)": "oração diária",
+    "Daily prayer": "oração diária",
     "Intercessor / intercessors": "intercessor / intercessores",
     "Intercessory prayer": {
       "value": "oração intercessória",
@@ -215,7 +221,7 @@
       "value": "Senhor da seara",
       "note": "The site's Pray page quotes \"Rogai, pois, ao Senhor da seara que mande ceifeiros\" (Mateus 9:38, Almeida wording). Document: \"Alinhar com a expressão estabelecida da tradução bíblica na idioma de destino. A metáfora agrícola (messe = pessoas prontas a responder) deve ser preservada.\" The reviewer did not record which Bible translation their community uses."
     },
-    "Adopt (an unengaged people group)": "adotar",
+    "Adopt": "adotar",
     "Pray, give, and send": {
       "value": "orar, doar e enviar",
       "note": "The document's headword is \"Orar, dar e enviar\" with the forms \"Ore, Contribua e Envie\" / \"Oração, Contribuição e Envio\" / \"Orando, contribuindo e enviando\"; the site and the marketing reviewer use \"doar\": the Adopt page reads \"orar, doar e enviar\" and the reviewer's home page line \"orando, doando e preparando o caminho\". Site usage is followed; the noun triad on the site is \"oração, contribuição e envio\"."

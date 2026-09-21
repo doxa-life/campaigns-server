@@ -38,8 +38,9 @@ export const GLOSSARY_CHROME_EN: GlossaryChrome = {
       'Please confirm or edit the suggested {language} term for each English glossary entry. The {language} suggestions are starting points, not approved translations.',
     items: [
       'Read the English term, definition or meaning, example, and ‘Why it matters’ note before deciding.',
+      'Words in parentheses after an English term — (people group), (of an indigenous church), (for a people group) — show where the term is used and are not part of it. Leave them out of your {language} wording. If the {language} word cannot stand on its own, write the full phrase in plain words, never in parentheses.',
       'Keep every numeric threshold and distinction exact, including ≤ 2%, ≤ 1%, ≤ 0.1%, the 100+ daily-intercessor goal, and the CPM measures.',
-      'Use standard {language} spelling and script. Keep Doxa.Life and DOXA unchanged. Retain UPG, UUPG, and CPM alongside the {language} phrase unless you recommend a stable {language} acronym and explain it in Notes.',
+      'Use standard {language} spelling and script. Keep Doxa.Life and DOXA unchanged. A term known by an acronym — UPG, UUPG, CPM — has its own Acronym field, which stays the English acronym unless you enter the established {language} one; explain any {language} acronym in Notes.',
       'For biblical phrases, use the wording of the Bible translation most commonly used by your local church or Assemblies of God/Pentecostal community—not merely your personal preference. Record its exact title, abbreviation, edition, and year below. If local communities commonly use more than one translation, list the primary one first and note the others.',
       'Check that related terms form a coherent family, especially engage / engaged / engagement / unengaged / under-engaged / fruitful engagement.',
       'Choose Confirm if the suggested {language} term is accurate, natural in {language} evangelical and missional usage, and suitable for both prose and interface labels.',
@@ -55,6 +56,7 @@ export const GLOSSARY_CHROME_EN: GlossaryChrome = {
     edit: 'Edit',
     flag: 'Flag for discussion',
     final_term: 'Final {language} term',
+    acronym: 'Acronym',
     translator_notes: 'Translator notes',
     submit: 'I have finished this review',
     submitted: 'Review submitted'
@@ -111,8 +113,13 @@ export const GLOSSARY_NOTES_TEMPLATE = `## Register and address
  */
 export const GLOSSARY_NOTES_MAX_LENGTH = 4000
 
-/** English glossary field labels, in the order a term's annotations are shown. */
+/**
+ * English glossary field labels, in the order a term's annotations are shown.
+ * "Context" is the term as it is used — "an unengaged people group" under the
+ * headword "Unengaged" — so the headword itself stays the bare term.
+ */
 export const GLOSSARY_FIELD_LABELS = [
+  'Context',
   'Meaning',
   'Site definition',
   'Example',

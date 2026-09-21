@@ -3,7 +3,15 @@ import { $fetch } from '@nuxt/test-utils/e2e'
 import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { seedGlossaryLanguage } from '../../migrations/lib/glossary-seed.js'
+import {
+  seedGlossaryLanguage,
+  seedEnglishAcronyms,
+  splitTranslationAcronyms,
+  seedTranslationAcronyms,
+  seedEnglishContext,
+  stripTranslationParentheticals,
+  seedMissingChromeLabels
+} from '../../migrations/lib/glossary-seed.js'
 import { getTestDatabase, closeTestDatabase, cleanupTestData } from '../helpers/db'
 import { createAdminUser, createNoRoleUser } from '../helpers/auth'
 
@@ -73,6 +81,57 @@ describe('Glossary', async () => {
       const rows = await sql`SELECT term FROM glossary_terms WHERE term ILIKE '%24-hour%'`
       expect(rows.length).toBe(0)
     })
+
+    it('keeps acronyms out of the headword and on their own field', async () => {
+      const terms = await sql`SELECT term, acronym FROM glossary_terms WHERE acronym IS NOT NULL ORDER BY term`
+      expect(terms.map(row => row.acronym)).toEqual(['CPM', 'UUPG', 'UPG'])
+      expect(terms.every(row => !row.term.includes('('))).toBe(true)
+
+      const [german] = await sql`
+        SELECT tr.value, tr.acronym FROM glossary_translations tr
+        JOIN glossary_terms gt ON gt.id = tr.term_id
+        JOIN glossary_languages gl ON gl.id = tr.language_id
+        WHERE gl.code = 'de' AND gt.term = 'Unreached people group'
+      `
+      expect(german).toMatchObject({ value: 'unerreichte Volksgruppe', acronym: 'UVG' })
+
+      // Italian keeps the English acronym, so it stores none.
+      const [italian] = await sql`
+        SELECT tr.value, tr.acronym FROM glossary_translations tr
+        JOIN glossary_terms gt ON gt.id = tr.term_id
+        JOIN glossary_languages gl ON gl.id = tr.language_id
+        WHERE gl.code = 'it' AND gt.term = 'Unreached people group'
+      `
+      expect(italian).toMatchObject({ value: 'gruppo etnico non raggiunto', acronym: null })
+
+      const [language] = await sql`SELECT chrome FROM glossary_languages WHERE code = 'de'`
+      expect(language!.chrome.labels.acronym).toBe('Abkürzung')
+    })
+
+    it('keeps the phrase a term is used in as a Context annotation, not in the headword', async () => {
+      const [withParens] = await sql`SELECT COUNT(*)::int AS count FROM glossary_terms WHERE term LIKE '%(%'`
+      expect(withParens!.count).toBe(0)
+
+      const [term] = await sql`SELECT fields FROM glossary_terms WHERE term = 'Unengaged'`
+      expect(term!.fields[0]).toEqual({ label: 'Context', value: 'an unengaged people group' })
+
+      const rows = await sql`
+        SELECT gl.code, tr.value FROM glossary_translations tr
+        JOIN glossary_terms gt ON gt.id = tr.term_id
+        JOIN glossary_languages gl ON gl.id = tr.language_id
+        WHERE gt.term IN ('Daily prayer', 'Apostolic effort') AND gl.code IN ('de', 'zh')
+        ORDER BY gl.code, gt.term
+      `
+      expect(rows).toEqual([
+        { code: 'de', value: 'apostolischer Einsatz in der Pionierphase' },
+        { code: 'de', value: 'tägliches Gebet' },
+        { code: 'zh', value: '使徒性开拓性努力' },
+        { code: 'zh', value: '每日祷告' }
+      ])
+
+      const [language] = await sql`SELECT chrome FROM glossary_languages WHERE code = 'de'`
+      expect(language!.chrome.field_labels.Context).toBe('Kontext auf Englisch')
+    })
   })
 
   describe('Seeding a reviewed language file', () => {
@@ -94,7 +153,7 @@ describe('Glossary', async () => {
         labels: { approve_local: 'Hyväksy' },
         suggested_terms: {
           'Test people group': { value: 'seedgrupp', note: 'The reviewer preferred it.', status: 'flagged' },
-          'Test seed term': 'seedterm',
+          'Test seed term': { value: 'seedterm', acronym: 'TST' },
           'Not a glossary term': 'ignored'
         }
       }))
@@ -112,12 +171,12 @@ describe('Glossary', async () => {
       expect(language!.chrome.labels.confirm).toBe('Hyväksy')
 
       const translations = await sql`
-        SELECT value, status, note FROM glossary_translations
+        SELECT value, acronym, status, note FROM glossary_translations
         WHERE language_id = ${language!.id} ORDER BY value
       `
       expect(translations).toHaveLength(2)
-      expect(translations[0]).toMatchObject({ value: 'seedgrupp', status: 'flagged', note: 'The reviewer preferred it.' })
-      expect(translations[1]).toMatchObject({ value: 'seedterm', status: 'draft', note: null })
+      expect(translations[0]).toMatchObject({ value: 'seedgrupp', acronym: null, status: 'flagged', note: 'The reviewer preferred it.' })
+      expect(translations[1]).toMatchObject({ value: 'seedterm', acronym: 'TST', status: 'draft', note: null })
 
       const second = await seedGlossaryLanguage(sql, 'zzs', { languagesDir })
       expect(second).toEqual({ code: 'zzs', seeded: 0, skipped: true })
@@ -129,6 +188,167 @@ describe('Glossary', async () => {
 
     it('throws when no reviewed file exists for the code', async () => {
       await expect(seedGlossaryLanguage(sql, 'zzq', { languagesDir })).rejects.toThrow('No reviewed glossary file')
+    })
+  })
+
+  describe('Splitting acronyms out of stored wording', () => {
+    const dataDir = mkdtempSync(join(tmpdir(), 'glossary-acronyms-'))
+    const englishFile = join(dataDir, 'glossary.en.json')
+
+    it('moves a parenthesised acronym from the headword and each wording to the acronym field', async () => {
+      const [composed] = await sql`
+        INSERT INTO glossary_terms (section_id, term, position)
+        VALUES (${sectionId}, 'Test movement (TM)', 2)
+        RETURNING id
+      `
+      const [own] = await sql`
+        INSERT INTO glossary_languages (code, name_en) VALUES ('zza', 'Testish A') RETURNING id
+      `
+      const [same] = await sql`
+        INSERT INTO glossary_languages (code, name_en) VALUES ('zzz', 'Testish Z') RETURNING id
+      `
+      const [ownTranslation] = await sql`
+        INSERT INTO glossary_translations (language_id, term_id, value)
+        VALUES (${own!.id}, ${composed!.id}, 'teströrelse (TR)')
+        RETURNING id
+      `
+      await sql`
+        INSERT INTO glossary_translations (language_id, term_id, value)
+        VALUES (${same!.id}, ${composed!.id}, '测试运动（TM）')
+      `
+      await sql`
+        INSERT INTO glossary_translation_revisions (translation_id, value, status)
+        VALUES (${ownTranslation!.id}, 'teströrelse (TR)', 'draft')
+      `
+
+      writeFileSync(englishFile, JSON.stringify({
+        sections: [{ title: 'Test Glossary Section', entries: [{ term: 'Test movement', acronym: 'TM' }] }]
+      }))
+
+      await seedEnglishAcronyms(sql, { englishFile })
+      const split = await splitTranslationAcronyms(sql)
+      expect(split).toBe(3)
+
+      const [term] = await sql`SELECT term, acronym FROM glossary_terms WHERE id = ${composed!.id}`
+      expect(term).toMatchObject({ term: 'Test movement', acronym: 'TM' })
+
+      const [ownRow] = await sql`SELECT value, acronym FROM glossary_translations WHERE id = ${ownTranslation!.id}`
+      expect(ownRow).toMatchObject({ value: 'teströrelse', acronym: 'TR' })
+
+      // The English acronym written into the wording is the default, not a choice.
+      const [sameRow] = await sql`
+        SELECT value, acronym FROM glossary_translations WHERE language_id = ${same!.id} AND term_id = ${composed!.id}
+      `
+      expect(sameRow).toMatchObject({ value: '测试运动', acronym: null })
+
+      const [revision] = await sql`
+        SELECT value, acronym FROM glossary_translation_revisions WHERE translation_id = ${ownTranslation!.id}
+      `
+      expect(revision).toMatchObject({ value: 'teströrelse', acronym: 'TR' })
+
+      // A second run finds nothing left to split.
+      expect(await splitTranslationAcronyms(sql)).toBe(0)
+    })
+
+    it('fills acronyms and the review-page label from a reviewed file for wording the file still matches', async () => {
+      writeFileSync(join(dataDir, 'zza.json'), JSON.stringify({
+        locale_code: 'zza',
+        labels: { acronym_local: 'Förkortning', final_term_local: 'Slutgiltig term' },
+        field_labels: { Context: 'Sammanhang' },
+        suggested_terms: {
+          'Test movement': { value: 'teströrelse', acronym: 'TRÖ' },
+          'Test people group': { value: 'not what is stored', acronym: 'TPG' }
+        }
+      }))
+      await sql`
+        UPDATE glossary_translations SET acronym = NULL
+        WHERE language_id = (SELECT id FROM glossary_languages WHERE code = 'zza')
+      `
+      await sql`
+        INSERT INTO glossary_translations (language_id, term_id, value)
+        VALUES ((SELECT id FROM glossary_languages WHERE code = 'zza'), ${termId}, 'testgrupp')
+      `
+
+      expect(await seedTranslationAcronyms(sql, 'zza', { languagesDir: dataDir })).toBe(1)
+      const rows = await sql`
+        SELECT gt.term, tr.acronym FROM glossary_translations tr
+        JOIN glossary_terms gt ON gt.id = tr.term_id
+        WHERE tr.language_id = (SELECT id FROM glossary_languages WHERE code = 'zza')
+        ORDER BY gt.term
+      `
+      expect(rows).toEqual([
+        { term: 'Test movement', acronym: 'TRÖ' },
+        { term: 'Test people group', acronym: null }
+      ])
+
+      expect(await seedMissingChromeLabels(sql, 'zza', { languagesDir: dataDir })).toBe(3)
+      await sql`
+        UPDATE glossary_languages SET chrome = jsonb_set(chrome, '{labels,final_term}', '"Kept"')
+        WHERE code = 'zza'
+      `
+      expect(await seedMissingChromeLabels(sql, 'zza', { languagesDir: dataDir })).toBe(0)
+      const [language] = await sql`SELECT chrome FROM glossary_languages WHERE code = 'zza'`
+      expect(language!.chrome.labels).toEqual({ acronym: 'Förkortning', final_term: 'Kept' })
+      expect(language!.chrome.field_labels).toEqual({ Context: 'Sammanhang' })
+
+      expect(await seedTranslationAcronyms(sql, 'zzq', { languagesDir: dataDir })).toBe(0)
+    })
+
+    it('adds the Context annotation once and strips copied parentheticals from wordings', async () => {
+      const [term] = await sql`
+        INSERT INTO glossary_terms (section_id, term, fields, position)
+        VALUES (${sectionId}, 'Test daily prayer', ${sql.json([{ label: 'Meaning', value: 'Every day.' }] as any)}::jsonb, 4)
+        RETURNING id
+      `
+      const [gloss] = await sql`
+        INSERT INTO glossary_terms (section_id, term, position)
+        VALUES (${sectionId}, 'Test apostolic effort', 5)
+        RETURNING id
+      `
+      const zza = (await sql`SELECT id FROM glossary_languages WHERE code = 'zza'`)[0]!.id
+      const [translation] = await sql`
+        INSERT INTO glossary_translations (language_id, term_id, value)
+        VALUES (${zza}, ${term!.id}, 'daglig bön (för en folkgrupp)')
+        RETURNING id
+      `
+      await sql`
+        INSERT INTO glossary_translation_revisions (translation_id, value, status)
+        VALUES (${translation!.id}, 'daglig bön (för en folkgrupp)', 'draft')
+      `
+      await sql`
+        INSERT INTO glossary_translations (language_id, term_id, value)
+        VALUES (${zza}, ${gloss!.id}, '使徒性（开拓性）努力')
+      `
+
+      writeFileSync(englishFile, JSON.stringify({
+        sections: [{
+          title: 'Test Glossary Section',
+          entries: [{ term: 'Test daily prayer', fields: [['Context', 'daily prayer for a people group'], ['Meaning', 'Every day.']] }]
+        }]
+      }))
+      expect(await seedEnglishContext(sql, { englishFile })).toBe(1)
+      expect(await seedEnglishContext(sql, { englishFile })).toBe(0)
+      const [updated] = await sql`SELECT fields FROM glossary_terms WHERE id = ${term!.id}`
+      expect(updated!.fields).toEqual([
+        { label: 'Context', value: 'daily prayer for a people group' },
+        { label: 'Meaning', value: 'Every day.' }
+      ])
+
+      expect(await stripTranslationParentheticals(sql, ['Test daily prayer'])).toBe(2)
+      expect(await stripTranslationParentheticals(sql, ['Test apostolic effort'], { keepWords: true })).toBe(1)
+      const values = await sql`
+        SELECT gt.term, tr.value FROM glossary_translations tr
+        JOIN glossary_terms gt ON gt.id = tr.term_id
+        WHERE tr.language_id = ${zza} AND gt.term IN ('Test apostolic effort', 'Test daily prayer')
+        ORDER BY gt.term
+      `
+      expect(values).toEqual([
+        { term: 'Test apostolic effort', value: '使徒性开拓性努力' },
+        { term: 'Test daily prayer', value: 'daglig bön' }
+      ])
+      const [revision] = await sql`SELECT value FROM glossary_translation_revisions WHERE translation_id = ${translation!.id}`
+      expect(revision!.value).toBe('daglig bön')
+      expect(await stripTranslationParentheticals(sql, ['Test daily prayer'])).toBe(0)
     })
   })
 
@@ -166,6 +386,32 @@ describe('Glossary', async () => {
       expect(markdown).toContain('testgrupp')
     })
 
+    it('publishes the acronym a language uses, the English one unless it chose its own', async () => {
+      const [term] = await sql`
+        INSERT INTO glossary_terms (section_id, term, acronym, position)
+        VALUES (${sectionId}, 'Test acronym term', 'TAT', 3)
+        RETURNING id
+      `
+      await sql`
+        INSERT INTO glossary_translations (language_id, term_id, value)
+        VALUES (${languageId}, ${term!.id}, 'testakronym')
+      `
+
+      let data = await $fetch<any>('/api/glossary/zz')
+      let row = data.terms.find((entry: any) => entry.term === 'Test acronym term')
+      expect(row).toMatchObject({ acronym: 'TAT', translation: 'testakronym', acronym_translation: 'TAT' })
+      expect(data.terms.find((entry: any) => entry.term === 'Test people group').acronym_translation).toBeNull()
+
+      await sql`UPDATE glossary_translations SET acronym = 'TAK' WHERE language_id = ${languageId} AND term_id = ${term!.id}`
+      data = await $fetch<any>('/api/glossary/zz')
+      row = data.terms.find((entry: any) => entry.term === 'Test acronym term')
+      expect(row.acronym_translation).toBe('TAK')
+
+      const markdown = await $fetch<string>('/api/glossary/zz?format=markdown')
+      expect(markdown).toContain('| Test acronym term (TAT) | testakronym (TAK) |')
+      expect(markdown).toContain('### Test acronym term (TAT) → testakronym (TAK)')
+    })
+
     it('404s for a language with no glossary', async () => {
       const error = await $fetch('/api/glossary/zq').catch(e => e)
       expect(error.statusCode).toBe(404)
@@ -191,7 +437,7 @@ describe('Glossary', async () => {
     it('opens the review with both halves of the page wording', async () => {
       const data = await $fetch<any>(`/api/glossary/review/${passToken}`)
       expect(data.language.code).toBe('zz')
-      expect(data.chrome_en.instructions.items.length).toBe(7)
+      expect(data.chrome_en.instructions.items.length).toBe(8)
       expect(data.chrome_en.instructions.purpose).toContain('Testish')
       expect(data.chrome_local.labels.confirm).toBe('Vahvista')
       expect(data.entries.some((entry: any) => entry.term === 'Test people group')).toBe(true)
@@ -235,6 +481,38 @@ describe('Glossary', async () => {
       const term = data.terms.find((row: any) => row.term === 'Test people group')
       expect(term.translation).toBe('testgruppen')
       expect(term.reviewed_by).toBe('Rodica T')
+    })
+
+    it('stores only the language\'s own acronym', async () => {
+      const [term] = await sql`SELECT id FROM glossary_terms WHERE term = 'Test acronym term'`
+
+      // The page sends Confirm with the acronym: choosing it is a decision about the term.
+      let translation = await $fetch<any>(`/api/glossary/review/${passToken}/terms/${term!.id}`, {
+        method: 'PATCH',
+        body: { acronym: 'TAR', status: 'confirmed' }
+      })
+      expect(translation.acronym).toBe('TAR')
+      expect(translation.status).toBe('confirmed')
+
+      // The English acronym, however spelled, means no choice of its own.
+      translation = await $fetch<any>(`/api/glossary/review/${passToken}/terms/${term!.id}`, {
+        method: 'PATCH',
+        body: { acronym: 'tat' }
+      })
+      expect(translation.acronym).toBeNull()
+
+      translation = await $fetch<any>(`/api/glossary/review/${passToken}/terms/${term!.id}`, {
+        method: 'PATCH',
+        body: { acronym: 'TAR' }
+      })
+      translation = await $fetch<any>(`/api/glossary/review/${passToken}/terms/${term!.id}`, {
+        method: 'PATCH',
+        body: { acronym: '' }
+      })
+      expect(translation.acronym).toBeNull()
+
+      const data = await $fetch<any>('/api/glossary/zz')
+      expect(data.terms.find((entry: any) => entry.term === 'Test acronym term').acronym_translation).toBe('TAT')
     })
 
     it('flags a term with a note', async () => {
@@ -325,6 +603,22 @@ describe('Glossary', async () => {
   })
 
   describe('English edits', () => {
+    it('creates a term with an acronym and clears it with an empty one', async () => {
+      const created = await $fetch<any>('/api/admin/glossary/terms', {
+        method: 'POST',
+        body: { section_id: sectionId, term: 'Test created term', acronym: ' TCT ' },
+        ...adminAuth
+      })
+      expect(created.acronym).toBe('TCT')
+
+      const updated = await $fetch<any>(`/api/admin/glossary/terms/${created.id}`, {
+        method: 'PATCH',
+        body: { acronym: '' },
+        ...adminAuth
+      })
+      expect(updated.acronym).toBeNull()
+    })
+
     it('marks confirmed translations stale when the term changes', async () => {
       await sql`
         UPDATE glossary_translations SET status = 'confirmed', stale = FALSE

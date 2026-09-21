@@ -52,6 +52,7 @@
             <div class="min-w-0">
               <div class="flex items-center gap-2">
                 <span class="font-medium">{{ term.term }}</span>
+                <UBadge v-if="term.acronym" color="neutral" variant="subtle" size="xs">{{ term.acronym }}</UBadge>
                 <UBadge v-if="term.seed" color="neutral" variant="outline" size="xs">seed</UBadge>
               </div>
               <p
@@ -99,6 +100,13 @@
         <div class="flex flex-col gap-4">
           <UFormField label="English term" required>
             <UInput v-model="termForm.term" class="w-full" />
+          </UFormField>
+
+          <UFormField
+            label="Acronym"
+            help="For a term known by one, such as UPG. Every language uses it unless its reviewer enters their own."
+          >
+            <UInput v-model="termForm.acronym" class="w-40" />
           </UFormField>
 
           <div class="flex flex-col gap-3">
@@ -181,7 +189,7 @@
 
 <script setup lang="ts">
 interface Field { label: string; value: string }
-interface Term { id: string; term: string; seed: boolean; fields: Field[] }
+interface Term { id: string; term: string; acronym: string | null; seed: boolean; fields: Field[] }
 interface Section { id: string; title: string; intro: string; terms: Term[] }
 
 defineProps<{ canManage: boolean }>()
@@ -196,10 +204,18 @@ const saving = ref(false)
 
 const termModalOpen = ref(false)
 const sectionModalOpen = ref(false)
-const termForm = ref<{ id: string | null; section_id: string; term: string; seed: boolean; fields: Field[] }>({
+const termForm = ref<{
+  id: string | null
+  section_id: string
+  term: string
+  acronym: string
+  seed: boolean
+  fields: Field[]
+}>({
   id: null,
   section_id: '',
   term: '',
+  acronym: '',
   seed: false,
   fields: []
 })
@@ -224,7 +240,7 @@ async function load() {
 }
 
 function startNewTerm(sectionId: string) {
-  termForm.value = { id: null, section_id: sectionId, term: '', seed: false, fields: [] }
+  termForm.value = { id: null, section_id: sectionId, term: '', acronym: '', seed: false, fields: [] }
   termModalOpen.value = true
 }
 
@@ -233,6 +249,7 @@ function editTerm(sectionId: string, term: Term) {
     id: term.id,
     section_id: sectionId,
     term: term.term,
+    acronym: term.acronym || '',
     seed: term.seed,
     fields: term.fields.map(field => ({ ...field }))
   }
@@ -254,7 +271,7 @@ async function saveTerm() {
     if (termForm.value.id) {
       await $fetch(`/api/admin/glossary/terms/${termForm.value.id}`, {
         method: 'PATCH',
-        body: { term: termForm.value.term, fields, seed: termForm.value.seed }
+        body: { term: termForm.value.term, acronym: termForm.value.acronym, fields, seed: termForm.value.seed }
       })
     } else {
       await $fetch('/api/admin/glossary/terms', {
@@ -262,6 +279,7 @@ async function saveTerm() {
         body: {
           section_id: termForm.value.section_id,
           term: termForm.value.term,
+          acronym: termForm.value.acronym,
           fields,
           seed: termForm.value.seed
         }

@@ -28,6 +28,7 @@
     "Vision and goals language": "दर्शन और लक्ष्यों की भाषा"
   },
   "field_labels": {
+    "Context": "अंग्रेज़ी में संदर्भ",
     "Meaning": "अंग्रेज़ी में अर्थ",
     "Site definition": "वेबसाइट की परिभाषा (अंग्रेज़ी)",
     "Site definition (Vision page — \"What is Engagement?\")": "विज़न पृष्ठ की परिभाषा (अंग्रेज़ी)",
@@ -44,6 +45,8 @@
     "edit_local": "संशोधित करें",
     "flag_local": "चर्चा के लिए चिह्नित करें",
     "final_term_local": "अंतिम हिंदी शब्द",
+    "acronym_en": "Acronym",
+    "acronym_local": "संक्षिप्त रूप",
     "translator_notes_local": "अनुवादक की टिप्पणियाँ",
     "submit_local": "मैंने यह समीक्षा पूरी कर ली है",
     "submitted_local": "समीक्षा भेज दी गई"
@@ -76,24 +79,24 @@
       "value": "जनसमूह",
       "note": "The human Hindi translation of the DOXA Access and Alignment playbook heads its definitions section \"जनसमूह (People Groups)\" and uses जनसमूह throughout; the printed Hindi adoption certificate says \"इस जनसमूह को\"; doxa.life/hi already says जनसमूह in 33 places. It replaces जातीय समूह, which campaigns-sever says in 77 places — जाति carries the caste sense in India, so जातीय समूह reads as a caste grouping. जनजाति, which the site reviewer uses loosely, is rejected for the tribal connotation the English entry warns against."
     },
-    "Unreached people group (UPG)": {
-      "value": "अप्राप्य जनसमूह (UPG)",
+    "Unreached people group": {
+      "value": "अप्राप्य जनसमूह",
       "note": "The playbook's definitions section writes \"एक अप्राप्य जनसमूह (Unreached People Group - UPG) वह होता है जिसमें लगभग 100 में से 2 या उससे कम शिष्य (≤2%) होते हैं\", and the printed adoption certificate calls the adopted group \"एक अप्राप्य लोग\". Flagged because the doxa.life/hi reviewer wrote अनपहुचे and अपहुँचे throughout their corrections and the playbook's own infographics do the same, while अप्राप्य means unobtainable rather than not-yet-reached. The Latin acronym is kept per the review-form instruction. campaigns-sever's अगम्य is machine output and is not carried forward.",
       "status": "flagged"
     },
-    "Unengaged (people group)": {
+    "Unengaged": {
       "value": "अनसंपर्कित",
       "note": "The playbook's definitions section — \"3. अनसंपर्कित (Unengaged)\" — and every headline count (\"2,085 अनसंपर्कित जनसमूह\", \"202 करोड़ लोग अनसंपर्कित हैं\"). No other Hindi source is usable: doxa.life/hi renders unengaged six different ways, among them अविवाहित (unmarried) and अनियोजित (unplanned), and campaigns-sever says अप्रवेशित. The site reviewer's अनपहुचे does not separate unengaged from unreached, a distinction the platform's data depends on."
     },
-    "Unengaged unreached people group (UUPG)": {
-      "value": "अनसंपर्कित-अप्राप्य जनसमूह (UUPG)",
+    "Unengaged unreached people group": {
+      "value": "अनसंपर्कित-अप्राप्य जनसमूह",
       "note": "The playbook's chart wording, \"अनसंपर्कित-अप्राप्य जनसमूह (UUPGs)\", with unengaged first as in English. The Latin acronym stays; no Hindi acronym appears in any source."
     },
-    "Under-engaged (people group)": {
+    "Under-engaged": {
       "value": "कम-संपर्कित",
       "note": "The playbook's definitions section, \"1. कम-संपर्कित (Under-Engaged)\", and its Vision page, \"फ्रंटियर और कम-संपर्कित जनसमूहों के बीच फलदायी सहभागिता\". Its concentric-circle chart says अल्प-संपर्कित; the definitions form is taken. doxa.life/hi says कम-संलग्न, which the site reviewer rewrote away."
     },
-    "Frontier people (group)": {
+    "Frontier people": {
       "value": "फ्रंटियर जनसमूह",
       "note": "The playbook transliterates throughout — the definitions heading \"2. फ्रंटियर (Frontier)\", the charts (\"4,788 फ्रंटियर जनसमूह\") and the Vision page. सीमांत, used once in the playbook and by both doxa.life/hi and campaigns-sever, reads as borderland or marginal and loses the missiological sense."
     },
@@ -101,7 +104,7 @@
       "value": "जातीय-भाषाई समूह",
       "note": "The playbook glosses it in place: \"एक जनसमूह एक जातीय-भाषाई (ethnolinguistic) समूह होता है\". This is the one entry where जातीय is right, because it is about ethnicity and language together rather than about caste."
     },
-    "Engagement / engaged (people group)": {
+    "Engagement / engaged": {
       "value": "संलग्नता / संपर्कित",
       "note": "Hindi spreads this family over three roots and no source settles it. The playbook glosses the noun twice with the English beside it — \"संलग्नता (engagement)\" and \"प्रभावी संलग्नता (effective engagement)\" — and titles its engagement chapter \"संलग्नता के मापदंड\"; the people-group categories are built on संपर्कित (अनसंपर्कित, कम-संपर्कित); the verb in the 2033 goal is सहभागिता करना (\"प्रत्येक जनसमूह के साथ सक्रिय रूप से सहभागिता की जा रही होगी\"). Flagged so a reviewer can collapse the three or confirm the split. Whatever is chosen, it must not be सगाई, which doxa.life/hi used and which means betrothal; the site reviewer replaced it with कार्य in one place and प्रतिबद्धता in another.",
       "status": "flagged"
@@ -118,15 +121,15 @@
       "value": "सुसमाचार के साथ सहभागिता",
       "note": "No Hindi source carries this phrase. Built on सहभागिता so it names the work, keeping it distinct from सुसमाचार तक पहुँच, which names the availability. The playbook's समन्वय renders \"alignment\" — its cover reads \"पहुँच + समन्वय\" — and must not be reused here."
     },
-    "Church-planting movement (CPM)": {
-      "value": "कलीसिया स्थापना आंदोलन (CPM)",
+    "Church-planting movement": {
+      "value": "कलीसिया स्थापना आंदोलन",
       "note": "The playbook's definitions section spells it out: \"कलीसिया स्थापना आंदोलन (Church Planting Movement) स्वदेशी कलीसियाओं के उस गुणन को कहते हैं…\". It also uses the transliteration चर्च प्लांटिंग मूवमेंट in running text. The doxa.life/hi reviewer asked for अभियान in place of आंदोलन in one Vision line, because आंदोलन carries the political-agitation sense in modern Hindi; the playbook's glossed term is kept."
     },
     "Indigenous church": {
       "value": "स्वदेशी कलीसिया",
       "note": "The playbook's wording — \"स्वदेशी (स्थानीय) कलीसियाओं की स्थापना\", \"स्वदेशी कलीसिया पाँच 'स्व-क्षमताओं' में परिपक्व होती है\". स्थानीय कलीसिया alone means merely local; देशी or आदिवासी would point at India's indigenous peoples."
     },
-    "The five \"selfs\" (of an indigenous church)": {
+    "The five \"selfs\"": {
       "value": "पाँच \"स्व-क्षमताएँ\"",
       "note": "The playbook's phrase, which leaves the five English words untranslated beside it. In Hindi prose they are स्वयं फैलने वाली, स्वयं शासित, स्वयं का भरण-पोषण करने वाली, अपनी धर्मविद्या गढ़ने वाली और स्वयं मिशनरी भेजने वाली. Coined nouns on the स्व- prefix are not Hindi; use the verbal forms."
     },
@@ -138,8 +141,8 @@
       "value": "अंतर-सांस्कृतिक कार्यकर्ता",
       "note": "The playbook defines \"अंतर-सांस्कृतिक मिशनरी\" at length and uses क्रॉस-सांस्कृतिक मिशनरी once. कार्यकर्ता is kept for the English entry's \"workers\", as doxa.life/hi already has it, which leaves मिशनरी free for the DOXA partnership missionaries entry; the adoption certificate uses the same noun in \"राज्य के कार्यकर्ता\"."
     },
-    "Apostolic (pioneering) effort": {
-      "value": "प्रेरितिक (अग्रणी) प्रयास",
+    "Apostolic effort": {
+      "value": "प्रेरितिक अग्रणी प्रयास",
       "note": "The playbook's definitions wording, glossed in place as \"प्रेरितिक (apostolic / pioneering) प्रयास\". प्रेरितिक here means sent or pioneering, not a church office."
     },
     "Pioneer work": {
@@ -158,7 +161,7 @@
       "value": "गैर-निवासी साझेदार",
       "note": "The playbook's wording in its broader-engagement definition, pairing with निवासी मिशनरी."
     },
-    "Broader engagement (components)": {
+    "Broader engagement": {
       "value": "व्यापक सहभागिता",
       "note": "Glossed by the playbook: \"व्यापक सहभागिता (Broader Engagement) में महत्वपूर्ण सहायक घटक शामिल होते हैं\". The English entry's \"(components)\" is the list it contains, not part of the term."
     },
@@ -166,7 +169,7 @@
       "value": "प्रवासी",
       "note": "Glossed by the playbook — \"प्रवासी (diaspora) लोगों के बीच कार्य\" — which also says प्रवासी जनसमूह for diaspora people groups. डायस्पोरा appears only in machine output."
     },
-    "Daily prayer (for a people group)": {
+    "Daily prayer": {
       "value": "दैनिक प्रार्थना",
       "note": "दैनिक for the label, प्रतिदिन in sentences, as the playbook writes it: \"प्रत्येक अनसंपर्कित जनसमूह के लिए प्रतिदिन 24 घंटे की प्रार्थना स्थापित हो\". Daily is deliberate and carries the 24-hour arithmetic of 144 intercessors at ten minutes each, so it must not soften to नियमित."
     },
@@ -190,7 +193,7 @@
       "value": "खेत का स्वामी",
       "note": "The wording of Matthew 9:38 in the Hindi Old Version (HIOV), the edition config/languages.ts configures for Hindi: \"इसलिये खेत के स्वामी से विनती करो कि वह अपने खेत काटने के लिए मजदूर भेज दे।\" The prayer-prompt corpus says फसल का प्रभु and doxa.life/hi says फसल के स्वामी; both are machine output. A reviewer who names a different Bible edition changes this entry."
     },
-    "Adopt (an unengaged people group)": {
+    "Adopt": {
       "value": "अपनाना",
       "note": "The printed Hindi adoption certificate says \"ने विश्वासपूर्वक अपनाया है\" and \"इस अपनाने के द्वारा\", and the doxa.life/hi reviewer replaced the site's गोद with अपनाएँ and asked that \"How adoption works\" become \"जनसमूह को कैसे अपनाएँ\". For the noun the same reviewer replaced दत्तक ग्रहण with गोद, so the commitment is गोद लेना; दत्तक ग्रहण is legal child adoption and is rejected wherever it appears, which on doxa.life/hi is 22 places."
     },

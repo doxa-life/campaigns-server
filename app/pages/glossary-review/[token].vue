@@ -139,6 +139,9 @@
                     {{ entry.number }}/{{ entries.length }}
                   </span>
                   {{ entry.term }}
+                  <span v-if="entry.acronym" class="text-sm font-normal text-[var(--ui-text-muted)]">
+                    ({{ entry.acronym }})
+                  </span>
                 </h3>
                 <UBadge :color="statusColor(entry)" variant="subtle" size="xs">
                   {{ entry.status }}
@@ -174,6 +177,23 @@
                   :disabled="!canEdit"
                   class="w-full"
                   @change="saveValue(entry)"
+                />
+              </UFormField>
+
+              <!-- Empty means the English acronym; only a language's own is stored. -->
+              <UFormField
+                v-if="entry.acronym"
+                :label="chrome('labels.acronym') || data.chrome_en.labels.acronym"
+                :help="`Leave empty to keep ${entry.acronym}.`"
+                class="mt-3"
+              >
+                <UInput
+                  v-model="entry.acronym_translation"
+                  :placeholder="entry.acronym"
+                  :dir="data.language.text_direction"
+                  :disabled="!canEdit"
+                  class="w-40"
+                  @change="saveAcronym(entry)"
                 />
               </UFormField>
 
@@ -297,9 +317,11 @@ interface Entry {
   term_id: string
   number: number
   term: string
+  acronym: string | null
   section_title: string
   fields: Field[]
   value: string
+  acronym_translation: string
   status: 'draft' | 'confirmed' | 'flagged'
   note: string
   stale: boolean
@@ -413,6 +435,7 @@ async function load() {
     entries.value = result.entries.map((entry, index) => ({
       ...entry,
       number: index + 1,
+      acronym_translation: entry.acronym_translation || '',
       note: entry.note || ''
     }))
     reviewerName.value = result.pass.reviewer_name || ''
@@ -453,12 +476,13 @@ async function saveName() {
 
 async function patchTerm(entry: Entry, body: Record<string, unknown>) {
   try {
-    const updated = await $fetch<{ value: string; status: Entry['status']; note: string | null }>(
+    const updated = await $fetch<{ value: string; acronym: string | null; status: Entry['status']; note: string | null }>(
       `/api/glossary/review/${token.value}/terms/${entry.term_id}`,
       { method: 'PATCH', body }
     )
     entry.status = updated.status
     entry.value = updated.value
+    entry.acronym_translation = updated.acronym || ''
     entry.note = updated.note || ''
   } catch (e: any) {
     toast.add({ title: 'Could not save', description: e?.data?.statusMessage, color: 'error' })
@@ -466,9 +490,13 @@ async function patchTerm(entry: Entry, body: Record<string, unknown>) {
   }
 }
 
-// Editing the wording is itself a decision about the term, so it confirms it.
+// Editing the wording or the acronym is itself a decision about the term, so it confirms it.
 function saveValue(entry: Entry) {
   patchTerm(entry, { value: entry.value, status: 'confirmed' })
+}
+
+function saveAcronym(entry: Entry) {
+  patchTerm(entry, { acronym: entry.acronym_translation, status: 'confirmed' })
 }
 
 function setStatus(entry: Entry, status: Entry['status']) {

@@ -69,6 +69,7 @@
                 <div class="min-w-0">
                   <div class="flex items-center gap-2 flex-wrap">
                     <span class="font-medium">{{ entry.term }}</span>
+                    <span v-if="entry.acronym" class="text-[var(--ui-text-muted)]">({{ entry.acronym }})</span>
                     <UBadge :color="statusColor(entry)" variant="subtle" size="xs">
                       {{ statusLabel(entry) }}
                     </UBadge>
@@ -100,6 +101,17 @@
                   placeholder="No wording yet"
                   class="flex-1"
                   @change="(event: Event) => saveValue(entry, (event.target as HTMLInputElement).value)"
+                />
+                <!-- Empty means the English acronym; only a language's own is stored. -->
+                <UInput
+                  v-if="entry.acronym"
+                  :model-value="entry.acronym_translation || ''"
+                  :placeholder="entry.acronym"
+                  :dir="language.text_direction"
+                  :disabled="!canManage"
+                  :aria-label="`Acronym, ${entry.acronym} unless set`"
+                  class="w-28"
+                  @change="(event: Event) => saveAcronym(entry, (event.target as HTMLInputElement).value)"
                 />
                 <UButton
                   v-if="canManage"
@@ -435,8 +447,10 @@ definePageMeta({
 interface Entry {
   term_id: string
   term: string
+  acronym: string | null
   section_title: string
   value: string
+  acronym_translation: string | null
   status: 'draft' | 'confirmed' | 'flagged'
   note: string | null
   stale: boolean
@@ -630,11 +644,16 @@ async function load() {
 
 async function patchTerm(entry: Entry, body: Record<string, unknown>) {
   try {
-    const updated = await $fetch<{ value: string; status: Entry['status']; note: string | null; stale: boolean; id: string }>(
-      `/api/admin/glossary/languages/${code.value}/terms/${entry.term_id}`,
-      { method: 'PATCH', body }
-    )
+    const updated = await $fetch<{
+      value: string
+      acronym: string | null
+      status: Entry['status']
+      note: string | null
+      stale: boolean
+      id: string
+    }>(`/api/admin/glossary/languages/${code.value}/terms/${entry.term_id}`, { method: 'PATCH', body })
     entry.value = updated.value
+    entry.acronym_translation = updated.acronym
     entry.status = updated.status
     entry.note = updated.note
     entry.stale = updated.stale
@@ -648,6 +667,11 @@ async function patchTerm(entry: Entry, body: Record<string, unknown>) {
 function saveValue(entry: Entry, value: string) {
   if (value === entry.value) return
   patchTerm(entry, { value, status: 'confirmed' })
+}
+
+function saveAcronym(entry: Entry, acronym: string) {
+  if (acronym === (entry.acronym_translation || '')) return
+  patchTerm(entry, { acronym, status: 'confirmed' })
 }
 
 function setStatus(entry: Entry, status: Entry['status']) {

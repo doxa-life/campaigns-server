@@ -28,6 +28,7 @@
     "Vision and goals language": "Terminologia viziunii și a obiectivelor"
   },
   "field_labels": {
+    "Context": "Context în engleză",
     "Meaning": "Sens în engleză",
     "Site definition": "Definiție pe site (în engleză)",
     "Site definition (Vision page — \"What is Engagement?\")": "Definiție pe site, pagina Vision (în engleză)",
@@ -44,6 +45,8 @@
     "edit_local": "Modific",
     "flag_local": "Semnalez pentru discuție",
     "final_term_local": "Termen românesc final",
+    "acronym_en": "Acronym",
+    "acronym_local": "Acronim",
     "translator_notes_local": "Notele traducătorului",
     "submit_local": "Am terminat această verificare",
     "submitted_local": "Verificare trimisă"
@@ -76,24 +79,24 @@
       "value": "grup etnolingvistic",
       "note": "Approved as suggested. It replaces grup etnic, which the campaigns server still says in 45 places across the Romanian locale; the form's own note rules out the political and tribal readings grup etnic invites. Entry 7, Ethnolinguistic group, is the same wording — Romanian uses the technical phrase as the everyday one."
     },
-    "Unreached people group (UPG)": {
+    "Unreached people group": {
       "value": "grup etnolingvistic neatins cu Evanghelia",
       "note": "Edited from grup etnolingvistic neatins: the reviewer added cu Evanghelia to say what the group is untouched by, since neatins alone reads as untouched in general. The Latin acronym was dropped here and at UUPG although instruction 3 asked for it to be kept; the UUPG note carries that question."
     },
-    "Unengaged (people group)": {
+    "Unengaged": {
       "value": "grup etnolingvistic neangajat misionar",
       "note": "Edited from fără angajare misionară activă to the adjective neangajat misionar, and the family follows it: neangajat misionar, puțin angajat misionar, angajare misionară. The campaigns server already says neangajat in 11 places, without the misionar that fixes the sense."
     },
-    "Unengaged unreached people group (UUPG)": {
+    "Unengaged unreached people group": {
       "value": "grup etnolingvistic neatins și neangajat misionar",
       "note": "Edited, and the (UUPG) acronym that both the suggestion and instruction 3 carried was dropped, while (CPM) was approved at entry 12. Flagged because the acronym is a policy for the language rather than for one term: the research page uses \"Find a UUPG\" as a UI label, and the Romanian phrase alone is long for a button. The same question stands over UPG.",
       "status": "flagged"
     },
-    "Under-engaged (people group)": {
+    "Under-engaged": {
       "value": "grup etnolingvistic puțin angajat misionar",
       "note": "Edited from cu angajare misionară insuficientă. puțin angajat misionar keeps the family's adjective shape against neangajat misionar and says the work is small, not that the people are indifferent."
     },
-    "Frontier people (group)": {
+    "Frontier people": {
       "value": "grup etnolingvistic de frontieră",
       "note": "Approved as suggested; de frontieră carries the missiological edge without the military reading the form warns against."
     },
@@ -101,8 +104,8 @@
       "value": "grup etnolingvistic",
       "note": "Approved as suggested, and identical to entry 1."
     },
-    "Engagement / engaged (people group)": {
-      "value": "angajare misionară / angajat misionar (grup etnolingvistic)",
+    "Engagement / engaged": {
+      "value": "angajare misionară / angajat misionar",
       "note": "Approved as suggested, parenthesis included; the parenthesis names what the adjective attaches to rather than being part of the term. The bare angajare / angajat, which the campaigns server uses in 26 places, reads as employment — misionară is what makes it mission engagement."
     },
     "Fruitful engagement": {
@@ -117,15 +120,15 @@
       "value": "lucrare activă de vestire și trăire a Evangheliei",
       "note": "Approved as suggested. It is a description, not a label: Romanian has no short phrase that separates gospel engagement from gospel access, and the reviewer let the long form stand."
     },
-    "Church-planting movement (CPM)": {
-      "value": "mișcare de plantare de biserici (CPM)",
+    "Church-planting movement": {
+      "value": "mișcare de plantare de biserici",
       "note": "Approved with the Latin acronym kept — the reviewer's only acronym retention, against the edits at UPG and UUPG."
     },
     "Indigenous church": {
       "value": "biserică autohtonă",
       "note": "Approved. autohtonă is locally rooted and self-governing, without the native-religion reading the form warns against."
     },
-    "The five \"selfs\" (of an indigenous church)": {
+    "The five \"selfs\"": {
       "value": "cele cinci caracteristici de autonomie ale unei biserici autohtone",
       "note": "Approved as suggested. Romanian has no established five-selfs formula, so the descriptive phrase stands; each self- compound still needs a consistent rendering wherever the list is spelled out."
     },
@@ -137,8 +140,8 @@
       "value": "lucrători transculturali",
       "note": "Edited from lucrători interculturali, which the campaigns server says in 3 places. inter- is between cultures, trans- is across them, and the form asks for a term that conveys cultural difference."
     },
-    "Apostolic (pioneering) effort": {
-      "value": "lucrare apostolică (de pionierat)",
+    "Apostolic effort": {
+      "value": "lucrare apostolică de pionierat",
       "note": "Edited from efort apostolic. lucrare is the Romanian church's word for ministry work and matches entry 18, lucrare de pionierat; efort reads as exertion."
     },
     "Pioneer work": {
@@ -158,14 +161,14 @@
       "value": "parteneri de la distanță",
       "note": "Edited from parteneri nerezidenți, which is accurate but reads as a tax term in Romanian. de la distanță says the partner supports the work from elsewhere, and pairs with entry 22."
     },
-    "Broader engagement (components)": {
+    "Broader engagement": {
       "value": "implicare de la distanță",
       "note": "Edited to implicare de la distanță, which narrows the term to what nonresident partners do and drops components. The English names the contributing parts of mission — intercession, Bible translation, compassion and disaster ministry, media, mobilization, leadership training, diaspora work — and some of those are done on the field. Flagged: recorded as the reviewer wrote it, but the component list needs wording of its own wherever it is spelled out.",
       "status": "flagged"
     },
     "Diaspora": "diaspora",
-    "Daily prayer (for a people group)": {
-      "value": "rugăciune zilnică (pentru un grup etnolingvistic)",
+    "Daily prayer": {
+      "value": "rugăciune zilnică",
       "note": "Approved as suggested, with the parenthesis naming what the prayer is for rather than being part of the term; the term is rugăciune zilnică."
     },
     "Intercessor / intercessors": {
@@ -182,7 +185,7 @@
       "value": "Domnul secerișului",
       "note": "Approved with the final-term field left blank, so the suggestion stands. It is the wording of both Romanian editions in play — VDC \"Rugați dar pe Domnul secerișului\" and NTR \"rugați-L fierbinte pe Domnul secerișului\" (Mt. 9:38) — so nothing here turns on the edition question at entry 37."
     },
-    "Adopt (an unengaged people group)": {
+    "Adopt": {
       "value": "adoptă un grup etnolingvistic neangajat misionar",
       "note": "The reviewer wrote the whole call to action rather than the term, and it is recorded as written. Flagged because the interface needs a noun and a bare verb — adoptare for the page and the certificate, adoptă for the button — and the reviewer has not ruled on those. adoptare is what the campaigns server uses, in 23 places.",
       "status": "flagged"

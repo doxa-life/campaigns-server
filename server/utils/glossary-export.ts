@@ -12,9 +12,13 @@ import type { GlossaryEntry, GlossaryLanguage } from '../database/glossary'
 
 export interface GlossaryExportTerm {
   term: string
+  /** The English acronym, for a term known by one. */
+  acronym: string | null
   section: string
   fields: Array<{ label: string; value: string }>
   translation: string
+  /** The acronym this language uses: its own where a reviewer chose one, otherwise the English one. */
+  acronym_translation: string | null
   status: string
   stale: boolean
   note: string | null
@@ -48,9 +52,11 @@ export function buildGlossaryExport(language: GlossaryLanguage, entries: Glossar
     .filter(entry => entry.value.trim())
     .map(entry => ({
       term: entry.term,
+      acronym: entry.acronym,
       section: entry.section_title,
       fields: entry.fields,
       translation: entry.value,
+      acronym_translation: entry.acronym ? entry.acronym_translation || entry.acronym : null,
       status: entry.status,
       stale: entry.stale,
       note: entry.note,
@@ -79,6 +85,11 @@ function escapeCell(value: string): string {
   return value.replace(/\|/g, '\\|').replace(/\n+/g, ' ')
 }
 
+/** A wording with its acronym after it, as the pair reads in prose. */
+export function withAcronym(text: string, acronym: string | null): string {
+  return acronym ? `${text} (${acronym})` : text
+}
+
 /** The same content as a document, for reading rather than parsing. */
 export function renderGlossaryMarkdown(data: GlossaryExport): string {
   const lines: string[] = []
@@ -102,7 +113,9 @@ export function renderGlossaryMarkdown(data: GlossaryExport): string {
   lines.push('| --- | --- | --- |')
   for (const term of data.terms) {
     const status = term.stale ? `${term.status} (stale)` : term.status
-    lines.push(`| ${escapeCell(term.term)} | ${escapeCell(term.translation)} | ${status} |`)
+    lines.push(
+      `| ${escapeCell(withAcronym(term.term, term.acronym))} | ${escapeCell(withAcronym(term.translation, term.acronym_translation))} | ${status} |`
+    )
   }
 
   let section = ''
@@ -111,7 +124,7 @@ export function renderGlossaryMarkdown(data: GlossaryExport): string {
       section = term.section
       lines.push('', `## ${section}`)
     }
-    lines.push('', `### ${term.term} → ${term.translation}`)
+    lines.push('', `### ${withAcronym(term.term, term.acronym)} → ${withAcronym(term.translation, term.acronym_translation)}`)
     for (const field of term.fields) {
       lines.push('', `**${field.label}.** ${field.value}`)
     }

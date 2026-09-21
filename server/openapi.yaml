@@ -2169,6 +2169,12 @@ paths:
         rules on it, while a term with no glossary entry drifts differently in
         every file. `stale` marks a wording whose English term changed after it
         was reviewed.
+
+
+        A term known by an acronym carries it separately from the wording:
+        `acronym` is the English one and `acronym_translation` the one the
+        language uses, which is the English acronym unless its reviewer chose
+        another.
       parameters:
         - name: lang
           in: path
@@ -2239,7 +2245,12 @@ paths:
                       properties:
                         term:
                           type: string
-                          example: People group
+                          example: Unreached people group
+                        acronym:
+                          type: string
+                          nullable: true
+                          description: The English acronym, for a term known by one.
+                          example: UPG
                         section:
                           type: string
                           example: People-group terminology
@@ -2256,7 +2267,15 @@ paths:
                                 type: string
                         translation:
                           type: string
-                          example: grup etnolingvistic
+                          example: grup etnolingvistic neatins cu Evanghelia
+                        acronym_translation:
+                          type: string
+                          nullable: true
+                          description: >
+                            The acronym this language uses: its own where a
+                            reviewer chose one, otherwise the English one. Null
+                            for a term with no acronym.
+                          example: UPG
                         status:
                           type: string
                           enum: [draft, confirmed, flagged]

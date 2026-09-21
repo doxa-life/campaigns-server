@@ -28,7 +28,8 @@
           ]
         },
         {
-          "term": "Unreached people group (UPG)",
+          "term": "Unreached people group",
+          "acronym": "UPG",
           "seed": true,
           "fields": [
             [
@@ -46,9 +47,13 @@
           ]
         },
         {
-          "term": "Unengaged (people group)",
+          "term": "Unengaged",
           "seed": true,
           "fields": [
+            [
+              "Context",
+              "an unengaged people group"
+            ],
             [
               "Site definition",
               "A people group with no known believers or a tiny few and lacking the four primary levels of effective engagement (apostolic effort in residence; commitment to the local culture and heart language; long-term ministry commitment; sowing the gospel aimed at a CPM). (Definitions page)"
@@ -64,7 +69,8 @@
           ]
         },
         {
-          "term": "Unengaged unreached people group (UUPG)",
+          "term": "Unengaged unreached people group",
+          "acronym": "UUPG",
           "seed": false,
           "fields": [
             [
@@ -82,9 +88,13 @@
           ]
         },
         {
-          "term": "Under-engaged (people group)",
+          "term": "Under-engaged",
           "seed": true,
           "fields": [
+            [
+              "Context",
+              "an under-engaged people group"
+            ],
             [
               "Site definition",
               "\"Has approximately 1 disciple or fewer out of 100 (≤ 1%). More church planting teams are needed to increase fruitful engagement.\" (Definitions page)"
@@ -100,9 +110,13 @@
           ]
         },
         {
-          "term": "Frontier people (group)",
+          "term": "Frontier people",
           "seed": true,
           "fields": [
+            [
+              "Context",
+              "a frontier people group; frontier peoples"
+            ],
             [
               "Site definition",
               "\"Has approximately 1 disciple or fewer out of 1,000 (≤ 0.1%) with no confirmed, sustained movement to Jesus. Often geographically isolated with little to no access to the gospel; pioneer work generally must begin with nonbelievers.\" (Definitions page)"
@@ -138,9 +152,13 @@
       "intro": "",
       "entries": [
         {
-          "term": "Engagement / engaged (people group)",
+          "term": "Engagement / engaged",
           "seed": false,
           "fields": [
+            [
+              "Context",
+              "engagement with a people group; an engaged people group"
+            ],
             [
               "Site definition (Vision page — \"What is Engagement?\")",
               "\"There is sustained activity to share Christ and make disciples; there are efforts to establish self-sustaining churches; the work occurs in culturally appropriate and locally relevant ways.\" For WAGF: cross-cultural workers are resident."
@@ -210,7 +228,8 @@
           ]
         },
         {
-          "term": "Church-planting movement (CPM)",
+          "term": "Church-planting movement",
+          "acronym": "CPM",
           "seed": true,
           "fields": [
             [
@@ -246,9 +265,13 @@
           ]
         },
         {
-          "term": "The five \"selfs\" (of an indigenous church)",
+          "term": "The five \"selfs\"",
           "seed": false,
           "fields": [
+            [
+              "Context",
+              "the five \"selfs\" of an indigenous church"
+            ],
             [
               "Meaning",
               "The five markers of a mature indigenous church: self-propagating, self-governing, self-supporting, self-theologizing, self-missionizing. (Definitions page)"
@@ -296,9 +319,13 @@
           ]
         },
         {
-          "term": "Apostolic (pioneering) effort",
+          "term": "Apostolic effort",
           "seed": false,
           "fields": [
+            [
+              "Context",
+              "apostolic (pioneering) effort in residence; \"pioneering\" is the site's gloss for \"apostolic\""
+            ],
             [
               "Meaning",
               "Front-edge mission work that begins where there are no churches or believers. One of the four criteria for a people group being \"engaged\"."
@@ -386,9 +413,13 @@
           ]
         },
         {
-          "term": "Broader engagement (components)",
+          "term": "Broader engagement",
           "seed": false,
           "fields": [
+            [
+              "Context",
+              "the components of broader engagement"
+            ],
             [
               "Meaning",
               "The contributing (but not sufficient alone) elements of mission that nonresident partners can do: intercessory prayer, Bible translation, compassion/disaster ministry, media reach, mobilization efforts, leadership training, work among diaspora."
@@ -428,9 +459,13 @@
       "intro": "",
       "entries": [
         {
-          "term": "Daily prayer (for a people group)",
+          "term": "Daily prayer",
           "seed": true,
           "fields": [
+            [
+              "Context",
+              "daily prayer for a people group"
+            ],
             [
               "Meaning",
               "Committing to pray for a specific unengaged people group every day, typically using the daily prayer guide from Doxa.Life."
@@ -542,9 +577,13 @@
       "intro": "",
       "entries": [
         {
-          "term": "Adopt (an unengaged people group)",
+          "term": "Adopt",
           "seed": true,
           "fields": [
+            [
+              "Context",
+              "adopt an unengaged people group"
+            ],
             [
               "Meaning",
               "A formal, long-term church-led commitment to pray, give, and send so that gospel access begins for a specific unengaged people group."

@@ -7,6 +7,7 @@
  */
 
 import { userService } from '../database/users'
+import { withAcronym } from './glossary-export'
 import type { GlossaryEntry, GlossaryLanguage, GlossaryReviewPass } from '../database/glossary'
 
 function escapeHtml(text: string): string {
@@ -44,7 +45,7 @@ function sendReviewSubmittedEmail(to: string, data: GlossaryReviewSummary): Prom
 
   const flaggedList = flagged.length
     ? `<h3 style="color: #3B463D;">Flagged for discussion</h3><ul>${flagged
-        .map(entry => `<li><strong>${escapeHtml(entry.term)}</strong> → ${escapeHtml(entry.value)}${entry.note ? ` — ${escapeHtml(entry.note)}` : ''}</li>`)
+        .map(entry => `<li><strong>${escapeHtml(withAcronym(entry.term, entry.acronym))}</strong> → ${escapeHtml(withAcronym(entry.value, entry.acronym && (entry.acronym_translation || entry.acronym)))}${entry.note ? ` — ${escapeHtml(entry.note)}` : ''}</li>`)
         .join('')}</ul>`
     : ''
 

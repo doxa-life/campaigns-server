@@ -56,6 +56,9 @@ than fetching it as a side effect.
 - Keys never change. Only values.
 - Apply the notes: register, acronyms, thousands separator, how a year is
   written.
+- A bare acronym in a string (UPG, UUPG, CPM) takes the glossary's
+  `acronym_translation`, which is the English acronym unless the reviewer chose
+  another; the wording itself never carries it in parentheses.
 - Validate the JSON afterwards and confirm the key set is unchanged.
 
 Then `grep` `app/`, `server/` and `config/` for the old wording, in case a term

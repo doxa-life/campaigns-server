@@ -6,6 +6,10 @@
  * the reviewer-page chrome in that language. Reviewers edit translations live
  * through a magic link, so every write appends a revision — that record is what
  * makes an unauthenticated edit safe to accept.
+ *
+ * An acronym is a field of its own: the English one on the term, a language's
+ * own on its translation. A translation with no acronym of its own uses the
+ * English one, so the column holds only a language's explicit choice.
  */
 
 import { randomBytes } from 'crypto'
@@ -20,6 +24,7 @@ export interface GlossaryTerm {
   id: string
   section_id: string
   term: string
+  acronym: string | null
   seed: boolean
   fields: GlossaryField[]
   position: number
@@ -73,6 +78,7 @@ export interface GlossaryTranslation {
   language_id: string
   term_id: string
   value: string
+  acronym: string | null
   status: TranslationStatus
   note: string | null
   stale: boolean
@@ -98,6 +104,7 @@ export interface GlossaryRevision {
   id: string
   translation_id: string
   value: string
+  acronym: string | null
   status: TranslationStatus
   note: string | null
   reviewer_name: string | null
@@ -135,12 +142,23 @@ function jsonValue(sql: ReturnType<typeof getSql>, value: unknown) {
   return sql.json(value as any)
 }
 
+/**
+ * The acronym a language stores for a term: only its own. Empty, or the
+ * English acronym spelled the same way, is null so the English one applies.
+ */
+function ownAcronym(acronym: string | null | undefined, englishAcronym: string | null | undefined): string | null {
+  const own = (acronym || '').trim()
+  if (!own) return null
+  if (englishAcronym && own.toUpperCase() === englishAcronym.toUpperCase()) return null
+  return own
+}
+
 const SECTION_COLUMNS = 'id, title, intro, position'
-const TERM_COLUMNS = 'id, section_id, term, seed, fields, position'
+const TERM_COLUMNS = 'id, section_id, term, acronym, seed, fields, position'
 const LANGUAGE_COLUMNS =
   'id, code, name_en, name_local, text_direction, chrome, bible_id, bible_translation, bible_translation_note, notes, created_at, updated_at'
 const TRANSLATION_COLUMNS =
-  'id, language_id, term_id, value, status, note, stale, updated_by_name, updated_by_pass_id, updated_at'
+  'id, language_id, term_id, value, acronym, status, note, stale, updated_by_name, updated_by_pass_id, updated_at'
 const PASS_COLUMNS =
   'id, language_id, label, token, reviewer_name, reviewer_email, status, submitted_at, last_seen_at, created_at'
 
@@ -209,15 +227,17 @@ export async function deleteSection(id: string): Promise<boolean> {
 export async function createTerm(input: {
   section_id: string
   term: string
+  acronym?: string | null
   fields?: GlossaryField[]
   seed?: boolean
 }): Promise<GlossaryTerm> {
   const sql = getSql()
   const [row] = await sql`
-    INSERT INTO glossary_terms (section_id, term, seed, fields, position)
+    INSERT INTO glossary_terms (section_id, term, acronym, seed, fields, position)
     VALUES (
       ${input.section_id},
       ${input.term},
+      ${input.acronym ?? null},
       ${input.seed ?? false},
       ${jsonValue(sql, input.fields || [])}::jsonb,
       COALESCE((SELECT MAX(position) + 1 FROM glossary_terms WHERE section_id = ${input.section_id}), 0)
@@ -228,18 +248,26 @@ export async function createTerm(input: {
 }
 
 /**
- * Update an English term. Changing the headword or its annotations invalidates
- * every review of it, so confirmed translations of that term drop back to draft
- * and are marked stale.
+ * Update an English term. Changing the headword, its acronym or its annotations
+ * invalidates every review of it, so confirmed translations of that term drop
+ * back to draft and are marked stale.
  */
 export async function updateTerm(
   id: string,
-  input: { term?: string; fields?: GlossaryField[]; section_id?: string; position?: number; seed?: boolean }
+  input: {
+    term?: string
+    acronym?: string | null
+    fields?: GlossaryField[]
+    section_id?: string
+    position?: number
+    seed?: boolean
+  }
 ): Promise<GlossaryTerm | null> {
   const sql = getSql()
   const [row] = await sql`
     UPDATE glossary_terms SET
       term = COALESCE(${input.term ?? null}, term),
+      acronym = ${input.acronym === undefined ? sql`acronym` : input.acronym},
       fields = COALESCE(${input.fields ? jsonValue(sql, input.fields) : null}::jsonb, fields),
       section_id = COALESCE(${input.section_id ?? null}, section_id),
       position = COALESCE(${input.position ?? null}, position),
@@ -250,7 +278,7 @@ export async function updateTerm(
   `
   if (!row) return null
 
-  const meaningChanged = input.term !== undefined || input.fields !== undefined
+  const meaningChanged = input.term !== undefined || input.acronym !== undefined || input.fields !== undefined
   if (meaningChanged) {
     await sql`
       UPDATE glossary_translations
@@ -421,10 +449,14 @@ export async function revertLanguageNotes(
 export interface GlossaryEntry {
   term_id: string
   term: string
+  /** The English acronym, for a term known by one. */
+  acronym: string | null
   seed: boolean
   section_title: string
   fields: GlossaryField[]
   value: string
+  /** The language's own acronym; null where the English one applies. */
+  acronym_translation: string | null
   status: TranslationStatus
   note: string | null
   stale: boolean
@@ -444,10 +476,12 @@ export async function getLanguageEntries(languageId: string): Promise<GlossaryEn
     SELECT
       gt.id AS term_id,
       gt.term,
+      gt.acronym,
       gt.seed,
       gs.title AS section_title,
       gt.fields,
       COALESCE(tr.value, '') AS value,
+      tr.acronym AS acronym_translation,
       COALESCE(tr.status, 'draft') AS status,
       tr.note,
       COALESCE(tr.stale, FALSE) AS stale,
@@ -464,13 +498,13 @@ export async function getLanguageEntries(languageId: string): Promise<GlossaryEn
 
 /**
  * Write one term's wording for a language and append a revision. Passing only
- * a status (Confirm) keeps the existing value; any change to the value clears
- * the stale mark, since the wording has now been reconsidered.
+ * a status (Confirm) keeps the existing value; any change to the value or the
+ * acronym clears the stale mark, since the wording has now been reconsidered.
  */
 export async function writeTranslation(
   languageId: string,
   termId: string,
-  patch: { value?: string; status?: TranslationStatus; note?: string | null },
+  patch: { value?: string; acronym?: string | null; status?: TranslationStatus; note?: string | null },
   actor: GlossaryActor
 ): Promise<GlossaryTranslation> {
   const sql = getSql()
@@ -480,22 +514,26 @@ export async function writeTranslation(
     WHERE language_id = ${languageId} AND term_id = ${termId}
   `
   const current = (existing as GlossaryTranslation) || null
+  const [term] = await sql`SELECT acronym FROM glossary_terms WHERE id = ${termId}`
 
   const value = patch.value !== undefined ? patch.value : current?.value ?? ''
+  const acronym = patch.acronym !== undefined ? ownAcronym(patch.acronym, term?.acronym) : current?.acronym ?? null
   const status = patch.status !== undefined ? patch.status : current?.status ?? 'draft'
   const note = patch.note !== undefined ? patch.note : current?.note ?? null
   const valueChanged = patch.value !== undefined && patch.value !== current?.value
-  const stale = valueChanged ? false : current?.stale ?? false
+  const acronymChanged = patch.acronym !== undefined && acronym !== (current?.acronym ?? null)
+  const stale = valueChanged || acronymChanged ? false : current?.stale ?? false
 
   const [row] = await sql`
     INSERT INTO glossary_translations
-      (language_id, term_id, value, status, note, stale, updated_by_name, updated_by_pass_id, updated_at)
+      (language_id, term_id, value, acronym, status, note, stale, updated_by_name, updated_by_pass_id, updated_at)
     VALUES (
-      ${languageId}, ${termId}, ${value}, ${status}, ${note}, ${stale},
+      ${languageId}, ${termId}, ${value}, ${acronym}, ${status}, ${note}, ${stale},
       ${actor.name ?? null}, ${actor.passId ?? null}, NOW()
     )
     ON CONFLICT (language_id, term_id) DO UPDATE SET
       value = EXCLUDED.value,
+      acronym = EXCLUDED.acronym,
       status = EXCLUDED.status,
       note = EXCLUDED.note,
       stale = EXCLUDED.stale,
@@ -508,9 +546,9 @@ export async function writeTranslation(
 
   await sql`
     INSERT INTO glossary_translation_revisions
-      (translation_id, value, status, note, reviewer_name, pass_id, source)
+      (translation_id, value, acronym, status, note, reviewer_name, pass_id, source)
     VALUES (
-      ${translation.id}, ${value}, ${status}, ${note},
+      ${translation.id}, ${value}, ${acronym}, ${status}, ${note},
       ${actor.name ?? null}, ${actor.passId ?? null}, ${actor.source}
     )
   `
@@ -520,7 +558,7 @@ export async function writeTranslation(
 export async function listRevisions(translationId: string): Promise<GlossaryRevision[]> {
   const sql = getSql()
   return (await sql`
-    SELECT id, translation_id, value, status, note, reviewer_name, pass_id, source, created_at
+    SELECT id, translation_id, value, acronym, status, note, reviewer_name, pass_id, source, created_at
     FROM glossary_translation_revisions
     WHERE translation_id = ${translationId}
     ORDER BY created_at DESC
@@ -534,7 +572,7 @@ export async function revertToRevision(
 ): Promise<GlossaryTranslation | null> {
   const sql = getSql()
   const [revision] = await sql`
-    SELECT r.value, r.status, r.note, t.language_id, t.term_id
+    SELECT r.value, r.acronym, r.status, r.note, t.language_id, t.term_id
     FROM glossary_translation_revisions r
     JOIN glossary_translations t ON t.id = r.translation_id
     WHERE r.id = ${revisionId}
@@ -544,7 +582,7 @@ export async function revertToRevision(
   return await writeTranslation(
     revision.language_id,
     revision.term_id,
-    { value: revision.value, status: revision.status, note: revision.note },
+    { value: revision.value, acronym: revision.acronym, status: revision.status, note: revision.note },
     { name: actorName, source: 'revert' }
   )
 }
@@ -657,21 +695,32 @@ export interface GlossaryPair {
 
 /**
  * English → target wording for one language, used to steer machine translation.
+ * A term with an acronym also yields the acronym as its own pair, so a bare
+ * "UUPG" in source text maps to the language's acronym or stays as it is.
  * Unconfirmed drafts are included: a term applied consistently is cheap to
  * correct once a reviewer rules on it, while a term with no glossary entry
  * drifts differently in every file.
  */
 export async function getGlossaryPairs(code: string): Promise<GlossaryPair[]> {
   const sql = getSql()
-  return (await sql`
-    SELECT gt.term, tr.value, (tr.status = 'confirmed') AS confirmed
+  const rows = (await sql`
+    SELECT
+      gt.term, tr.value, gt.acronym,
+      COALESCE(tr.acronym, gt.acronym) AS acronym_translation,
+      (tr.status = 'confirmed') AS confirmed
     FROM glossary_translations tr
     JOIN glossary_languages gl ON gl.id = tr.language_id
     JOIN glossary_terms gt ON gt.id = tr.term_id
     JOIN glossary_sections gs ON gs.id = gt.section_id
     WHERE gl.code = ${code} AND tr.value <> ''
     ORDER BY gs.position, gt.position
-  `) as unknown as GlossaryPair[]
+  `) as unknown as Array<GlossaryPair & { acronym: string | null; acronym_translation: string | null }>
+
+  return rows.flatMap(({ term, value, confirmed, acronym, acronym_translation }) => {
+    const pairs: GlossaryPair[] = [{ term, value, confirmed }]
+    if (acronym) pairs.push({ term: acronym, value: acronym_translation || acronym, confirmed })
+    return pairs
+  })
 }
 
 /** Everything a translation request needs from the glossary for one language. */

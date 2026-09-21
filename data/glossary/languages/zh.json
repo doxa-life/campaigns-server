@@ -28,6 +28,7 @@
     "Vision and goals language": "异象与目标用语"
   },
   "field_labels": {
+    "Context": "英语语境",
     "Meaning": "英语含义",
     "Site definition": "网站定义（英语）",
     "Site definition (Vision page — \"What is Engagement?\")": "异象页面的网站定义（英语）",
@@ -44,6 +45,8 @@
     "edit_local": "修改",
     "flag_local": "标记待讨论",
     "final_term_local": "最终中文术语",
+    "acronym_en": "Acronym",
+    "acronym_local": "缩写",
     "translator_notes_local": "译者备注",
     "submit_local": "我已完成本次审核",
     "submitted_local": "审核已提交"
@@ -76,23 +79,23 @@
       "value": "族群",
       "note": "The word every surface already uses: 106 occurrences across the campaigns server's Chinese locales, the mobile app throughout (族群, 我的族群, 今日族群), the adoption certificate's 这一尚未得闻福音的族群, and the translated prayer prompts. The 1040 map embed is the outlier — its legend fallback reads 民族群体 and its search placeholder 民族."
     },
-    "Unreached people group (UPG)": {
+    "Unreached people group": {
       "value": "未得之民",
       "note": "The standing Chinese missiological term, and the one the campaigns server builds its IMB labels on: 前沿未得之民 (Frontier UPG), 开拓型未得之民 (Pioneer UPG), 扩展型未得之民 (Expanding UPG). The prayer prompts use it in prose (在这未得之民中兴起勇敢的见证人). No surface writes the Latin acronym UPG in Chinese text, so none is carried here; contrast UUPG, which the map legend does write."
     },
-    "Unengaged (people group)": {
+    "Unengaged": {
       "value": "未接触",
       "note": "The campaigns server's status label and the base of its generated people-group descriptions (未接触 / 已接触 / 未接触且未得之民), 11 occurrences. Two surfaces disagree and are the outliers: the mobile app says 宣教参与状态 and 已参与宣教, and the 1040 map legend says 需要参与 / 已有参与. Worth a reviewer's attention, because 接触 on its own means \"contact\" and every reviewed language rejected exactly that reading — German chose missionarische Arbeit vor Ort over Kontakt, and the Portuguese document warns that participação or contato empties the term. 未接触 is kept because it is what ships and because in Chinese missions usage it already carries \"no one is working among them\" rather than bare contact; if a reviewer disagrees, the whole family below moves with it."
     },
-    "Unengaged unreached people group (UUPG)": {
-      "value": "未接触且未得之民（UUPG）",
+    "Unengaged unreached people group": {
+      "value": "未接触且未得之民",
       "note": "The campaigns server's own compound label for this status (peopleGroups.options.strategicPriorityIndex.0 and descriptionTemplates.statusUnengagedUnreached both read 未接触且未得之民), which supersedes the earlier draft 尚无福音工作的未得之族. The sibling label is 已接触但未得之民 (Engaged yet Unreached). The Latin acronym is kept because the map legend writes UUPGs untranslated."
     },
-    "Under-engaged (people group)": {
+    "Under-engaged": {
       "value": "接触不足",
       "note": "No surface carries this term yet. Set to match the 接触 family rather than the earlier draft 福音工作投入不足的族群, which belonged to no other entry. Parallel to the reviewed languages' poco coinvolto / poco comprometido: work has begun but is not enough in scale."
     },
-    "Frontier people (group)": {
+    "Frontier people": {
       "value": "前沿族群",
       "note": "前沿 is the campaigns server's word in 前沿未得之民 (Frontier Unreached People Group), paired here with 族群."
     },
@@ -100,7 +103,7 @@
       "value": "民族语言群体",
       "note": "The wording the /terms edition and the site's Definitions page both use inside the people-group definition (一个民族语言群体，其成员因语言、文化、宗教和世界观而彼此认同). 族裔语言群体 was the earlier draft and is superseded."
     },
-    "Engagement / engaged (people group)": {
+    "Engagement / engaged": {
       "value": "接触／已接触",
       "note": "接触 is the campaigns server's noun (接触状态, 接触标准, 迈向接触的关键第一步) and 已接触 its label for an engaged group. The pair replaces the earlier draft 接触状态, which rendered only \"engagement status\". Where English uses engagement as an abstract noun rather than a status — fruitful engagement, broader engagement, residential engagement — the entries below read 宣教参与 / 宣教工作, because 有果效的接触 and 广义接触 are not usable Chinese. A reviewer confirming this entry should confirm that split too."
     },
@@ -113,15 +116,15 @@
       "value": "积极的福音接触",
       "note": "Distinct from 福音可及性 (gospel access, which is availability): this is the active missional work. 福音资源 on the 1040 map is a third thing again — the gospel resources a group has."
     },
-    "Church-planting movement (CPM)": {
-      "value": "植堂运动（CPM）",
+    "Church-planting movement": {
+      "value": "植堂运动",
       "note": "植堂 is the campaigns server's word throughout — 植堂状态, 分散性植堂, 集中性植堂, 尚无植堂工作在他们中间开展. The prayer library titled \"10 Universal Elements In a Church Multiplication Movement\" reads 教会倍增运动 in Chinese; that renders church multiplication, a different English term, not a competing rendering of CPM."
     },
     "Indigenous church": {
       "value": "本土教会",
       "note": "From the engagement criterion 驻地的跨文化工人的事工方式是否会带来本土教会的建立."
     },
-    "The five \"selfs\" (of an indigenous church)": "本土教会的五项自立原则",
+    "The five \"selfs\"": "本土教会的五项自立原则",
     "Residential engagement / workers in residence": {
       "value": "驻地宣教工作／驻地的跨文化工人",
       "note": "驻地的跨文化工人 is the campaigns server's wording in all three engagement criteria. The first half was missing from the earlier draft; 驻地宣教工作 follows the abstract-noun split described under Engagement."
@@ -130,7 +133,7 @@
       "value": "跨文化工人",
       "note": "The campaigns server's wording in the engagement criteria. The prayer prompts use the bare 工人 for the labourers of Matthew 9:38."
     },
-    "Apostolic (pioneering) effort": "使徒性（开拓性）努力",
+    "Apostolic effort": "使徒性开拓性努力",
     "Pioneer work": {
       "value": "开拓工作",
       "note": "开拓 is the campaigns server's word in 开拓型未得之民 (Pioneer Unreached People Group)."
@@ -144,7 +147,7 @@
       "note": "归向 is the prompts' verb (愿这族群听见你的呼召，速速归向你)."
     },
     "Nonresident partners": "非驻地伙伴",
-    "Broader engagement (components)": {
+    "Broader engagement": {
       "value": "广义宣教参与的组成部分",
       "note": "The abstract-noun half of the split described under Engagement."
     },
@@ -152,7 +155,7 @@
       "value": "散居群体",
       "note": "The campaigns server's label for the Diaspora indigenous status and its wording in the update form (其被归类为散居群体). Its description templates use the shorter 散居族群 in prose."
     },
-    "Daily prayer (for a people group)": {
+    "Daily prayer": {
       "value": "每日祷告",
       "note": "14 occurrences in the campaigns server's locales — 每日祷告内容, 每日祷告提醒, 每日祷告更新."
     },
@@ -173,7 +176,7 @@
       "value": "庄稼的主",
       "note": "The CUNPS wording of Matthew 9:38 — 你们当求庄稼的主打发工人出去收他的庄稼 — which is the edition the app renders Chinese scripture from, and which the translated prompts already quote."
     },
-    "Adopt (an unengaged people group)": {
+    "Adopt": {
       "value": "认领",
       "note": "16 occurrences in the campaigns server, 认领他们 on the 1040 map, 已忠心认领 and 藉此认领，我们喜乐地承诺 on the adoption certificate. One outlier in the campaigns server reads 领养 (adoption.verify.viewResources), which carries the family-law sense and is the string to align."
     },

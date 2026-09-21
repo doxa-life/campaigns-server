@@ -35,6 +35,7 @@ export async function populateLanguageTerms(
 
   const toDraft: TermToDraft[] = pending.map(entry => ({
     term: entry.term,
+    acronym: entry.acronym,
     section_title: entry.section_title,
     fields: entry.fields
   }))
@@ -43,12 +44,12 @@ export async function populateLanguageTerms(
 
   let written = 0
   for (const entry of pending) {
-    const value = drafted.get(entry.term)
-    if (!value) continue
+    const draft = drafted.get(entry.term)
+    if (!draft) continue
     await writeTranslation(
       language.id,
       entry.term_id,
-      { value, status: 'draft' },
+      { value: draft.translation, acronym: draft.acronym, status: 'draft' },
       { name: 'AI draft', source: 'ai' }
     )
     written++
