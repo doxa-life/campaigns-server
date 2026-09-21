@@ -59,6 +59,41 @@
               </div>
             </template>
 
+            <template #bible-cell="{ row }">
+              <div class="flex flex-col gap-0.5 text-sm">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs text-[var(--ui-text-muted)] w-16 shrink-0">In app</span>
+                  <template v-if="(row.original as LanguageRow).bible_id_in_code">
+                    <span class="font-mono text-xs">{{ (row.original as LanguageRow).bible_id_in_code }}</span>
+                    <span
+                      v-if="(row.original as LanguageRow).bible_label_in_code !== (row.original as LanguageRow).bible_id_in_code"
+                      class="text-xs text-[var(--ui-text-muted)]"
+                    >
+                      {{ (row.original as LanguageRow).bible_label_in_code }}
+                    </span>
+                  </template>
+                  <span v-else class="text-[var(--ui-text-muted)]">&mdash;</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs text-[var(--ui-text-muted)] w-16 shrink-0">Suggested</span>
+                  <span v-if="(row.original as LanguageRow).bible_id" class="font-mono text-xs">
+                    {{ (row.original as LanguageRow).bible_id }}
+                  </span>
+                  <span
+                    v-else-if="(row.original as LanguageRow).bible_translation"
+                    class="text-xs text-[var(--ui-text-muted)] italic truncate max-w-40"
+                    :title="(row.original as LanguageRow).bible_translation!"
+                  >
+                    {{ (row.original as LanguageRow).bible_translation }}
+                  </span>
+                  <span v-else class="text-[var(--ui-text-muted)]">&mdash;</span>
+                  <UBadge v-if="bibleDiffers(row.original as LanguageRow)" color="warning" variant="subtle" size="xs">
+                    differs
+                  </UBadge>
+                </div>
+              </div>
+            </template>
+
             <template #registered-cell="{ row }">
               <UBadge
                 :color="(row.original as LanguageRow).registered_in_code ? 'success' : 'neutral'"
@@ -73,6 +108,12 @@
           <p class="text-xs text-[var(--ui-text-muted)] mt-4">
             A language can be worked on here before it exists in the app. “Live in app” means it is also
             registered in <code>config/languages.ts</code>.
+          </p>
+
+          <p class="text-xs text-[var(--ui-text-muted)] mt-2">
+            “In app” is the Bible edition verses are fetched with, from <code>config/languages.ts</code>;
+            “suggested” is the edition this language’s reviewers named. Making a suggestion take effect is a
+            code change. An edition bolls.life does not carry shows as the reviewer’s own wording.
           </p>
         </div>
       </template>
@@ -131,6 +172,10 @@ interface LanguageRow {
   stale_count: number
   open_pass_count: number
   registered_in_code: boolean
+  bible_id: string | null
+  bible_translation: string | null
+  bible_id_in_code: string | null
+  bible_label_in_code: string | null
 }
 
 const { canAccess } = useAuthUser()
@@ -148,6 +193,7 @@ const languageColumns = [
   { accessorKey: 'name', header: 'Language' },
   { accessorKey: 'progress', header: 'Confirmed' },
   { accessorKey: 'flags', header: '' },
+  { accessorKey: 'bible', header: 'Bible' },
   { accessorKey: 'registered', header: 'Status' }
 ]
 
@@ -162,6 +208,13 @@ const error = ref('')
 const showAddLanguage = ref(false)
 const adding = ref(false)
 const newLanguage = ref({ code: '', name_en: '', name_local: '', text_direction: 'ltr', draft: true })
+
+// The glossary edition is only "waiting" once a reviewer has named one that
+// differs from what the app fetches verses with; an unreviewed language has
+// nothing to compare.
+function bibleDiffers(language: LanguageRow): boolean {
+  return Boolean(language.bible_id) && language.bible_id !== language.bible_id_in_code
+}
 
 function progressOf(language: LanguageRow): number {
   if (!language.term_count) return 0
