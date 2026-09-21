@@ -305,16 +305,9 @@
           <UFormField label="Description" hint="Completes “They are …”. Translated automatically after apply.">
             <UTextarea v-model="addFields.description_en" :rows="2" placeholder="a community of…" class="w-full" />
           </UFormField>
-          <UCollapsible>
-            <UButton label="Optional fields" variant="link" trailing-icon="i-lucide-chevron-down" class="px-0" />
-            <template #content>
-              <div class="add-fields__optional">
-                <UFormField v-for="key in addReportOptionalFieldKeys" :key="key" :label="fieldLabel(key)">
-                  <UpdatesSuggestFieldInput v-model="addFields[key]" :field-key="key" />
-                </UFormField>
-              </div>
-            </template>
-          </UCollapsible>
+          <UFormField v-for="key in addReportOptionalFieldKeys" :key="key" :label="fieldLabel(key)">
+            <UpdatesSuggestFieldInput v-model="addFields[key]" :field-key="key" />
+          </UFormField>
         </div>
       </template>
       <p v-else>This will apply the suggested changes to <strong>{{ selectedReport?.people_group_name }}</strong>. Continue?</p>
@@ -1627,11 +1620,5 @@ onMounted(async () => {
   margin: 0;
   font-size: 0.8125rem;
   color: var(--ui-text-muted);
-}
-.add-fields__optional {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding-top: 0.5rem;
 }
 </style>

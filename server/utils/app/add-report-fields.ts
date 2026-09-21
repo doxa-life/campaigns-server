@@ -79,13 +79,14 @@ export function optionKeyForValue(fieldKey: string, value: unknown): string | nu
 
 export type CountryDerivedFields = Pick<
   AddReportFields,
-  'region' | 'imb_subregion' | 'doxa_wagf_region' | 'doxa_wagf_block' | 'doxa_wagf_member'
+  'region' | 'imb_subregion' | 'doxa_wagf_region' | 'doxa_wagf_block'
 >
 
 /**
  * Region and WAGF values shared by the other groups in a country (the most
  * common combination, the most complete one on a tie), or null when the
- * country has no group yet.
+ * country has no group yet. WAGF membership is decided per group, so it is
+ * never inferred from the country.
  */
 export async function countryDerivedFields(countryCode: string | null | undefined): Promise<CountryDerivedFields | null> {
   if (!countryCode) return null
@@ -95,23 +96,20 @@ export async function countryDerivedFields(countryCode: string | null | undefine
     imb_subregion: string | null
     doxa_wagf_region: string | null
     doxa_wagf_block: string | null
-    doxa_wagf_member: string | null
   }[]>`
     SELECT
       region,
       metadata->>'imb_subregion' AS imb_subregion,
       metadata->>'doxa_wagf_region' AS doxa_wagf_region,
-      metadata->>'doxa_wagf_block' AS doxa_wagf_block,
-      metadata->>'doxa_wagf_member' AS doxa_wagf_member
+      metadata->>'doxa_wagf_block' AS doxa_wagf_block
     FROM people_groups
     WHERE country_code = ${countryCode} AND metadata->>'doxa_wagf_region' IS NOT NULL
-    GROUP BY 1, 2, 3, 4, 5
+    GROUP BY 1, 2, 3, 4
     ORDER BY
       COUNT(*) DESC,
       (region IS NOT NULL)::int
         + (metadata->>'imb_subregion' IS NOT NULL)::int
-        + (metadata->>'doxa_wagf_block' IS NOT NULL)::int
-        + (metadata->>'doxa_wagf_member' IS NOT NULL)::int DESC
+        + (metadata->>'doxa_wagf_block' IS NOT NULL)::int DESC
     LIMIT 1
   `
   if (!row) return null
@@ -119,8 +117,7 @@ export async function countryDerivedFields(countryCode: string | null | undefine
     region: optionKeyForValue('region', row.region),
     imb_subregion: optionKeyForValue('imb_subregion', row.imb_subregion),
     doxa_wagf_region: optionKeyForValue('doxa_wagf_region', row.doxa_wagf_region),
-    doxa_wagf_block: optionKeyForValue('doxa_wagf_block', row.doxa_wagf_block),
-    doxa_wagf_member: optionKeyForValue('doxa_wagf_member', row.doxa_wagf_member)
+    doxa_wagf_block: optionKeyForValue('doxa_wagf_block', row.doxa_wagf_block)
   }
 }
 

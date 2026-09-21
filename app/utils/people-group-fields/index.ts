@@ -233,7 +233,8 @@ export const publicSuggestibleFieldKeys = [
 
 // Fields an editor completes when applying an "add" report. The required set
 // is what the public list API and the marketing site read for every group;
-// the optional set is prefilled from other groups in the same country.
+// the optional set is prefilled from other groups in the same country, except
+// WAGF membership, which is decided per group and left for the editor.
 export const addReportRequiredFieldKeys = [
   'doxa_wagf_region',
   'doxa_wagf_block',

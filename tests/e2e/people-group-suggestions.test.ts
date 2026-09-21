@@ -481,7 +481,7 @@ describe('People Group Suggestions (/updates)', async () => {
       expect(proposal.fields.picture_credit).toBeUndefined()
       expect(proposal.fields.doxa_wagf_region).toBe('asia')
       expect(proposal.fields.doxa_wagf_block).toBe('south_asia')
-      expect(proposal.fields.doxa_wagf_member).toBe('yes')
+      expect(proposal.fields.doxa_wagf_member).toBeUndefined()
       expect(proposal.metadata.imb_reg_of_people_2).toBe('C0155')
       expect(proposal.metadata.imb_evangelical_level).toBe('3')
       expect(proposal.metadata.imb_congregation_existing).toBe('1')
