@@ -96,6 +96,14 @@ export function renderGlossaryMarkdown(data: GlossaryExport): string {
   lines.push(`# ${data.language.name_en} glossary`)
   lines.push('')
   lines.push(`${data.confirmed_count} of ${data.term_count} terms confirmed by a reviewer.`)
+  // Both sides below show a term's acronym in parentheses, so a reader has to
+  // be told it is a field of its own rather than part of the wording.
+  if (data.terms.some(term => term.acronym)) {
+    lines.push('')
+    lines.push(
+      'An acronym in parentheses is a separate field, not part of the wording. Use it only where the text uses the bare acronym, and never append it to the wording.'
+    )
+  }
   if (data.language.bible_translation) {
     lines.push('')
     lines.push(`Biblical wording follows **${data.language.bible_translation}**.`)
