@@ -10,8 +10,8 @@
       </div>
       <div class="header-actions">
         <UButton to="/admin/churches/map" variant="outline" icon="i-lucide-map">Map</UButton>
-        <UButton variant="outline" icon="i-lucide-upload" @click="openImportModal">Import CSV</UButton>
-        <UButton icon="i-lucide-plus" @click="openCreateModal">New Church</UButton>
+        <UButton v-if="canAccess('churches.create')" variant="outline" icon="i-lucide-upload" @click="openImportModal">Import CSV</UButton>
+        <UButton v-if="canAccess('churches.create')" icon="i-lucide-plus" @click="openCreateModal">New Church</UButton>
       </div>
     </template>
 
@@ -55,7 +55,7 @@
         @navigate="selectChurch($event)"
       />
       <CrmSaveStatus :saving="saving" :saved="!!savedField" />
-      <UButton size="sm" @click="openDeleteModal" color="error" variant="outline">Delete</UButton>
+      <UButton v-if="canAccess('churches.delete')" size="sm" @click="openDeleteModal" color="error" variant="outline">Delete</UButton>
     </template>
 
     <template #detail>
@@ -286,6 +286,7 @@ const PENDING_POLL_LIMIT = 30
 
 const route = useRoute()
 const toast = useToast()
+const { canAccess } = useAuthUser()
 const { countryOptions, getCountryName } = useLocalizedOptions()
 const mapboxToken = useRuntimeConfig().public.mapboxToken as string
 

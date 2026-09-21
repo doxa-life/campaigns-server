@@ -6,7 +6,7 @@ import {
   cleanupTestData,
   createTestChurch,
 } from '../../../helpers/db'
-import { createAdminUser, createNoRoleUser, createEditorUser } from '../../../helpers/auth'
+import { createAdminUser, createNoRoleUser, createEditorUser, createProgressAdminUser } from '../../../helpers/auth'
 
 describe('Church CRUD API', async () => {
   const sql = getTestDatabase()
@@ -14,12 +14,14 @@ describe('Church CRUD API', async () => {
   let adminAuth: { headers: { cookie: string } }
   let noRoleAuth: { headers: { cookie: string } }
   let editorAuth: { headers: { cookie: string } }
+  let progressAdminAuth: { headers: { cookie: string } }
 
   beforeAll(async () => {
     await cleanupTestData(sql)
     adminAuth = (await createAdminUser(sql)).auth
     noRoleAuth = (await createNoRoleUser(sql)).auth
     editorAuth = (await createEditorUser(sql)).auth
+    progressAdminAuth = (await createProgressAdminUser(sql)).auth
   })
 
   afterAll(async () => {
@@ -282,6 +284,33 @@ describe('Church CRUD API', async () => {
     it('returns 404 for a missing church', async () => {
       const error = await $fetch('/api/admin/churches/999999', { method: 'DELETE', ...adminAuth }).catch((e) => e)
       expect(error.statusCode).toBe(404)
+    })
+
+    it('returns 403 for users without churches.delete', async () => {
+      const church = await createTestChurch(sql, { name: 'Test Church Kept' })
+      const error = await $fetch(`/api/admin/churches/${church.id}`, { method: 'DELETE', ...progressAdminAuth }).catch((e) => e)
+      expect(error.statusCode).toBe(403)
+    })
+  })
+
+  describe('progress_admin access', () => {
+    it('lists, creates and edits churches', async () => {
+      const list = await $fetch('/api/admin/churches', progressAdminAuth)
+      expect(Array.isArray(list.churches)).toBe(true)
+
+      const created = await $fetch('/api/admin/churches', {
+        method: 'POST',
+        body: { name: 'Test Church Progress' },
+        ...progressAdminAuth
+      })
+      expect(created.church.name).toBe('Test Church Progress')
+
+      const updated = await $fetch(`/api/admin/churches/${created.church.id}`, {
+        method: 'PUT',
+        body: { pastor_name: 'Test Pastor Mercy' },
+        ...progressAdminAuth
+      })
+      expect(updated.church.pastor_name).toBe('Test Pastor Mercy')
     })
   })
 })

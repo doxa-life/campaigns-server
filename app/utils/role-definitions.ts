@@ -44,11 +44,14 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
   progress_admin: {
     name: 'progress_admin',
     label: 'Progress Admin',
-    description: 'Monitors prayer progress and handles outreach — edits people groups, reviews public suggestions, runs the inbox, and emails consenting contacts',
+    description: 'Monitors prayer progress and handles outreach — edits people groups, reviews public suggestions, keeps the church directory, runs the inbox, and emails consenting contacts',
     permissions: [
       'people_groups.view',
       'people_groups.edit',
       'groups.view',
+      'churches.view',
+      'churches.create',
+      'churches.edit',
       'subscribers.view',
       'inbox.view',
       'inbox.send',
