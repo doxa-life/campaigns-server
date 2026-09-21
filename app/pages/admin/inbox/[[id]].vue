@@ -823,7 +823,7 @@ function statusColor(status: string): any {
 
 // Origin badge colour — Contact-form stands out; email/staff stay muted.
 function sourceColor(source: string): any {
-  return { contact_form: 'info', inbound_email: 'neutral', staff: 'neutral', feedback: 'primary' }[source] || 'neutral'
+  return { contact_form: 'info', doxa_life: 'info', feedback: 'primary', inbound_email: 'neutral', staff: 'neutral' }[source] || 'neutral'
 }
 
 function tagDef(slug: string): InboxTag | undefined {

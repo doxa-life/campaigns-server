@@ -808,6 +808,7 @@
     "noMessage": "Нет сообщения",
     "source": {
       "contact_form": "Контактная форма",
+      "doxa_life": "doxa.life",
       "inbound_email": "Эл. почта",
       "staff": "Команда",
       "feedback": "Отзыв"
