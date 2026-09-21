@@ -29,6 +29,23 @@ describe('People Group Suggestions (/updates)', async () => {
     return row
   }
 
+  // The fields an "add" needs before it can be approved. Normally proposed by
+  // the autofill job; the tests set them the way a reviewer would.
+  async function saveAddFields(id: number, values: Record<string, any>, auth: AuthHeaders) {
+    return await $fetch<{ report: any }>(`/api/admin/people-group-reports/${id}`, {
+      method: 'PUT',
+      body: { add_fields: { values } },
+      ...auth
+    })
+  }
+
+  const COMPLETE_ADD_FIELDS = {
+    doxa_wagf_region: 'asia',
+    doxa_wagf_block: 'south_asia',
+    imb_reg_of_people_1: 'A012',
+    primary_religion: 'MSN'
+  }
+
   async function submitSuggestion(body: Record<string, any>) {
     return await $fetch<{ id: number; status: string }>('/api/updates', {
       method: 'POST',
@@ -238,7 +255,7 @@ describe('People Group Suggestions (/updates)', async () => {
       return res.id
     }
 
-    it('requires both approvals before apply, then applies the changes', async () => {
+    it('requires both approvals, and the second one applies the changes', async () => {
       const id = await createPendingUpdate({ population: 5555 })
 
       // Non-approver cannot approve
@@ -264,24 +281,42 @@ describe('People Group Suggestions (/updates)', async () => {
       }).catch((e) => e)
       expect(early.statusCode).toBe(400)
 
-      // Second approval flips to approved
-      await $fetch(`/api/admin/people-group-reports/${id}/approve`, { method: 'POST', body: {}, ...approver2.auth })
-      report = await getReport(id)
-      expect(report!.status).toBe('approved')
-
-      // Applying still needs edit rights
+      // Applying needs edit rights
       const applyForbidden = await $fetch(`/api/admin/people-group-reports/${id}/accept`, {
         method: 'POST', body: {}, ...noRoleUser.auth
       }).catch((e) => e)
       expect(applyForbidden.statusCode).toBe(403)
 
-      // Any editor can apply once both approvals are on record
-      await $fetch(`/api/admin/people-group-reports/${id}/accept`, { method: 'POST', body: {}, ...otherAdmin.auth })
+      // The second approval is the decision: it applies in the same request
+      const second = await $fetch<{ applied?: boolean }>(`/api/admin/people-group-reports/${id}/approve`, {
+        method: 'POST', body: {}, ...approver2.auth
+      })
+      expect(second.applied).toBe(true)
       report = await getReport(id)
       expect(report!.status).toBe('accepted')
 
       const [group] = await sql`SELECT population FROM people_groups WHERE id = ${testGroupId}`
       expect(Number(group!.population)).toBe(5555)
+    })
+
+    it('keeps the approval when applying on the final approval fails', async () => {
+      const id = await createPendingUpdate({ population: 7777 })
+      await $fetch(`/api/admin/people-group-reports/${id}/approve`, { method: 'POST', body: {}, ...approver1.auth })
+
+      // An unlinked update cannot be applied, so the apply half fails.
+      await sql`UPDATE people_group_reports SET people_group_id = NULL WHERE id = ${id}`
+
+      const second = await $fetch<{ applied?: boolean; apply_error?: string }>(
+        `/api/admin/people-group-reports/${id}/approve`,
+        { method: 'POST', body: {}, ...approver2.auth }
+      )
+      expect(second.applied).toBe(false)
+      expect(second.apply_error).toContain('Link this report')
+
+      // Both approvals stand and the report waits at 'approved' for a manual apply.
+      const report = await getReport(id)
+      expect(report!.status).toBe('approved')
+      expect(report!.approvals).toHaveLength(2)
     })
 
     it('sets reason_engaged to doxa_report when an engagement suggestion is applied', async () => {
@@ -290,7 +325,6 @@ describe('People Group Suggestions (/updates)', async () => {
       const id = await createPendingUpdate({ engagement_status: 'engaged', workers_long_term: 'true', imb_bible_available: 'false' })
       await $fetch(`/api/admin/people-group-reports/${id}/approve`, { method: 'POST', body: {}, ...approver1.auth })
       await $fetch(`/api/admin/people-group-reports/${id}/approve`, { method: 'POST', body: {}, ...approver2.auth })
-      await $fetch(`/api/admin/people-group-reports/${id}/accept`, { method: 'POST', body: {}, ...approver2.auth })
 
       const [group] = await sql`SELECT engagement_status, metadata FROM people_groups WHERE id = ${testGroupId}`
       expect(group!.engagement_status).toBe('engaged')
@@ -344,24 +378,23 @@ describe('People Group Suggestions (/updates)', async () => {
         }
       })
 
+      // An add cannot be approved until its completion fields are filled in.
+      const tooEarly = await $fetch(`/api/admin/people-group-reports/${res.id}/approve`, {
+        method: 'POST', body: {}, ...approver1.auth
+      }).catch((e) => e)
+      expect(tooEarly.statusCode).toBe(400)
+      expect((await getReport(res.id))!.approvals).toHaveLength(0)
+
+      // A partial set is no better than none.
+      await saveAddFields(res.id, { doxa_wagf_region: 'asia' }, approver1.auth)
+      const stillIncomplete = await $fetch(`/api/admin/people-group-reports/${res.id}/approve`, {
+        method: 'POST', body: {}, ...approver1.auth
+      }).catch((e) => e)
+      expect(stillIncomplete.statusCode).toBe(400)
+
+      await saveAddFields(res.id, COMPLETE_ADD_FIELDS, approver1.auth)
       await $fetch(`/api/admin/people-group-reports/${res.id}/approve`, { method: 'POST', body: {}, ...approver1.auth })
       await $fetch(`/api/admin/people-group-reports/${res.id}/approve`, { method: 'POST', body: {}, ...approver2.auth })
-
-      // The editor's completion fields are required before an add applies.
-      const incomplete = await $fetch(`/api/admin/people-group-reports/${res.id}/accept`, {
-        method: 'POST', body: { fields: { doxa_wagf_region: 'asia' } }, ...approver1.auth
-      }).catch((e) => e)
-      expect(incomplete.statusCode).toBe(400)
-      expect((await getReport(res.id))!.status).toBe('approved')
-
-      await $fetch(`/api/admin/people-group-reports/${res.id}/accept`, {
-        method: 'POST',
-        body: {
-          fields: { doxa_wagf_region: 'asia', doxa_wagf_block: 'south_asia', imb_reg_of_people_1: 'A012', primary_religion: 'MSN' },
-          metadata: { imb_gsec: '1', population: 999, doxa_wagf_region: 'europe' }
-        },
-        ...approver1.auth
-      })
 
       const report = await getReport(res.id)
       expect(report!.status).toBe('accepted')
@@ -378,10 +411,6 @@ describe('People Group Suggestions (/updates)', async () => {
       expect(group!.metadata?.doxa_wagf_region).toBe('asia')
       expect(group!.metadata?.doxa_wagf_block).toBe('south_asia')
       expect(group!.metadata?.imb_reg_of_people_1).toBe('A012')
-      // Auto-populate extras are limited to registry metadata keys; columns
-      // and the form's own fields cannot be overridden through them.
-      expect(group!.metadata?.imb_gsec).toBe('1')
-      expect(group!.metadata?.population).toBeUndefined()
       // No photo: the region placeholder, flagged as such for the public API.
       expect(group!.image_url).toBe('https://s3.doxa.life/no-photo-images/asia.jpg')
       expect(group!.metadata?.imb_has_photo).toBe(false)
@@ -398,22 +427,16 @@ describe('People Group Suggestions (/updates)', async () => {
         comments: 'Deaf community survey',
         suggested_changes: { name: 'Test Deaf Added Group', country_code: 'NGA', population: 12000 }
       })
+      await saveAddFields(res.id, {
+        doxa_wagf_region: 'africa',
+        doxa_wagf_block: 'west_africa',
+        imb_reg_of_people_1: 'A017',
+        primary_religion: 'MSN',
+        description_en: 'a Deaf community of Nigeria',
+        imb_alternate_name: 'Nigerian Deaf'
+      }, approver1.auth)
       await $fetch(`/api/admin/people-group-reports/${res.id}/approve`, { method: 'POST', body: {}, ...approver1.auth })
       await $fetch(`/api/admin/people-group-reports/${res.id}/approve`, { method: 'POST', body: {}, ...approver2.auth })
-      await $fetch(`/api/admin/people-group-reports/${res.id}/accept`, {
-        method: 'POST',
-        body: {
-          fields: {
-            doxa_wagf_region: 'africa',
-            doxa_wagf_block: 'west_africa',
-            imb_reg_of_people_1: 'A017',
-            primary_religion: 'MSN',
-            description_en: 'a Deaf community of Nigeria',
-            imb_alternate_name: 'Nigerian Deaf'
-          }
-        },
-        ...approver2.auth
-      })
 
       const report = await getReport(res.id)
       const [group] = await sql`SELECT * FROM people_groups WHERE id = ${report!.people_group_id}`
@@ -467,29 +490,83 @@ describe('People Group Suggestions (/updates)', async () => {
         suggested_changes: { name: 'Test Mirror Added', country_code: 'BTN', population: 4321, imb_peid: 'TESTPEID902' }
       })
 
-      const proposal = await $fetch<{ fields: Record<string, any>; metadata: Record<string, any>; source: string }>(
+      const proposal = await $fetch<{ source: string }>(
         `/api/admin/people-group-reports/${res.id}/auto-populate`,
         { method: 'POST', body: {}, ...otherAdmin.auth }
       )
       expect(proposal.source).toBe('imb')
-      expect(proposal.fields.imb_reg_of_people_1).toBe('A012')
-      expect(proposal.fields.primary_religion).toBe('H')
-      expect(proposal.fields.region).toBe('asia')
-      expect(proposal.fields.imb_subregion).toBe('southern_asia')
-      expect(proposal.fields.imb_alternate_name).toBe('Mirror Folk, Test Folk')
-      expect(proposal.fields.description_en).toBe('a hill community of Bhutan')
-      expect(proposal.fields.picture_credit).toBeUndefined()
-      expect(proposal.fields.doxa_wagf_region).toBe('asia')
-      expect(proposal.fields.doxa_wagf_block).toBe('south_asia')
-      expect(proposal.fields.doxa_wagf_member).toBeUndefined()
-      expect(proposal.metadata.imb_reg_of_people_2).toBe('C0155')
-      expect(proposal.metadata.imb_evangelical_level).toBe('3')
-      expect(proposal.metadata.imb_congregation_existing).toBe('1')
-      expect(proposal.metadata.imb_church_planting).toBe('1')
-      expect(proposal.metadata.imb_bible_available).toBe(true)
-      expect(proposal.metadata.imb_jesus_film_available).toBe(false)
-      expect(proposal.metadata.imb_location_description).toBe('Karnali province')
-      expect(proposal.metadata.imb_is_indigenous).toBe('1')
+
+      // The proposal is saved on the report, not handed back for the browser to hold.
+      const stored = (await getReport(res.id))!.add_fields
+      expect(stored.source).toBe('imb')
+      expect(stored.generated_at).toBeTruthy()
+      expect(stored.values.imb_reg_of_people_1).toBe('A012')
+      expect(stored.values.primary_religion).toBe('H')
+      expect(stored.values.region).toBe('asia')
+      expect(stored.values.imb_subregion).toBe('southern_asia')
+      expect(stored.values.imb_alternate_name).toBe('Mirror Folk, Test Folk')
+      expect(stored.values.description_en).toBe('a hill community of Bhutan')
+      expect(stored.values.picture_credit).toBeUndefined()
+      expect(stored.values.doxa_wagf_region).toBe('asia')
+      expect(stored.values.doxa_wagf_block).toBe('south_asia')
+      expect(stored.values.doxa_wagf_member).toBeUndefined()
+      expect(stored.ai.primary_religion).toBe('H')
+      expect(stored.metadata.imb_reg_of_people_2).toBe('C0155')
+      expect(stored.metadata.imb_evangelical_level).toBe('3')
+      expect(stored.metadata.imb_congregation_existing).toBe('1')
+      expect(stored.metadata.imb_church_planting).toBe('1')
+      expect(stored.metadata.imb_bible_available).toBe(true)
+      expect(stored.metadata.imb_jesus_film_available).toBe(false)
+      expect(stored.metadata.imb_location_description).toBe('Karnali province')
+      expect(stored.metadata.imb_is_indigenous).toBe('1')
+
+      // A reviewer's correction survives a regenerate; untouched values do not.
+      await saveAddFields(res.id, { ...stored.values, primary_religion: 'MSN' }, approver1.auth)
+      await $fetch(`/api/admin/people-group-reports/${res.id}/auto-populate`, {
+        method: 'POST', body: {}, ...otherAdmin.auth
+      })
+      const regenerated = (await getReport(res.id))!.add_fields
+      expect(regenerated.values.primary_religion).toBe('MSN')
+      expect(regenerated.values.imb_reg_of_people_1).toBe('A012')
+
+      // Applying uses the stored fields and the stored IMB detail metadata.
+      await $fetch(`/api/admin/people-group-reports/${res.id}/approve`, { method: 'POST', body: {}, ...approver1.auth })
+      await $fetch(`/api/admin/people-group-reports/${res.id}/approve`, { method: 'POST', body: {}, ...approver2.auth })
+      const applied = await getReport(res.id)
+      expect(applied!.status).toBe('accepted')
+      const [group] = await sql`SELECT * FROM people_groups WHERE id = ${applied!.people_group_id}`
+      expect(group!.primary_religion).toBe('MSN')
+      expect(group!.metadata?.imb_reg_of_people_2).toBe('C0155')
+      expect(group!.metadata?.imb_location_description).toBe('Karnali province')
+      expect(group!.descriptions).toEqual({ en: 'a hill community of Bhutan' })
+    })
+
+    it('queues the completion-field proposal when the reporter verifies their email', async () => {
+      const email = testEmail()
+      const res = await submitSuggestion({
+        type: 'add',
+        reporter_email: email,
+        comments: 'Found them on a survey trip',
+        suggested_changes: { name: 'Test Autofill Queued', country_code: 'NPL', population: 400 }
+      })
+      expect((await getReport(res.id))!.status).toBe('awaiting_verification')
+
+      // Nothing is proposed while the reporter is unverified.
+      const before = await sql`
+        SELECT * FROM jobs WHERE type = 'add_report_autofill' AND reference_id = ${res.id}
+      `
+      expect(before).toHaveLength(0)
+
+      const [contact] = await sql`SELECT verification_token FROM contact_methods WHERE LOWER(value) = ${email}`
+      await rawFetch(`/api/updates/verify?token=${contact!.verification_token}`, { redirect: 'manual' })
+
+      expect((await getReport(res.id))!.status).toBe('pending')
+      const [job] = await sql`
+        SELECT * FROM jobs WHERE type = 'add_report_autofill' AND reference_id = ${res.id}
+      `
+      expect(job).toBeDefined()
+      expect(job!.reference_type).toBe('people_group_report')
+      expect(job!.payload.report_id).toBe(res.id)
     })
 
     it('applies an approved remove by archiving with the reason', async () => {
@@ -510,7 +587,6 @@ describe('People Group Suggestions (/updates)', async () => {
 
       await $fetch(`/api/admin/people-group-reports/${res.id}/approve`, { method: 'POST', body: {}, ...approver1.auth })
       await $fetch(`/api/admin/people-group-reports/${res.id}/approve`, { method: 'POST', body: {}, ...approver2.auth })
-      await $fetch(`/api/admin/people-group-reports/${res.id}/accept`, { method: 'POST', body: {}, ...approver2.auth })
 
       const [group] = await sql`SELECT status, metadata FROM people_groups WHERE id = ${removable!.id}`
       expect(group!.status).toBe('archived')

@@ -3,8 +3,10 @@ import { getIntParam } from '#server/utils/api-helpers'
 import { autoPopulateAddReport } from '#server/utils/app/add-report-autofill'
 
 /**
- * Propose the completion fields for an "add" report so the editor can review
- * them before applying. Nothing is saved here.
+ * Propose the completion fields for an "add" report and save them. The
+ * proposal is normally made when the reporter verifies their email; this is how
+ * a reviewer regenerates it, or fills in a report that predates it. Values a
+ * reviewer has already corrected are kept.
  */
 export default defineEventHandler(async (event) => {
   await requirePermission(event, 'people_groups.edit')
@@ -22,5 +24,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'This report has already been applied' })
   }
 
-  return await autoPopulateAddReport(report)
+  const result = await autoPopulateAddReport(report)
+  const saved = await peopleGroupReportService.saveAddFieldsProposal(id, result)
+
+  logUpdate('people_group_reports', String(id), event)
+
+  return { report: saved, source: result.source, warning: result.warning }
 })

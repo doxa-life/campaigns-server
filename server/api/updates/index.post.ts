@@ -4,6 +4,7 @@ import { contactMethodService } from '../../database/contact-methods'
 import { verifyTurnstile } from '../../utils/app/turnstile'
 import { isSuggestionImageKey } from '../../utils/app/suggestion-images'
 import { sendReportVerificationEmail, notifyReportApprovers } from '../../utils/app/report-emails'
+import { queueAddReportAutofill } from '../../utils/app/add-report-autofill'
 import { checkRateLimit, logRateLimitExceeded } from '../../utils/rate-limit'
 import { logEvent } from '../../utils/activity-logger'
 import { publicSuggestibleFieldKeys, getField } from '~/utils/people-group-fields'
@@ -163,6 +164,9 @@ export default defineEventHandler(async (event) => {
   })
 
   if (verified) {
+    // An already-verified reporter skips the email round trip, so the "add"
+    // completion fields are proposed straight away.
+    await queueAddReportAutofill(report)
     const withDetails = await peopleGroupReportService.getById(report.id)
     notifyReportApprovers(withDetails || report).catch((err) =>
       console.error('Failed to notify report approvers:', err)
