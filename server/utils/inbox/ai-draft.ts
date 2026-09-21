@@ -2,6 +2,8 @@ import { getAiModel, callAiTool, toAiHttpError, type AiSystemBlock, type AiTool 
 import { conversationService } from '#server/database/conversations'
 import { messageService, type ConversationMessage } from '#server/database/conversation-messages'
 import { getStaticPack, getKnowledgeBlock, formatContactRecord } from './ai-draft-grounding'
+import { buildDraftInstructions } from './ai-draft-instructions'
+import { ENABLED_LANGUAGE_CODES } from '../../../config/languages'
 
 export interface InboxDraftResult {
   draft_language: string
@@ -11,18 +13,6 @@ export interface InboxDraftResult {
   sources_used: string[]
   uncertainty: string[]
 }
-
-const INSTRUCTIONS = `You draft email replies for the DOXA team. A human teammate reviews and edits every draft before it is sent, so your job is to produce the best possible starting point — not a finished, auto-sent message.
-
-Follow the VOICE & TONE GUIDE below exactly. Ground every DOXA-specific fact in the provided material (the website content, feature reference, and past team answers). Never invent giving amounts, dates, definitions, counts, or policies — if a needed fact is absent, leave a bracketed placeholder in the body and record it in uncertainty.
-
-When a contact asks about people groups in a specific country, point them to that country's page using its full https://doxa.life/regions/<slug> URL from the country list in the website content. Only link a country that appears in that list.
-
-Language:
-- Write the reply in the language the contact is using (infer it from their most recent message; fall back to their preferred language from the contact record). Put that language code in draft_language.
-- english_gloss must be a faithful, literal back-translation of the EXACT draft you wrote, so an English-only reviewer can verify it. If the draft is already in English, set english_gloss equal to the draft text.
-
-Output ONLY by calling the submit_draft tool.`
 
 const DRAFT_TOOL: AiTool = {
   name: 'submit_draft',
@@ -127,10 +117,15 @@ export async function generateInboxDraft(
     getKnowledgeBlock(),
   ])
 
+  const instructions = buildDraftInstructions({
+    siteUrl: useRuntimeConfig().public.siteUrl || 'http://localhost:3000',
+    languageCodes: ENABLED_LANGUAGE_CODES,
+  })
+
   // System = cacheable prefix. Block 1 (instructions + tone + static pack) and block 2
   // (knowledge base) are marked cacheable so repeated drafts in a burst reuse them cheaply.
   const system: AiSystemBlock[] = [
-    { text: `${INSTRUCTIONS}\n\n${staticPack}`, cache: true },
+    { text: `${instructions}\n\n${staticPack}`, cache: true },
   ]
   if (knowledgeBlock) {
     system.push({ text: knowledgeBlock, cache: true })
