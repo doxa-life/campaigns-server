@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { $fetch } from '@nuxt/test-utils/e2e'
+import { $fetch, fetch as rawFetch } from '@nuxt/test-utils/e2e'
 import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -384,6 +384,17 @@ describe('Glossary', async () => {
       const markdown = await $fetch<string>('/api/glossary/zz?format=markdown')
       expect(markdown).toContain('# Testish glossary')
       expect(markdown).toContain('testgrupp')
+    })
+
+    it('reads in the browser by default and attaches as a file on request', async () => {
+      const readable = await rawFetch('/api/glossary/zz?format=markdown')
+      expect(readable.headers.get('content-disposition')).toBeNull()
+
+      const attached = await rawFetch('/api/glossary/zz?format=markdown&download=1')
+      expect(attached.headers.get('content-disposition')).toBe('attachment; filename="glossary-zz.md"')
+
+      const json = await rawFetch('/api/glossary/zz?download=1')
+      expect(json.headers.get('content-disposition')).toBe('attachment; filename="glossary-zz.json"')
     })
 
     it('publishes the acronym a language uses, the English one unless it chose its own', async () => {

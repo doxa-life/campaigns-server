@@ -37,9 +37,8 @@
 
         <div class="flex items-center gap-2 shrink-0">
           <UButton
-            :to="`/api/glossary/${language.code}?format=markdown`"
+            :to="`/api/glossary/${language.code}?format=markdown&download=1`"
             external
-            target="_blank"
             icon="i-lucide-download"
             variant="outline"
             color="neutral"

@@ -2195,6 +2195,14 @@ paths:
             type: string
             enum: [json, markdown, md]
           description: '`markdown` returns the same content as a document.'
+        - name: download
+          in: query
+          required: false
+          schema:
+            type: string
+          description: >
+            Any value other than `0` or `false` returns the response as a file
+            attachment named `glossary-<lang>.md` or `glossary-<lang>.json`.
       responses:
         '200':
           description: The language's glossary
