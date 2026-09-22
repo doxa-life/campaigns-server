@@ -419,19 +419,19 @@ export class PrayerContentService {
       return null
     }
 
-    // Get total count of people groups
-    const totalPeopleGroups = await peopleGroupService.countPeopleGroups()
+    // Get total count of people groups taking part in the rotation
+    const totalPeopleGroups = await peopleGroupService.countRotationPeopleGroups()
     if (totalPeopleGroups === 0) {
       return null
     }
 
-    // Calculate the daily random_order: offset by the people group's random_order
-    // Formula: ((dayNumber + offset - 1) % total) + 1
+    // Calculate the position in the rotation: offset by the people group's random_order
+    // Formula: (dayNumber + offset - 1) % total
     const offset = linkedPeopleGroup.random_order
-    const dailyOrder = ((dayNumber + offset - 1) % totalPeopleGroups) + 1
+    const position = (dayNumber + offset - 1) % totalPeopleGroups
 
-    // Fetch the people group by random_order
-    const peopleGroup = await peopleGroupService.getPeopleGroupByRandomOrder(dailyOrder)
+    // Fetch the people group at that position
+    const peopleGroup = await peopleGroupService.getPeopleGroupByRotationPosition(position)
     if (!peopleGroup) {
       return null
     }

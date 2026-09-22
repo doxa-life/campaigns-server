@@ -158,8 +158,30 @@ export class PeopleGroupService {
     return (row as PeopleGroup) || null
   }
 
-  async getPeopleGroupByRandomOrder(randomOrder: number): Promise<PeopleGroup | null> {
-    const [row] = await this.sql`SELECT * FROM people_groups WHERE random_order = ${randomOrder}`
+  /**
+   * How many groups take part in the daily rotation.
+   */
+  async countRotationPeopleGroups(): Promise<number> {
+    const [result] = await this.sql`
+      SELECT COUNT(*) as count FROM people_groups WHERE random_order IS NOT NULL
+    `
+    return Number(result?.count)
+  }
+
+  /**
+   * The group at a zero-based position in the rotation: the groups that have a
+   * random_order, in that order. Positions are contiguous whatever the slot
+   * numbers are, so a gap left by a deleted group cannot become a day with no
+   * people group.
+   */
+  async getPeopleGroupByRotationPosition(position: number): Promise<PeopleGroup | null> {
+    const [row] = await this.sql`
+      SELECT * FROM people_groups
+      WHERE random_order IS NOT NULL
+      ORDER BY random_order
+      OFFSET ${position}
+      LIMIT 1
+    `
     return (row as PeopleGroup) || null
   }
 
