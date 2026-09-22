@@ -1,11 +1,11 @@
 {
   "peopleGroups": {
     "descriptionTemplates": {
-      "nameCountryPopulationEngagement": "Народ {name} из {country}, численностью около {population} человек, {engagementStatus}.",
-      "nameCountryPopulation": "Народ {name} из {country} насчитывает около {population} человек.",
+      "nameCountryPopulationEngagement": "Народ {name} ({country}), численностью около {population} человек, {engagementStatus}.",
+      "nameCountryPopulation": "Народ {name} ({country}) насчитывает около {population} человек.",
       "namePopulation": "Народ {name} насчитывает около {population} человек.",
-      "peopleDescWithAltNames": "Они {peopleDesc} и также могут быть известны как {altNames}.",
-      "peopleDesc": "Они {peopleDesc}.",
+      "peopleDescWithAltNames": "Они — {peopleDesc}; их также могут называть {altNames}.",
+      "peopleDesc": "Они — {peopleDesc}.",
       "indigenousClusterBloc": "Они являются коренным народом, в кластере народов {cluster} аффинитетного блока {bloc}.",
       "diasporaClusterBloc": "Они являются диаспорным народом, в кластере народов {cluster} аффинитетного блока {bloc}.",
       "indigenousBloc": "Они являются коренным народом, в аффинитетном блоке {bloc}.",
