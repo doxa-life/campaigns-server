@@ -288,13 +288,16 @@ describe('Church CRUD API', async () => {
 
     it('returns 403 for users without churches.delete', async () => {
       const church = await createTestChurch(sql, { name: 'Test Church Kept' })
-      const error = await $fetch(`/api/admin/churches/${church.id}`, { method: 'DELETE', ...progressAdminAuth }).catch((e) => e)
+      const error = await $fetch(`/api/admin/churches/${church.id}`, { method: 'DELETE', ...editorAuth }).catch((e) => e)
       expect(error.statusCode).toBe(403)
+
+      const [row] = await sql`SELECT id FROM churches WHERE id = ${church.id}`
+      expect(row).toBeDefined()
     })
   })
 
   describe('progress_admin access', () => {
-    it('lists, creates and edits churches', async () => {
+    it('lists, creates, edits and deletes churches', async () => {
       const list = await $fetch('/api/admin/churches', progressAdminAuth)
       expect(Array.isArray(list.churches)).toBe(true)
 
@@ -311,6 +314,15 @@ describe('Church CRUD API', async () => {
         ...progressAdminAuth
       })
       expect(updated.church.pastor_name).toBe('Test Pastor Mercy')
+
+      const deleted = await $fetch(`/api/admin/churches/${created.church.id}`, {
+        method: 'DELETE',
+        ...progressAdminAuth
+      })
+      expect(deleted.success).toBe(true)
+
+      const [row] = await sql`SELECT id FROM churches WHERE id = ${created.church.id}`
+      expect(row).toBeUndefined()
     })
   })
 })

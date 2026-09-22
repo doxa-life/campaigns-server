@@ -52,6 +52,7 @@ export const ROLES: Record<RoleName, { name: RoleName; label: string; descriptio
       'churches.view',
       'churches.create',
       'churches.edit',
+      'churches.delete',
       'subscribers.view',
       'inbox.view',
       'inbox.send',
