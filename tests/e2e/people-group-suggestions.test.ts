@@ -174,6 +174,77 @@ describe('People Group Suggestions (/updates)', async () => {
       expect(removeNoComment.statusCode).toBe(400)
     })
 
+    // The form shows each field's current value beside a blank input, so
+    // submitters re-enter values that are already on file.
+    describe('values matching the record', () => {
+      let confirmGroupId: number
+
+      beforeAll(async () => {
+        const [group] = await sql`
+          INSERT INTO people_groups (name, slug, population, status, engagement_status, metadata)
+          VALUES (
+            'Test Confirmation Group',
+            ${'test-confirmation-group-' + uuidv4().slice(0, 8)},
+            1000,
+            'active',
+            'unengaged',
+            ${sql.json({ imb_bible_available: true })}
+          )
+          RETURNING id
+        `
+        confirmGroupId = group!.id
+      })
+
+      it('keeps only the fields that differ', async () => {
+        const res = await submitSuggestion({
+          type: 'update',
+          people_group_id: confirmGroupId,
+          suggested_changes: {
+            engagement_status: 'unengaged',
+            imb_bible_available: true,
+            population: 5000
+          }
+        })
+
+        const report = await getReport(res.id)
+        expect(report!.suggested_changes).toEqual({ population: 5000 })
+      })
+
+      it('rejects an update where nothing differs', async () => {
+        const error = await submitSuggestion({
+          type: 'update',
+          people_group_id: confirmGroupId,
+          suggested_changes: { engagement_status: 'unengaged', population: 1000 }
+        }).catch((e) => e)
+        expect(error.statusCode).toBe(400)
+      })
+
+      it('accepts a comment alongside values that all match', async () => {
+        const res = await submitSuggestion({
+          type: 'update',
+          people_group_id: confirmGroupId,
+          comments: 'Checked with our field team — all still correct.',
+          suggested_changes: { population: 1000 }
+        })
+
+        const report = await getReport(res.id)
+        expect(report!.suggested_changes).toEqual({})
+        expect(report!.notes).toBe('Checked with our field team — all still correct.')
+      })
+
+      it('keeps the removal reason when the corrections all match', async () => {
+        const res = await submitSuggestion({
+          type: 'remove',
+          people_group_id: confirmGroupId,
+          comments: 'This is a diaspora community.',
+          suggested_changes: { reason_unlisted: 'is_diaspora', population: 1000 }
+        })
+
+        const report = await getReport(res.id)
+        expect(report!.suggested_changes).toEqual({ reason_unlisted: 'is_diaspora' })
+      })
+    })
+
     it('holds unverified submissions as awaiting_verification and promotes on email verify', async () => {
       const email = testEmail()
       const res = await submitSuggestion({

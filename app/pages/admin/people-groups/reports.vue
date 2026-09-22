@@ -149,20 +149,32 @@
 
           <CrmFormSection title="Suggested Changes">
             <div class="changes-list">
-              <div v-for="(value, key) in selectedReport.suggested_changes" :key="key" class="change-row">
-                <div class="change-field">{{ getFieldLabel(key as string) }}</div>
+              <div v-for="row in changeRows.changed" :key="row.key" class="change-row">
+                <div class="change-field">{{ getFieldLabel(row.key) }}</div>
                 <div class="change-values">
                   <div class="change-current">
                     <span class="value-label">{{ selectedReport.status === 'pending' ? 'Current' : 'Was' }}</span>
-                    <span class="value-text">{{ getPreviousValue(key as string) || '—' }}</span>
+                    <span class="value-text">{{ getPreviousValue(row.key) || '—' }}</span>
                   </div>
                   <UIcon name="i-lucide-arrow-right" class="change-arrow" />
                   <div class="change-proposed">
                     <span class="value-label">{{ selectedReport.status === 'accepted' ? 'Applied' : 'Proposed' }}</span>
-                    <span class="value-text proposed">{{ formatFieldValue(key as string, value) || '—' }}</span>
+                    <span class="value-text proposed">{{ formatFieldValue(row.key, row.value) || '—' }}</span>
                   </div>
                 </div>
               </div>
+
+              <p v-if="changeRows.changed.length === 0" class="no-changes">
+                No field changes in this report.
+              </p>
+
+              <p v-if="changeRows.unchanged.length > 0" class="confirmed-unchanged">
+                <UIcon name="i-lucide-check" class="shrink-0 mt-0.5" />
+                <span>
+                  Confirmed unchanged:
+                  <template v-for="(row, i) in changeRows.unchanged" :key="row.key"><template v-if="i > 0">, </template>{{ getFieldLabel(row.key) }} ({{ formatFieldValue(row.key, row.value) || '—' }})</template>
+                </span>
+              </p>
             </div>
           </CrmFormSection>
 
@@ -1178,13 +1190,36 @@ function getFieldDef(key: string): FieldDefinition | undefined {
   return getField(key)
 }
 
-function getCurrentValue(key: string): string {
-  if (!currentPeopleGroup.value) return ''
-  if (isTableColumn(key)) {
-    return String((currentPeopleGroup.value as any)[key] ?? '')
-  }
-  return String((currentPeopleGroup.value.metadata || {})[key] ?? '')
+function rawCurrentValue(key: string): any {
+  const group = currentPeopleGroup.value
+  if (!group) return null
+  return isTableColumn(key) ? (group as any)[key] : (group.metadata || {})[key]
 }
+
+function getCurrentValue(key: string): string {
+  return String(rawCurrentValue(key) ?? '')
+}
+
+// A submitted value matching what is already on file is a confirmation, not a
+// change. Splitting them keeps the review list to what the reviewer must decide
+// on. Reports submitted before the public endpoint dropped such values, and
+// admin-created ones, can still carry them. The baseline is the same one
+// getPreviousValue displays: the snapshot for a resolved report, the live group
+// for a pending one. With neither — an add report, or one not yet linked to a
+// group — nothing can be called unchanged.
+const changeRows = computed(() => {
+  const report = selectedReport.value
+  const snapshot = report && report.status !== 'pending' ? report.previous_values : null
+  const hasBaseline = !!snapshot || !!currentPeopleGroup.value
+  const changed: { key: string; value: any }[] = []
+  const unchanged: { key: string; value: any }[] = []
+  for (const [key, value] of Object.entries(report?.suggested_changes || {})) {
+    const baseline = snapshot ? snapshot[key] : rawCurrentValue(key)
+    const same = hasBaseline && String(baseline ?? '') === String(value ?? '')
+    ;(same ? unchanged : changed).push({ key, value })
+  }
+  return { changed, unchanged }
+})
 
 function getPreviousValue(key: string): string {
   // For non-pending reports with stored previous values, use the snapshot
@@ -1285,6 +1320,9 @@ async function selectReport(report: Report) {
 
   selectedReport.value = report
   slideoverOpen.value = true
+  // Until the detail request lands there is no baseline for this report; the
+  // previous selection's group must not stand in for it.
+  currentPeopleGroup.value = null
 
   try {
     const res = await $fetch<{ report: Report; peopleGroup: PeopleGroupSummary | null }>(
@@ -1724,6 +1762,21 @@ onMounted(async () => {
 
 .change-arrow {
   flex-shrink: 0;
+  color: var(--ui-text-dimmed);
+}
+
+.no-changes {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ui-text-muted);
+}
+
+.confirmed-unchanged {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+  margin: 0;
+  font-size: 0.8125rem;
   color: var(--ui-text-dimmed);
 }
 

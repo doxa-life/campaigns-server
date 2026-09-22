@@ -1,5 +1,5 @@
 import { peopleGroupReportService, type ReportType } from '../../database/people-group-reports'
-import { peopleGroupService } from '../../database/people-groups'
+import { peopleGroupService, type PeopleGroup } from '../../database/people-groups'
 import { contactMethodService } from '../../database/contact-methods'
 import { verifyTurnstile } from '../../utils/app/turnstile'
 import { isSuggestionImageKey } from '../../utils/app/suggestion-images'
@@ -7,7 +7,7 @@ import { sendReportVerificationEmail, notifyReportApprovers } from '../../utils/
 import { queueAddReportAutofill } from '../../utils/app/add-report-autofill'
 import { checkRateLimit, logRateLimitExceeded } from '../../utils/rate-limit'
 import { logEvent } from '../../utils/activity-logger'
-import { publicSuggestibleFieldKeys, getField } from '~/utils/people-group-fields'
+import { publicSuggestibleFieldKeys, getField, isTableColumn } from '~/utils/people-group-fields'
 
 const RATE_WINDOW_MS = 60 * 60 * 1000
 const RATE_MAX = 10
@@ -103,14 +103,32 @@ export default defineEventHandler(async (event) => {
   const notes = body.comments ? String(body.comments).slice(0, 10000) : null
 
   let peopleGroupId: number | null = null
+  let peopleGroup: PeopleGroup | null = null
   if (type === 'update' || type === 'remove') {
     peopleGroupId = Number(body.people_group_id)
     if (!Number.isInteger(peopleGroupId)) {
       throw createError({ statusCode: 400, statusMessage: 'Select a people group' })
     }
-    const group = await peopleGroupService.getPeopleGroupById(peopleGroupId)
-    if (!group) {
+    peopleGroup = await peopleGroupService.getPeopleGroupById(peopleGroupId)
+    if (!peopleGroup) {
       throw createError({ statusCode: 404, statusMessage: 'People group not found' })
+    }
+  }
+
+  // The form puts each field's current value beside a blank input, so submitters
+  // often re-enter what is already on file. A value matching the record is a
+  // confirmation, not a change, and is left out of the report.
+  let confirmedUnchanged = 0
+  if (peopleGroup) {
+    const currentMetadata = peopleGroup.metadata || {}
+    for (const [key, value] of Object.entries(suggestedChanges)) {
+      // The removal reason is the request itself, not a field correction.
+      if (key === 'reason_unlisted') continue
+      const current = isTableColumn(key) ? (peopleGroup as any)[key] : currentMetadata[key]
+      if (String(current ?? '') === String(value ?? '')) {
+        confirmedUnchanged++
+        delete suggestedChanges[key]
+      }
     }
   }
 
@@ -131,7 +149,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Engaged people groups are outside the scope of the DOXA list' })
   }
   if (type === 'update' && Object.keys(suggestedChanges).length === 0 && !suggestedImageKey && !notes) {
-    throw createError({ statusCode: 400, statusMessage: 'Suggest at least one change or add a comment' })
+    throw createError({
+      statusCode: 400,
+      statusMessage: confirmedUnchanged > 0
+        ? 'The values you entered match what we already have — change something or add a comment'
+        : 'Suggest at least one change or add a comment'
+    })
   }
   if (type === 'remove' && !suggestedChanges.reason_unlisted) {
     throw createError({ statusCode: 400, statusMessage: 'Select a reason for removal' })

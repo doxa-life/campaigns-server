@@ -909,7 +909,10 @@ paths:
         add additionally allows imb_peid, imb_pgid, joshua_project_id;
         remove additionally allows reason_unlisted (required). An add with
         engagement_status `engaged` is rejected — engaged groups are outside
-        the DOXA list's scope.
+        the DOXA list's scope. For update and remove, a suggested value equal
+        to the people group's current value is a confirmation, not a change,
+        and is dropped before the suggestion is recorded (reason_unlisted is
+        exempt); an update left with no change, image, or comment is rejected.
       operationId: submitPeopleGroupSuggestion
       requestBody:
         required: true
@@ -949,7 +952,10 @@ paths:
                   description: DOXA people group id (required for update and remove)
                 suggested_changes:
                   type: object
-                  description: Suggested values keyed by people group field key (whitelisted per type)
+                  description: >
+                    Suggested values keyed by people group field key (whitelisted
+                    per type). Values matching the group's current value are
+                    dropped.
                 suggested_image_key:
                   type: string
                   description: Key returned by /api/updates/upload-image
