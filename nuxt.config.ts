@@ -23,12 +23,6 @@ export default defineNuxtConfig({
     emitRouteChunkError: 'automatic-immediate'
   },
 
-  vue: {
-    compilerOptions: {
-      isCustomElement: (tag: string) => tag === 'feedback-web-component'
-    }
-  },
-
   // Keep the file watcher out of large non-source trees (e.g. agent git
   // worktrees under .claude/worktrees/, each carrying their own node_modules).
   // Without this the core builder watcher walks them and hits EMFILE.
@@ -229,11 +223,7 @@ export default defineNuxtConfig({
       // Cloudflare Turnstile widget on /updates (empty = widget hidden, verification skipped)
       turnstileSiteKey: process.env.NUXT_TURNSTILE_SITE_KEY || '',
       // Mapbox public token (pk.*) for the admin dashboard map (empty = map card shows a setup notice)
-      mapboxToken: process.env.NUXT_PUBLIC_MAPBOX_TOKEN || '',
-
-      // Feedback widget (external chat bubble → support.gospelambition.org)
-      feedbackApiBase: process.env.NUXT_PUBLIC_FEEDBACK_API_BASE || 'https://support.gospelambition.org',
-      feedbackProjectId: process.env.NUXT_PUBLIC_FEEDBACK_PROJECT_ID || ''
+      mapboxToken: process.env.NUXT_PUBLIC_MAPBOX_TOKEN || ''
     }
   }
 })
