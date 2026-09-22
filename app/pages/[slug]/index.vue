@@ -8,7 +8,7 @@
     <div v-else-if="error" class="flex flex-col items-center justify-center min-h-[50vh] text-center p-8">
       <h2 class="text-2xl font-bold mb-4">{{ $t('campaign.notFound.title') }}</h2>
       <p class="text-muted mb-6">{{ $t('campaign.notFound.message') }}</p>
-      <UButton to="/">{{ $t('campaign.notFound.goHome') }}</UButton>
+      <UButton :to="localePath('/')">{{ $t('campaign.notFound.goHome') }}</UButton>
     </div>
 
     <div v-else-if="pg" class="people-group-content">
@@ -74,7 +74,7 @@
                 {{ pg.imb_people_description }}
               </p>
               <UButton
-                :href="`https://doxa.life/research/${slug}/`"
+                :href="marketingUrl(`/research/${slug}/`)"
                 target="_blank"
                 variant="outline"
                 size="sm"
@@ -415,7 +415,7 @@
                     <template #label>
                       <i18n-t keypath="campaign.signup.form.consent.doxaGeneral" tag="span">
                         <template #link>
-                          <a href="https://doxa.life/" target="_blank" class="text-primary hover:underline">DOXA partnership</a>
+                          <a :href="marketingUrl()" target="_blank" class="text-primary hover:underline">DOXA partnership</a>
                         </template>
                       </i18n-t>
                     </template>
@@ -545,6 +545,7 @@ const route = useRoute()
 const slug = route.params.slug as string
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
+const marketingUrl = useMarketingUrl()
 const { trackEvent } = useTracking()
 
 // Fetch people group data with locale for translated labels

@@ -22,7 +22,7 @@
         <p class="text-[var(--ui-text-muted)] mb-8 leading-relaxed">{{ data?.already_verified ? $t('adoption.verify.alreadyVerified.message') : $t('adoption.verify.success.message', { peopleGroupName }) }}</p>
         <div v-if="data?.people_group_slug" class="flex flex-col gap-3 items-center">
           <UButton
-            :to="`https://doxa.life/research/${data.people_group_slug}/resources/`"
+            :to="marketingUrl(`/research/${data.people_group_slug}/resources/`)"
             external
             color="neutral"
             variant="solid"
@@ -50,6 +50,7 @@ definePageMeta({
 const route = useRoute()
 const { t } = useI18n()
 const localePath = useLocalePath()
+const marketingUrl = useMarketingUrl()
 
 const token = route.query.token as string
 

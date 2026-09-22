@@ -51,7 +51,7 @@
           <NuxtLink
             v-for="pg in paginatedPeopleGroups"
             :key="pg.slug"
-            :to="`/${pg.slug}`"
+            :to="localePath(`/${pg.slug}`)"
             class="block group"
           >
             <UCard class="h-full shadow-sm hover:shadow-lg transition-shadow overflow-hidden" :ui="{ body: 'p-0 sm:p-0' }">
@@ -99,6 +99,7 @@ const currentPage = ref(1)
 const pageSize = 10
 
 const { locale } = useI18n()
+const localePath = useLocalePath()
 
 const { data, pending, error } = await useFetch('/api/people-groups/list', {
   query: { fields: 'name,slug,image_url,imb_people_description', lang: locale },

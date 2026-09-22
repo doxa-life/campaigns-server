@@ -13,7 +13,7 @@
             <UIcon name="i-lucide-arrow-left" class="w-5 h-5" />
             <span class="text-xl font-bold tracking-wider">DOXA.LIFE</span>
           </a>
-          <NuxtLink v-else-if="!isPeopleGroupPage" :to="logoLink" class="flex items-center gap-2">
+          <NuxtLink v-else-if="!isPeopleGroupPage" :to="localePath(logoLink)" class="flex items-center gap-2">
             <span class="text-xl font-bold tracking-wider">{{ config.public.appName }}</span>
           </NuxtLink>
           <div v-else></div>
@@ -22,7 +22,7 @@
           <div class="flex items-center gap-4 navbar-actions">
             <a
               v-if="isPeopleGroupPage && !isPrayerPage"
-              href="https://doxa.life"
+              :href="marketingUrl()"
               target="_blank"
               class="inline-flex items-center gap-1"
             >
@@ -68,7 +68,7 @@
           </h1>
           <i18n-t keypath="campaign.header.championedBy" tag="p" class="text-sm text-muted mt-2">
             <template #link>
-              <a :href="`https://doxa.life/${$i18n.locale === 'en' ? '' : $i18n.locale}`" target="_blank" class="underline hover:text-default">{{ $t('campaign.header.doxaFoundation') }}</a>
+              <a :href="marketingUrl()" target="_blank" class="underline hover:text-default">{{ $t('campaign.header.doxaFoundation') }}</a>
             </template>
           </i18n-t>
         </div>
@@ -86,8 +86,8 @@
         <div class="flex flex-col items-center gap-4 md:grid md:grid-cols-3">
           <span class="font-bold md:justify-self-start">{{ config.public.appName }}</span>
           <div class="flex items-center gap-4 text-sm md:justify-self-center">
-            <a href="https://doxa.life" target="_blank" class="text-sage-300 hover:text-white transition-colors">About Doxa.Life</a>
-            <a href="https://doxa.life/privacy-policy/" target="_blank" class="text-sage-300 hover:text-white transition-colors">Privacy Policy</a>
+            <a :href="marketingUrl()" target="_blank" class="text-sage-300 hover:text-white transition-colors">About Doxa.Life</a>
+            <a :href="marketingUrl('/privacy-policy/')" target="_blank" class="text-sage-300 hover:text-white transition-colors">Privacy Policy</a>
           </div>
           <p class="text-sm text-sage-300 md:justify-self-end">
             &copy; {{ currentYear }} {{ config.public.appName }}. All rights reserved.
@@ -102,6 +102,7 @@
 const config = useRuntimeConfig()
 const route = useRoute()
 const localePath = useLocalePath()
+const marketingUrl = useMarketingUrl()
 const currentYear = new Date().getFullYear()
 const { peopleGroupTitle, peopleGroupImageUrl, showPeopleGroupHeader } = usePeopleGroup()
 const { isLoggedIn, checkAuth } = useAuth()
