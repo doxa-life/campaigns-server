@@ -6,6 +6,8 @@ export default defineEventHandler(async (event) => {
 
   const userId = getUuidParam(event, 'id')
 
+  // Only the admin role grants users.manage, so blocking self-deletion also
+  // guarantees at least one admin survives any sequence of deletions.
   if (requester.userId === userId) {
     throw createError({
       statusCode: 400,
@@ -19,13 +21,6 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 404,
         statusMessage: 'User not found'
-      })
-    }
-
-    if (user.superadmin) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Superadmin accounts cannot be deleted'
       })
     }
 

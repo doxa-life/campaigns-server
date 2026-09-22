@@ -18,7 +18,6 @@ export interface UserWithRoles {
   // Languages the user may edit when a role scopes content by language; empty otherwise.
   languages: string[]
   isAdmin: boolean
-  isSuperAdmin: boolean
 }
 
 export function verifyToken(token: string) {
@@ -62,21 +61,6 @@ export async function requireAdmin(event: H3Event) {
     throw createError({
       statusCode: 403,
       statusMessage: 'Admin access required'
-    })
-  }
-
-  return user
-}
-
-export async function requireSuperAdmin(event: H3Event) {
-  const user = checkAuth(event)
-
-  const { userService } = await import('#server/database/users')
-  const dbUser = await userService.getUserById(user.userId)
-  if (!dbUser?.superadmin) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Superadmin access required'
     })
   }
 
@@ -135,7 +119,7 @@ export function setAuthCookie(event: H3Event, token: string) {
 }
 
 // Get user with their role
-export async function getUserWithRoles(userId: string, userEmail: string, displayName: string, verified: boolean, superadmin: boolean): Promise<UserWithRoles> {
+export async function getUserWithRoles(userId: string, userEmail: string, displayName: string, verified: boolean): Promise<UserWithRoles> {
   const roles = await roleService.getUserRoles(userId)
   const isAdmin = roles.includes('admin')
   const languages = rolesUseLanguageScope(roles) ? await userLanguageService.getUserLanguages(userId) : []
@@ -147,7 +131,6 @@ export async function getUserWithRoles(userId: string, userEmail: string, displa
     verified,
     roles,
     languages,
-    isAdmin,
-    isSuperAdmin: superadmin
+    isAdmin
   }
 }

@@ -12,7 +12,6 @@ export interface TestUser {
   email: string
   display_name: string
   verified: boolean
-  superadmin: boolean
   roles: string[]
 }
 
@@ -32,7 +31,6 @@ export async function createTestUser(
     password?: string
     role?: TestRole | null
     verified?: boolean
-    superadmin?: boolean
   } = {}
 ): Promise<TestUser> {
   const id = uuidv4()
@@ -41,14 +39,13 @@ export async function createTestUser(
   const password = options.password || 'testpassword123'
   const roles = options.role ? [options.role] : []
   const verified = options.verified ?? true
-  const superadmin = options.superadmin ?? false
   const token_key = uuidv4()
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
 
   await sql`
-    INSERT INTO users (id, email, password, display_name, verified, superadmin, roles, token_key)
-    VALUES (${id}, ${email}, ${passwordHash}, ${display_name}, ${verified}, ${superadmin}, ${roles}, ${token_key})
+    INSERT INTO users (id, email, password, display_name, verified, roles, token_key)
+    VALUES (${id}, ${email}, ${passwordHash}, ${display_name}, ${verified}, ${roles}, ${token_key})
   `
 
   return {
@@ -56,7 +53,6 @@ export async function createTestUser(
     email,
     display_name,
     verified,
-    superadmin,
     roles
   }
 }
@@ -95,7 +91,6 @@ export async function createAndLoginUser(
     email?: string
     display_name?: string
     verified?: boolean
-    superadmin?: boolean
   } = {}
 ): Promise<{ user: TestUser; auth: AuthHeaders }> {
   const user = await createTestUser(sql, { ...options, role })

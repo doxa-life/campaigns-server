@@ -10,7 +10,6 @@ export const useAuthUser = () => {
   const baseAuth = useAuth()
 
   const isAdmin = computed(() => baseAuth.user.value?.isAdmin || false)
-  const isSuperAdmin = computed(() => baseAuth.user.value?.isSuperAdmin || false)
   const hasRole = computed(() => (baseAuth.user.value?.roles?.length ?? 0) > 0)
 
   const userPermissions = computed(() => {
@@ -58,7 +57,6 @@ export const useAuthUser = () => {
   return {
     ...baseAuth,
     isAdmin,
-    isSuperAdmin,
     hasRole,
     assignedLanguages,
     canAccess,

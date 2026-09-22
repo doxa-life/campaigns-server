@@ -41,7 +41,7 @@ function shouldTrackRoute(path: string): boolean {
   const normalized = stripLocale(path)
   return ![
     '/admin',
-    '/superadmin',
+    '/settings',
     '/dashboard',
     '/accept-invitation',
     '/login',

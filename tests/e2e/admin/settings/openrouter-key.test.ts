@@ -5,18 +5,18 @@ import {
   closeTestDatabase,
   cleanupTestData
 } from '../../../helpers/db'
-import { createAdminUser, createAndLoginUser } from '../../../helpers/auth'
+import { createAdminUser, createEditorUser } from '../../../helpers/auth'
 
-describe('GET /api/admin/superadmin/openrouter-key', async () => {
+describe('GET /api/admin/settings/openrouter-key', async () => {
   const sql = getTestDatabase()
 
   let adminAuth: { headers: { cookie: string } }
-  let superadminAuth: { headers: { cookie: string } }
+  let editorAuth: { headers: { cookie: string } }
 
   beforeAll(async () => {
     await cleanupTestData(sql)
     adminAuth = (await createAdminUser(sql)).auth
-    superadminAuth = (await createAndLoginUser(sql, 'admin', { superadmin: true })).auth
+    editorAuth = (await createEditorUser(sql)).auth
   })
 
   afterAll(async () => {
@@ -25,17 +25,17 @@ describe('GET /api/admin/superadmin/openrouter-key', async () => {
   })
 
   it('returns 401 for unauthenticated requests', async () => {
-    const error = await $fetch('/api/admin/superadmin/openrouter-key').catch((e) => e)
+    const error = await $fetch('/api/admin/settings/openrouter-key').catch((e) => e)
     expect(error.statusCode).toBe(401)
   })
 
-  it('returns 403 for admins who are not superadmin', async () => {
-    const error = await $fetch('/api/admin/superadmin/openrouter-key', { ...adminAuth }).catch((e) => e)
+  it('returns 403 for users without the admin role', async () => {
+    const error = await $fetch('/api/admin/settings/openrouter-key', { ...editorAuth }).catch((e) => e)
     expect(error.statusCode).toBe(403)
   })
 
-  it('reports the key status for superadmins', async () => {
-    const data = await $fetch<Record<string, unknown>>('/api/admin/superadmin/openrouter-key', { ...superadminAuth })
+  it('reports the key status for admins', async () => {
+    const data = await $fetch<Record<string, unknown>>('/api/admin/settings/openrouter-key', { ...adminAuth })
 
     expect(['missing', 'invalid', 'unreachable', 'valid']).toContain(data.status)
 

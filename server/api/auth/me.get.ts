@@ -25,13 +25,12 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Get user with roles including isAdmin and isSuperAdmin flags
+    // Get user with roles including the isAdmin flag
     const userWithRoles = await getUserWithRoles(
       fullUser.id,
       fullUser.email,
       fullUser.display_name,
-      fullUser.verified,
-      fullUser.superadmin
+      fullUser.verified
     )
 
     return {

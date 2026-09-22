@@ -24,7 +24,7 @@ import { handleApiError } from '#server/utils/api-helpers'
  */
 export default defineEventHandler(async (event) => {
   try {
-    await requireSuperAdmin(event)
+    await requireAdmin(event)
 
     const bun = (globalThis as any).Bun
     if (!bun?.generateHeapSnapshot) {

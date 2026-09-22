@@ -130,7 +130,7 @@ describe('Admin suppression list', () => {
 
 describe('Suppression filters recipient selection', () => {
   it('excludes a suppressed address from the doxa audience, restored on un-suppress', async () => {
-    const { auth } = await createAndLoginUser(sql, 'admin', { superadmin: true })
+    const { auth } = await createAndLoginUser(sql, 'admin')
 
     const subscriber = await createTestSubscriber(sql, { name: 'Test Suppression Doxa' })
     const cm = await createTestContactMethod(sql, subscriber.id, { type: 'email', verified: true })

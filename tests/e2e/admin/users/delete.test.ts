@@ -8,8 +8,7 @@ import {
 import {
   createAdminUser,
   createEditorUser,
-  createNoRoleUser,
-  createAndLoginUser
+  createNoRoleUser
 } from '../../../helpers/auth'
 
 describe('DELETE /api/admin/users/[id]', async () => {
@@ -63,16 +62,6 @@ describe('DELETE /api/admin/users/[id]', async () => {
       }).catch((e) => e)
 
       expect(error.statusCode).toBe(400)
-    })
-
-    it('returns 403 when deleting a superadmin', async () => {
-      const superadmin = await createAndLoginUser(sql, null, { superadmin: true })
-      const error = await $fetch(`/api/admin/users/${superadmin.user.id}`, {
-        method: 'DELETE',
-        ...adminAuth
-      }).catch((e) => e)
-
-      expect(error.statusCode).toBe(403)
     })
 
     it('returns 404 for a non-existent user', async () => {

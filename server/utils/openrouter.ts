@@ -82,7 +82,7 @@ export async function openrouterKeyStatus(): Promise<OpenRouterKeyStatus> {
 
 /**
  * The OpenRouter model used to translate into a language. A per-language
- * override in config/languages.ts wins; then the superadmin-managed app_config
+ * override in config/languages.ts wins; then the admin-managed app_config
  * value, the TRANSLATION_MODEL env var, and a code default — so adopting a
  * newly released model is a setting, not a code edit.
  */

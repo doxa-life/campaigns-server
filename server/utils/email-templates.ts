@@ -630,7 +630,7 @@ export const dailySummaryEmailTemplate: EmailTemplate = buildEmailTemplate(
     `}
 
     <p style="color: #666; line-height: 1.6; margin-top: 20px; font-size: 14px;">
-      This is an automated daily summary sent to all superadmins.
+      This is an automated daily summary sent to admins and progress admins.
     </p>
   `,
   (data: EmailTemplateData) => `
@@ -659,7 +659,7 @@ ${data.newItems?.count > 0 || data.totalComments > 0 || data.totalClaimed > 0 ? 
   return `  - ${sale.saleName}: ${parts.join(', ')}`
 }).join('\n') : '  No activity'}
 
-This is an automated daily summary sent to all superadmins.
+This is an automated daily summary sent to admins and progress admins.
 
 Best regards,
 The ${data.appName || 'Base'} Team

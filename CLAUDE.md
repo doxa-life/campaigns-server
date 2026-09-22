@@ -116,7 +116,7 @@ app/
   components/     # Vue components (RichTextEditor, modals, etc.)
   composables/    # useAuthUser, usePeopleGroup, useModal
   layouts/        # default.vue, admin.vue
-  middleware/     # superadmin.ts, guest.ts
+  middleware/     # admin.ts, guest.ts
   pages/          # File-based routing
   utils/          # languages.ts, tiptap.ts
 
@@ -170,8 +170,8 @@ off `body` or return camelCase keys in responses.
 ### Authentication
 
 - JWT-based authentication
-- Roles: superadmin, admin
-- Middleware: `auth`, `superadmin.ts`, `guest.ts`
+- Roles: admin, progress_admin, people_group_editor, content_editor, language_editor, inbox_agent (see `app/utils/role-definitions.ts`)
+- Middleware: `auth`, `admin.ts`, `guest.ts`
 - `useAuth()` composable for client-side auth state
 - `useAuthUser()` composable extends auth for project-specific needs
 

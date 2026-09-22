@@ -10,7 +10,7 @@ import { handleApiError } from '#server/utils/api-helpers'
  * UI renders every state the same way. The key itself is never returned.
  */
 export default defineEventHandler(async (event) => {
-  await requireSuperAdmin(event)
+  await requireAdmin(event)
 
   try {
     return await openrouterKeyStatus()

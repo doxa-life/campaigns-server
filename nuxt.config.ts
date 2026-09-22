@@ -168,7 +168,7 @@ export default defineNuxtConfig({
     turnstileSecretKey: process.env.NUXT_TURNSTILE_SECRET_KEY || '',
 
     // Fallback model for all AI calls (inbox drafting, knowledge capture, report
-    // parsing) when the superadmin app_config 'ai_model' setting is unset
+    // parsing) when the admin-managed app_config 'ai_model' setting is unset
     inboxAiModel: process.env.INBOX_AI_MODEL || '',
     // Marketing site (doxa.life) base URL — source of grounding CMS pages (FAQ, about, …)
     marketingSiteUrl: process.env.MARKETING_SITE_URL || 'https://doxa.life',

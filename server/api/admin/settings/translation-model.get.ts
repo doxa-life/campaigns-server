@@ -9,7 +9,7 @@ import { handleApiError } from '#server/utils/api-helpers'
  * the env/default fallback — so the UI always shows what translations actually use.
  */
 export default defineEventHandler(async (event) => {
-  await requireSuperAdmin(event)
+  await requireAdmin(event)
 
   try {
     return { translation_model: await getTranslationModel() }

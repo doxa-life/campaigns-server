@@ -93,15 +93,14 @@ async function resetDatabase() {
 
     // Create user
     await sql`
-      INSERT INTO users (email, password, display_name, token_key, verified, superadmin, role)
-      VALUES (${adminEmail}, ${passwordHash}, ${adminDisplayName}, ${tokenKey}, true, true, 'admin')
+      INSERT INTO users (email, password, display_name, token_key, verified, roles)
+      VALUES (${adminEmail}, ${passwordHash}, ${adminDisplayName}, ${tokenKey}, true, ARRAY['admin'])
     `
 
     console.log('✅ Default admin user created successfully')
     console.log(`   Email: ${adminEmail}`)
     console.log(`   Password: ${adminPassword}`)
     console.log(`   Role: admin`)
-    console.log(`   Superadmin: true`)
     console.log(`   Verified: true\n`)
 
     console.log('🎉 Database reset completed successfully!')

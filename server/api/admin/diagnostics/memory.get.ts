@@ -16,13 +16,13 @@ import { handleApiError } from '#server/utils/api-helpers'
  *   native-memory leak; `committed_mb` rising while live stays flat means the
  *   allocator is retaining freed memory (fragmentation), not a code leak.
  *
- * The Bun-specific sections are null under other runtimes. Superadmin-only.
+ * The Bun-specific sections are null under other runtimes. Admin-only.
  * `hostname` identifies which instance answered, since requests land on one at
  * random behind the load balancer.
  */
 export default defineEventHandler(async (event) => {
   try {
-    await requireSuperAdmin(event)
+    await requireAdmin(event)
 
     const m = process.memoryUsage()
     const mb = (n: number) => Math.round((n / 1024 / 1024) * 10) / 10

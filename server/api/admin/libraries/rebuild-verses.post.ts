@@ -10,11 +10,11 @@ import { getErrorMessage } from '#server/utils/api-helpers'
  *
  * Uses Server-Sent Events (SSE) to stream progress updates.
  *
- * POST /api/admin/superadmin/rebuild-verses
+ * POST /api/admin/libraries/rebuild-verses
  * Body: { languages: string[] }
  */
 export default defineEventHandler(async (event) => {
-  await requireSuperAdmin(event)
+  await requireAdmin(event)
 
   const body = await readBody(event)
   const { languages } = body

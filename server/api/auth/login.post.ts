@@ -68,8 +68,7 @@ export default defineEventHandler(async (event) => {
       email: user.email,
       display_name: user.display_name,
       avatar: user.avatar,
-      verified: user.verified,
-      superadmin: user.superadmin
+      verified: user.verified
     }
   }
 })

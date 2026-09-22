@@ -29,7 +29,7 @@ function routable(model: string | null | undefined): string | null {
 
 /**
  * The model used for all AI calls (report parsing and inbox alike). The
- * superadmin-managed app_config value wins; with none set it falls back to the
+ * admin-managed app_config value wins; with none set it falls back to the
  * INBOX_AI_MODEL env var, then a safe default. A single source so changing the
  * model is one setting, not a code edit per call site.
  */

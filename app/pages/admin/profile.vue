@@ -227,12 +227,12 @@ definePageMeta({
   middleware: ['auth']
 })
 
-const { user, logout, checkAuth, isAdmin, isSuperAdmin } = useAuthUser()
+const { user, logout, checkAuth, isAdmin } = useAuthUser()
 const toast = useToast()
 
 // Admins and progress admins can self-manage which stats summary emails they receive.
 const canManageStatsEmails = computed(() =>
-  isAdmin.value || isSuperAdmin.value || (user.value?.roles?.includes('progress_admin') ?? false)
+  isAdmin.value || (user.value?.roles?.includes('progress_admin') ?? false)
 )
 
 // --- Display Name ---

@@ -7,7 +7,6 @@ This application includes an automated PostgreSQL database backup system that up
 - ✅ Automatic daily backups to S3 or S3-compatible storage
 - ✅ Support for AWS S3, DigitalOcean Spaces, Backblaze B2, MinIO, and more
 - ✅ Configurable backup schedule (default: 2 AM UTC)
-- ✅ Manual backup trigger via admin API endpoint
 - ✅ Compressed backups using PostgreSQL custom format
 - ✅ Server-side encryption (AES256)
 - ✅ Automatic cleanup of local backup files
@@ -138,34 +137,6 @@ Examples:
 - `0 3 * * 0` - Weekly on Sunday at 3 AM
 - `0 */6 * * *` - Every 6 hours
 
-### Manual Backups
-
-Admins can trigger manual backups via the API endpoint:
-
-```bash
-POST /api/admin/backup/create
-Authorization: Bearer <admin-jwt-token>
-```
-
-Example using curl:
-```bash
-curl -X POST https://your-domain.com/api/admin/backup/create \
-  -H "Authorization: Bearer YOUR_ADMIN_JWT_TOKEN"
-```
-
-Response:
-```json
-{
-  "success": true,
-  "message": "Database backup completed successfully",
-  "backup": {
-    "filename": "backup-2025-10-10T02-00-00-000Z.sql",
-    "size": 1048576,
-    "location": "s3://your-bucket/database-backups/backup-2025-10-10T02-00-00-000Z.sql"
-  }
-}
-```
-
 ## Backup Storage
 
 Backups are stored in S3 with the following structure:
@@ -260,10 +231,6 @@ Consider implementing S3 lifecycle rules for automatic backup retention:
 
 ```
 server/
-├── api/
-│   └── admin/
-│       └── backup/
-│           └── create.post.ts       # Manual backup endpoint
 ├── plugins/
 │   └── backup-scheduler.ts          # Automatic backup scheduler
 └── utils/

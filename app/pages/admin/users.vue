@@ -522,7 +522,6 @@ interface User {
   peopleGroupCount: number
   email_alias: string | null
   email_signature: string | null
-  superadmin?: boolean
   notification_preferences?: {
     stats: { daily: boolean; weekly: boolean; monthly: boolean; yearly: boolean }
     adoption: boolean
@@ -763,11 +762,11 @@ const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
 const notificationsForm = ref<NotificationPrefs>(structuredClone(DEFAULT_NOTIFICATION_PREFS))
 const notificationsSaving = ref(false)
 
-// Stats summaries only go to admins, progress admins, and superadmins.
+// Stats summaries only go to admins and progress admins.
 const selectedUserStatsEligible = computed(() => {
   const u = selectedUser.value
   if (!u) return false
-  return !!u.superadmin || u.roles.some(r => r.name === 'admin' || r.name === 'progress_admin')
+  return u.roles.some(r => r.name === 'admin' || r.name === 'progress_admin')
 })
 
 function setStat(key: 'daily' | 'weekly' | 'monthly' | 'yearly', value: boolean) {

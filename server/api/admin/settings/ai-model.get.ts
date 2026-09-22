@@ -9,7 +9,7 @@ import { handleApiError } from '#server/utils/api-helpers'
  * the env/default fallback — so the UI always shows what AI calls actually use.
  */
 export default defineEventHandler(async (event) => {
-  await requireSuperAdmin(event)
+  await requireAdmin(event)
 
   try {
     return { ai_model: await getAiModel() }

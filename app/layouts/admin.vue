@@ -83,7 +83,7 @@
 
 <script setup lang="ts">
 const config = useRuntimeConfig()
-const { user, isAdmin, isSuperAdmin, hasRole, canAccess, canAccessUnscoped, checkAuth } = useAuthUser()
+const { user, isAdmin, hasRole, canAccess, canAccessUnscoped, checkAuth } = useAuthUser()
 
 if (config.public.feedbackProjectId && config.public.feedbackApiBase) {
   useHead({
@@ -136,7 +136,7 @@ const navItems = computed<NavItem[]>(() => {
     { label: 'Groups (Adoption)', to: '/admin/groups', icon: 'i-lucide-users', show: canAccess('groups.view') },
     { label: 'Churches', to: '/admin/churches', icon: 'i-lucide-church', show: canAccess('churches.view') },
     { label: 'Users', to: '/admin/users', icon: 'i-lucide-user-cog', show: canAccess('users.manage') },
-    { label: 'Superadmin', to: '/superadmin', icon: 'i-lucide-shield', show: isSuperAdmin.value }
+    { label: 'Settings', to: '/settings', icon: 'i-lucide-settings', show: isAdmin.value }
   ]
 
   return items

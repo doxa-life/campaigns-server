@@ -63,7 +63,7 @@ Name each of these in the report rather than doing it:
   person's call.
 - **CMS pages** are drafted, not published.
 - **People group descriptions and shared prayer libraries** are translated from
-  the admin and cost tokens. A superadmin decides when.
+  the admin and cost tokens. An admin decides when.
 - **Day in the Life prompts** are translated per group, on demand, and paid for
   per group.
 - **Adoption artwork** for a language with no cut template is a request to the

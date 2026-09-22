@@ -14,7 +14,7 @@ import { handleApiError } from '#server/utils/api-helpers'
  * as an API error on the next translation.
  */
 export default defineEventHandler(async (event) => {
-  await requireSuperAdmin(event)
+  await requireAdmin(event)
 
   try {
     const body = await readBody(event)

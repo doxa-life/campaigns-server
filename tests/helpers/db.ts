@@ -557,7 +557,7 @@ export async function getTestUser(
   id: string
 ) {
   const result = await sql`
-    SELECT id, email, display_name, verified, superadmin, roles
+    SELECT id, email, display_name, verified, roles
     FROM users
     WHERE id = ${id}
   `
@@ -566,7 +566,6 @@ export async function getTestUser(
     email: string
     display_name: string
     verified: boolean
-    superadmin: boolean
     roles: string[]
   } | null
 }
@@ -576,7 +575,7 @@ export async function getTestUserByEmail(
   email: string
 ) {
   const result = await sql`
-    SELECT id, email, display_name, verified, superadmin, roles
+    SELECT id, email, display_name, verified, roles
     FROM users
     WHERE email = ${email}
   `
@@ -585,7 +584,6 @@ export async function getTestUserByEmail(
     email: string
     display_name: string
     verified: boolean
-    superadmin: boolean
     roles: string[]
   } | null
 }

@@ -100,7 +100,7 @@ These are not repository changes. Name them in the report:
 - **People group descriptions** — `/admin/people-groups`, the description
   field's translate button, or the batch endpoint. Costs tokens.
 - **Shared prayer libraries** — the admin's translate buttons per library. This
-  is the expensive one; a superadmin decides when to run it.
+  is the expensive one; an admin decides when to run it.
 - **Day in the Life prompts** — per group and optional. The people-groups
   repository's own `/add-language` covers it.
 - **Verses** — the Bible edition has to exist in the app before verse blocks
