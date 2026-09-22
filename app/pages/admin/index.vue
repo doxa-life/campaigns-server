@@ -709,10 +709,10 @@ definePageMeta({
 const { canAccess, canAccessUnscoped } = useAuthUser()
 
 const allNavLinks = [
-  { label: 'People Groups', to: '/admin/people-groups', icon: 'i-lucide-globe', permission: 'people_groups.view' },
+  { label: 'Prayer Libraries', to: '/admin/libraries', icon: 'i-lucide-book-open', permission: 'content.view', unscopedOnly: true },
+  { label: 'People Group Data', to: '/admin/people-groups', icon: 'i-lucide-globe', permission: 'people_groups.view' },
   { label: 'Contacts', to: '/admin/subscribers', icon: 'i-lucide-user', permission: 'subscribers.view' },
-  { label: 'Groups', to: '/admin/groups', icon: 'i-lucide-users', permission: 'groups.view' },
-  { label: 'Libraries', to: '/admin/libraries', icon: 'i-lucide-book-open', permission: 'content.view', unscopedOnly: true },
+  { label: 'Groups (Adoption)', to: '/admin/groups', icon: 'i-lucide-users', permission: 'groups.view' },
   { label: 'Users', to: '/admin/users', icon: 'i-lucide-user-cog', permission: 'users.manage' },
   { label: 'Profile', to: '/admin/profile', icon: 'i-lucide-circle-user' }
 ]

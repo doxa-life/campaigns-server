@@ -27,84 +27,29 @@
       </div>
 
       <ul class="nav-menu" v-if="hasRole">
-        <li>
-          <NuxtLink to="/admin" class="nav-link" :class="{ 'router-link-active': route.path === '/admin' }" :title="!showExpanded ? 'Dashboard' : undefined">
-            <UIcon name="i-lucide-layout-dashboard" />
-            <span v-if="showExpanded" class="nav-label">Dashboard</span>
-          </NuxtLink>
-        </li>
-        <li v-if="canAccess('people_groups.view')">
-          <NuxtLink to="/admin/people-groups" class="nav-link" :title="!showExpanded ? 'People Groups' : undefined">
-            <UIcon name="i-lucide-globe" />
-            <span v-if="showExpanded" class="nav-label">People Groups</span>
-          </NuxtLink>
-        </li>
-        <li v-if="canAccess('subscribers.view')">
-          <NuxtLink to="/admin/subscribers" class="nav-link" :title="!showExpanded ? 'Contacts' : undefined">
-            <UIcon name="i-lucide-user" />
-            <span v-if="showExpanded" class="nav-label">Contacts</span>
-          </NuxtLink>
-        </li>
-        <li v-if="canAccess('groups.view')">
-          <NuxtLink to="/admin/groups" class="nav-link" :title="!showExpanded ? 'Groups' : undefined">
-            <UIcon name="i-lucide-users" />
-            <span v-if="showExpanded" class="nav-label">Groups</span>
-          </NuxtLink>
-        </li>
-        <li v-if="canAccessUnscoped('content.view')">
-          <NuxtLink to="/admin/libraries" class="nav-link" :title="!showExpanded ? 'Libraries' : undefined">
-            <UIcon name="i-lucide-book-open" />
-            <span v-if="showExpanded" class="nav-label">Libraries</span>
-          </NuxtLink>
-        </li>
-        <li v-if="canAccess('inbox.view')">
-          <NuxtLink to="/admin/inbox" class="nav-link" :title="!showExpanded ? 'Inbox' : undefined">
-            <UIcon name="i-lucide-inbox" />
-            <span v-if="showExpanded" class="nav-label">Inbox</span>
-          </NuxtLink>
-        </li>
-        <li v-if="canAccess('marketing.view')">
-          <NuxtLink to="/admin/marketing" class="nav-link" :title="!showExpanded ? 'Marketing' : undefined">
-            <UIcon name="i-lucide-megaphone" />
-            <span v-if="showExpanded" class="nav-label">Marketing</span>
-          </NuxtLink>
-        </li>
-        <li v-if="canAccess('users.manage')">
-          <NuxtLink to="/admin/users" class="nav-link" :title="!showExpanded ? 'Users' : undefined">
-            <UIcon name="i-lucide-user-cog" />
-            <span v-if="showExpanded" class="nav-label">Users</span>
-          </NuxtLink>
-        </li>
-        <li v-if="isSuperAdmin">
-          <NuxtLink to="/superadmin" class="nav-link" :title="!showExpanded ? 'Superadmin' : undefined">
-            <UIcon name="i-lucide-shield" />
-            <span v-if="showExpanded" class="nav-label">Superadmin</span>
-          </NuxtLink>
-        </li>
-        <li v-if="canAccess('people_groups.edit')">
-          <NuxtLink to="/admin/onboarding" class="nav-link" :title="!showExpanded ? 'Onboarding' : undefined">
-            <UIcon name="i-lucide-clipboard-list" />
-            <span v-if="showExpanded" class="nav-label">Onboarding</span>
-          </NuxtLink>
-        </li>
-        <li v-if="canAccess('churches.view')">
-          <NuxtLink to="/admin/churches" class="nav-link" :title="!showExpanded ? 'Churches' : undefined">
-            <UIcon name="i-lucide-church" />
-            <span v-if="showExpanded" class="nav-label">Churches</span>
-          </NuxtLink>
-        </li>
-        <li v-if="canAccess('glossary.view')">
-          <NuxtLink to="/admin/glossary" class="nav-link" :title="!showExpanded ? 'Glossary' : undefined">
-            <UIcon name="i-lucide-languages" />
-            <span v-if="showExpanded" class="nav-label">Glossary</span>
-          </NuxtLink>
-        </li>
-        <li v-if="canAccess('context.view')">
-          <NuxtLink to="/admin/context" class="nav-link" :title="!showExpanded ? 'Context' : undefined">
-            <UIcon name="i-lucide-book-open-text" />
-            <span v-if="showExpanded" class="nav-label">Context</span>
-          </NuxtLink>
-        </li>
+        <template v-for="item in navItems" :key="item.to">
+          <li>
+            <NuxtLink
+              :to="item.to"
+              class="nav-link"
+              :class="{ 'router-link-active': item.exact && route.path === item.to }"
+              :title="!showExpanded ? item.label : undefined"
+            >
+              <UIcon :name="item.icon" />
+              <span v-if="showExpanded" class="nav-label">{{ item.label }}</span>
+            </NuxtLink>
+          </li>
+          <li v-for="child in item.children" :key="child.to" class="nav-child">
+            <NuxtLink
+              :to="child.to"
+              class="nav-link"
+              :title="!showExpanded ? child.label : undefined"
+            >
+              <UIcon :name="child.icon" />
+              <span v-if="showExpanded" class="nav-label">{{ child.label }}</span>
+            </NuxtLink>
+          </li>
+        </template>
       </ul>
       <div v-if="!hasRole" class="nav-menu"></div>
 
@@ -149,6 +94,55 @@ if (config.public.feedbackProjectId && config.public.feedbackApiBase) {
 const route = useRoute()
 const sidebarOpen = ref(false)
 const sidebarCollapsed = ref(true)
+
+interface NavItem {
+  label: string
+  to: string
+  icon: string
+  show: boolean
+  exact?: boolean
+  children?: NavItem[]
+}
+
+// Sidebar order and grouping. A child is hidden along with its parent, since
+// every role granting a child's permission also grants the parent's.
+const navItems = computed<NavItem[]>(() => {
+  const items: NavItem[] = [
+    {
+      label: 'Dashboard',
+      to: '/admin',
+      icon: 'i-lucide-layout-dashboard',
+      show: true,
+      exact: true,
+      children: [
+        { label: 'Context', to: '/admin/context', icon: 'i-lucide-book-open-text', show: canAccess('context.view') },
+        { label: 'Inbox', to: '/admin/inbox', icon: 'i-lucide-inbox', show: canAccess('inbox.view') },
+        { label: 'Marketing', to: '/admin/marketing', icon: 'i-lucide-megaphone', show: canAccess('marketing.view') }
+      ]
+    },
+    { label: 'Prayer Libraries', to: '/admin/libraries', icon: 'i-lucide-book-open', show: canAccessUnscoped('content.view') },
+    { label: 'Translation / Glossary', to: '/admin/glossary', icon: 'i-lucide-languages', show: canAccess('glossary.view') },
+    {
+      label: 'People Group Data',
+      to: '/admin/people-groups',
+      icon: 'i-lucide-globe',
+      show: canAccess('people_groups.view'),
+      children: [
+        { label: 'Reports', to: '/admin/people-groups/reports', icon: 'i-lucide-file-text', show: canAccess('people_groups.view') },
+        { label: 'Updates Tracking', to: '/admin/onboarding', icon: 'i-lucide-clipboard-list', show: canAccess('people_groups.edit') }
+      ]
+    },
+    { label: 'Contacts', to: '/admin/subscribers', icon: 'i-lucide-user', show: canAccess('subscribers.view') },
+    { label: 'Groups (Adoption)', to: '/admin/groups', icon: 'i-lucide-users', show: canAccess('groups.view') },
+    { label: 'Churches', to: '/admin/churches', icon: 'i-lucide-church', show: canAccess('churches.view') },
+    { label: 'Users', to: '/admin/users', icon: 'i-lucide-user-cog', show: canAccess('users.manage') },
+    { label: 'Superadmin', to: '/superadmin', icon: 'i-lucide-shield', show: isSuperAdmin.value }
+  ]
+
+  return items
+    .filter(item => item.show)
+    .map(item => ({ ...item, children: item.children?.filter(child => child.show) }))
+})
 
 // Context lays out its own full-height panes with their own padding, so the
 // main area gives it the bare viewport instead of the usual page padding.
@@ -312,6 +306,17 @@ onMounted(async () => {
   color: #ffffff;
 }
 
+.nav-child .nav-link {
+  padding-left: 2.25rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.nav-child .nav-link:hover,
+.nav-child .nav-link.router-link-active {
+  color: #ffffff;
+}
+
 .nav-label {
   overflow: hidden;
 }
@@ -427,6 +432,10 @@ onMounted(async () => {
   .sidebar.collapsed .nav-link {
     justify-content: flex-start;
     padding: 0.75rem 1rem;
+  }
+
+  .sidebar.collapsed .nav-child .nav-link {
+    padding-left: 2.25rem;
   }
 
   .sidebar.collapsed .sidebar-header {

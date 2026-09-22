@@ -2,7 +2,7 @@
   <div class="libraries-page">
     <div class="page-header">
       <div>
-        <h1>Content Libraries</h1>
+        <h1>Prayer Libraries</h1>
         <p class="subtitle">Manage centralized prayer content libraries</p>
       </div>
       <div class="header-actions">

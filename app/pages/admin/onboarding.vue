@@ -2,7 +2,7 @@
   <div class="p-6">
     <div class="flex items-center justify-between mb-4">
       <div>
-        <h1 class="text-2xl font-bold">Onboarding</h1>
+        <h1 class="text-2xl font-bold">Updates Tracking</h1>
         <p class="text-sm text-muted">People groups with outstanding setup work</p>
       </div>
       <UButton

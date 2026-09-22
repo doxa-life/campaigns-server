@@ -25,7 +25,7 @@ const dayNumber = computed(() => parseInt(route.params.dayNumber as string))
 const library = ref<{ name: string } | null>(null)
 
 const breadcrumbs = computed(() => [
-  { label: 'Libraries', to: '/admin/libraries' },
+  { label: 'Prayer Libraries', to: '/admin/libraries' },
   { label: library.value?.name || 'Library', to: `/admin/libraries/${libraryId.value}/content` },
   { label: `Day ${dayNumber.value}` }
 ])
