@@ -228,7 +228,7 @@ export function fieldsFromImbRow(row: ImbPeopleGroup): ImbMappedFields {
  * Validate and normalise an editor's add-report fields from a request body.
  * Throws a 400 naming the problem so the form can show it.
  */
-export function parseAddReportFields(input: unknown): AddReportFields {
+function parseFields(input: unknown): AddReportFields {
   const body = (input && typeof input === 'object' ? input : {}) as Record<string, unknown>
   const fields: AddReportFields = {}
 
@@ -243,11 +243,6 @@ export function parseAddReportFields(input: unknown): AddReportFields {
       throw createError({ statusCode: 400, statusMessage: `"${raw}" is not a valid ${key}` })
     }
     fields[key] = value
-  }
-
-  const missing = addReportRequiredFieldKeys.filter((key) => !fields[key])
-  if (missing.length > 0) {
-    throw createError({ statusCode: 400, statusMessage: `Missing required fields: ${missing.join(', ')}` })
   }
 
   if (typeof body.description_en === 'string' && body.description_en.trim()) {
@@ -265,6 +260,70 @@ export function parseAddReportFields(input: unknown): AddReportFields {
   }
 
   return fields
+}
+
+/**
+ * An editor's add-report fields, complete enough to create the people group.
+ * Throws a 400 naming what is still missing.
+ */
+export function parseAddReportFields(input: unknown): AddReportFields {
+  const fields = parseFields(input)
+  const missing = missingAddReportFields(fields)
+  if (missing.length > 0) {
+    throw createError({ statusCode: 400, statusMessage: `Missing required fields: ${missing.join(', ')}` })
+  }
+  return fields
+}
+
+/**
+ * A reviewer's in-progress edits to the completion fields. Every value is
+ * validated as strictly as on apply, but a required field may still be empty:
+ * the fields are a draft until the report is approved.
+ */
+export function parseAddFieldsDraft(input: unknown): AddReportFields {
+  return parseFields(input)
+}
+
+/** The required completion fields an "add" report is still missing. */
+export function missingAddReportFields(values: AddReportFields | null | undefined): AddReportFieldKey[] {
+  const fields = values || {}
+  return addReportRequiredFieldKeys.filter((key) => !String(fields[key] ?? '').trim())
+}
+
+/**
+ * The completion fields stored on an "add" report. `values` is what the apply
+ * uses and what reviewers edit; `ai` is the proposal exactly as generated, so a
+ * field a reviewer has corrected is one where the two differ.
+ */
+export interface AddReportCompletion {
+  values: AddReportFields
+  ai: AddReportFields
+  metadata: Record<string, any>
+  source?: AutoPopulateSource
+  generated_at?: string
+  /** Why the last auto-populate attempt could not fill everything. */
+  warning?: string
+  edited_by?: string
+  edited_at?: string
+}
+
+/** Where the proposed completion fields came from. */
+export type AutoPopulateSource = 'imb' | 'ai' | 'country'
+
+/** The stored completion envelope, tolerant of a report that predates it. */
+export function readAddFields(input: unknown): AddReportCompletion {
+  const raw = (input && typeof input === 'object' ? input : {}) as Record<string, any>
+  const object = (value: unknown) => (value && typeof value === 'object' ? value : {}) as Record<string, any>
+  return {
+    values: object(raw.values) as AddReportFields,
+    ai: object(raw.ai) as AddReportFields,
+    metadata: object(raw.metadata),
+    source: raw.source,
+    generated_at: raw.generated_at,
+    warning: raw.warning,
+    edited_by: raw.edited_by,
+    edited_at: raw.edited_at
+  }
 }
 
 // Metadata keys accepted from auto-populate that are not registry fields.

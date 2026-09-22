@@ -1,4 +1,5 @@
 import { imbPeopleGroupService } from '../../database/imb-people-groups'
+import { jobQueueService } from '../../database/job-queue'
 import type { PeopleGroupReportWithDetails } from '../../database/people-group-reports'
 import { callAiTool, getAiModel, isAiConfigured, toAiHttpError, type AiTool } from '../ai'
 import { getField } from '~/utils/people-group-fields'
@@ -9,7 +10,8 @@ import {
   fieldsFromImbRow,
   optionKeyForValue,
   JOSHUA_PROJECT_CREDIT,
-  type AddReportFields
+  type AddReportFields,
+  type AutoPopulateSource
 } from './add-report-fields'
 
 export interface AutoPopulateResult {
@@ -17,7 +19,7 @@ export interface AutoPopulateResult {
   /** IMB detail metadata stored with the group but never shown as form inputs. */
   metadata: Record<string, any>
   /** The IMB mirror row, an AI classification, or only other groups in the same country. */
-  source: 'imb' | 'ai' | 'country'
+  source: AutoPopulateSource
   warning?: string
 }
 
@@ -177,4 +179,22 @@ export async function autoPopulateAddReport(report: PeopleGroupReportWithDetails
   }
 
   return { fields: { ...inferred, ...known }, metadata: {}, source: 'ai' }
+}
+
+/**
+ * Queue the completion-field proposal for an "add" report, at the point the
+ * report becomes reviewable. A no-op for any other report type, and never the
+ * reason a submission or a verification fails.
+ */
+export async function queueAddReportAutofill(report: { id: number; type: string }): Promise<void> {
+  if (report.type !== 'add') return
+  try {
+    await jobQueueService.createJob(
+      'add_report_autofill',
+      { report_id: report.id },
+      { referenceType: 'people_group_report', referenceId: report.id }
+    )
+  } catch (error: any) {
+    console.error('Failed to queue add-report autofill:', error?.message || error)
+  }
 }

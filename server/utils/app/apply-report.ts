@@ -4,7 +4,15 @@ import { peopleGroupReportService, type PeopleGroupReportWithDetails } from '../
 import { peopleGroupService, type PeopleGroup, type UpdatePeopleGroupData } from '../../database/people-groups'
 import { jobQueueService } from '../../database/job-queue'
 import { isTableColumn } from '~/utils/people-group-fields'
-import { addReportFieldKeys, pickExtraMetadata, placeholderImageUrl, type AddReportFields } from './add-report-fields'
+import {
+  addReportFieldKeys,
+  parseAddReportFields,
+  pickExtraMetadata,
+  placeholderImageUrl,
+  readAddFields,
+  type AddReportFields
+} from './add-report-fields'
+import { sendReportOutcomeEmail, notifyReportApplied } from './report-emails'
 import { logUpdate, logCreate } from '../activity-logger'
 import { trackEventInBackground } from '../tracking'
 import { getSuggestionImageObject, isSuggestionImageKey } from './suggestion-images'
@@ -54,6 +62,40 @@ export async function applyReport(
     return applyAdd(report, userId, suggestedImageUrl, event, options)
   }
   return applyUpdateOrRemove(report, userId, suggestedImageUrl, event)
+}
+
+/**
+ * Apply a report that has cleared review and tell the reporter and the notified
+ * addresses about it. An "add" report is created from the completion fields
+ * stored on it, which the approval gate has already seen filled in.
+ *
+ * Shared by the admin accept endpoint and the second public approval, which
+ * applies as part of approving.
+ */
+export async function applyApprovedReport(
+  report: PeopleGroupReportWithDetails,
+  userId: string,
+  event?: H3Event
+): Promise<{ report: PeopleGroupReportWithDetails | null; peopleGroup: PeopleGroup | null }> {
+  const options: ApplyReportOptions = {}
+  if (report.type === 'add') {
+    const stored = readAddFields(report.add_fields)
+    options.addFields = parseAddReportFields(stored.values)
+    options.addMetadata = stored.metadata
+  }
+
+  const result = await applyReport(report.id, userId, event, options)
+
+  if (report.source === 'public' && result.report) {
+    sendReportOutcomeEmail(result.report, 'applied').catch((err) =>
+      console.error('Failed to send report outcome email:', err)
+    )
+    notifyReportApplied(result.report, result.peopleGroup).catch((err) =>
+      console.error('Failed to send applied-suggestion notifications:', err)
+    )
+  }
+
+  return result
 }
 
 /** Download an external image and upload it to the public bucket; null on any failure. */

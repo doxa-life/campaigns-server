@@ -166,6 +166,107 @@
             </div>
           </CrmFormSection>
 
+          <!-- An add creates the people group, so it needs fields the submitter is
+               never asked for. They are proposed once the reporter verifies their
+               email; reviewers correct them here before approving. -->
+          <CrmFormSection
+            v-if="selectedReport.type === 'add' && (addFieldsEditable || addFieldsStored)"
+            title="Completion Fields"
+          >
+            <template #header-extra>
+              <div class="flex items-center gap-2">
+                <UBadge
+                  v-if="addFieldsSourceLabel"
+                  :label="addFieldsSourceLabel"
+                  color="info"
+                  variant="subtle"
+                  size="xs"
+                  icon="i-lucide-sparkles"
+                />
+                <UButton
+                  v-if="addFieldsEditable"
+                  icon="i-lucide-sparkles"
+                  :label="addFieldsGeneratedAt ? 'Regenerate' : 'Auto populate'"
+                  variant="soft"
+                  size="xs"
+                  :loading="autoPopulating"
+                  @click="autoPopulateAddFields"
+                />
+              </div>
+            </template>
+
+            <div class="ai-fields">
+              <p class="ai-fields__hint">
+                These create the people group and are not asked of the submitter. They are filled
+                automatically once the reporter verifies their email — review and correct them here.
+              </p>
+
+              <UAlert
+                v-if="addFieldsWarning"
+                color="warning"
+                variant="subtle"
+                icon="i-lucide-triangle-alert"
+                :description="addFieldsWarning"
+              />
+              <p v-else-if="addFieldsAwaitingProposal" class="ai-fields__hint">
+                Being filled automatically — reload in a moment.
+              </p>
+              <UAlert
+                v-if="addFieldsEditable && addFieldsMissing.length > 0"
+                color="warning"
+                variant="subtle"
+                icon="i-lucide-triangle-alert"
+                :description="`${addFieldsMissing.length} required field${addFieldsMissing.length > 1 ? 's' : ''} could not be determined. Fill ${addFieldsMissing.length > 1 ? 'them' : 'it'} in before approving.`"
+              />
+
+              <UFormField v-for="key in addReportRequiredFieldKeys" :key="key" :label="fieldLabel(key)" required>
+                <template #hint>
+                  <UBadge v-if="addFieldIsAi(key)" label="AI" color="info" variant="subtle" size="xs" icon="i-lucide-sparkles" />
+                </template>
+                <UpdatesSuggestFieldInput v-if="addFieldsEditable" v-model="addFields[key]" :field-key="key" />
+                <p v-else class="ai-fields__value">{{ formatFieldValue(key, addFields[key]) || '—' }}</p>
+              </UFormField>
+
+              <UFormField v-if="addReportHasPhoto" label="Picture credit">
+                <PictureCreditEditor v-if="addFieldsEditable" v-model="addFields.picture_credit" />
+              </UFormField>
+
+              <UFormField label="Description" hint="Completes “They are …”. Translated automatically after apply.">
+                <template #hint>
+                  <UBadge v-if="addFieldIsAi('description_en')" label="AI" color="info" variant="subtle" size="xs" icon="i-lucide-sparkles" />
+                </template>
+                <UTextarea
+                  v-if="addFieldsEditable"
+                  v-model="addFields.description_en"
+                  :rows="2"
+                  placeholder="a community of…"
+                  class="w-full"
+                />
+                <p v-else class="ai-fields__value">{{ addFields.description_en || '—' }}</p>
+              </UFormField>
+
+              <UFormField v-for="key in addReportOptionalFieldKeys" :key="key" :label="fieldLabel(key)">
+                <template #hint>
+                  <UBadge v-if="addFieldIsAi(key)" label="AI" color="info" variant="subtle" size="xs" icon="i-lucide-sparkles" />
+                </template>
+                <UpdatesSuggestFieldInput v-if="addFieldsEditable" v-model="addFields[key]" :field-key="key" />
+                <p v-else class="ai-fields__value">{{ formatFieldValue(key, addFields[key]) || '—' }}</p>
+              </UFormField>
+
+              <div v-if="addFieldsEditable" class="ai-fields__actions">
+                <UButton
+                  label="Save fields"
+                  color="primary"
+                  variant="soft"
+                  size="xs"
+                  :disabled="!addFieldsDirty"
+                  :loading="savingAddFields"
+                  @click="saveAddFields"
+                />
+              </div>
+            </div>
+          </CrmFormSection>
+
           <CrmFormSection v-if="selectedReport.suggested_image_key" title="Suggested Picture">
             <img :src="`/api/admin/people-group-reports/image/${selectedReport.suggested_image_key}`" class="suggested-image" alt="Suggested picture" />
           </CrmFormSection>
@@ -199,15 +300,20 @@
               color="neutral"
               variant="subtle"
             />
-            <UButton
+            <UTooltip
               v-if="selectedReport.status === 'pending' && isCurrentUserApprover"
-              color="primary"
-              icon="i-lucide-check"
-              :label="hasApproved(currentUserId) ? 'Approved' : 'Approve'"
-              :disabled="hasApproved(currentUserId)"
-              :loading="approving"
-              @click="approveReport"
-            />
+              :text="approveBlocked ? 'Fill in the completion fields first' : ''"
+              :disabled="!approveBlocked"
+            >
+              <UButton
+                color="primary"
+                icon="i-lucide-check"
+                :label="hasApproved(currentUserId) ? 'Approved' : 'Approve'"
+                :disabled="hasApproved(currentUserId) || approveBlocked"
+                :loading="approving"
+                @click="approveReport"
+              />
+            </UTooltip>
             <UButton
               v-if="selectedReport.status === 'approved' && canEditPeopleGroups"
               color="success"
@@ -278,37 +384,27 @@
   <UModal
     v-model:open="showAcceptModal"
     :title="selectedReport?.source === 'public' ? 'Apply Suggestion' : 'Accept Report'"
-    :ui="selectedReport?.type === 'add' ? { content: 'sm:max-w-2xl' } : undefined"
   >
     <template #body>
       <p v-if="selectedReport?.source === 'public' && selectedReport?.status === 'approved'" class="mb-2">Both approvers have approved this suggestion.</p>
-      <!-- An add creates the group, so the fields the public list and the marketing site rely on are completed here -->
+      <!-- The fields that create the group are reviewed on the report itself; this
+           is the last look at them before they are used. -->
       <template v-if="selectedReport?.type === 'add'">
         <p>This will create <strong>{{ selectedReport?.people_group_name }}</strong> as a new people group.</p>
         <div class="add-fields">
-          <div class="flex items-start justify-between gap-3">
-            <p class="add-fields__hint">Auto populate fills these from the IMB record, or with AI for other sources. Review before applying.</p>
-            <UButton
-              icon="i-lucide-sparkles"
-              label="Auto populate"
-              variant="soft"
-              :loading="autoPopulating"
-              @click="autoPopulateAddFields"
-            />
+          <div v-for="row in addFieldsSummary" :key="row.label" class="add-fields__row">
+            <span class="add-fields__label">{{ row.label }}</span>
+            <span class="add-fields__value">{{ row.value }}</span>
           </div>
-          <UFormField v-for="key in addReportRequiredFieldKeys" :key="key" :label="fieldLabel(key)" required>
-            <UpdatesSuggestFieldInput v-model="addFields[key]" :field-key="key" />
-          </UFormField>
-          <UFormField v-if="addReportHasPhoto" label="Picture credit">
-            <PictureCreditEditor v-model="addFields.picture_credit" />
-          </UFormField>
-          <UFormField label="Description" hint="Completes “They are …”. Translated automatically after apply.">
-            <UTextarea v-model="addFields.description_en" :rows="2" placeholder="a community of…" class="w-full" />
-          </UFormField>
-          <UFormField v-for="key in addReportOptionalFieldKeys" :key="key" :label="fieldLabel(key)">
-            <UpdatesSuggestFieldInput v-model="addFields[key]" :field-key="key" />
-          </UFormField>
         </div>
+        <UAlert
+          v-if="addFieldsMissing.length > 0"
+          color="warning"
+          variant="subtle"
+          icon="i-lucide-triangle-alert"
+          description="Fill in the completion fields on the report before applying."
+          class="mt-3"
+        />
       </template>
       <p v-else>This will apply the suggested changes to <strong>{{ selectedReport?.people_group_name }}</strong>. Continue?</p>
       <div class="flex justify-end gap-2 mt-4">
@@ -604,6 +700,7 @@ interface Report {
   verifier_email: string | null
   suggested_changes: Record<string, any>
   suggested_image_key: string | null
+  add_fields?: AddCompletion
   previous_values: Record<string, any> | null
   status: 'awaiting_verification' | 'pending' | 'approved' | 'accepted' | 'denied'
   approvals: { user_id: string; approved_at: string }[]
@@ -615,6 +712,19 @@ interface Report {
   people_group_slug: string | null
   created_at: string
   updated_at: string
+}
+
+// The completion fields stored on an "add" report: the proposal, the values in
+// force, and where the proposal came from.
+interface AddCompletion {
+  values?: Record<string, any>
+  ai?: Record<string, any>
+  metadata?: Record<string, any>
+  source?: 'imb' | 'ai' | 'country'
+  generated_at?: string
+  warning?: string
+  edited_by?: string
+  edited_at?: string
 }
 
 interface PeopleGroupSummary {
@@ -661,56 +771,151 @@ const showCreateModal = ref(false)
 const showFieldPicker = ref(false)
 const showLinkModal = ref(false)
 
-// Completion fields for applying an "add" report (see the accept modal).
-// addMetadata carries the IMB detail keys auto-populate proposed; they are
-// stored with the group but never edited here.
+// The fields an "add" report needs to create its people group. They are never
+// asked of the submitter: they are proposed once the reporter verifies their
+// email, then reviewed and corrected here. addFieldsAi holds the proposal as it
+// was generated, so a field a reviewer has changed is one where the two differ.
 const addFields = ref<Record<string, any>>({})
-const addMetadata = ref<Record<string, any>>({})
+const addFieldsAi = ref<Record<string, any>>({})
+const addFieldsSource = ref<AddCompletion['source'] | null>(null)
+const addFieldsGeneratedAt = ref<string | null>(null)
+const addFieldsWarning = ref<string | null>(null)
+const addFieldsSnapshot = ref('{}')
 const autoPopulating = ref(false)
+const savingAddFields = ref(false)
 
 const addReportHasPhoto = computed(() => {
   const report = selectedReport.value
   if (!report) return false
   return !!report.suggested_image_key || /^https?:\/\//.test(String(report.suggested_changes?.image_url || ''))
 })
-const addFieldsComplete = computed(() => addReportRequiredFieldKeys.every((key) => !!addFields.value[key]))
+const addFieldsMissing = computed(() =>
+  addReportRequiredFieldKeys.filter((key) => !String(addFields.value[key] ?? '').trim())
+)
+const addFieldsComplete = computed(() => addFieldsMissing.value.length === 0)
+const addFieldsDirty = computed(() => JSON.stringify(addFields.value) !== addFieldsSnapshot.value)
+// Public suggestions stay editable until applied or denied; admin reports only
+// while pending. Mirrors the rule the update endpoint enforces.
+const addFieldsEditable = computed(() => {
+  const report = selectedReport.value
+  if (report?.type !== 'add') return false
+  return report.source === 'public'
+    ? ['awaiting_verification', 'pending', 'approved'].includes(report.status)
+    : report.status === 'pending'
+})
+/** Whether the report carries a proposal, or values a reviewer saved. */
+const addFieldsStored = computed(() => {
+  const stored: AddCompletion = selectedReport.value?.add_fields || {}
+  return !!stored.generated_at || Object.keys(stored.values || {}).length > 0
+})
+// A proposal is still on its way: the report is in review, nothing has been
+// generated, and there is no warning to explain why. A report that was applied
+// or denied is never waiting for one.
+const addFieldsAwaitingProposal = computed(() => {
+  const status = selectedReport.value?.status
+  return (status === 'pending' || status === 'approved')
+    && !addFieldsGeneratedAt.value
+    && !addFieldsWarning.value
+})
+const addFieldsSourceLabel = computed(() => {
+  switch (addFieldsSource.value) {
+    case 'imb': return 'From IMB record'
+    case 'country': return 'From country'
+    case 'ai': return 'AI generated'
+    default: return null
+  }
+})
+// A required completion field the AI could not determine has to be filled in
+// before anyone approves, because approving applies the suggestion.
+const approveBlocked = computed(() => selectedReport.value?.type === 'add' && addFieldsMissing.value.length > 0)
+
+const addFieldsSummary = computed(() => {
+  const rows: { label: string; value: string }[] = []
+  for (const key of addReportRequiredFieldKeys) {
+    rows.push({ label: fieldLabel(key), value: formatFieldValue(key, addFields.value[key]) || '—' })
+  }
+  for (const key of addReportOptionalFieldKeys) {
+    const value = formatFieldValue(key, addFields.value[key])
+    if (value) rows.push({ label: fieldLabel(key), value })
+  }
+  if (addFields.value.description_en) {
+    rows.push({ label: 'Description', value: String(addFields.value.description_en) })
+  }
+  return rows
+})
 
 function fieldLabel(key: string): string {
   const field = getField(key)
   return field ? t(field.labelKey) : key
 }
 
-// The form starts from what the report already carries (an IMB-prefilled
-// religion, for instance); a captured Joshua Project photo gets its source credit.
-function resetAddFields() {
+/** Whether this field still holds the value the proposal gave it. */
+function addFieldIsAi(key: string): boolean {
+  const value = addFields.value[key]
+  if (value === undefined || value === null || value === '') return false
+  return JSON.stringify(value) === JSON.stringify(addFieldsAi.value?.[key])
+}
+
+// The form reads the saved proposal and the reviewers' corrections. A report
+// submitted before the fields were proposed falls back to what the submitter
+// supplied, and a captured Joshua Project photo gets its source credit.
+function loadAddFields() {
   const report = selectedReport.value
+  const stored: AddCompletion = report?.add_fields || {}
+  const saved: Record<string, any> = stored.values || {}
   const changes: Record<string, any> = report?.suggested_changes || {}
+
+  // Every key is seeded so editing one never reorders the object, which is
+  // what the dirty check compares.
   const next: Record<string, any> = {}
   for (const key of [...addReportRequiredFieldKeys, ...addReportOptionalFieldKeys]) {
-    if (changes[key]) next[key] = String(changes[key])
+    next[key] = saved[key] ?? (changes[key] ? String(changes[key]) : '')
   }
-  if (!report?.suggested_image_key && /joshuaproject\.net/.test(String(changes.image_url || ''))) {
-    next.picture_credit = [
-      { text: 'Photo courtesy of ', link: null },
-      { text: 'Joshua Project', link: 'https://www.joshuaproject.net' }
-    ]
-  }
+  next.description_en = saved.description_en ?? ''
+  const joshuaProjectPhoto = !report?.suggested_image_key && /joshuaproject\.net/.test(String(changes.image_url || ''))
+  next.picture_credit = saved.picture_credit ?? (joshuaProjectPhoto
+    ? [
+        { text: 'Photo courtesy of ', link: null },
+        { text: 'Joshua Project', link: 'https://www.joshuaproject.net' }
+      ]
+    : null)
+
   addFields.value = next
-  addMetadata.value = {}
+  addFieldsSnapshot.value = JSON.stringify(next)
+  addFieldsAi.value = stored.ai || {}
+  addFieldsSource.value = stored.source || null
+  addFieldsGeneratedAt.value = stored.generated_at || null
+  addFieldsWarning.value = stored.warning || null
+}
+
+watch(selectedReport, () => loadAddFields())
+
+async function saveAddFields() {
+  if (!selectedReport.value) return
+  try {
+    savingAddFields.value = true
+    const res = await $fetch<{ report: Report }>(`/api/admin/people-group-reports/${selectedReport.value.id}`, {
+      method: 'PUT',
+      body: { add_fields: { values: addFields.value } }
+    })
+    selectedReport.value = res.report
+    toast.add({ title: 'Fields saved', color: 'success' })
+  } catch (err: any) {
+    toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to save fields', color: 'error' })
+  } finally {
+    savingAddFields.value = false
+  }
 }
 
 async function autoPopulateAddFields() {
   if (!selectedReport.value) return
   try {
     autoPopulating.value = true
-    const res = await $fetch<{ fields: Record<string, any>; metadata: Record<string, any>; source: string; warning?: string }>(
+    const res = await $fetch<{ report: Report; source: string; warning?: string }>(
       `/api/admin/people-group-reports/${selectedReport.value.id}/auto-populate`,
       { method: 'POST', body: {} }
     )
-    for (const [key, value] of Object.entries(res.fields)) {
-      if (value !== null && value !== undefined && value !== '') addFields.value[key] = value
-    }
-    addMetadata.value = res.metadata || {}
+    selectedReport.value = res.report
     const sourceLabel = res.source === 'imb'
       ? 'from the IMB record'
       : res.source === 'ai' ? 'with AI' : 'from other groups in the same country'
@@ -769,19 +974,28 @@ async function loadApprovers() {
 
 async function approveReport() {
   if (!selectedReport.value) return
+  const isAdd = selectedReport.value.type === 'add'
   try {
     approving.value = true
-    const res = await $fetch<{ report: Report }>(`/api/admin/people-group-reports/${selectedReport.value.id}/approve`, {
-      method: 'POST',
-      body: {}
-    })
-    toast.add({ title: 'Approval recorded', color: 'success' })
+    const res = await $fetch<{ report: Report; applied?: boolean; apply_error?: string }>(
+      `/api/admin/people-group-reports/${selectedReport.value.id}/approve`,
+      { method: 'POST', body: {} }
+    )
+    // The second approval applies the suggestion in the same request, so there
+    // is nothing left for the approver to confirm.
+    if (res.applied) {
+      toast.add({
+        title: 'Approved and applied',
+        description: isAdd ? 'People group created' : 'Changes applied to people group',
+        color: 'success'
+      })
+    } else if (res.apply_error) {
+      toast.add({ title: 'Approved, but applying failed', description: res.apply_error, color: 'error' })
+    } else {
+      toast.add({ title: 'Approval recorded', color: 'success' })
+    }
     selectedReport.value = res.report
     await loadReports()
-    // The final approval hands off straight to apply so the changes don't sit unapplied
-    if (res.report.status === 'approved' && canEditPeopleGroups.value) {
-      confirmAccept()
-    }
   } catch (err: any) {
     toast.add({ title: 'Error', description: err.data?.statusMessage || 'Failed to approve', color: 'error' })
   } finally {
@@ -1092,7 +1306,6 @@ watch(slideoverOpen, (open) => {
 
 // Actions
 function confirmAccept() {
-  if (selectedReport.value?.type === 'add') resetAddFields()
   showAcceptModal.value = true
 }
 
@@ -1101,9 +1314,11 @@ async function acceptReport() {
   try {
     accepting.value = true
     const isAdd = selectedReport.value.type === 'add'
+    // An "add" applies from the completion fields saved on the report, not from
+    // anything sent here.
     const res = await $fetch<{ report: Report }>(`/api/admin/people-group-reports/${selectedReport.value.id}/accept`, {
       method: 'POST',
-      body: isAdd ? { fields: addFields.value, metadata: addMetadata.value } : {}
+      body: {}
     })
     toast.add({
       title: 'Report accepted',
@@ -1616,9 +1831,44 @@ onMounted(async () => {
   gap: 0.75rem;
   margin-top: 0.75rem;
 }
-.add-fields__hint {
+.add-fields__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.875rem;
+}
+.add-fields__label {
+  color: var(--ui-text-muted);
+}
+.add-fields__value {
+  font-weight: 500;
+  text-align: right;
+}
+
+/* The completion fields are proposed rather than reported, so they read as a
+   distinct block from the submitter's own suggested changes. */
+.ai-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  border: 1px solid var(--ui-border);
+  border-left: 3px solid var(--ui-info);
+  border-radius: 0.5rem;
+  background: var(--ui-bg-elevated);
+}
+.ai-fields__hint {
   margin: 0;
   font-size: 0.8125rem;
   color: var(--ui-text-muted);
+}
+.ai-fields__value {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.ai-fields__actions {
+  display: flex;
+  justify-content: flex-end;
 }
 </style>

@@ -1,4 +1,10 @@
 import { getSql } from './db'
+import {
+  readAddFields,
+  type AddReportCompletion,
+  type AddReportFields,
+  type AutoPopulateSource
+} from '../utils/app/add-report-fields'
 
 export type ReportType = 'add' | 'update' | 'remove'
 export type ReportSource = 'admin' | 'public'
@@ -31,6 +37,9 @@ export interface PeopleGroupReport {
   reporter_contact_method_id: number | null
   suggested_changes: Record<string, any>
   suggested_image_key: string | null
+  // The completion fields proposed for an "add" report and corrected by
+  // reviewers. Empty for every other report type.
+  add_fields: AddReportCompletion | Record<string, never>
   previous_values: Record<string, any> | null
   status: ReportStatus
   approvals: ReportApproval[]
@@ -274,6 +283,78 @@ class PeopleGroupReportService {
       return (approved as PeopleGroupReport) || report
     }
     return report
+  }
+
+  /**
+   * Store a freshly proposed set of completion fields on an "add" report. A
+   * reviewer's correction survives the re-run: a value only takes the new
+   * proposal while it is empty or still the one the last proposal left.
+   */
+  async saveAddFieldsProposal(
+    id: number,
+    result: { fields: AddReportFields; metadata: Record<string, any>; source: AutoPopulateSource; warning?: string }
+  ): Promise<PeopleGroupReportWithDetails | null> {
+    const current = await this.getById(id)
+    if (!current) return null
+
+    const stored = readAddFields(current.add_fields)
+    const values = { ...stored.values } as Record<string, any>
+    for (const [key, value] of Object.entries(result.fields)) {
+      if (value === null || value === undefined || value === '') continue
+      const existing = values[key]
+      const untouched =
+        existing === undefined ||
+        existing === null ||
+        existing === '' ||
+        JSON.stringify(existing) === JSON.stringify((stored.ai as Record<string, any>)[key])
+      if (untouched) values[key] = value
+    }
+
+    const next: AddReportCompletion = {
+      ...stored,
+      values: values as AddReportFields,
+      ai: result.fields,
+      metadata: result.metadata || {},
+      source: result.source,
+      generated_at: new Date().toISOString(),
+      warning: result.warning
+    }
+    return this.writeAddFields(id, next)
+  }
+
+  /** Save a reviewer's corrections to the completion fields. */
+  async saveAddFieldsEdit(id: number, values: AddReportFields, userId: string): Promise<PeopleGroupReportWithDetails | null> {
+    const current = await this.getById(id)
+    if (!current) return null
+
+    const stored = readAddFields(current.add_fields)
+    return this.writeAddFields(id, {
+      ...stored,
+      values,
+      edited_by: userId,
+      edited_at: new Date().toISOString()
+    })
+  }
+
+  /** Note why auto-populate could not fill the completion fields. */
+  async recordAddFieldsWarning(id: number, warning: string): Promise<PeopleGroupReportWithDetails | null> {
+    const current = await this.getById(id)
+    if (!current) return null
+    return this.writeAddFields(id, { ...readAddFields(current.add_fields), warning })
+  }
+
+  private async writeAddFields(id: number, completion: AddReportCompletion): Promise<PeopleGroupReportWithDetails | null> {
+    // undefined keys would serialise as JSON nulls, so they are dropped first.
+    const clean = Object.fromEntries(Object.entries(completion).filter(([, value]) => value !== undefined))
+    await this.sql`
+      UPDATE people_group_reports
+      SET add_fields = ${this.sql.json(clean)},
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${id}
+    `
+    // Re-read so the caller gets the same resolved shape the detail endpoint
+    // returns, not the bare row.
+    return this.getById(id)
   }
 
   /**
