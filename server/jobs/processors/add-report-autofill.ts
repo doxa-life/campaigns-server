@@ -37,8 +37,13 @@ export async function processAddReportAutofill(job: Job): Promise<ProcessorResul
   } catch (error: any) {
     const message = error?.statusMessage || error?.message || 'Auto-populate failed'
     // The reviewers still need to know why the section is empty, whether or
-    // not a retry is coming.
-    await peopleGroupReportService.recordAddFieldsWarning(payload.report_id, message)
+    // not a retry is coming. Noting it must never replace the real failure:
+    // when the database itself is the problem, this write fails too.
+    try {
+      await peopleGroupReportService.recordAddFieldsWarning(payload.report_id, message)
+    } catch (noteError: any) {
+      console.error('Could not record the auto-populate failure:', noteError?.message || noteError)
+    }
     return { success: false, retryable: true, data: { error: message } }
   }
 }

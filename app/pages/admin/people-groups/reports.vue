@@ -169,7 +169,10 @@
           <!-- An add creates the people group, so it needs fields the submitter is
                never asked for. They are proposed once the reporter verifies their
                email; reviewers correct them here before approving. -->
-          <CrmFormSection v-if="selectedReport.type === 'add'" title="Completion Fields">
+          <CrmFormSection
+            v-if="selectedReport.type === 'add' && (addFieldsEditable || addFieldsStored)"
+            title="Completion Fields"
+          >
             <template #header-extra>
               <div class="flex items-center gap-2">
                 <UBadge
@@ -800,9 +803,20 @@ const addFieldsEditable = computed(() => {
     ? ['awaiting_verification', 'pending', 'approved'].includes(report.status)
     : report.status === 'pending'
 })
-// Nothing proposed yet and nothing to explain why: the background job that
-// fills them has not run.
-const addFieldsAwaitingProposal = computed(() => !addFieldsGeneratedAt.value && !addFieldsWarning.value)
+/** Whether the report carries a proposal, or values a reviewer saved. */
+const addFieldsStored = computed(() => {
+  const stored: AddCompletion = selectedReport.value?.add_fields || {}
+  return !!stored.generated_at || Object.keys(stored.values || {}).length > 0
+})
+// A proposal is still on its way: the report is in review, nothing has been
+// generated, and there is no warning to explain why. A report that was applied
+// or denied is never waiting for one.
+const addFieldsAwaitingProposal = computed(() => {
+  const status = selectedReport.value?.status
+  return (status === 'pending' || status === 'approved')
+    && !addFieldsGeneratedAt.value
+    && !addFieldsWarning.value
+})
 const addFieldsSourceLabel = computed(() => {
   switch (addFieldsSource.value) {
     case 'imb': return 'From IMB record'
