@@ -577,12 +577,14 @@ const roleIcons: Record<string, string> = {
 const permissionGroupLabels: Record<string, string> = {
   people_groups: 'People Groups',
   groups: 'Groups',
+  churches: 'Churches',
   subscribers: 'Subscribers',
   content: 'Content',
   users: 'Users',
   inbox: 'Inbox',
   marketing: 'Marketing',
-  context: 'Context'
+  context: 'Context',
+  glossary: 'Glossary'
 }
 
 const permissionDetails: Record<string, { title: string; description: string }> = {
@@ -594,6 +596,10 @@ const permissionDetails: Record<string, { title: string; description: string }> 
   'groups.create': { title: 'Create Groups', description: 'Create new groups' },
   'groups.edit': { title: 'Edit Groups', description: 'Edit existing groups' },
   'groups.delete': { title: 'Delete Groups', description: 'Delete groups' },
+  'churches.view': { title: 'View Churches', description: 'View the church directory and map' },
+  'churches.create': { title: 'Create Churches', description: 'Add churches and import them from CSV' },
+  'churches.edit': { title: 'Edit Churches', description: 'Edit church details and re-run the location lookup' },
+  'churches.delete': { title: 'Delete Churches', description: 'Delete churches' },
   'subscribers.view': { title: 'View Subscribers', description: 'View subscriber records' },
   'subscribers.create': { title: 'Create Subscribers', description: 'Create new subscribers' },
   'subscribers.edit': { title: 'Edit Subscribers', description: 'Edit existing subscribers' },
@@ -609,7 +615,9 @@ const permissionDetails: Record<string, { title: string; description: string }> 
   'marketing.send': { title: 'Manage & Send Marketing', description: 'Create/send marketing emails and delete survey responses' },
   'context.view': { title: 'View Context', description: 'Read context portfolios and chat with the portfolio assistant' },
   'context.edit': { title: 'Edit Context', description: 'Save section content, comment, and apply assistant updates' },
-  'context.manage': { title: 'Manage Context', description: 'Create and delete portfolios, manage sections, resolve comments' }
+  'context.manage': { title: 'Manage Context', description: 'Create and delete portfolios, manage sections, resolve comments' },
+  'glossary.view': { title: 'View Glossary', description: 'Read approved terms, translation notes, and their history' },
+  'glossary.manage': { title: 'Manage Glossary', description: 'Add and edit terms, notes, languages, and review passes' }
 }
 
 const allPermissions = Object.keys(permissionDetails)
