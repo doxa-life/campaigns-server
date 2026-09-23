@@ -73,7 +73,7 @@ For each candidate:
 
 After completion:
 - Open `/admin/onboarding` in the admin UI — newly imported groups should appear with `needs:*` tag badges and translation-pending badges, which stay until step 4 of `/onboard-people-groups` runs.
-- Spot-check a few records on `/admin/people-groups/[id]` — confirm description in English, six `needs:` tags present, IMB metadata populated.
+- Spot-check a few records on `/admin/people-groups/[id]` — confirm description in English, four `needs:` tags present, IMB metadata populated.
 
 ### 5. Hand off
 

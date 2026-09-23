@@ -487,6 +487,12 @@ describe('People Group Suggestions (/updates)', async () => {
       expect(group!.metadata?.imb_has_photo).toBe(false)
       expect(group!.random_order).not.toBeNull()
       expect(group!.descriptions).toBeNull()
+      expect(group!.tags).toEqual([
+        'needs:qr-code',
+        'needs:printable-prayer-card',
+        'needs:promo-slide',
+        'needs:social-share-image'
+      ])
     })
 
     it('stores the description phrase, queues its translation, and uses the deaf placeholder', async () => {

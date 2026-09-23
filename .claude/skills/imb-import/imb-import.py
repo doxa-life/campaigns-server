@@ -42,8 +42,6 @@ CHRISTIAN_CODES = ('C', 'CPR', 'CPC', 'CRO', 'CEV', 'CAO', 'CAN', 'CCM', 'CFC', 
 # Seed the asset-needs tags on every newly imported group. Edit this list to
 # add or remove default tags — no app code change needed.
 NEEDS_TAGS = [
-    'needs:adoption-certificate',
-    'needs:people-group-picture',
     'needs:qr-code',
     'needs:printable-prayer-card',
     'needs:promo-slide',

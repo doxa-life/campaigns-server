@@ -18,6 +18,14 @@ import { trackEventInBackground } from '../tracking'
 import { getSuggestionImageObject, isSuggestionImageKey } from './suggestion-images'
 import { uploadPublicImage } from './public-image-storage'
 
+/** Asset requests a new group starts with; the resource pipeline clears each once it publishes that asset. */
+const NEW_GROUP_NEEDS_TAGS = [
+  'needs:qr-code',
+  'needs:printable-prayer-card',
+  'needs:promo-slide',
+  'needs:social-share-image'
+]
+
 export interface ApplyReportOptions {
   /** The editor's completion fields for an "add" report, already validated. */
   addFields?: AddReportFields
@@ -163,6 +171,7 @@ async function applyAdd(
     image_url: imageUrl,
     metadata,
     descriptions,
+    tags: NEW_GROUP_NEEDS_TAGS,
     country_code: columns.country_code ?? null,
     region: columns.region ?? null,
     latitude: columns.latitude ?? null,

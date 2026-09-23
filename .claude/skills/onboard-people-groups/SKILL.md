@@ -84,12 +84,9 @@ browser.
 **A group created from a field suggestion is missing what an import would have
 set.** Open it at `/admin/people-groups/[id]` and supply:
 
-1. The six tags — `needs:adoption-certificate`, `needs:people-group-picture`,
-   `needs:qr-code`, `needs:printable-prayer-card`, `needs:promo-slide`,
-   `needs:social-share-image`. They are how step 3 knows what to render.
-2. The English description. The other locales are step 4's job, not the
+1. The English description. The other locales are step 4's job, not the
    detail page's translate button.
-3. Region, if blank.
+2. Region, if blank.
 
 A group with no PEID is expected here: it is not on IMB's list, and the
 quarterly sync ignores records without one.
