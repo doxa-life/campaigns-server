@@ -90,7 +90,6 @@ async function processFollowups() {
 
   let processedCount = 0
   let emailsSent = 0
-  let markedInactive = 0
   let cyclesCompleted = 0
 
   for (const subscription of subscriptions) {
@@ -99,19 +98,18 @@ async function processFollowups() {
       processedCount++
 
       if (result === 'email_sent') emailsSent++
-      else if (result === 'marked_inactive') markedInactive++
       else if (result === 'cycle_completed') cyclesCompleted++
     } catch (error: any) {
       console.error(`  ❌ Error processing subscription ${subscription.id}:`, error.message)
     }
   }
 
-  if (emailsSent > 0 || markedInactive > 0 || cyclesCompleted > 0) {
-    console.log(`📧 Follow-up processing complete: ${emailsSent} emails sent, ${cyclesCompleted} cycles completed, ${markedInactive} marked inactive`)
+  if (emailsSent > 0 || cyclesCompleted > 0) {
+    console.log(`📧 Follow-up processing complete: ${emailsSent} emails sent, ${cyclesCompleted} cycles completed`)
   }
 }
 
-type ProcessResult = 'skipped' | 'email_sent' | 'marked_inactive' | 'cycle_completed'
+type ProcessResult = 'skipped' | 'email_sent' | 'cycle_completed'
 
 async function logSubscriberActivity(
   subscriberId: number,
@@ -247,24 +245,9 @@ async function processSubscription(
       console.error(`  ❌ Failed to send follow-up reminder to ${email_value}`)
       return 'skipped'
     }
-  } else {
-    // followup_reminder_count >= 2: check if another week has passed
-    const lastFollowupDate = new Date(last_followup_at!)
-    const weekAfterFollowup = new Date(lastFollowupDate.getTime() + ONE_WEEK_MS)
-
-    if (now < weekAfterFollowup) {
-      return 'skipped' // Not time to mark inactive yet
-    }
-
-    // No response after 2 emails - mark as inactive
-    await peopleGroupSubscriptionService.updateStatus(subscriptionId, 'inactive')
-    await logSubscriberActivity(subscriber_id, {
-      source: 'system',
-      message: 'Marked inactive — no response after 2 follow-up emails for',
-      link_text: people_group_name,
-      link_url: `/admin/people-groups/${people_group_id}`
-    })
-    console.log(`  ⏸️  Marked ${email_value} as inactive (no follow-up response)`)
-    return 'marked_inactive'
   }
+
+  // Both check-ins went unanswered: the subscription stays active and no further
+  // check-ins go out until prayer activity completes the cycle above.
+  return 'skipped'
 }

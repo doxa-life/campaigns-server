@@ -921,8 +921,9 @@ function openUserSlideover(user: User) {
   // Merge stored prefs over the defaults so unset/older keys fall back (mirrors the
   // server-side resolveNotificationPreferences — defaults are code-owned, not in the DB).
   const np = user.notification_preferences
+  const statsEligible = user.roles.some(r => r.name === 'admin' || r.name === 'progress_admin')
   notificationsForm.value = {
-    stats: { ...DEFAULT_NOTIFICATION_PREFS.stats, ...(np?.stats ?? {}) },
+    stats: { ...DEFAULT_NOTIFICATION_PREFS.stats, ...(statsEligible ? { monthly: true, yearly: true } : {}), ...(np?.stats ?? {}) },
     adoption: typeof np?.adoption === 'boolean' ? np.adoption : DEFAULT_NOTIFICATION_PREFS.adoption,
     contact_us: typeof np?.contact_us === 'boolean' ? np.contact_us : DEFAULT_NOTIFICATION_PREFS.contact_us,
     glossary_review: typeof np?.glossary_review === 'boolean' ? np.glossary_review : DEFAULT_NOTIFICATION_PREFS.glossary_review

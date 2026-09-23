@@ -39,7 +39,7 @@
       },
       "prayerStatus": {
         "title": "Statutul rugăciunii",
-        "description": "persoane care se roagă zilnic pentru acest grup etnolingvistic."
+        "description": "persoane angajate să se roage pentru acest grup etnolingvistic."
       }
     },
     "header": {
@@ -712,7 +712,6 @@
       "sometimesWeekly": "Uneori, dar nu întotdeauna",
       "noLonger": "Nu, nu mă mai rog",
       "feedbackHelps": "Feedback-ul tău ne ajută să înțelegem cum te putem sprijini mai bine în călătoria ta de rugăciune.",
-      "pauseNotice": "Dacă nu primim răspuns, vom opri memento-urile tale de rugăciune pentru a nu-ți umple căsuța de email. Le poți porni din nou oricând din profilul tău.",
       "commitmentCheckIn": "Aceasta este o verificare a angajamentului de la {appName}."
     },
     "marketing": {

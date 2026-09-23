@@ -39,7 +39,7 @@
       },
       "prayerStatus": {
         "title": "Gebetsstatus",
-        "description": "Personen beten täglich für diese Volksgruppe."
+        "description": "Personen haben sich verpflichtet, für diese Volksgruppe zu beten."
       }
     },
     "header": {
@@ -711,7 +711,6 @@
       "sometimesWeekly": "Manchmal, aber nicht immer",
       "noLonger": "Nein, ich bete nicht mehr",
       "feedbackHelps": "Ihr Feedback hilft uns zu verstehen, wie wir Ihre Gebetsreise besser unterstützen können.",
-      "pauseNotice": "Wenn wir nichts von Ihnen hören, stoppen wir Ihre Gebetserinnerungen, um Ihren Posteingang nicht zu überfüllen. Sie können sie jederzeit in Ihrem Profil wieder starten.",
       "commitmentCheckIn": "Dies ist eine Rückfrage zu Ihrer Gebetszusage von {appName}."
     },
     "marketing": {

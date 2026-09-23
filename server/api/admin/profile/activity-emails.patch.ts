@@ -28,8 +28,8 @@ export default defineEventHandler(async (event) => {
     const sql = getSql()
 
     // Resolve current prefs against code defaults, then merge the partial stats update.
-    const [current] = await sql`SELECT notification_preferences FROM users WHERE id = ${user.userId}`
-    const resolved = resolveNotificationPreferences(current?.notification_preferences)
+    const [current] = await sql`SELECT notification_preferences, roles FROM users WHERE id = ${user.userId}`
+    const resolved = resolveNotificationPreferences(current?.notification_preferences, current?.roles)
     const merged = { ...resolved, stats: { ...resolved.stats, ...preferences } }
 
     await sql`
