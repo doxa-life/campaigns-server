@@ -795,6 +795,13 @@
     "eventDescription": "{duration}-минутное молитвенное время за {campaign}"
   },
   "inbox": {
+    "translate": {
+      "button": "Перевести",
+      "original": "Оригинал",
+      "note": "Перевод ИИ · язык оригинала: {language}",
+      "retranslate": "Перевести заново",
+      "notConfigured": "Перевод с помощью ИИ не настроен"
+    },
     "title": "Входящие",
     "searchPlaceholder": "Поиск разговоров",
     "empty": "Нет разговоров",

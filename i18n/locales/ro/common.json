@@ -796,6 +796,13 @@
     "eventDescription": "Sesiune de rugăciune de {duration} minute pentru {campaign}"
   },
   "inbox": {
+    "translate": {
+      "button": "Tradu",
+      "original": "Original",
+      "note": "Tradus cu IA · limba originală: {language}",
+      "retranslate": "Tradu din nou",
+      "notConfigured": "Traducerea cu IA nu este configurată"
+    },
     "title": "Mesaje primite",
     "searchPlaceholder": "Caută conversații",
     "empty": "Nicio conversație",

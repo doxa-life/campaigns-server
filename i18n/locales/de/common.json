@@ -795,6 +795,13 @@
     "eventDescription": "{duration}-minütige Gebetszeit für die {campaign}"
   },
   "inbox": {
+    "translate": {
+      "button": "Übersetzen",
+      "original": "Original",
+      "note": "KI-Übersetzung · Originalsprache: {language}",
+      "retranslate": "Neu übersetzen",
+      "notConfigured": "Die KI-Übersetzung ist nicht konfiguriert"
+    },
     "title": "Posteingang",
     "searchPlaceholder": "Unterhaltungen suchen",
     "empty": "Keine Unterhaltungen",

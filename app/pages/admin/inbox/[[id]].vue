@@ -308,15 +308,66 @@
                   </UTooltip>
                   <UBadge v-if="m.ai_generated" color="info" variant="subtle" size="xs" icon="i-lucide-sparkles">{{ $t('inbox.badge.aiDraft') }}</UBadge>
                   <span class="msg-time">{{ formatTime(m.created_at) }}</span>
+                  <UDropdownMenu :items="translateMenuItems(m)">
+                    <UButton
+                      icon="i-lucide-languages"
+                      trailing-icon="i-lucide-chevron-down"
+                      color="neutral"
+                      variant="outline"
+                      size="xs"
+                      class="text-[0.7rem] normal-case tracking-normal px-1.5 py-0.5 gap-1"
+                      :ui="{ leadingIcon: 'size-3', trailingIcon: 'size-3' }"
+                      :loading="translatingId === m.id"
+                    >
+                      {{ $t('inbox.translate.button') }}
+                    </UButton>
+                  </UDropdownMenu>
                 </span>
+              </div>
+              <div v-if="savedLanguages(m).length" class="msg-translations">
+                <UButton
+                  size="xs"
+                  class="text-xs normal-case tracking-normal"
+                  :color="activeTranslation(m) ? 'neutral' : 'primary'"
+                  :variant="activeTranslation(m) ? 'ghost' : 'soft'"
+                  @click="viewTranslation(m.id, '')"
+                >
+                  {{ $t('inbox.translate.original') }}
+                </UButton>
+                <UButton
+                  v-for="code in savedLanguages(m)"
+                  :key="code"
+                  size="xs"
+                  class="text-xs normal-case tracking-normal"
+                  :color="messageView[m.id] === code ? 'primary' : 'neutral'"
+                  :variant="messageView[m.id] === code ? 'soft' : 'ghost'"
+                  @click="viewTranslation(m.id, code)"
+                >
+                  {{ languageLabel(code) }}
+                </UButton>
               </div>
               <div v-if="m.direction === 'inbound' ? m.to_email : m.from_email" class="msg-addr">
                 <span v-if="m.direction === 'inbound'"><span class="addr-label">{{ $t('inbox.compose.to') }}:</span> {{ m.to_email }}</span>
                 <span v-else><span class="addr-label">{{ $t('inbox.compose.from') }}:</span> {{ m.from_email }}</span>
               </div>
-              <div class="msg-body" v-html="sanitizeMessageHtml(messageDisplayHtml(m))" />
+              <template v-if="activeTranslation(m)">
+                <div class="msg-body msg-translation" :dir="languageDir(messageView[m.id]!)">{{ activeTranslation(m)!.text }}</div>
+                <div class="msg-translation-note">
+                  {{ $t('inbox.translate.note', { language: sourceLanguageName(activeTranslation(m)!.source_language) }) }}
+                  <UButton
+                    variant="link"
+                    size="xs"
+                    color="neutral"
+                    :loading="translatingId === m.id"
+                    @click="showTranslation(m, messageView[m.id]!, true)"
+                  >
+                    {{ $t('inbox.translate.retranslate') }}
+                  </UButton>
+                </div>
+              </template>
+              <div v-else class="msg-body" v-html="sanitizeMessageHtml(messageDisplayHtml(m))" />
               <UButton
-                v-if="hasQuotedContent(m)"
+                v-if="!activeTranslation(m) && hasQuotedContent(m)"
                 variant="link"
                 size="xs"
                 color="neutral"
@@ -551,7 +602,7 @@ import { sanitizeMessageHtml } from '~/utils/sanitizeHtml'
 
 definePageMeta({ layout: 'admin', middleware: 'auth' })
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const toast = useToast()
 const route = useRoute()
 const { user, canAccess } = useAuthUser()
@@ -583,6 +634,13 @@ interface AiDraftMetadata {
   uncertainty: string[]
   model: string
 }
+interface MessageTranslation {
+  text: string
+  source_language: string
+  model: string
+  created_by: string
+  created_at: string
+}
 interface Message {
   id: number
   direction: 'inbound' | 'outbound'
@@ -599,6 +657,7 @@ interface Message {
   delivered_at?: string | null
   ai_generated?: boolean
   ai_metadata?: AiDraftMetadata | null
+  translations?: Record<string, MessageTranslation> | null
   attachments?: { id: number; filename: string | null; url: string | null }[]
 }
 interface ConversationDetail {
@@ -659,6 +718,9 @@ const sending = ref(false)
 const savingDraft = ref(false)
 const currentDraftId = ref<number | null>(null)
 const expandedQuoted = ref<Set<number>>(new Set())
+// Which saved translation each message shows ('' or absent = the original).
+const messageView = ref<Record<number, string>>({})
+const translatingId = ref<number | null>(null)
 
 // AI drafting: the generate/refine modal, plus review metadata (gloss/sources/
 // uncertainty) for the draft it produced, shown above the composer until dismissed.
@@ -874,6 +936,80 @@ function messageSender(m: Message): string {
   return m.from_name || m.from_email || t('inbox.direction.inbound')
 }
 
+const enabledLanguages = LANGUAGES.filter(l => l.enabled !== false)
+
+function savedLanguages(m: Message): string[] {
+  return Object.keys(m.translations || {})
+}
+
+function activeTranslation(m: Message): MessageTranslation | null {
+  const code = messageView.value[m.id]
+  return code ? m.translations?.[code] ?? null : null
+}
+
+function viewTranslation(messageId: number, code: string) {
+  messageView.value[messageId] = code
+}
+
+function languageLabel(code: string): string {
+  const lang = LANGUAGES.find(l => l.code === code)
+  return lang ? `${lang.flag} ${lang.nativeName}` : code
+}
+
+function languageDir(code: string): 'ltr' | 'rtl' {
+  return LANGUAGES.find(l => l.code === code)?.dir || 'ltr'
+}
+
+// Detected languages can fall outside the app's languages, so name them with Intl.
+function sourceLanguageName(code: string): string {
+  try {
+    return new Intl.DisplayNames([locale.value], { type: 'language' }).of(code) || code
+  } catch {
+    return code
+  }
+}
+
+// The viewer's own UI language first; the message's detected language is left out once known.
+function translateMenuItems(m: Message) {
+  const source = Object.values(m.translations || {})[0]?.source_language
+  const ordered = [
+    ...enabledLanguages.filter(l => l.code === locale.value),
+    ...enabledLanguages.filter(l => l.code !== locale.value),
+  ]
+  return ordered
+    .filter(l => l.code !== source)
+    .map(l => ({
+      label: `${l.flag} ${l.nativeName}`,
+      icon: m.translations?.[l.code] ? 'i-lucide-check' : undefined,
+      onSelect: () => showTranslation(m, l.code),
+    }))
+}
+
+async function showTranslation(m: Message, code: string, force = false) {
+  if (!selected.value) return
+  if (m.translations?.[code] && !force) {
+    messageView.value[m.id] = code
+    return
+  }
+  translatingId.value = m.id
+  try {
+    const res = await $fetch<{ message: Message }>(
+      `/api/admin/inbox/conversations/${selected.value.conversation.id}/messages/${m.id}/translate`,
+      { method: 'POST', body: { language_code: code, force } },
+    )
+    m.translations = res.message.translations
+    messageView.value[m.id] = code
+  } catch (e: any) {
+    // 503 = AI not configured; 502 = the AI provider is temporarily unreachable (retryable).
+    const msg = e?.statusCode === 503 ? t('inbox.translate.notConfigured')
+      : e?.statusCode === 502 ? t('inbox.ai.unavailable')
+        : e?.data?.statusMessage || t('inbox.toasts.error')
+    toast.add({ title: msg, color: 'error' })
+  } finally {
+    translatingId.value = null
+  }
+}
+
 function messageDisplayHtml(m: Message): string {
   if (m.direction === 'inbound') {
     if (m.body_stripped_html && !expandedQuoted.value.has(m.id)) return m.body_stripped_html
@@ -1041,6 +1177,7 @@ async function selectConversation(id: number, updateUrl = true) {
     fromIdentity.value = defaultFromIdentity(res.messages)
     pendingFiles.value = []
     expandedQuoted.value = new Set()
+    messageView.value = {}
     const latestDraft = res.drafts[res.drafts.length - 1]
     if (latestDraft) loadDraft(latestDraft)
     if (updateUrl) window.history.replaceState({}, '', `/admin/inbox/${id}`)
@@ -1463,6 +1600,9 @@ a.contact-name:hover { text-decoration: underline; }
 .msg-body { font-size: 0.875rem; line-height: 1.5; word-break: break-word; overflow-x: auto; }
 .msg-body :deep(p) { margin: 0.25rem 0; }
 .msg-body :deep(img) { max-width: 100%; max-height: 480px; height: auto; }
+.msg-translations { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: -0.25rem 0 0.5rem; }
+.msg-translation { white-space: pre-wrap; }
+.msg-translation-note { display: flex; align-items: center; gap: 0.25rem; margin-top: 0.5rem; font-size: 0.7rem; color: var(--ui-text-muted); }
 .msg-attachments { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
 .attachment-chip { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; padding: 0.2rem 0.5rem; border: 1px solid var(--ui-border); border-radius: 4px; }
 

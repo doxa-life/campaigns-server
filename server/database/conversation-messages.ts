@@ -20,6 +20,16 @@ export interface AiDraftMetadata {
   model: string
 }
 
+// A saved machine translation of a message's visible text, keyed by target language
+// in `translations` so every teammate reuses it.
+export interface MessageTranslation {
+  text: string
+  source_language: string
+  model: string
+  created_by: string
+  created_at: string
+}
+
 export interface ConversationMessage {
   id: number
   conversation_id: number
@@ -46,6 +56,7 @@ export interface ConversationMessage {
   delivered_at: string | null
   ai_generated: boolean
   ai_metadata: AiDraftMetadata | null
+  translations: Record<string, MessageTranslation> | null
   created_at: string
   updated_at: string
 }
@@ -226,6 +237,17 @@ class MessageService {
           ai_metadata = ${this.sql.json(data.ai_metadata as any)},
           updated_at = NOW()
       WHERE id = ${id} AND status = 'draft' AND ai_generated = true
+      RETURNING *
+    `
+    return row ?? null
+  }
+
+  // Add or replace one language's translation without touching the others.
+  async saveTranslation(id: number, languageCode: string, translation: MessageTranslation): Promise<ConversationMessage | null> {
+    const [row] = await this.sql<ConversationMessage[]>`
+      UPDATE conversation_messages
+      SET translations = COALESCE(translations, '{}'::jsonb) || jsonb_build_object(${languageCode}::text, ${this.sql.json(translation as any)}::jsonb)
+      WHERE id = ${id}
       RETURNING *
     `
     return row ?? null

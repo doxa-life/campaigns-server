@@ -794,6 +794,13 @@
     "eventDescription": "Sessione di preghiera di {duration} minuti per i {campaign}"
   },
   "inbox": {
+    "translate": {
+      "button": "Traduci",
+      "original": "Originale",
+      "note": "Tradotto con IA · lingua originale: {language}",
+      "retranslate": "Traduci di nuovo",
+      "notConfigured": "La traduzione con IA non è configurata"
+    },
     "title": "Posta in arrivo",
     "searchPlaceholder": "Cerca conversazioni",
     "empty": "Nessuna conversazione",

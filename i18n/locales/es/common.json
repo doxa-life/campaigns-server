@@ -794,6 +794,13 @@
     "eventDescription": "Sesión de oración de {duration} minutos por los {campaign}"
   },
   "inbox": {
+    "translate": {
+      "button": "Traducir",
+      "original": "Original",
+      "note": "Traducido con IA · idioma original: {language}",
+      "retranslate": "Volver a traducir",
+      "notConfigured": "La traducción con IA no está configurada"
+    },
     "title": "Bandeja de entrada",
     "searchPlaceholder": "Buscar conversaciones",
     "empty": "Sin conversaciones",

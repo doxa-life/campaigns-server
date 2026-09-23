@@ -795,6 +795,13 @@
     "eventDescription": "{campaign} के लिए {duration}-मिनट का प्रार्थना सत्र"
   },
   "inbox": {
+    "translate": {
+      "button": "अनुवाद करें",
+      "original": "मूल",
+      "note": "AI अनुवाद · मूल भाषा: {language}",
+      "retranslate": "फिर से अनुवाद करें",
+      "notConfigured": "AI अनुवाद सुविधा कॉन्फ़िगर नहीं की गई है"
+    },
     "title": "इनबॉक्स",
     "searchPlaceholder": "बातचीत खोजें",
     "empty": "कोई बातचीत नहीं",

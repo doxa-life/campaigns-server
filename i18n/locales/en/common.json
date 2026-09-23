@@ -795,6 +795,13 @@
     "eventDescription": "{duration}-minute prayer session for the {campaign}"
   },
   "inbox": {
+    "translate": {
+      "button": "Translate",
+      "original": "Original",
+      "note": "Translated by AI from {language}",
+      "retranslate": "Re-translate",
+      "notConfigured": "AI translation is not configured"
+    },
     "title": "Inbox",
     "searchPlaceholder": "Search conversations",
     "empty": "No conversations",

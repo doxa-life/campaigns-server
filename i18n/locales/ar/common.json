@@ -794,6 +794,13 @@
     "eventDescription": "جلسة صلاة مدتها {duration} دقيقة من أجل {campaign}"
   },
   "inbox": {
+    "translate": {
+      "button": "ترجمة",
+      "original": "النص الأصلي",
+      "note": "ترجمة بالذكاء الاصطناعي · اللغة الأصلية: {language}",
+      "retranslate": "إعادة الترجمة",
+      "notConfigured": "الترجمة بالذكاء الاصطناعي غير مُهيَّأة"
+    },
     "title": "صندوق الوارد",
     "searchPlaceholder": "البحث في المحادثات",
     "empty": "لا توجد محادثات",

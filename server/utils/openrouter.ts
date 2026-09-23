@@ -114,7 +114,7 @@ const glossaryCache = new Map<string, { context: GlossaryContext; expires: numbe
  * table for every request, and short enough that a confirmed term reaches
  * translation without a deploy.
  */
-async function loadGlossary(code: string): Promise<GlossaryContext> {
+export async function loadGlossary(code: string): Promise<GlossaryContext> {
   const cached = glossaryCache.get(code)
   if (cached && cached.expires > Date.now()) return cached.context
 

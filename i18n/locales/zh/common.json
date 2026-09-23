@@ -795,6 +795,13 @@
     "eventDescription": "为{campaign}进行{duration}分钟的祷告"
   },
   "inbox": {
+    "translate": {
+      "button": "翻译",
+      "original": "原文",
+      "note": "AI 翻译 · 原文语言：{language}",
+      "retranslate": "重新翻译",
+      "notConfigured": "AI 翻译功能尚未配置"
+    },
     "title": "收件箱",
     "searchPlaceholder": "搜索会话",
     "empty": "没有会话",
