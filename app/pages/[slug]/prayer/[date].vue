@@ -21,6 +21,7 @@
               variant="ghost"
               size="sm"
               icon="i-lucide-chevron-left"
+              :ui="{ leadingIcon: 'rtl:-scale-x-100' }"
             />
             <h1 class="text-3xl font-bold text-center">{{ formatDate(data.date, selectedLanguage) }}</h1>
             <UButton
@@ -29,6 +30,7 @@
               variant="ghost"
               size="sm"
               icon="i-lucide-chevron-right"
+              :ui="{ leadingIcon: 'rtl:-scale-x-100' }"
             />
             <UButton
               v-else
@@ -36,6 +38,7 @@
               variant="ghost"
               size="sm"
               icon="i-lucide-chevron-right"
+              :ui="{ leadingIcon: 'rtl:-scale-x-100' }"
             />
           </div>
           <PrayingNowBanner />

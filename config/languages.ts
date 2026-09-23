@@ -42,6 +42,7 @@ export const ENABLED_LANGUAGE_CODES = ENABLED_LANGUAGES.map(lang => lang.code)
 export function generateI18nLocales() {
   return ENABLED_LANGUAGES.map(lang => ({
     code: lang.code,
+    language: lang.code,
     name: lang.nativeName,
     ...(lang.dir && { dir: lang.dir }),
     files: [

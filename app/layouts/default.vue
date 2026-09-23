@@ -6,11 +6,11 @@
         <div class="flex justify-between items-center py-4">
           <!-- Logo / Back Navigation -->
           <NuxtLink v-if="isPrayerPage && slug" :to="localePath(`/${slug}`)" class="flex items-center gap-2">
-            <UIcon name="i-lucide-arrow-left" class="w-5 h-5" />
+            <UIcon name="i-lucide-arrow-left" class="w-5 h-5 rtl:-scale-x-100" />
             <span class="text-xl font-bold tracking-wider">{{ peopleGroupTitle }}</span>
           </NuxtLink>
           <a v-else-if="backToUrl" :href="backToUrl" class="flex items-center gap-2">
-            <UIcon name="i-lucide-arrow-left" class="w-5 h-5" />
+            <UIcon name="i-lucide-arrow-left" class="w-5 h-5 rtl:-scale-x-100" />
             <span class="text-xl font-bold tracking-wider">DOXA.LIFE</span>
           </a>
           <NuxtLink v-else-if="!isPeopleGroupPage" :to="localePath(logoLink)" class="flex items-center gap-2">
