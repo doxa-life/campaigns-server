@@ -3,75 +3,82 @@
     <div class="flex items-center justify-between mb-4">
       <div>
         <h1 class="text-2xl font-bold">Updates Tracking</h1>
-        <p class="text-sm text-muted">People groups with outstanding setup work</p>
+        <p class="text-sm text-muted">People groups and languages with outstanding setup work</p>
       </div>
       <UButton
         size="sm"
         variant="outline"
         icon="i-lucide-refresh-cw"
-        :loading="status === 'pending'"
-        @click="refresh()"
+        :loading="activeTab === 'languages' ? languagesRef?.status === 'pending' : status === 'pending'"
+        @click="refreshActive"
       >
         Refresh
       </UButton>
     </div>
 
-    <div class="flex flex-wrap gap-2 mb-4">
-      <UButton
-        v-for="f in filterChips"
-        :key="f.key"
-        size="xs"
-        :variant="activeFilter === f.key ? 'solid' : 'outline'"
-        :color="activeFilter === f.key ? 'primary' : 'neutral'"
-        @click="() => { activeFilter = activeFilter === f.key ? null : f.key }"
-      >
-        {{ f.label }} ({{ f.count }})
-      </UButton>
-    </div>
-
-    <UCard v-if="status === 'pending'" class="text-center py-8">
-      <UIcon name="i-lucide-loader" class="animate-spin text-2xl" />
-    </UCard>
-
-    <UCard v-else-if="filteredRows.length === 0" class="text-center py-8">
-      <p class="text-muted">No outstanding work — every people group is fully set up.</p>
-    </UCard>
-
-    <div v-else class="rows">
-      <NuxtLink
-        v-for="row in filteredRows"
-        :key="row.id"
-        :to="`/admin/people-groups/${row.id}`"
-        class="row"
-      >
-        <div class="row-header">
-          <span class="row-name">{{ row.name }}</span>
-          <span class="row-country">{{ row.country_code || '—' }}</span>
-        </div>
-        <div class="row-badges">
-          <UBadge v-if="row.prompts_pending" color="warning" variant="subtle">
-            <UIcon name="i-lucide-book-open" />
-            Day in the Life prompts pending
-          </UBadge>
-          <UBadge
-            v-for="locale in row.translation_pending_locales"
-            :key="locale"
-            color="info"
-            variant="subtle"
+    <UTabs v-model="activeTab" :items="tabs" variant="link" class="mb-4">
+      <template #languages>
+        <AdminLanguageRollouts ref="languagesRef" class="mt-4" />
+      </template>
+      <template #people>
+        <div class="flex flex-wrap gap-2 mb-4 mt-4">
+          <UButton
+            v-for="f in filterChips"
+            :key="f.key"
+            size="xs"
+            :variant="activeFilter === f.key ? 'solid' : 'outline'"
+            :color="activeFilter === f.key ? 'primary' : 'neutral'"
+            @click="() => { activeFilter = activeFilter === f.key ? null : f.key }"
           >
-            translation: {{ locale }}
-          </UBadge>
-          <UBadge
-            v-for="tag in row.needs_tags"
-            :key="tag"
-            color="warning"
-            variant="subtle"
-          >
-            {{ tag }}
-          </UBadge>
+            {{ f.label }} ({{ f.count }})
+          </UButton>
         </div>
-      </NuxtLink>
-    </div>
+
+        <UCard v-if="status === 'pending'" class="text-center py-8">
+          <UIcon name="i-lucide-loader" class="animate-spin text-2xl" />
+        </UCard>
+
+        <UCard v-else-if="filteredRows.length === 0" class="text-center py-8">
+          <p class="text-muted">No outstanding work — every people group is fully set up.</p>
+        </UCard>
+
+        <div v-else class="rows">
+          <NuxtLink
+            v-for="row in filteredRows"
+            :key="row.id"
+            :to="`/admin/people-groups/${row.id}`"
+            class="row"
+          >
+            <div class="row-header">
+              <span class="row-name">{{ row.name }}</span>
+              <span class="row-country">{{ row.country_code || '—' }}</span>
+            </div>
+            <div class="row-badges">
+              <UBadge v-if="row.prompts_pending" color="warning" variant="subtle">
+                <UIcon name="i-lucide-book-open" />
+                Day in the Life prompts pending
+              </UBadge>
+              <UBadge
+                v-for="locale in row.translation_pending_locales"
+                :key="locale"
+                color="info"
+                variant="subtle"
+              >
+                translation: {{ locale }}
+              </UBadge>
+              <UBadge
+                v-for="tag in row.needs_tags"
+                :key="tag"
+                color="warning"
+                variant="subtle"
+              >
+                {{ tag }}
+              </UBadge>
+            </div>
+          </NuxtLink>
+        </div>
+      </template>
+    </UTabs>
   </div>
 </template>
 
@@ -94,9 +101,33 @@ interface OnboardingRow {
   needs_tags: string[]
 }
 
+const route = useRoute()
+const router = useRouter()
+const { canAccess } = useAuthUser()
+
+const tabs = computed(() => [
+  ...(canAccess('people_groups.edit') ? [{ label: 'People groups', value: 'people', slot: 'people' as const, icon: 'i-lucide-globe' }] : []),
+  ...(canAccess('glossary.view') ? [{ label: 'Languages', value: 'languages', slot: 'languages' as const, icon: 'i-lucide-languages' }] : [])
+])
+
+const activeTab = computed({
+  get: () => {
+    const requested = route.query.tab === 'languages' ? 'languages' : 'people'
+    return tabs.value.some(t => t.value === requested) ? requested : (tabs.value[0]?.value ?? 'people')
+  },
+  set: (tab: string) => { router.replace({ query: { ...route.query, tab: tab === 'people' ? undefined : tab } }) }
+})
+
+const languagesRef = ref<{ refresh: () => Promise<void>; status: string } | null>(null)
+
+function refreshActive() {
+  if (activeTab.value === 'languages') languagesRef.value?.refresh()
+  else refresh()
+}
+
 const { data, status, refresh } = await useFetch<{ peopleGroups: OnboardingRow[] }>(
   '/api/admin/people-groups/onboarding-status',
-  { default: () => ({ peopleGroups: [] }) }
+  { default: () => ({ peopleGroups: [] }), immediate: canAccess('people_groups.edit') }
 )
 
 const rows = computed(() => data.value?.peopleGroups || [])

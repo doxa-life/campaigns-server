@@ -42,9 +42,9 @@ Ask the person for the two fields the glossary does not hold:
 - `translationName` — only when the plain English name is ambiguous in a
   translation prompt, as Portuguese, Chinese and Arabic are.
 
-Add the entry in the array with `enabled: false`. The language is then available
-to the API, to description translation and to content work, while the public UI
-stays unchanged until its strings exist.
+Add the entry in the array switched on: leave out `enabled`, which defaults to
+on. An enabled language needs its four locale files to build, so write them
+(step 3) before running or building anything.
 
 **A language with no `bible_id` in the glossary.** Verses are fetched per
 language from bolls.life, and there is no edition to fetch from. Stop and ask
@@ -83,9 +83,9 @@ Every other `i18n/locales/*/languages.json` needs an entry for the new code, so
 the language appears with a proper name in each of them. Work from the language
 name as that locale would write it.
 
-## 5. Switch it on
+## 5. Check it
 
-Set `enabled: true` once the four locale files are complete. Then:
+The language is on from step 2. Once the four locale files are complete:
 
 - `npx nuxi typecheck`
 - `bun run dev`, open the site in the new language, and read a public page, the
@@ -97,10 +97,10 @@ Set `enabled: true` once the four locale files are complete. Then:
 
 These are not repository changes. Name them in the report:
 
-- **People group descriptions** — `/admin/people-groups`, the description
-  field's translate button, or the batch endpoint. Costs tokens.
-- **Shared prayer libraries** — the admin's translate buttons per library. This
-  is the expensive one; an admin decides when to run it.
+- **People group descriptions** — `/add-language-everywhere` translates them
+  in its step 1b. Run on its own, this skill names them as outstanding.
+- **Shared prayer libraries** — `/translate-libraries {code}`, once this change
+  is deployed, since verses are fetched from the deployed Bible edition.
 - **Day in the Life prompts** — per group and optional. The people-groups
   repository's own `/add-language` covers it.
 - **Verses** — the Bible edition has to exist in the app before verse blocks
@@ -109,4 +109,5 @@ These are not repository changes. Name them in the report:
 ## 7. Report
 
 What was added, what is still empty, what needs an admin, and anything a
-reviewer must answer. Leave every change uncommitted.
+reviewer must answer. Leave every change uncommitted; `/add-language-everywhere`
+asks the person before committing and pushing it.

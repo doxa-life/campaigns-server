@@ -29,6 +29,8 @@ tags:
     description: Context portfolios — organizational knowledge as markdown sections, readable and writable by AI tools
   - name: Glossary
     description: Approved Doxa terminology per language, for translating interface strings and marketing copy
+  - name: Language Rollouts
+    description: The checklist for putting a new language into every Doxa surface, shown on /admin/onboarding
 
 paths:
   /api/app/version:
@@ -2311,6 +2313,250 @@ paths:
         '404':
           description: No glossary for that language
 
+  /api/admin/language-rollouts:
+    get:
+      tags:
+        - Language Rollouts
+      summary: List language rollouts
+      description: |
+        Every language being rolled out, newest first, with its checklist. Tasks
+        and their groups are defined in code; a task with no stored state is
+        `pending`. Detected tasks are computed from the glossary, content and
+        `config/languages.ts` on every read.
+      operationId: listLanguageRollouts
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: The rollouts and the task groups
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        key:
+                          type: string
+                        label:
+                          type: string
+                  rollouts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LanguageRollout'
+        '401':
+          description: Unauthorized — missing or invalid API key / JWT
+        '403':
+          description: Requires the glossary.view permission
+
+    post:
+      tags:
+        - Language Rollouts
+      summary: Start a language rollout
+      description: |
+        Starts tracking a language. The language must already exist in the
+        glossary. Starting one that is already tracked changes nothing.
+      operationId: startLanguageRollout
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  example: ro
+      responses:
+        '200':
+          description: The rollout
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rollout:
+                    $ref: '#/components/schemas/LanguageRollout'
+        '400':
+          description: code is missing
+        '403':
+          description: Requires the glossary.manage permission
+        '404':
+          description: No glossary for that language
+
+  /api/admin/language-rollouts/{code}:
+    parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Language Rollouts
+      summary: Get one language rollout
+      operationId: getLanguageRollout
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: The rollout
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rollout:
+                    $ref: '#/components/schemas/LanguageRollout'
+        '403':
+          description: Requires the glossary.view permission
+        '404':
+          description: Rollout not found
+    delete:
+      tags:
+        - Language Rollouts
+      summary: Stop tracking a language rollout
+      description: Removes the rollout and its stored task states. The glossary and content are untouched.
+      operationId: deleteLanguageRollout
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '403':
+          description: Requires the glossary.manage permission
+        '404':
+          description: Rollout not found
+
+  /api/admin/language-rollouts/{code}/tasks/{key}:
+    parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: key
+        in: path
+        required: true
+        description: A task key from config/language-rollout-tasks.ts
+        schema:
+          type: string
+    put:
+      tags:
+        - Language Rollouts
+      summary: Set a task's state
+      description: |
+        Sets a `skill` or `manual` task's state. `pending` clears the stored
+        state. `detected` tasks are computed by the server and are rejected.
+      operationId: setLanguageRolloutTask
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - state
+              properties:
+                state:
+                  type: string
+                  enum: [pending, running, done, failed, skipped]
+                note:
+                  type: string
+      responses:
+        '200':
+          description: The updated rollout
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rollout:
+                    $ref: '#/components/schemas/LanguageRollout'
+        '400':
+          description: Invalid state or note, or the task is detected
+        '403':
+          description: Requires the glossary.manage permission
+        '404':
+          description: Unknown task, or rollout not found
+
+  /api/admin/language-rollouts/{code}/status-report:
+    parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      tags:
+        - Language Rollouts
+      summary: Store the latest language-status survey
+      description: |
+        Stores the output of `language_status.py --json`. Each surface's line is
+        shown under the matching repository task.
+      operationId: saveLanguageRolloutStatusReport
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - report
+              properties:
+                report:
+                  type: object
+                  required:
+                    - surfaces
+                  properties:
+                    code:
+                      type: string
+                    surfaces:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          surface:
+                            type: string
+                          state:
+                            type: string
+                          detail:
+                            type: string
+      responses:
+        '200':
+          description: The updated rollout
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rollout:
+                    $ref: '#/components/schemas/LanguageRollout'
+        '400':
+          description: report.surfaces is missing
+        '403':
+          description: Requires the glossary.manage permission
+        '404':
+          description: Rollout not found
+
 components:
   securitySchemes:
     apiKey:
@@ -2330,6 +2576,69 @@ components:
       description: Shared form API key (FORM_API_KEY) for trusted sister sites (marketing, global)
 
   schemas:
+    LanguageRollout:
+      type: object
+      properties:
+        code:
+          type: string
+        name_en:
+          type: string
+        name_local:
+          type: string
+        started_at:
+          type: string
+          format: date-time
+        started_by_name:
+          type: string
+          nullable: true
+        status_report_at:
+          type: string
+          format: date-time
+          nullable: true
+        done_count:
+          type: integer
+          description: Tasks that are done or skipped
+        total_count:
+          type: integer
+        tasks:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              group:
+                type: string
+              kind:
+                type: string
+                enum: [detected, skill, manual]
+              label:
+                type: string
+              description:
+                type: string
+              state:
+                type: string
+                enum: [pending, running, done, failed, skipped]
+              note:
+                type: string
+              progress:
+                type: object
+                nullable: true
+                properties:
+                  done:
+                    type: integer
+                  total:
+                    type: integer
+              status_detail:
+                type: string
+                nullable: true
+              updated_at:
+                type: string
+                format: date-time
+                nullable: true
+              updated_by_name:
+                type: string
+                nullable: true
     ContextPortfolio:
       type: object
       description: One body of organizational knowledge, held as markdown sections
