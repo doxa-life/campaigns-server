@@ -42,11 +42,10 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
     `.then(rows => rows[0]),
     // Contact-level churn for the period: a contact is counted once it has no
     // active prayer reminders left, in the period its final reminder ended
-    // (last_churn_at). Bucketed by cause — a reminder the automated follow-up
-    // system deactivated has status 'inactive' ("became inactive"); a reminder
-    // the contact chose to stop has status 'unsubscribed'. Any system-deactivated
-    // reminder counts the contact as "became inactive"; otherwise it stopped
-    // every reminder itself ("unsubscribed").
+    // (last_churn_at). Bucketed by cause — a reminder an admin set to 'inactive'
+    // ("became inactive"); a reminder the contact chose to stop has status
+    // 'unsubscribed'. Any inactive reminder counts the contact as "became
+    // inactive"; otherwise it stopped every reminder itself ("unsubscribed").
     sql`
       WITH contact_status AS (
         SELECT

@@ -458,8 +458,8 @@ class ContactMethodService {
   }
 
   // Doxa-consented, verified contacts whose subscriber's engagement lapsed: at least
-  // one email-delivery subscription auto-marked 'inactive' (no follow-up response /
-  // no app activity) and no active subscription at all. Deliberate 'unsubscribed'
+  // one email-delivery subscription an admin set to 'inactive' and no active
+  // subscription at all. Deliberate 'unsubscribed'
   // opt-outs don't qualify on their own — this audience is for re-engagement, not
   // for people who explicitly asked to stop.
   async getContactsWithDoxaConsentAndInactiveSubscription(): Promise<ContactMethod[]> {
