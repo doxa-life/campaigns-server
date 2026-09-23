@@ -304,8 +304,16 @@ async function fetchChapter(bibleId: string, bookNumber: number, chapter: number
 // Public API
 // ---------------------------------------------------------------------------
 
-function cleanVerseText(text: string): string {
-  return text.replace(/<[^>]+>/g, '').replace(/\s*\[\d+\]/g, '').replace(/[\u24B6-\u24E9\u2460-\u2473]/g, '')
+export function cleanVerseText(text: string): string {
+  return text
+    .replace(/<[^>]+>/g, '')
+    .replace(/\s*\[\d+\]/g, '')
+    .replace(/[\u24B6-\u24E9\u2460-\u2473]/g, '')
+    // FIK38 cross-references Hebrew/Greek numbering inline, e.g. "(H67:2)", "(G13:1)", "(/:14)"
+    .replace(/\s*\((?:[HG]\d+|\/):\d+\)\s*/g, ' ')
+    // FIK38 leaves the next chapter's heading at the end of some verses, e.g. "6:" or "148 PSALMI."
+    .replace(/\s+\d+(?::| PSALMI\.)\s*$/, '')
+    .trim()
 }
 
 export function isBollsBibleConfigured(bibleId: string | undefined): boolean {
