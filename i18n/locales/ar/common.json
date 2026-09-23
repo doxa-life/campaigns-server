@@ -62,6 +62,7 @@
     },
     "pageTitle": "الحملة",
     "signupButton": "سجّل للصلاة",
+    "prayInTheApp": "صلّ في التطبيق",
     "loading": "جارٍ تحميل الحملة...",
     "notFound": {
       "title": "الحملة غير موجودة",
@@ -182,20 +183,6 @@
       "scripture": "الكتاب المقدس",
       "prayerPoints": "نقاط الصلاة",
       "peopleGroupOfDay": "الجماعة العرقية لهذا اليوم"
-    },
-    "mobileApp": {
-      "title": "احصل على تطبيق الهاتف",
-      "description": "حمّل تطبيق الهاتف لتجربة صلاة أفضل",
-      "appStore": {
-        "label": "حمّل من",
-        "store": "آب ستور",
-        "ariaLabel": "حمّل من آب ستور"
-      },
-      "googlePlay": {
-        "label": "احصل عليه من",
-        "store": "جوجل بلاي",
-        "ariaLabel": "احصل عليه من جوجل بلاي"
-      }
     },
     "verify": {
       "pageTitle": "تحقق من البريد الإلكتروني",

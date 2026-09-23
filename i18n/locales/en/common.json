@@ -62,6 +62,7 @@
     },
     "pageTitle": "Campaign",
     "signupButton": "Sign up to pray",
+    "prayInTheApp": "Pray in the app",
     "loading": "Loading campaign...",
     "notFound": {
       "title": "Campaign Not Found",
@@ -182,20 +183,6 @@
       "scripture": "Scripture",
       "prayerPoints": "Prayer Points",
       "peopleGroupOfDay": "People Group of the Day"
-    },
-    "mobileApp": {
-      "title": "Get the Mobile App",
-      "description": "Download our mobile app for a better prayer experience",
-      "appStore": {
-        "label": "Download on",
-        "store": "App Store",
-        "ariaLabel": "Download on App Store"
-      },
-      "googlePlay": {
-        "label": "Get it on",
-        "store": "Google Play",
-        "ariaLabel": "Get it on Google Play"
-      }
     },
     "verify": {
       "pageTitle": "Verify Email",

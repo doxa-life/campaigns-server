@@ -62,6 +62,7 @@
     },
     "pageTitle": "Кампания",
     "signupButton": "Присоединиться к молитве",
+    "prayInTheApp": "Молиться в приложении",
     "loading": "Загрузка кампании...",
     "notFound": {
       "title": "Кампания не найдена",
@@ -182,20 +183,6 @@
       "scripture": "Писание",
       "prayerPoints": "Молитвенные темы",
       "peopleGroupOfDay": "Народ дня"
-    },
-    "mobileApp": {
-      "title": "Скачайте мобильное приложение",
-      "description": "Скачайте наше мобильное приложение для лучшего опыта молитвы",
-      "appStore": {
-        "label": "Загрузить в",
-        "store": "App Store",
-        "ariaLabel": "Загрузить в App Store"
-      },
-      "googlePlay": {
-        "label": "Доступно в",
-        "store": "Google Play",
-        "ariaLabel": "Доступно в Google Play"
-      }
     },
     "verify": {
       "pageTitle": "Подтверждение почты",

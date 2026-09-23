@@ -62,6 +62,7 @@
     },
     "pageTitle": "Campagne",
     "signupButton": "Inscrivez-vous pour prier",
+    "prayInTheApp": "Priez dans l'application",
     "loading": "Chargement de la campagne...",
     "notFound": {
       "title": "Campagne introuvable",
@@ -182,20 +183,6 @@
       "scripture": "Écriture",
       "prayerPoints": "Sujets de prière",
       "peopleGroupOfDay": "Peuple du jour"
-    },
-    "mobileApp": {
-      "title": "Téléchargez l'application mobile",
-      "description": "Téléchargez notre application mobile pour une meilleure expérience de prière",
-      "appStore": {
-        "label": "Télécharger sur",
-        "store": "App Store",
-        "ariaLabel": "Télécharger sur l'App Store"
-      },
-      "googlePlay": {
-        "label": "Disponible sur",
-        "store": "Google Play",
-        "ariaLabel": "Disponible sur Google Play"
-      }
     },
     "verify": {
       "pageTitle": "Vérifier l'e-mail",

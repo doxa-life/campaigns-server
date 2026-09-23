@@ -62,6 +62,7 @@
     },
     "pageTitle": "Campagna",
     "signupButton": "Iscriviti per pregare",
+    "prayInTheApp": "Prega nell'app",
     "loading": "Caricamento campagna...",
     "notFound": {
       "title": "Campagna Non Trovata",
@@ -182,20 +183,6 @@
       "scripture": "Scrittura",
       "prayerPoints": "Spunti di Preghiera",
       "peopleGroupOfDay": "Gruppo Etnico del Giorno"
-    },
-    "mobileApp": {
-      "title": "Scarica l'App Mobile",
-      "description": "Scarica la nostra app mobile per una migliore esperienza di preghiera",
-      "appStore": {
-        "label": "Scarica su",
-        "store": "App Store",
-        "ariaLabel": "Scarica su App Store"
-      },
-      "googlePlay": {
-        "label": "Disponibile su",
-        "store": "Google Play",
-        "ariaLabel": "Disponibile su Google Play"
-      }
     },
     "verify": {
       "pageTitle": "Verifica Email",

@@ -62,6 +62,7 @@
     },
     "pageTitle": "Campanie",
     "signupButton": "Înscrie-te pentru rugăciune",
+    "prayInTheApp": "Roagă-te în aplicație",
     "loading": "Se încarcă campania...",
     "notFound": {
       "title": "Campanie negăsită",
@@ -182,20 +183,6 @@
       "scripture": "Scriptura",
       "prayerPoints": "Motive de rugăciune",
       "peopleGroupOfDay": "Grupul etnolingvistic al zilei"
-    },
-    "mobileApp": {
-      "title": "Descarcă aplicația mobilă",
-      "description": "Descarcă aplicația noastră mobilă pentru o experiență mai bună de rugăciune",
-      "appStore": {
-        "label": "Descarcă de pe",
-        "store": "App Store",
-        "ariaLabel": "Descarcă de pe App Store"
-      },
-      "googlePlay": {
-        "label": "Disponibil pe",
-        "store": "Google Play",
-        "ariaLabel": "Disponibil pe Google Play"
-      }
     },
     "verify": {
       "pageTitle": "Verifică emailul",

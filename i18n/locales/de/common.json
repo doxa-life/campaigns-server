@@ -62,6 +62,7 @@
     },
     "pageTitle": "Kampagne",
     "signupButton": "Anmelden zum Beten",
+    "prayInTheApp": "In der App beten",
     "loading": "Kampagne wird geladen...",
     "notFound": {
       "title": "Kampagne nicht gefunden",
@@ -182,20 +183,6 @@
       "scripture": "Bibelvers",
       "prayerPoints": "Gebetsanliegen",
       "peopleGroupOfDay": "Volksgruppe des Tages"
-    },
-    "mobileApp": {
-      "title": "Mobile App herunterladen",
-      "description": "Laden Sie unsere mobile App für ein besseres Gebetserlebnis herunter",
-      "appStore": {
-        "label": "Laden im",
-        "store": "App Store",
-        "ariaLabel": "Im App Store laden"
-      },
-      "googlePlay": {
-        "label": "Jetzt bei",
-        "store": "Google Play",
-        "ariaLabel": "Bei Google Play herunterladen"
-      }
     },
     "verify": {
       "pageTitle": "E-Mail bestätigen",

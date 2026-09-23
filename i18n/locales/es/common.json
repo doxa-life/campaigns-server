@@ -62,6 +62,7 @@
     },
     "pageTitle": "Campaña",
     "signupButton": "Inscríbete para orar",
+    "prayInTheApp": "Ora en la aplicación",
     "loading": "Cargando campaña...",
     "notFound": {
       "title": "Campaña No Encontrada",
@@ -182,20 +183,6 @@
       "scripture": "Escritura",
       "prayerPoints": "Motivos de Oración",
       "peopleGroupOfDay": "Grupo Étnico del Día"
-    },
-    "mobileApp": {
-      "title": "Descargue la Aplicación Móvil",
-      "description": "Descargue nuestra aplicación móvil para una mejor experiencia de oración",
-      "appStore": {
-        "label": "Descargar en",
-        "store": "App Store",
-        "ariaLabel": "Descargar en App Store"
-      },
-      "googlePlay": {
-        "label": "Disponible en",
-        "store": "Google Play",
-        "ariaLabel": "Disponible en Google Play"
-      }
     },
     "verify": {
       "pageTitle": "Verificar Correo",
