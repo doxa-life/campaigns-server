@@ -15,8 +15,17 @@
       <UCard v-for="rollout in rollouts" :key="rollout.code">
         <template #header>
           <div class="flex items-start justify-between gap-4">
-            <div class="min-w-0">
+            <div class="min-w-0 cursor-pointer" @click="toggle(rollout.code)">
               <div class="flex items-center gap-2">
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  :icon="collapsed.has(rollout.code) ? 'i-lucide-chevron-right' : 'i-lucide-chevron-down'"
+                  :aria-label="collapsed.has(rollout.code) ? 'Expand' : 'Collapse'"
+                  :aria-expanded="!collapsed.has(rollout.code)"
+                  @click.stop="toggle(rollout.code)"
+                />
                 <h2 class="text-lg font-semibold">{{ rollout.name_en }}</h2>
                 <span v-if="rollout.name_local && rollout.name_local !== rollout.name_en" class="text-muted">
                   {{ rollout.name_local }}
@@ -50,52 +59,54 @@
           />
         </template>
 
-        <div class="flex flex-col gap-5">
-          <section v-for="group in groups" :key="group.key">
-            <h3 class="text-xs font-semibold uppercase tracking-wide text-muted mb-2">{{ group.label }}</h3>
-            <ul class="flex flex-col divide-y divide-default">
-              <li
-                v-for="task in rollout.tasks.filter(t => t.group === group.key)"
-                :key="task.key"
-                class="flex items-start gap-3 py-2"
-              >
-                <UIcon
-                  :name="STATE_ICONS[task.state]"
-                  class="mt-0.5 size-5 shrink-0"
-                  :class="[STATE_CLASSES[task.state], task.state === 'running' && task.kind === 'skill' ? 'animate-spin' : '']"
-                />
-                <div class="min-w-0 flex-1">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <span class="font-medium" :class="task.state === 'skipped' ? 'line-through text-muted' : ''">{{ task.label }}</span>
-                    <UBadge v-if="task.progress" color="neutral" variant="subtle" size="sm">
-                      {{ task.progress.done }} / {{ task.progress.total }}
-                    </UBadge>
-                    <UBadge v-if="task.state === 'failed'" color="error" variant="subtle" size="sm" label="failed" />
-                    <UBadge v-if="task.state === 'skipped'" color="neutral" variant="subtle" size="sm" label="skipped" />
-                    <UBadge v-if="task.kind === 'detected'" color="neutral" variant="outline" size="sm" label="automatic" />
-                  </div>
-                  <p class="text-xs text-muted">{{ task.description }}</p>
-                  <p v-if="task.note" class="text-xs mt-0.5">{{ task.note }}</p>
-                  <p v-if="task.status_detail" class="text-xs text-muted mt-0.5 font-mono">{{ task.status_detail }}</p>
-                  <p v-if="task.updated_by_name && task.state !== 'pending'" class="text-xs text-muted mt-0.5">
-                    {{ task.updated_by_name }}, {{ formatDate(task.updated_at) }}
-                  </p>
-                </div>
-                <div v-if="canManage && task.kind !== 'detected'" class="flex items-center gap-1 shrink-0">
-                  <UCheckbox
-                    :model-value="task.state === 'done'"
-                    :disabled="saving === `${rollout.code}:${task.key}`"
-                    :aria-label="`Mark ${task.label} done`"
-                    @update:model-value="(value) => setState(rollout.code, task.key, value ? 'done' : 'pending')"
+        <template v-if="!collapsed.has(rollout.code)" #default>
+          <div class="flex flex-col gap-5">
+            <section v-for="group in groups" :key="group.key">
+              <h3 class="text-xs font-semibold uppercase tracking-wide text-muted mb-2">{{ group.label }}</h3>
+              <ul class="flex flex-col divide-y divide-default">
+                <li
+                  v-for="task in rollout.tasks.filter(t => t.group === group.key)"
+                  :key="task.key"
+                  class="flex items-start gap-3 py-2"
+                >
+                  <UIcon
+                    :name="STATE_ICONS[task.state]"
+                    class="mt-0.5 size-5 shrink-0"
+                    :class="[STATE_CLASSES[task.state], task.state === 'running' && task.kind === 'skill' ? 'animate-spin' : '']"
                   />
-                  <UDropdownMenu :items="menuItems(rollout.code, task)">
-                    <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-ellipsis-vertical" aria-label="More" />
-                  </UDropdownMenu>
-                </div>
-              </li>
-            </ul>
-          </section>
-        </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="font-medium" :class="task.state === 'skipped' ? 'line-through text-muted' : ''">{{ task.label }}</span>
+                      <UBadge v-if="task.progress" color="neutral" variant="subtle" size="sm">
+                        {{ task.progress.done }} / {{ task.progress.total }}
+                      </UBadge>
+                      <UBadge v-if="task.state === 'failed'" color="error" variant="subtle" size="sm" label="failed" />
+                      <UBadge v-if="task.state === 'skipped'" color="neutral" variant="subtle" size="sm" label="skipped" />
+                      <UBadge v-if="task.kind === 'detected'" color="neutral" variant="outline" size="sm" label="automatic" />
+                    </div>
+                    <p class="text-xs text-muted">{{ task.description }}</p>
+                    <p v-if="task.note" class="text-xs mt-0.5">{{ task.note }}</p>
+                    <p v-if="task.status_detail" class="text-xs text-muted mt-0.5 font-mono">{{ task.status_detail }}</p>
+                    <p v-if="task.updated_by_name && task.state !== 'pending'" class="text-xs text-muted mt-0.5">
+                      {{ task.updated_by_name }}, {{ formatDate(task.updated_at) }}
+                    </p>
+                  </div>
+                  <div v-if="canManage && task.kind !== 'detected'" class="flex items-center gap-1 shrink-0">
+                    <UCheckbox
+                      :model-value="task.state === 'done'"
+                      :disabled="saving === `${rollout.code}:${task.key}`"
+                      :aria-label="`Mark ${task.label} done`"
+                      @update:model-value="(value) => setState(rollout.code, task.key, value ? 'done' : 'pending')"
+                    />
+                    <UDropdownMenu :items="menuItems(rollout.code, task)">
+                      <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-ellipsis-vertical" aria-label="More" />
+                    </UDropdownMenu>
+                  </div>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </template>
       </UCard>
     </div>
 
@@ -182,6 +193,14 @@ const rollouts = computed(() => data.value?.rollouts || [])
 const saving = ref<string | null>(null)
 const pendingRemoval = ref<LanguageRollout | null>(null)
 const removing = ref(false)
+const collapsed = ref(new Set<string>())
+
+function toggle(code: string) {
+  const next = new Set(collapsed.value)
+  if (next.has(code)) next.delete(code)
+  else next.add(code)
+  collapsed.value = next
+}
 
 function formatDate(value: string | null) {
   return value ? new Date(value).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : ''
