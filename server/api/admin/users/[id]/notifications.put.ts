@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'User not found' })
   }
 
-  const current = resolveNotificationPreferences(target.notification_preferences)
+  const current = resolveNotificationPreferences(target.notification_preferences, target.roles)
   const currentStats = current.stats
 
   const merged: NotificationPreferences = {

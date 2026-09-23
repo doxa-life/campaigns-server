@@ -10,9 +10,10 @@ export type NotificationPreferences = {
 }
 
 // Opt-in by default: a user receives nothing until an admin (or the user, for stats)
-// turns a notification on. Eligibility still gates stats on top of this. This is the
-// single source of truth for defaults — the column only persists explicit choices, so
-// adding a preference or changing a default happens here, with no migration.
+// turns a notification on, except the stats-eligible role defaults below. Eligibility
+// still gates stats on top of this. This is the single source of truth for defaults —
+// the column only persists explicit choices, so adding a preference or changing a
+// default happens here, with no migration.
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   stats: { daily: false, weekly: false, monthly: false, yearly: false },
   adoption: false,
@@ -20,17 +21,30 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   glossary_review: false,
 }
 
-// Merge a stored value (possibly null, or missing newer keys) over the defaults above.
+export const STATS_ELIGIBLE_ROLES = ['admin', 'progress_admin']
+
+// Admins and progress admins receive the monthly and yearly stats summaries until they opt out.
+export function defaultNotificationPreferences(roles: string[] = []): NotificationPreferences {
+  const statsEligible = roles.some(r => STATS_ELIGIBLE_ROLES.includes(r))
+  return {
+    ...DEFAULT_NOTIFICATION_PREFERENCES,
+    stats: { ...DEFAULT_NOTIFICATION_PREFERENCES.stats, ...(statsEligible ? { monthly: true, yearly: true } : {}) },
+  }
+}
+
+// Merge a stored value (possibly null, or missing newer keys) over the defaults for the user's roles.
 // Always read preferences through this so unset keys fall back to code defaults.
 export function resolveNotificationPreferences(
-  stored: Partial<NotificationPreferences> | null | undefined
+  stored: Partial<NotificationPreferences> | null | undefined,
+  roles: string[] = []
 ): NotificationPreferences {
   const s = (stored && typeof stored === 'object') ? stored : {}
+  const defaults = defaultNotificationPreferences(roles)
   return {
-    stats: { ...DEFAULT_NOTIFICATION_PREFERENCES.stats, ...(s.stats ?? {}) },
-    adoption: typeof s.adoption === 'boolean' ? s.adoption : DEFAULT_NOTIFICATION_PREFERENCES.adoption,
-    contact_us: typeof s.contact_us === 'boolean' ? s.contact_us : DEFAULT_NOTIFICATION_PREFERENCES.contact_us,
-    glossary_review: typeof s.glossary_review === 'boolean' ? s.glossary_review : DEFAULT_NOTIFICATION_PREFERENCES.glossary_review,
+    stats: { ...defaults.stats, ...(s.stats ?? {}) },
+    adoption: typeof s.adoption === 'boolean' ? s.adoption : defaults.adoption,
+    contact_us: typeof s.contact_us === 'boolean' ? s.contact_us : defaults.contact_us,
+    glossary_review: typeof s.glossary_review === 'boolean' ? s.glossary_review : defaults.glossary_review,
   }
 }
 

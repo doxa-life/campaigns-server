@@ -10,8 +10,8 @@ export default defineEventHandler(async (event) => {
     const user = await requireAuth(event)
     const sql = getSql()
 
-    const [row] = await sql`SELECT notification_preferences FROM users WHERE id = ${user.userId}`
-    return resolveNotificationPreferences(row?.notification_preferences).stats
+    const [row] = await sql`SELECT notification_preferences, roles FROM users WHERE id = ${user.userId}`
+    return resolveNotificationPreferences(row?.notification_preferences, row?.roles).stats
   } catch (error) {
     handleApiError(error, 'Failed to fetch activity email preferences')
   }

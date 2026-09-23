@@ -95,7 +95,7 @@ export default defineNitroPlugin((nitroApp) => {
       const eligibleUsers = await userService.getStatsEligibleUsers()
 
       const recipientEmails = eligibleUsers
-        .filter(user => resolveNotificationPreferences(user.notification_preferences).stats[frequency])
+        .filter(user => resolveNotificationPreferences(user.notification_preferences, user.roles).stats[frequency])
         .map(user => user.email)
 
       console.log(`📧 Sending ${frequency} activity email to ${recipientEmails.length} users...`)
