@@ -5,7 +5,7 @@ class BaseMigration {
 }
 
 export default class ReactivateAutoInactiveSubscriptionsMigration extends BaseMigration {
-  id = 114
+  id = 115
   name = 'Reactivate subscriptions the inactivity automations stopped'
 
   async up(sql) {
