@@ -184,6 +184,22 @@
       "prayerPoints": "نقاط الصلاة",
       "peopleGroupOfDay": "الجماعة العرقية لهذا اليوم"
     },
+    "appPromo": {
+      "title": "صلِّ من أجل {name} من هاتفك",
+      "benefits": {
+        "today": "صلاة اليوم جاهزة للفتح",
+        "reminders": "تذكيرات في الوقت الذي تختاره",
+        "together": "اعرف من يصلّي معك"
+      },
+      "appStore": {
+        "alt": "حمّل من App Store"
+      },
+      "googlePlay": {
+        "alt": "احصل عليه من Google Play"
+      },
+      "qrCaption": "امسح الرمز للصلاة",
+      "qrAlt": "رمز QR للحصول على تطبيق DOXA والصلاة من أجل {name}"
+    },
     "verify": {
       "pageTitle": "تحقق من البريد الإلكتروني",
       "verifying": "جارٍ التحقق من بريدك الإلكتروني...",

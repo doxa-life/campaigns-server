@@ -184,6 +184,22 @@
       "prayerPoints": "Prayer Points",
       "peopleGroupOfDay": "People Group of the Day"
     },
+    "appPromo": {
+      "title": "Pray for the {name} on your phone",
+      "benefits": {
+        "today": "Today's prayer, ready to open",
+        "reminders": "Reminders at the time you choose",
+        "together": "See who is praying with you"
+      },
+      "appStore": {
+        "alt": "Download on the App Store"
+      },
+      "googlePlay": {
+        "alt": "Get it on Google Play"
+      },
+      "qrCaption": "Scan to pray",
+      "qrAlt": "QR code to get the DOXA app and pray for the {name}"
+    },
     "verify": {
       "pageTitle": "Verify Email",
       "verifying": "Verifying your email...",

@@ -184,6 +184,22 @@
       "prayerPoints": "Gebetsanliegen",
       "peopleGroupOfDay": "Volksgruppe des Tages"
     },
+    "appPromo": {
+      "title": "Bete für die {name} auf deinem Handy",
+      "benefits": {
+        "today": "Das heutige Gebet, sofort bereit",
+        "reminders": "Erinnerungen zu der Zeit, die du wählst",
+        "together": "Sieh, wer mit dir betet"
+      },
+      "appStore": {
+        "alt": "Im App Store laden"
+      },
+      "googlePlay": {
+        "alt": "Bei Google Play herunterladen"
+      },
+      "qrCaption": "Scannen und beten",
+      "qrAlt": "QR-Code, um die DOXA-App zu holen und für die {name} zu beten"
+    },
     "verify": {
       "pageTitle": "E-Mail bestätigen",
       "verifying": "E-Mail wird bestätigt...",

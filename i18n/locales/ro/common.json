@@ -184,6 +184,22 @@
       "prayerPoints": "Motive de rugăciune",
       "peopleGroupOfDay": "Grupul etnolingvistic al zilei"
     },
+    "appPromo": {
+      "title": "Roagă-te pentru {name} de pe telefonul tău",
+      "benefits": {
+        "today": "Rugăciunea de astăzi, gata de deschis",
+        "reminders": "Mementouri la ora pe care o alegi",
+        "together": "Vezi cine se roagă alături de tine"
+      },
+      "appStore": {
+        "alt": "Descarcă de pe App Store"
+      },
+      "googlePlay": {
+        "alt": "Disponibil pe Google Play"
+      },
+      "qrCaption": "Scanează ca să te rogi",
+      "qrAlt": "Cod QR pentru a obține aplicația DOXA și a te ruga pentru {name}"
+    },
     "verify": {
       "pageTitle": "Verifică emailul",
       "verifying": "Se verifică emailul...",

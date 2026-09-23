@@ -184,6 +184,22 @@
       "prayerPoints": "Sujets de prière",
       "peopleGroupOfDay": "Peuple du jour"
     },
+    "appPromo": {
+      "title": "Priez pour les {name} depuis votre téléphone",
+      "benefits": {
+        "today": "La prière du jour, prête à ouvrir",
+        "reminders": "Des rappels à l'heure que vous choisissez",
+        "together": "Voyez qui prie avec vous"
+      },
+      "appStore": {
+        "alt": "Télécharger sur l'App Store"
+      },
+      "googlePlay": {
+        "alt": "Disponible sur Google Play"
+      },
+      "qrCaption": "Scannez pour prier",
+      "qrAlt": "Code QR pour télécharger l'application DOXA et prier pour les {name}"
+    },
     "verify": {
       "pageTitle": "Vérifier l'e-mail",
       "verifying": "Vérification de votre e-mail...",

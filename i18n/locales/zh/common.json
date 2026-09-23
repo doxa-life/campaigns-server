@@ -184,6 +184,22 @@
       "prayerPoints": "祷告事项",
       "peopleGroupOfDay": "今日族群"
     },
+    "appPromo": {
+      "title": "在手机上为{name}祷告",
+      "benefits": {
+        "today": "今天的祷告，随时打开",
+        "reminders": "在您选择的时间收到提醒",
+        "together": "看看谁在与您一同祷告"
+      },
+      "appStore": {
+        "alt": "在 App Store 下载"
+      },
+      "googlePlay": {
+        "alt": "在 Google Play 下载"
+      },
+      "qrCaption": "扫码祷告",
+      "qrAlt": "扫描二维码获取 DOXA 应用，为{name}祷告"
+    },
     "verify": {
       "pageTitle": "验证邮箱",
       "verifying": "正在验证您的邮箱...",

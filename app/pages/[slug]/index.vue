@@ -22,14 +22,11 @@
         >
           {{ $t('campaign.signupButton') }}
         </UButton>
-        <!-- Unprefixed /app/<slug> smart link: deep-links into the installed app, otherwise
-             sends the visitor to the store for their device (see server/routes/app/[slug].get.ts). -->
         <UButton
-          :href="`/app/${pg.slug}`"
-          external
           variant="outline"
           size="lg"
           class="rounded-full px-8 ring-primary"
+          @click="scrollToApp"
         >
           {{ $t('campaign.prayInTheApp') }}
         </UButton>
@@ -283,6 +280,9 @@
           </div>
         </div>
       </section>
+
+      <!-- Mobile App Section — the 'pray in the app' CTA at the top of the page scrolls here. -->
+      <AppPromoCard id="app-section" :slug="pg.slug" :name="pg.name" />
 
       <!-- Prayer Signup Section -->
       <section id="signup-section" class="py-12 bg-accented">
@@ -655,6 +655,18 @@ function closeVerificationModal() {
 }
 
 // Scroll to signup section
+function scrollToApp() {
+  trackEvent('app_cta_clicked', {
+    metadata: {
+      people_group_slug: slug
+    }
+  })
+  const section = document.getElementById('app-section')
+  if (section) {
+    section.scrollIntoView({ behavior: 'smooth' })
+  }
+}
+
 function scrollToSignup() {
   trackEvent('signup_cta_clicked', {
     metadata: {

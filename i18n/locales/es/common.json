@@ -184,6 +184,22 @@
       "prayerPoints": "Motivos de Oración",
       "peopleGroupOfDay": "Grupo Étnico del Día"
     },
+    "appPromo": {
+      "title": "Ora por los {name} desde tu teléfono",
+      "benefits": {
+        "today": "La oración de hoy, lista para abrir",
+        "reminders": "Recordatorios a la hora que elijas",
+        "together": "Mira quién está orando contigo"
+      },
+      "appStore": {
+        "alt": "Descargar en App Store"
+      },
+      "googlePlay": {
+        "alt": "Disponible en Google Play"
+      },
+      "qrCaption": "Escanea para orar",
+      "qrAlt": "Código QR para descargar la aplicación DOXA y orar por los {name}"
+    },
     "verify": {
       "pageTitle": "Verificar Correo",
       "verifying": "Verificando su correo electrónico...",
