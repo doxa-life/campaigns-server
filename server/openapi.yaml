@@ -2122,6 +2122,54 @@ paths:
         '404':
           description: Section or version not found
 
+  /api/languages:
+    get:
+      tags:
+        - Glossary
+      summary: List the languages the app registers
+      description: >
+        Public. Every language in `config/languages.ts`, including those not
+        yet switched on, with the bolls.life Bible edition each one quotes.
+        Other DOXA surfaces read editions from here rather than keeping a copy.
+      responses:
+        '200':
+          description: Languages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  languages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          example: fr
+                        name:
+                          type: string
+                          example: French
+                        native_name:
+                          type: string
+                          example: Français
+                        text_direction:
+                          type: string
+                          enum: [ltr, rtl]
+                        bible_id:
+                          type: string
+                          nullable: true
+                          description: bolls.life translation id
+                          example: FRLSG
+                        bible_label:
+                          type: string
+                          nullable: true
+                          description: Display label for the edition; the id when no label is set
+                          example: LSG
+                        enabled:
+                          type: boolean
+                          description: Whether the language is switched on in the app's interface
+
   /api/glossary:
     get:
       tags:
