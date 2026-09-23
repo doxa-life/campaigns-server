@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
     latest_version: latest ?? DEFAULTS.latest_version,
     min_supported_version: min ?? DEFAULTS.min_supported_version,
     ios_app_store_url: iosAppStoreId
-      ? `https://apps.apple.com/app/id${iosAppStoreId}`
+      ? `https://apps.apple.com/app/id/${iosAppStoreId}`
       : null,
     android_play_url: `https://play.google.com/store/apps/details?id=${androidAppStoreId}`
   }

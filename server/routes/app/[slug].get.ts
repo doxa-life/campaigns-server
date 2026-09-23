@@ -38,7 +38,7 @@ export default defineEventHandler((event) => {
     `https://play.google.com/store/apps/details?id=${config.mobileAppAndroidPackage}` +
     `&referrer=${encodeURIComponent(referrer)}`
   const appStoreUrl = config.mobileAppAppleId
-    ? `https://apps.apple.com/app/id${config.mobileAppAppleId}`
+    ? `https://apps.apple.com/app/id/${config.mobileAppAppleId}`
     : null
 
   // Which store? The badge the user clicked wins; otherwise infer from the device.
