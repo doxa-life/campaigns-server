@@ -39,7 +39,7 @@
       },
       "prayerStatus": {
         "title": "祷告状态",
-        "description": "人每天为这个族群祷告。"
+        "description": "人承诺为这个族群祷告。"
       }
     },
     "header": {

@@ -39,7 +39,7 @@
       },
       "prayerStatus": {
         "title": "Gebetsstatus",
-        "description": "Personen beten täglich für diese Volksgruppe."
+        "description": "Personen haben sich verpflichtet, für diese Volksgruppe zu beten."
       }
     },
     "header": {
