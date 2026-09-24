@@ -81,6 +81,23 @@ One line per group with outstanding work, and the next step each needs:
 listed means nothing to onboard. `/admin/onboarding` is the same picture in the
 browser.
 
+**Stop here and wait for the user to confirm.** Discovery only reads. Before
+anything writes, report the outstanding work as a short list: a count of the
+groups, then one line for each kind of work, giving how many groups need it and
+their names. End by asking whether to proceed:
+
+```text
+2 new people groups.
+- 1 (Bashi) needs the Day in the Life prompts
+- 2 (Bashi, Fumbira) need the people group resources
+
+Proceed? (or tell me which ones to do)
+```
+
+Use plain names for the work: record details, Day in the Life prompts,
+description translations, people group resources. Do only what the user
+approves.
+
 **A group created from a field suggestion is missing what an import would have
 set.** Open it at `/admin/people-groups/[id]` and supply:
 
