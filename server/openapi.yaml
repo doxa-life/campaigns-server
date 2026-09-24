@@ -69,6 +69,53 @@ paths:
                     type: string
                     description: Deep link to the Google Play listing
                     example: "https://play.google.com/store/apps/details?id=app.prayer.doxa"
+  /api/admin/people-groups/commitment-languages:
+    get:
+      tags:
+        - Admin
+      summary: Committed people groups with their prayer partners' languages
+      description: |
+        Every non-archived people group with at least one active commitment, with the
+        commitments counted by each subscriber's preferred language. A subscriber with
+        no preferred language counts as `en`. Sorted by `people_committed`, largest first.
+      operationId: getPeopleGroupCommitmentLanguages
+      security:
+        - apiKey: []
+      responses:
+        '200':
+          description: Committed people groups
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  people_groups:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        slug:
+                          type: string
+                          nullable: true
+                        name:
+                          type: string
+                        people_committed:
+                          type: integer
+                          description: Active commitments across all languages
+                        languages:
+                          type: object
+                          description: Active commitments per preferred language code
+                          additionalProperties:
+                            type: integer
+                          example:
+                            en: 12
+                            es: 3
+        '401':
+          description: Unauthorized — missing or invalid API key / JWT
+        '403':
+          description: Requires the people_groups.view permission
   /api/admin/people-groups/bulk-update:
     post:
       tags:
