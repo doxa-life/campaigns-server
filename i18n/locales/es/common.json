@@ -62,6 +62,7 @@
     },
     "pageTitle": "Campaña",
     "signupButton": "Inscríbete para orar",
+    "prayInTheApp": "Ora en la aplicación",
     "loading": "Cargando campaña...",
     "notFound": {
       "title": "Campaña No Encontrada",
@@ -183,19 +184,21 @@
       "prayerPoints": "Motivos de Oración",
       "peopleGroupOfDay": "Grupo Étnico del Día"
     },
-    "mobileApp": {
-      "title": "Descargue la Aplicación Móvil",
-      "description": "Descargue nuestra aplicación móvil para una mejor experiencia de oración",
+    "appPromo": {
+      "title": "Ora por los {name} desde tu teléfono",
+      "benefits": {
+        "today": "La oración de hoy, lista para abrir",
+        "reminders": "Recordatorios a la hora que elijas",
+        "together": "Mira quién está orando contigo"
+      },
       "appStore": {
-        "label": "Descargar en",
-        "store": "App Store",
-        "ariaLabel": "Descargar en App Store"
+        "alt": "Descargar en App Store"
       },
       "googlePlay": {
-        "label": "Disponible en",
-        "store": "Google Play",
-        "ariaLabel": "Disponible en Google Play"
-      }
+        "alt": "Disponible en Google Play"
+      },
+      "qrCaption": "Escanea para orar",
+      "qrAlt": "Código QR para descargar la aplicación DOXA y orar por los {name}"
     },
     "verify": {
       "pageTitle": "Verificar Correo",

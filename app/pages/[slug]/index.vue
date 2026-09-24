@@ -22,19 +22,14 @@
         >
           {{ $t('campaign.signupButton') }}
         </UButton>
-        <SharePopover>
-          <UButton
-            variant="ghost"
-            color="neutral"
-            size="lg"
-            class="share-page-cta rounded-full px-4"
-            icon="i-lucide-share-2"
-            :aria-label="$t('campaign.share.shareThisPage')"
-            :title="$t('campaign.share.shareThisPage')"
-          >
-            {{ $t('campaign.share.shareThisPage') }}
-          </UButton>
-        </SharePopover>
+        <UButton
+          variant="outline"
+          size="lg"
+          class="rounded-full px-8 ring-primary"
+          @click="scrollToApp"
+        >
+          {{ $t('campaign.prayInTheApp') }}
+        </UButton>
       </div>
 
       <!-- People Group Section -->
@@ -286,6 +281,9 @@
         </div>
       </section>
 
+      <!-- Mobile App Section — the 'pray in the app' CTA at the top of the page scrolls here. -->
+      <AppPromoCard id="app-section" :slug="pg.slug" :name="pg.name" />
+
       <!-- Prayer Signup Section -->
       <section id="signup-section" class="py-12 bg-accented">
         <div class="max-w-5xl mx-auto px-4">
@@ -454,36 +452,6 @@
             >
               {{ $t('campaign.prayerFuel.button') }}
             </UButton>
-          </div>
-        </div>
-      </section>
-
-      <!-- Mobile App Links Section — shown only when the URL carries ?showApp=true.
-           Both badges point at the unprefixed /app/<slug> smart link, which deep-links
-           into the installed app or falls back to the right store (see
-           server/routes/app/[slug].get.ts). -->
-      <section v-if="route.query.showApp === 'true'" class="py-12 bg-elevated">
-        <div class="max-w-3xl mx-auto px-4">
-          <div class="text-center">
-            <h2 class="text-2xl font-bold uppercase tracking-wide text-default mb-3">{{ $t('campaign.mobileApp.title') }}</h2>
-            <p class="text-muted mb-6">
-              {{ $t('campaign.mobileApp.description') }}
-            </p>
-
-            <div class="flex gap-4 justify-center flex-wrap">
-              <UButton :href="`/app/${pg.slug}?store=ios`" external size="lg" class="rounded-full px-6" :aria-label="$t('campaign.mobileApp.appStore.ariaLabel')">
-                <div class="flex flex-col items-start text-left min-w-35">
-                  <span class="text-xs opacity-80">{{ $t('campaign.mobileApp.appStore.label') }}</span>
-                  <span class="text-lg font-semibold">{{ $t('campaign.mobileApp.appStore.store') }}</span>
-                </div>
-              </UButton>
-              <UButton :href="`/app/${pg.slug}?store=android`" external size="lg" class="rounded-full px-6" :aria-label="$t('campaign.mobileApp.googlePlay.ariaLabel')">
-                <div class="flex flex-col items-start text-left min-w-35">
-                  <span class="text-xs opacity-80">{{ $t('campaign.mobileApp.googlePlay.label') }}</span>
-                  <span class="text-lg font-semibold">{{ $t('campaign.mobileApp.googlePlay.store') }}</span>
-                </div>
-              </UButton>
-            </div>
           </div>
         </div>
       </section>
@@ -687,6 +655,18 @@ function closeVerificationModal() {
 }
 
 // Scroll to signup section
+function scrollToApp() {
+  trackEvent('app_cta_clicked', {
+    metadata: {
+      people_group_slug: slug
+    }
+  })
+  const section = document.getElementById('app-section')
+  if (section) {
+    section.scrollIntoView({ behavior: 'smooth' })
+  }
+}
+
 function scrollToSignup() {
   trackEvent('signup_cta_clicked', {
     metadata: {

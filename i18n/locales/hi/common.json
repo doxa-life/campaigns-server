@@ -62,6 +62,7 @@
     },
     "pageTitle": "अभियान",
     "signupButton": "प्रार्थना के लिए साइन अप करें",
+    "prayInTheApp": "ऐप में प्रार्थना करें",
     "loading": "अभियान लोड हो रहा है...",
     "notFound": {
       "title": "अभियान नहीं मिला",
@@ -183,19 +184,21 @@
       "prayerPoints": "प्रार्थना विषय",
       "peopleGroupOfDay": "आज का जनसमूह"
     },
-    "mobileApp": {
-      "title": "मोबाइल ऐप प्राप्त करें",
-      "description": "बेहतर प्रार्थना अनुभव के लिए हमारा मोबाइल ऐप डाउनलोड करें",
+    "appPromo": {
+      "title": "अपने फ़ोन पर {name} के लिए प्रार्थना करें",
+      "benefits": {
+        "today": "आज की प्रार्थना, खोलने के लिए तैयार",
+        "reminders": "आपके चुने हुए समय पर रिमाइंडर",
+        "together": "देखें कौन आपके साथ प्रार्थना कर रहा है"
+      },
       "appStore": {
-        "label": "पर डाउनलोड करें",
-        "store": "App Store",
-        "ariaLabel": "App Store पर डाउनलोड करें"
+        "alt": "App Store पर डाउनलोड करें"
       },
       "googlePlay": {
-        "label": "इसे प्राप्त करें",
-        "store": "Google Play",
-        "ariaLabel": "Google Play पर प्राप्त करें"
-      }
+        "alt": "Google Play पर प्राप्त करें"
+      },
+      "qrCaption": "प्रार्थना के लिए स्कैन करें",
+      "qrAlt": "DOXA ऐप पाने और {name} के लिए प्रार्थना करने हेतु QR कोड"
     },
     "verify": {
       "pageTitle": "ईमेल सत्यापित करें",

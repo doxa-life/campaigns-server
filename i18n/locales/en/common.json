@@ -62,6 +62,7 @@
     },
     "pageTitle": "Campaign",
     "signupButton": "Sign up to pray",
+    "prayInTheApp": "Pray in the app",
     "loading": "Loading campaign...",
     "notFound": {
       "title": "Campaign Not Found",
@@ -183,19 +184,21 @@
       "prayerPoints": "Prayer Points",
       "peopleGroupOfDay": "People Group of the Day"
     },
-    "mobileApp": {
-      "title": "Get the Mobile App",
-      "description": "Download our mobile app for a better prayer experience",
+    "appPromo": {
+      "title": "Pray for the {name} on your phone",
+      "benefits": {
+        "today": "Today's prayer, ready to open",
+        "reminders": "Reminders at the time you choose",
+        "together": "See who is praying with you"
+      },
       "appStore": {
-        "label": "Download on",
-        "store": "App Store",
-        "ariaLabel": "Download on App Store"
+        "alt": "Download on the App Store"
       },
       "googlePlay": {
-        "label": "Get it on",
-        "store": "Google Play",
-        "ariaLabel": "Get it on Google Play"
-      }
+        "alt": "Get it on Google Play"
+      },
+      "qrCaption": "Scan to pray",
+      "qrAlt": "QR code to get the DOXA app and pray for the {name}"
     },
     "verify": {
       "pageTitle": "Verify Email",

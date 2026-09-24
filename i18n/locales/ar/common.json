@@ -62,6 +62,7 @@
     },
     "pageTitle": "الحملة",
     "signupButton": "سجّل للصلاة",
+    "prayInTheApp": "صلّ في التطبيق",
     "loading": "جارٍ تحميل الحملة...",
     "notFound": {
       "title": "الحملة غير موجودة",
@@ -183,19 +184,21 @@
       "prayerPoints": "نقاط الصلاة",
       "peopleGroupOfDay": "الجماعة العرقية لهذا اليوم"
     },
-    "mobileApp": {
-      "title": "احصل على تطبيق الهاتف",
-      "description": "حمّل تطبيق الهاتف لتجربة صلاة أفضل",
+    "appPromo": {
+      "title": "صلِّ من أجل {name} من هاتفك",
+      "benefits": {
+        "today": "صلاة اليوم جاهزة للفتح",
+        "reminders": "تذكيرات في الوقت الذي تختاره",
+        "together": "اعرف من يصلّي معك"
+      },
       "appStore": {
-        "label": "حمّل من",
-        "store": "آب ستور",
-        "ariaLabel": "حمّل من آب ستور"
+        "alt": "حمّل من App Store"
       },
       "googlePlay": {
-        "label": "احصل عليه من",
-        "store": "جوجل بلاي",
-        "ariaLabel": "احصل عليه من جوجل بلاي"
-      }
+        "alt": "احصل عليه من Google Play"
+      },
+      "qrCaption": "امسح الرمز للصلاة",
+      "qrAlt": "رمز QR للحصول على تطبيق DOXA والصلاة من أجل {name}"
     },
     "verify": {
       "pageTitle": "تحقق من البريد الإلكتروني",
