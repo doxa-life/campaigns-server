@@ -73,6 +73,23 @@ export interface UpdatePeopleGroupData {
   tags?: string[]
 }
 
+/** Asks the resource pipeline to rebuild the prayer-card bundles without an archived group; the pipeline clears it. */
+export const BUNDLE_REMOVAL_TAG = 'needs:bundle-removal'
+
+/**
+ * The tags a status change leaves a group with: archiving requests its removal from
+ * the bundles, and reactivating withdraws a request the pipeline has not acted on.
+ */
+function tagsForStatusChange(current: string[], from: string | null, to: string | null): string[] {
+  if (to === 'archived' && from !== 'archived') {
+    return current.includes(BUNDLE_REMOVAL_TAG) ? current : [...current, BUNDLE_REMOVAL_TAG]
+  }
+  if (from === 'archived' && to !== 'archived') {
+    return current.filter(t => t !== BUNDLE_REMOVAL_TAG)
+  }
+  return current
+}
+
 function normalizeTags(input: unknown): string[] {
   if (!Array.isArray(input)) return []
   const seen = new Set<string>()
@@ -263,8 +280,10 @@ export class PeopleGroupService {
     }
     if (data.people_praying !== undefined) fields.push(this.sql`people_praying = ${data.people_praying}`)
     if (data.daily_prayer_duration !== undefined) fields.push(this.sql`daily_prayer_duration = ${data.daily_prayer_duration}`)
-    if (data.tags !== undefined) {
-      const tagsArr = normalizeTags(data.tags)
+    const statusChanges = data.status !== undefined && data.status !== peopleGroup.status
+    if (data.tags !== undefined || statusChanges) {
+      let tagsArr = normalizeTags(data.tags !== undefined ? data.tags : peopleGroup.tags)
+      if (statusChanges) tagsArr = tagsForStatusChange(tagsArr, peopleGroup.status, data.status ?? null)
       fields.push(this.sql`tags = ${this.sql.json(tagsArr)}`)
     }
 

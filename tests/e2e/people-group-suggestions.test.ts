@@ -665,9 +665,10 @@ describe('People Group Suggestions (/updates)', async () => {
       await $fetch(`/api/admin/people-group-reports/${res.id}/approve`, { method: 'POST', body: {}, ...approver1.auth })
       await $fetch(`/api/admin/people-group-reports/${res.id}/approve`, { method: 'POST', body: {}, ...approver2.auth })
 
-      const [group] = await sql`SELECT status, metadata FROM people_groups WHERE id = ${removable!.id}`
+      const [group] = await sql`SELECT status, metadata, tags FROM people_groups WHERE id = ${removable!.id}`
       expect(group!.status).toBe('archived')
       expect(group!.metadata?.reason_unlisted).toBe('no_longer_exists')
+      expect(group!.tags).toContain('needs:bundle-removal')
     })
   })
 

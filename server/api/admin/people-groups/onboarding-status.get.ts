@@ -1,5 +1,6 @@
 import { getSql } from '#server/database/db'
 import { ENABLED_LANGUAGE_CODES } from '../../../../config/languages'
+import { BUNDLE_REMOVAL_TAG } from '#server/database/people-groups'
 
 interface OnboardingRow {
   id: number
@@ -60,10 +61,29 @@ export default defineEventHandler(async (event): Promise<{ peopleGroups: Onboard
       GROUP BY library_id
     ) lc ON lc.library_id = lib.id
     WHERE COALESCE(pg.status, 'active') = 'active'
+       OR pg.tags @> ${sql.json([BUNDLE_REMOVAL_TAG])}
   `
 
   const result: OnboardingRow[] = []
   for (const r of rows) {
+    // An archived group is listed only for its bundle removal; its setup work no longer matters.
+    if (r.status === 'archived') {
+      result.push({
+        id: r.id,
+        name: r.name,
+        slug: r.slug,
+        country_code: r.country_code,
+        status: r.status,
+        engagement_status: r.engagement_status,
+        created_at: r.created_at,
+        prompts_pending: false,
+        translation_pending_locales: [],
+        needs_tags: [BUNDLE_REMOVAL_TAG],
+        tags: r.tags || [],
+      })
+      continue
+    }
+
     const promptsPending = !r.has_day_in_life || Number(r.content_count) < 365
     const descriptions = r.descriptions || {}
     // Only a group with an English description has anything to translate.

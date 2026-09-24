@@ -69,9 +69,10 @@
               <UBadge
                 v-for="tag in row.needs_tags"
                 :key="tag"
-                color="warning"
+                :color="tag === BUNDLE_REMOVAL_TAG ? 'error' : 'warning'"
                 variant="subtle"
               >
+                <UIcon v-if="tag === BUNDLE_REMOVAL_TAG" name="i-lucide-archive-x" />
                 {{ tag }}
               </UBadge>
             </div>
@@ -87,6 +88,8 @@ definePageMeta({
   layout: 'admin',
   middleware: 'auth'
 })
+
+const BUNDLE_REMOVAL_TAG = 'needs:bundle-removal'
 
 interface OnboardingRow {
   id: number
@@ -134,15 +137,21 @@ const rows = computed(() => data.value?.peopleGroups || [])
 
 const activeFilter = ref<string | null>(null)
 
+function needsAssets(row: OnboardingRow) {
+  return row.needs_tags.some(t => t !== BUNDLE_REMOVAL_TAG)
+}
+
 const filterChips = computed(() => {
   const all = rows.value
   const promptsCount = all.filter(r => r.prompts_pending).length
   const translationCount = all.filter(r => r.translation_pending_locales.length > 0).length
-  const needsCount = all.filter(r => r.needs_tags.length > 0).length
+  const needsCount = all.filter(r => needsAssets(r)).length
+  const removalCount = all.filter(r => r.needs_tags.includes(BUNDLE_REMOVAL_TAG)).length
   return [
     { key: 'prompts', label: 'Day in the Life prompts pending', count: promptsCount },
     { key: 'translation', label: 'Translation pending', count: translationCount },
     { key: 'needs', label: 'Needs assets', count: needsCount },
+    { key: 'removal', label: 'Remove from bundle', count: removalCount },
   ]
 })
 
@@ -150,7 +159,8 @@ const filteredRows = computed(() => {
   if (!activeFilter.value) return rows.value
   if (activeFilter.value === 'prompts') return rows.value.filter(r => r.prompts_pending)
   if (activeFilter.value === 'translation') return rows.value.filter(r => r.translation_pending_locales.length > 0)
-  if (activeFilter.value === 'needs') return rows.value.filter(r => r.needs_tags.length > 0)
+  if (activeFilter.value === 'needs') return rows.value.filter(r => needsAssets(r))
+  if (activeFilter.value === 'removal') return rows.value.filter(r => r.needs_tags.includes(BUNDLE_REMOVAL_TAG))
   return rows.value
 })
 </script>

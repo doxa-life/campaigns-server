@@ -122,4 +122,73 @@ describe('People Groups API', async () => {
     })
   })
 
+  describe('bundle removal tag', () => {
+    async function createGroup(tags: string[]) {
+      const [row] = await sql`
+        INSERT INTO people_groups (name, slug, status, tags)
+        VALUES ('Test Bundle Group', ${'test-bundle-' + Math.random().toString(36).slice(2, 10)}, 'active', ${sql.json(tags)})
+        RETURNING id
+      `
+      return row!.id as number
+    }
+
+    async function tagsOf(id: number): Promise<string[]> {
+      const [row] = await sql`SELECT tags FROM people_groups WHERE id = ${id}`
+      return row!.tags
+    }
+
+    it('archiving a group requests its removal from the bundle and keeps its other tags', async () => {
+      const id = await createGroup(['imb'])
+      await $fetch(`/api/admin/people-groups/${id}`, { method: 'PUT', body: { status: 'archived' }, ...adminAuth })
+      expect(await tagsOf(id)).toEqual(['imb', 'needs:bundle-removal'])
+    })
+
+    it('adds the tag to tags sent alongside the status change', async () => {
+      const id = await createGroup([])
+      await $fetch(`/api/admin/people-groups/${id}`, {
+        method: 'PUT',
+        body: { status: 'archived', tags: ['sent'] },
+        ...adminAuth
+      })
+      expect(await tagsOf(id)).toEqual(['sent', 'needs:bundle-removal'])
+    })
+
+    it('reactivating a group withdraws the request', async () => {
+      const id = await createGroup(['imb'])
+      await $fetch(`/api/admin/people-groups/${id}`, { method: 'PUT', body: { status: 'archived' }, ...adminAuth })
+      await $fetch(`/api/admin/people-groups/${id}`, { method: 'PUT', body: { status: 'active' }, ...adminAuth })
+      expect(await tagsOf(id)).toEqual(['imb'])
+    })
+
+    it('leaves the tag cleared when an archived group is saved again', async () => {
+      const id = await createGroup([])
+      await $fetch(`/api/admin/people-groups/${id}`, { method: 'PUT', body: { status: 'archived' }, ...adminAuth })
+      await $fetch(`/api/admin/people-groups/${id}`, { method: 'PUT', body: { tags: [] }, ...adminAuth })
+      await $fetch(`/api/admin/people-groups/${id}`, { method: 'PUT', body: { status: 'archived', name: 'Renamed' }, ...adminAuth })
+      expect(await tagsOf(id)).toEqual([])
+    })
+
+    it('lists an archived group on the onboarding status with only its removal tag', async () => {
+      const id = await createGroup(['needs:qr-code'])
+      await $fetch(`/api/admin/people-groups/${id}`, { method: 'PUT', body: { status: 'archived' }, ...adminAuth })
+
+      const response = await $fetch<{ peopleGroups: any[] }>('/api/admin/people-groups/onboarding-status', adminAuth)
+      const row = response.peopleGroups.find(r => r.id === id)
+      expect(row).toBeDefined()
+      expect(row.needs_tags).toEqual(['needs:bundle-removal'])
+      expect(row.prompts_pending).toBe(false)
+      expect(row.translation_pending_locales).toEqual([])
+      expect(row.tags).toEqual(['needs:qr-code', 'needs:bundle-removal'])
+    })
+
+    it('drops an archived group from the onboarding status once the tag is cleared', async () => {
+      const id = await createGroup([])
+      await $fetch(`/api/admin/people-groups/${id}`, { method: 'PUT', body: { status: 'archived' }, ...adminAuth })
+      await $fetch(`/api/admin/people-groups/${id}`, { method: 'PUT', body: { tags: [] }, ...adminAuth })
+
+      const response = await $fetch<{ peopleGroups: any[] }>('/api/admin/people-groups/onboarding-status', adminAuth)
+      expect(response.peopleGroups.find(r => r.id === id)).toBeUndefined()
+    })
+  })
+
 })
