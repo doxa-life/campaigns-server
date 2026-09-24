@@ -62,6 +62,7 @@
     },
     "pageTitle": "Campanie",
     "signupButton": "Înscrie-te pentru rugăciune",
+    "prayInTheApp": "Roagă-te în aplicație",
     "loading": "Se încarcă campania...",
     "notFound": {
       "title": "Campanie negăsită",
@@ -183,19 +184,21 @@
       "prayerPoints": "Motive de rugăciune",
       "peopleGroupOfDay": "Grupul etnolingvistic al zilei"
     },
-    "mobileApp": {
-      "title": "Descarcă aplicația mobilă",
-      "description": "Descarcă aplicația noastră mobilă pentru o experiență mai bună de rugăciune",
+    "appPromo": {
+      "title": "Roagă-te pentru {name} de pe telefonul tău",
+      "benefits": {
+        "today": "Rugăciunea de astăzi, gata de deschis",
+        "reminders": "Mementouri la ora pe care o alegi",
+        "together": "Vezi cine se roagă alături de tine"
+      },
       "appStore": {
-        "label": "Descarcă de pe",
-        "store": "App Store",
-        "ariaLabel": "Descarcă de pe App Store"
+        "alt": "Descarcă de pe App Store"
       },
       "googlePlay": {
-        "label": "Disponibil pe",
-        "store": "Google Play",
-        "ariaLabel": "Disponibil pe Google Play"
-      }
+        "alt": "Disponibil pe Google Play"
+      },
+      "qrCaption": "Scanează ca să te rogi",
+      "qrAlt": "Cod QR pentru a obține aplicația DOXA și a te ruga pentru {name}"
     },
     "verify": {
       "pageTitle": "Verifică emailul",

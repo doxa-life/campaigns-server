@@ -62,6 +62,7 @@
     },
     "pageTitle": "Кампания",
     "signupButton": "Присоединиться к молитве",
+    "prayInTheApp": "Молиться в приложении",
     "loading": "Загрузка кампании...",
     "notFound": {
       "title": "Кампания не найдена",
@@ -183,19 +184,21 @@
       "prayerPoints": "Молитвенные темы",
       "peopleGroupOfDay": "Народ дня"
     },
-    "mobileApp": {
-      "title": "Скачайте мобильное приложение",
-      "description": "Скачайте наше мобильное приложение для лучшего опыта молитвы",
+    "appPromo": {
+      "title": "Молитесь за {name} со своего телефона",
+      "benefits": {
+        "today": "Сегодняшняя молитва — сразу под рукой",
+        "reminders": "Напоминания в выбранное вами время",
+        "together": "Видно, кто молится вместе с вами"
+      },
       "appStore": {
-        "label": "Загрузить в",
-        "store": "App Store",
-        "ariaLabel": "Загрузить в App Store"
+        "alt": "Загрузить в App Store"
       },
       "googlePlay": {
-        "label": "Доступно в",
-        "store": "Google Play",
-        "ariaLabel": "Доступно в Google Play"
-      }
+        "alt": "Доступно в Google Play"
+      },
+      "qrCaption": "Отсканируйте, чтобы помолиться",
+      "qrAlt": "QR-код, чтобы установить приложение DOXA и помолиться за {name}"
     },
     "verify": {
       "pageTitle": "Подтверждение почты",

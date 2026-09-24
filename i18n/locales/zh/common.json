@@ -62,6 +62,7 @@
     },
     "pageTitle": "活动",
     "signupButton": "注册祷告",
+    "prayInTheApp": "在应用中祷告",
     "loading": "正在加载活动...",
     "notFound": {
       "title": "未找到活动",
@@ -183,19 +184,21 @@
       "prayerPoints": "祷告事项",
       "peopleGroupOfDay": "今日族群"
     },
-    "mobileApp": {
-      "title": "获取手机应用",
-      "description": "下载我们的手机应用，获得更好的祷告体验",
+    "appPromo": {
+      "title": "在手机上为{name}祷告",
+      "benefits": {
+        "today": "今天的祷告，随时打开",
+        "reminders": "在您选择的时间收到提醒",
+        "together": "看看谁在与您一同祷告"
+      },
       "appStore": {
-        "label": "下载于",
-        "store": "App Store",
-        "ariaLabel": "在App Store下载"
+        "alt": "在 App Store 下载"
       },
       "googlePlay": {
-        "label": "下载于",
-        "store": "Google Play",
-        "ariaLabel": "在Google Play下载"
-      }
+        "alt": "在 Google Play 下载"
+      },
+      "qrCaption": "扫码祷告",
+      "qrAlt": "扫描二维码获取 DOXA 应用，为{name}祷告"
     },
     "verify": {
       "pageTitle": "验证邮箱",
