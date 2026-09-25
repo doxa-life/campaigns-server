@@ -84,6 +84,32 @@ interface TranslationMapping {
   remaps?: ChapterRemap[]
 }
 
+// Chapters where Bibles following the Hebrew verse numbering split a chapter
+// one or more verses away from the English numbering.
+const HEBREW_CHAPTER_BREAKS: ChapterRemap[] = [
+  // English 1 Samuel 23:29 → 24:1; 24:1-22 → 24:2-23
+  { book: '1SA', fromChapter: 23, fromVerseStart: 29, toChapter: 24, verseOffset: -28 },
+  { book: '1SA', fromChapter: 24, toChapter: 24, verseOffset: 1 },
+  // English Exodus 8:1-4 → 7:26-29; 8:5-32 → 8:1-28
+  { book: 'EXO', fromChapter: 8, fromVerseEnd: 4, toChapter: 7, verseOffset: 25 },
+  { book: 'EXO', fromChapter: 8, fromVerseStart: 5, toChapter: 8, verseOffset: -4 },
+  // English Hosea 1:10-11 → 2:1-2; 2:1-23 → 2:3-25
+  { book: 'HOS', fromChapter: 1, fromVerseStart: 10, toChapter: 2, verseOffset: -9 },
+  { book: 'HOS', fromChapter: 2, toChapter: 2, verseOffset: 2 },
+  // English Isaiah 9:1 → 8:23; 9:2-21 → 9:1-20
+  { book: 'ISA', fromChapter: 9, fromVerseEnd: 1, toChapter: 8, verseOffset: 22 },
+  { book: 'ISA', fromChapter: 9, fromVerseStart: 2, toChapter: 9, verseOffset: -1 },
+  // English Isaiah 64:1 → 63:19; 64:2-12 → 64:1-11
+  { book: 'ISA', fromChapter: 64, fromVerseEnd: 1, toChapter: 63, verseOffset: 18 },
+  { book: 'ISA', fromChapter: 64, fromVerseStart: 2, toChapter: 64, verseOffset: -1 },
+  // English Jonah 1:17 → 2:1; 2:1-10 → 2:2-11
+  { book: 'JON', fromChapter: 1, fromVerseStart: 17, toChapter: 2, verseOffset: -16 },
+  { book: 'JON', fromChapter: 2, toChapter: 2, verseOffset: 1 },
+  // English Micah 5:1 → 4:14; 5:2-15 → 5:1-14
+  { book: 'MIC', fromChapter: 5, fromVerseEnd: 1, toChapter: 4, verseOffset: 13 },
+  { book: 'MIC', fromChapter: 5, fromVerseStart: 2, toChapter: 5, verseOffset: -1 },
+]
+
 const TRANSLATION_MAPPINGS: Record<string, TranslationMapping> = {
   SYNOD: {
     // Psalms 10-146: English psalm N = SYNOD psalm N-1
@@ -92,6 +118,20 @@ const TRANSLATION_MAPPINGS: Record<string, TranslationMapping> = {
     remaps: [
       // English Romans 16:25-27 → SYNOD Romans 14:24-26
       { book: 'ROM', fromChapter: 16, fromVerseStart: 25, toChapter: 14, verseOffset: -1 },
+      // English Joshua 6:1 → 5:16; 6:2-27 → 6:1-26
+      { book: 'JOS', fromChapter: 6, fromVerseEnd: 1, toChapter: 5, verseOffset: 15 },
+      { book: 'JOS', fromChapter: 6, fromVerseStart: 2, toChapter: 6, verseOffset: -1 },
+      { book: '1SA', fromChapter: 23, fromVerseStart: 29, toChapter: 24, verseOffset: -28 },
+      { book: '1SA', fromChapter: 24, toChapter: 24, verseOffset: 1 },
+      // SYNOD Proverbs 18:8 is an added verse, so English 18:8-24 → 18:9-25
+      { book: 'PRO', fromChapter: 18, fromVerseStart: 8, toChapter: 18, verseOffset: 1 },
+      // SYNOD Daniel 3:24-90 is the added Song of the Three: English 3:24-30 → 3:91-97
+      { book: 'DAN', fromChapter: 3, fromVerseStart: 24, toChapter: 3, verseOffset: 67 },
+      // English Daniel 4:1-3 → 3:98-100; 4:4-37 → 4:1-34
+      { book: 'DAN', fromChapter: 4, fromVerseEnd: 3, toChapter: 3, verseOffset: 97 },
+      { book: 'DAN', fromChapter: 4, fromVerseStart: 4, toChapter: 4, verseOffset: -3 },
+      { book: 'JON', fromChapter: 1, fromVerseStart: 17, toChapter: 2, verseOffset: -16 },
+      { book: 'JON', fromChapter: 2, toChapter: 2, verseOffset: 1 },
     ]
   },
   BDS: {
@@ -111,15 +151,25 @@ const TRANSLATION_MAPPINGS: Record<string, TranslationMapping> = {
       { book: 'JOL', fromChapter: 2, fromVerseStart: 28, toChapter: 3, verseOffset: -27 },
       { book: 'JOL', fromChapter: 3, toChapter: 4, verseOffset: 0 },
       { book: 'MAL', fromChapter: 4, toChapter: 3, verseOffset: 18 },
+      ...HEBREW_CHAPTER_BREAKS,
+      // English Daniel 4:1-3 → 3:31-33; 4:4-37 → 4:1-34
+      { book: 'DAN', fromChapter: 4, fromVerseEnd: 3, toChapter: 3, verseOffset: 30 },
+      { book: 'DAN', fromChapter: 4, fromVerseStart: 4, toChapter: 4, verseOffset: -3 },
+      // English Daniel 5:31 → 6:1; 6:1-28 → 6:2-29
+      { book: 'DAN', fromChapter: 5, fromVerseStart: 31, toChapter: 6, verseOffset: -30 },
+      { book: 'DAN', fromChapter: 6, toChapter: 6, verseOffset: 1 },
+      // English Nehemiah 4:1-6 → 3:33-38; 4:7-23 → 4:1-17
+      { book: 'NEH', fromChapter: 4, fromVerseEnd: 6, toChapter: 3, verseOffset: 32 },
+      { book: 'NEH', fromChapter: 4, fromVerseStart: 7, toChapter: 4, verseOffset: -6 },
+      // English Zechariah 1:18-21 → 2:1-4; 2:1-13 → 2:5-17
+      { book: 'ZEC', fromChapter: 1, fromVerseStart: 18, toChapter: 2, verseOffset: -17 },
+      { book: 'ZEC', fromChapter: 2, toChapter: 2, verseOffset: 4 },
     ]
   },
   FRLSG: {
     psalmVerseOffset: true,
-    remaps: [
-      { book: 'JOL', fromChapter: 2, fromVerseStart: 28, toChapter: 3, verseOffset: -27 },
-      { book: 'JOL', fromChapter: 3, toChapter: 4, verseOffset: 0 },
-      { book: 'MAL', fromChapter: 4, toChapter: 3, verseOffset: 18 },
-    ]
+    // Joel and Malachi keep the English chapter breaks in this edition
+    remaps: HEBREW_CHAPTER_BREAKS,
   },
 }
 
@@ -326,6 +376,22 @@ async function fetchFilteredVerses(params: FetchVerseParams): Promise<BollsVerse
   const bookNumber = USFM_TO_BOOK_NUMBER[bookId]
   if (!bookNumber) {
     throw new Error(`Unknown USFM book code: "${bookId}"`)
+  }
+
+  // A remapped range can cross a chapter break (English Isaiah 9:1-2 → 8:23, 9:1),
+  // so each verse is mapped on its own.
+  const hasRemap = TRANSLATION_MAPPINGS[bibleId]?.remaps?.some(r => r.book === bookId && r.fromChapter === chapter)
+  if (hasRemap && verseStart !== undefined) {
+    const found: BollsVerse[] = []
+    for (let verse = verseStart; verse <= (verseEnd ?? verseStart); verse++) {
+      const target = remapReference(bibleId, bookId, chapter, verse, verse)
+      const match = (await fetchChapter(bibleId, bookNumber, target.chapter)).find(v => v.verse === target.verseStart)
+      if (match) found.push(match)
+    }
+    if (found.length === 0) {
+      throw new Error('No verse data returned from Bolls Bible')
+    }
+    return found
   }
 
   const remapped = remapReference(bibleId, bookId, chapter, verseStart, verseEnd)
