@@ -368,7 +368,7 @@
   "prayerFuel": {
     "pageTitle": "Gebetsinhalt",
     "title": "Heutiges Gebet",
-    "prayingWithYou": "{count} Person betet jetzt mit Ihnen | {count} Personen beten jetzt mit Ihnen",
+    "prayingWithYou": "{count} Person betet jetzt für die unberührten Volksgruppen | {count} Personen beten jetzt für die unberührten Volksgruppen",
     "loading": "Heutiges Gebet wird geladen...",
     "backTo": "Zurück zu {campaign}",
     "backToToday": "Zurück zum heutigen Gebet",

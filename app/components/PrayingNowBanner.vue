@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// "X people praying with you" — a global, site-wide count of prayer sessions
+// "X praying for the unengaged now" — a global, site-wide count of prayer sessions
 // currently in progress, shown at the top of the prayer page.
 //
 // Fetched once on load, not polled: /api/people-groups/statistics is served
@@ -20,7 +20,7 @@ const { data } = useFetch<{ praying_now?: number }>('/api/people-groups/statisti
 })
 
 // Hidden at zero and on any failure: an absent line reads better than
-// "0 people praying with you".
+// "0 praying for the unengaged now".
 const prayingNow = computed(() => {
   const count = data.value?.praying_now
   return typeof count === 'number' && count > 0 ? count : null

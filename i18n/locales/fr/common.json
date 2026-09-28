@@ -368,7 +368,7 @@
   "prayerFuel": {
     "pageTitle": "Contenu de prière",
     "title": "Prière du jour",
-    "prayingWithYou": "{count} personne prie avec vous en ce moment | {count} personnes prient avec vous en ce moment",
+    "prayingWithYou": "{count} personne prie en ce moment pour les peuples non engagés | {count} personnes prient en ce moment pour les peuples non engagés",
     "loading": "Chargement de la prière du jour...",
     "backTo": "Retour à {campaign}",
     "backToToday": "Retour à la prière d'aujourd'hui",
