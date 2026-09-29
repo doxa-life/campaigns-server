@@ -18,6 +18,12 @@
             color="neutral"
             @click="openApproversModal"
           >Approvers</UButton>
+          <UButton
+            icon="i-lucide-download"
+            variant="outline"
+            color="neutral"
+            @click="() => { showExportModal = true }"
+          >Export CSV</UButton>
           <UButton icon="i-lucide-plus" @click="openCreateModal">New Report</UButton>
         </div>
       </div>
@@ -495,6 +501,25 @@
     </template>
   </UModal>
 
+  <!-- Export CSV Modal -->
+  <UModal v-model:open="showExportModal" title="Export Reports to CSV">
+    <template #body>
+      <div class="flex flex-col gap-3 text-sm">
+        <ul class="list-disc pl-5 space-y-1">
+          <li>One row per report ({{ filteredReports.length }} matching the current filter)</li>
+          <li>Submitter</li>
+          <li>Verifier</li>
+          <li>New or changed values, one column per field — empty when the value did not change</li>
+          <li>Notes</li>
+        </ul>
+        <div class="flex justify-end gap-2 mt-2">
+          <UButton variant="outline" @click="() => { showExportModal = false }">Cancel</UButton>
+          <UButton icon="i-lucide-download" @click="exportCsv">Download CSV</UButton>
+        </div>
+      </div>
+    </template>
+  </UModal>
+
   <!-- Delete Confirmation Modal -->
   <UModal v-model:open="showDeleteModal" title="Delete Report">
     <template #body>
@@ -779,6 +804,7 @@ const linking = ref(false)
 // Modals
 const showAcceptModal = ref(false)
 const showDeleteModal = ref(false)
+const showExportModal = ref(false)
 const showCreateModal = ref(false)
 const showFieldPicker = ref(false)
 const showLinkModal = ref(false)
@@ -1390,6 +1416,16 @@ async function denyReport() {
   } finally {
     denying.value = false
   }
+}
+
+// Exports the reports matching the current status filter and search.
+function exportCsv() {
+  const params = new URLSearchParams()
+  if (filterStatus.value) params.set('status', filterStatus.value)
+  if (searchQuery.value) params.set('search', searchQuery.value)
+  const qs = params.toString()
+  window.open(`/api/admin/people-group-reports/export-csv${qs ? `?${qs}` : ''}`, '_blank')
+  showExportModal.value = false
 }
 
 function confirmDelete() {
