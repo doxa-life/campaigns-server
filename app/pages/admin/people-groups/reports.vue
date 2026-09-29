@@ -33,7 +33,7 @@
       <CrmListPanel
         v-model="searchQuery"
         search-placeholder="Search by people group or reporter..."
-        :total-count="reports.length"
+        :total-count="filteredReports.length"
       >
         <template #filters>
           <USelectMenu
@@ -507,6 +507,7 @@
       <div class="flex flex-col gap-3 text-sm">
         <ul class="list-disc pl-5 space-y-1">
           <li>One row per report ({{ filteredReports.length }} matching the current filter)</li>
+          <li>Status</li>
           <li>Submitter</li>
           <li>Verifier</li>
           <li>New or changed values, one column per field — empty when the value did not change</li>
