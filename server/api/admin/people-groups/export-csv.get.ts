@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
   const fields = ['id', 'name', 'slug', ...allFields.map(f => INTERNAL_TO_ALIAS[f.key] || f.key)]
 
   const rows = peopleGroups.map(pg => {
-    const formatted = formatPeopleGroup(pg, { fields: 'all', lang: 'en' })
+    const formatted = formatPeopleGroup(pg, { fields: 'all', lang: 'en', includePrivate: true })
     return fields.map(key => escapeCsvField(flattenValue(formatted[key]))).join(',')
   })
 

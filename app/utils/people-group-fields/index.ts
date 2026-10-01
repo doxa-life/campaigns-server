@@ -67,6 +67,9 @@ import { field as imbRegOfPeople25 } from './fields/imb-reg-of-people-25'
 
 // Believers count (engagement)
 import { field as believersCount } from './fields/believers-count'
+import { field as baptismsCount } from './fields/baptisms-count'
+import { field as churchesCount } from './fields/churches-count'
+import { field as engagementVerifiedBy } from './fields/engagement-verified-by'
 
 // Resources fields
 import { field as imbBibleAvailable } from './fields/imb-bible-available'
@@ -129,9 +132,12 @@ export const allFields: FieldDefinition[] = [
   imbEvangelicalLevel,
   imbEngagementStatus,
   reasonEngaged,
+  engagementVerifiedBy,
   imbCongregationExisting,
   imbChurchPlanting,
   believersCount,
+  baptismsCount,
+  churchesCount,
   // Strategic
   imbGsec,
   imbStrategicPriorityIndex,

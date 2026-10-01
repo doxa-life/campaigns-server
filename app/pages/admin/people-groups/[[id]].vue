@@ -327,6 +327,11 @@
     @change="selectGroup(selectedGroup!, false)"
     @delete="removeAdoption"
   />
+
+  <AdminPeopleGroupImportModal
+    v-model:open="showImportModal"
+    @imported="onImported"
+  />
 </template>
 
 <script setup lang="ts">
@@ -374,12 +379,21 @@ interface PeopleGroup {
 const route = useRoute()
 const toast = useToast()
 
+const showImportModal = ref(false)
+
 const menuItems = [[
   {
     label: 'Export CSV',
     icon: 'i-lucide-download',
     onSelect() {
       window.open('/api/admin/people-groups/export-csv', '_blank')
+    }
+  },
+  {
+    label: 'Update from CSV',
+    icon: 'i-lucide-upload',
+    onSelect() {
+      showImportModal.value = true
     }
   }
 ]]
@@ -626,6 +640,16 @@ async function selectGroup(group: PeopleGroup, updateUrl = true) {
 function deselectGroup() {
   selectedGroup.value = null
   syncUrl()
+}
+
+async function onImported() {
+  flushAutoSave()
+  await loadPeopleGroups()
+  const fresh = selectedGroup.value && peopleGroups.value.find(g => g.id === selectedGroup.value!.id)
+  if (fresh) {
+    selectedGroup.value = fresh
+    resetAutoSave(buildFormData(fresh))
+  }
 }
 
 const columnKeys = new Set(tableColumnFields.map(f => f.key))

@@ -240,6 +240,132 @@ paths:
           description: Invalid request (empty array, exceeds 500 items, missing id/slug)
         '401':
           description: Unauthorized — missing or invalid API key / JWT
+  /api/admin/people-groups/import:
+    post:
+      tags:
+        - Admin
+      summary: Update people groups from a CSV file
+      description: |
+        Updates existing people groups from a CSV, matching each row to a group by IMB PEID. `mapping`
+        pairs CSV headers with field keys; unmapped columns and blank cells change nothing. A row with a
+        cell that cannot be stored is skipped whole and reported in `errors`. With `dry_run=true` the plan
+        is returned and nothing is written. A group marked engaged without a reason in the file records
+        `reason_engaged: partner_report`. Changes are logged under the "CSV Import" badge, which the IMB
+        update treats as manual edits. Maximum 5000 rows. Requires the unscoped people_groups.edit permission.
+      operationId: importPeopleGroupsCsv
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - mapping
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: CSV with a header row
+                mapping:
+                  type: string
+                  description: |
+                    JSON object of CSV header → target. Targets are field keys, `imb_peid` (required, matches
+                    the row), `__name_check__` (warns when the name differs, changes nothing) or `__comment__`
+                    (several columns may use it; each row's non-blank cells become one comment on the group,
+                    "Column: value" per paragraph, skipped when the group already has the same comment).
+                  example: '{"IMB PEID":"imb_peid","Name":"__name_check__","Engagement Status":"engagement_status","Verified By":"engagement_verified_by","Baptisms":"baptisms_count"}'
+                dry_run:
+                  type: string
+                  enum: ['true', 'false']
+                  description: '"true" returns the plan without writing'
+      responses:
+        '200':
+          description: The plan (dry run) or the result of applying it
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dry_run:
+                    type: boolean
+                  total:
+                    type: integer
+                  matched:
+                    type: integer
+                  unchanged:
+                    type: integer
+                  rows:
+                    type: array
+                    description: Dry run only — each group that will change
+                    items:
+                      type: object
+                      properties:
+                        row:
+                          type: integer
+                        peid:
+                          type: string
+                        people_group_id:
+                          type: integer
+                        slug:
+                          type: string
+                          nullable: true
+                        name:
+                          type: string
+                        becomes_engaged:
+                          type: boolean
+                        comment:
+                          type: array
+                          nullable: true
+                          description: Paragraphs of the comment the row adds
+                          items:
+                            type: string
+                        changes:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              field:
+                                type: string
+                              label:
+                                type: string
+                              from: {}
+                              to: {}
+                              from_display:
+                                type: string
+                              to_display:
+                                type: string
+                  updated:
+                    type: integer
+                    description: Apply only — groups written
+                  failed:
+                    type: array
+                    description: Apply only — groups whose write failed
+                    items:
+                      $ref: '#/components/schemas/ImportIssue'
+                  errors:
+                    type: array
+                    description: Rows skipped (no PEID, unknown or repeated PEID, invalid cell)
+                    items:
+                      $ref: '#/components/schemas/ImportIssue'
+                  warnings:
+                    type: array
+                    description: Rows applied but worth checking (name differs, group archived)
+                    items:
+                      $ref: '#/components/schemas/ImportIssue'
+                  field_counts:
+                    type: object
+                    description: Number of groups each field changes on, keyed by field label; "Comment" counts new comments
+                    additionalProperties:
+                      type: integer
+        '400':
+          description: No file, invalid mapping, no PEID column, unknown field, or too many rows
+        '401':
+          description: Unauthorized — missing or invalid API key / JWT
+        '403':
+          description: Requires the unscoped people_groups.edit permission
 
   /api/people-groups/{slug}/signup:
     post:
@@ -2671,6 +2797,17 @@ components:
       description: Shared form API key (FORM_API_KEY) for trusted sister sites (marketing, global)
 
   schemas:
+    ImportIssue:
+      type: object
+      properties:
+        row:
+          type: integer
+          description: Spreadsheet line, counting the header as 1
+        peid:
+          type: string
+          nullable: true
+        message:
+          type: string
     LanguageRollout:
       type: object
       properties:

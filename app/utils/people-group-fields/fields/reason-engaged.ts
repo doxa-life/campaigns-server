@@ -9,6 +9,7 @@ export const field: FieldDefinition = {
   options: [
     { value: 'imb_report', labelKey: 'peopleGroups.options.reasonEngaged.imb_report' },
     { value: 'agwm_report', labelKey: 'peopleGroups.options.reasonEngaged.agwm_report' },
-    { value: 'doxa_report', labelKey: 'peopleGroups.options.reasonEngaged.doxa_report' }
+    { value: 'doxa_report', labelKey: 'peopleGroups.options.reasonEngaged.doxa_report' },
+    { value: 'partner_report', labelKey: 'peopleGroups.options.reasonEngaged.partner_report' }
   ]
 }

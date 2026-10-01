@@ -30,6 +30,8 @@ const FORMATTED_FIELDS = new Set(
   allFields.filter(f => f.type === 'select').map(f => f.key)
 )
 
+const PRIVATE_FIELDS = new Set(allFields.filter(f => f.private).map(f => f.key))
+
 // Alias -> internal field key (for resolving incoming field requests)
 const ALIAS_TO_INTERNAL: Record<string, string> = {
   wagf_region: 'doxa_wagf_region',
@@ -159,24 +161,25 @@ function resolveSpecialField(pg: PeopleGroupRecord, field: string, meta: Record<
  */
 export function formatPeopleGroup(
   pg: PeopleGroupRecord,
-  options: { fields?: string[] | 'all', lang?: string } = {}
+  options: { fields?: string[] | 'all', lang?: string, includePrivate?: boolean } = {}
 ): Record<string, unknown> {
   const lang = options.lang || 'en'
   const meta = parseMetadata(pg.metadata)
   const fields = options.fields || DEFAULT_LIST_FIELDS
+  const includePrivate = options.includePrivate === true
 
   if (fields === 'all') {
-    return formatAllFields(pg, meta, lang)
+    return formatAllFields(pg, meta, lang, includePrivate)
   }
 
-  return formatRequestedFields(pg, meta, fields, lang)
+  return formatRequestedFields(pg, meta, fields, lang, includePrivate)
 }
 
 /**
  * Format all fields — used by detail endpoint and CSV export.
  * Uses INTERNAL_TO_ALIAS to output aliased keys where defined.
  */
-function formatAllFields(pg: PeopleGroupRecord, meta: Record<string, unknown>, lang: string): Record<string, unknown> {
+function formatAllFields(pg: PeopleGroupRecord, meta: Record<string, unknown>, lang: string, includePrivate: boolean): Record<string, unknown> {
   const result: Record<string, unknown> = {
     name: pg.name,
     slug: pg.slug,
@@ -190,7 +193,7 @@ function formatAllFields(pg: PeopleGroupRecord, meta: Record<string, unknown>, l
 
   for (const fieldDef of allFields) {
     const key = fieldDef.key
-    if (fieldDef.hidden || key in result) continue
+    if (fieldDef.hidden || (fieldDef.private && !includePrivate) || key in result) continue
 
     const outputKey = INTERNAL_TO_ALIAS[key] || key
 
@@ -212,10 +215,12 @@ function formatAllFields(pg: PeopleGroupRecord, meta: Record<string, unknown>, l
 /**
  * Format only requested fields — supports aliases and special fields.
  */
-function formatRequestedFields(pg: PeopleGroupRecord, meta: Record<string, unknown>, fields: string[], lang: string): Record<string, unknown> {
+function formatRequestedFields(pg: PeopleGroupRecord, meta: Record<string, unknown>, fields: string[], lang: string, includePrivate: boolean): Record<string, unknown> {
   const result: Record<string, unknown> = {}
 
   for (const field of fields) {
+    if (!includePrivate && PRIVATE_FIELDS.has(ALIAS_TO_INTERNAL[field] || field)) continue
+
     const special = resolveSpecialField(pg, field, meta, lang)
     if (special) {
       result[field] = special.value

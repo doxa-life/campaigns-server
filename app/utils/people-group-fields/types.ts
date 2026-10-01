@@ -17,6 +17,8 @@ export interface FieldDefinition {
   tableColumn?: boolean
   readOnly?: boolean
   hidden?: boolean
+  // Shown and edited in the admin, never returned by the public people group APIs.
+  private?: boolean
   description?: string
   showIf?: { field: string; value: string }
   // Whole-number field (e.g. population): inputs and displays use thousands

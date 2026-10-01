@@ -56,7 +56,8 @@ function getEventColor(label: string): 'success' | 'warning' | 'error' | 'neutra
     'Started Reminder': 'success',
     'Stopped Prayer': 'warning',
     'Stop Reason': 'neutral',
-    'Report Update': 'success'
+    'Report Update': 'success',
+    'CSV Import': 'warning'
   }
   return colors[label] || 'neutral'
 }
@@ -73,7 +74,8 @@ function getEventIcon(label: string): string | undefined {
     'Started Reminder': 'i-lucide-bell-ring',
     'Stopped Prayer': 'i-lucide-circle-stop',
     'Stop Reason': 'i-lucide-message-circle-question',
-    'Report Update': 'i-lucide-file-check'
+    'Report Update': 'i-lucide-file-check',
+    'CSV Import': 'i-lucide-file-spreadsheet'
   }
   return icons[label]
 }

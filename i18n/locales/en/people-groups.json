@@ -67,6 +67,9 @@
       "imb_congregation_existing": "Congregation Exists",
       "imb_church_planting": "Church Planting Status",
       "believers_count": "Believers Count",
+      "baptisms_count": "Baptisms",
+      "churches_count": "Churches",
+      "engagement_verified_by": "Verified By",
       "imb_gsec": "GSEC",
       "imb_strategic_priority_index": "Strategic Priority Index",
       "imb_lostness_priority_index": "Lostness Priority Index",
@@ -117,7 +120,8 @@
       "reasonEngaged": {
         "imb_report": "IMB Report",
         "agwm_report": "AGWM Report",
-        "doxa_report": "Doxa Report"
+        "doxa_report": "Doxa Report",
+        "partner_report": "Partner Report"
       },
       "regions": {
         "africa": "Africa",

@@ -62,6 +62,9 @@
       "imb_evangelical_level": "इवैंजेलिकल स्तर",
       "engagement_status": "संलग्नता की स्थिति",
       "believers_count": "विश्वासियों की संख्या",
+      "baptisms_count": "बपतिस्मा",
+      "churches_count": "कलीसियाएँ",
+      "engagement_verified_by": "द्वारा सत्यापित",
       "imb_congregation_existing": "मंडली मौजूद है",
       "imb_church_planting": "कलीसिया स्थापना की स्थिति",
       "imb_gsec": "GSEC",
@@ -442,7 +445,8 @@
       "reasonEngaged": {
         "imb_report": "IMB रिपोर्ट",
         "agwm_report": "AGWM रिपोर्ट",
-        "doxa_report": "Doxa रिपोर्ट"
+        "doxa_report": "Doxa रिपोर्ट",
+        "partner_report": "साझेदार रिपोर्ट"
       }
     }
   }
