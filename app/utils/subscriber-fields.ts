@@ -24,10 +24,15 @@ export const subscriberFields: SubscriberFieldDefinition[] = [
   { key: 'role', label: 'Role', type: 'text', category: 'contact', description: 'Role within their church or organization' },
   { key: 'preferred_language', label: 'Preferred Language', type: 'select', category: 'contact', description: 'Language for prayer content and emails' },
   { key: 'country', label: 'Country', type: 'select', category: 'contact', description: 'Country of the subscriber' },
-  { key: 'sources', label: 'Sources', type: 'select', category: 'contact', description: 'How this contact entered the system (contact form, adoption form, signup form)', options: [
+  { key: 'sources', label: 'Sources', type: 'select', category: 'contact', description: 'How this contact entered the system (forms, mobile app, newsletter, inbox)', options: [
     { key: 'contact', label: 'Contact Form' },
+    { key: 'doxa_life', label: 'doxa.life Contact Form' },
+    { key: 'feedback', label: 'Feedback Form' },
     { key: 'adoption', label: 'Adoption Form' },
     { key: 'signup', label: 'Prayer sign up form' },
+    { key: 'anon-app', label: 'Mobile App' },
+    { key: 'news', label: 'Newsletter Signup' },
+    { key: 'inbox', label: 'Inbox' },
   ]},
 
   // Subscription fields

@@ -21,6 +21,22 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
   const startIso = periodStart.toISOString()
   const endIso = periodEnd.toISOString()
 
+  // A contact counts as a subscriber while it has an active people-group
+  // subscription delivered by the mobile app or backed by a verified email.
+  const countedSubscribers = sql`
+    SELECT DISTINCT cs.subscriber_id
+    FROM campaign_subscriptions cs
+    WHERE cs.status = 'active'
+      AND cs.people_group_id IS NOT NULL
+      AND (
+        cs.delivery_method = 'app'
+        OR EXISTS (
+          SELECT 1 FROM contact_methods cm
+          WHERE cm.subscriber_id = cs.subscriber_id AND cm.type = 'email' AND cm.verified = true
+        )
+      )
+  `
+
   const [
     subscribersRow,
     churnRow,
@@ -33,12 +49,23 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
     groupsAdoptedRow,
     groupsEngagedRow
   ] = await Promise.all([
+    // A contact joins when it first verifies an email or first signs up in the
+    // mobile app, whichever came first.
     sql`
-      SELECT COUNT(DISTINCT s.id) as count
-      FROM subscribers s
-      JOIN contact_methods cm ON cm.subscriber_id = s.id AND cm.type = 'email' AND cm.verified = true
-      JOIN campaign_subscriptions cs ON cs.subscriber_id = s.id AND cs.status = 'active' AND cs.people_group_id IS NOT NULL
-      WHERE cm.verified_at >= ${startIso} AND cm.verified_at < ${endIso}
+      WITH joined AS (
+        SELECT
+          c.subscriber_id,
+          LEAST(
+            (SELECT MIN(cm.verified_at) FROM contact_methods cm
+              WHERE cm.subscriber_id = c.subscriber_id AND cm.type = 'email' AND cm.verified = true),
+            (SELECT MIN(cs.created_at) FROM campaign_subscriptions cs
+              WHERE cs.subscriber_id = c.subscriber_id AND cs.delivery_method = 'app' AND cs.people_group_id IS NOT NULL)
+          ) AS joined_at
+        FROM (${countedSubscribers}) c
+      )
+      SELECT COUNT(*) as count
+      FROM joined
+      WHERE joined_at >= ${startIso} AND joined_at < ${endIso}
     `.then(rows => rows[0]),
     // Contact-level churn for the period: a contact is counted once it has no
     // active prayer reminders left, in the period its final reminder ended
@@ -64,12 +91,7 @@ export async function collectActivityStats(periodStart: Date, periodEnd: Date): 
       WHERE active_count = 0
         AND last_churn_at >= ${startIso} AND last_churn_at < ${endIso}
     `.then(rows => rows[0]),
-    sql`
-      SELECT COUNT(DISTINCT s.id) as count
-      FROM subscribers s
-      JOIN contact_methods cm ON cm.subscriber_id = s.id AND cm.type = 'email' AND cm.verified = true
-      JOIN campaign_subscriptions cs ON cs.subscriber_id = s.id AND cs.status = 'active' AND cs.people_group_id IS NOT NULL
-    `.then(rows => rows[0]),
+    sql`SELECT COUNT(*) as count FROM (${countedSubscribers}) counted`.then(rows => rows[0]),
     sql`SELECT COALESCE(ROUND(SUM(duration) / 60.0), 0) as total FROM prayer_activity WHERE timestamp >= ${startIso} AND timestamp < ${endIso}`.then(rows => rows[0]),
     sql`
       SELECT COALESCE(SUM(daily_committed), 0) as total
