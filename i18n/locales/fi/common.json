@@ -1,0 +1,1131 @@
+{
+  "welcome": "Tervetuloa",
+  "hello": "Hei",
+  "language": "Kieli",
+  "app": {
+    "title": "Sovellus"
+  },
+  "theme": {
+    "toggle": "Vaihda teemaa",
+    "light": "Vaalea tila",
+    "dark": "Tumma tila"
+  },
+  "login": {
+    "title": "Ylläpidon kirjautuminen",
+    "email": "Sähköposti",
+    "emailPlaceholder": "Kirjoita sähköpostiosoitteesi",
+    "password": "Salasana",
+    "passwordPlaceholder": "Kirjoita salasanasi",
+    "signIn": "Kirjaudu sisään",
+    "signingIn": "Kirjaudutaan...",
+    "error": {
+      "failed": "Kirjautuminen epäonnistui. Tarkista tunnuksesi."
+    }
+  },
+  "footer": {
+    "allRightsReserved": "Kaikki oikeudet pidätetään"
+  },
+  "campaign": {
+    "peopleGroup": {
+      "findOutMore": "Katso koko profiili",
+      "overview": {
+        "title": "Yleiskatsaus",
+        "country": "Maa:",
+        "population": "Väestö:",
+        "language": "Kieli:",
+        "religion": "Uskonto:",
+        "status": "Tila:",
+        "churches": "Seurakunnat:"
+      },
+      "prayerStatus": {
+        "title": "Rukoustilanne",
+        "description": "ihmistä rukoilee päivittäin tämän kansanryhmän puolesta."
+      }
+    },
+    "header": {
+      "prayFor": "Rukoile {campaign} puolesta",
+      "championedBy": "Kansanryhmä, jota {link} ajaa eteenpäin.",
+      "doxaFoundation": "Doxa.Life"
+    },
+    "share": {
+      "button": "Jaa",
+      "shareThisPage": "Jaa tämä sivu",
+      "qrCode": "QR-koodi",
+      "shareLink": "Jaa linkki",
+      "copyLink": "Kopioi linkki",
+      "copied": "Linkki kopioitu!",
+      "copiedDescription": "Sivun linkki on kopioitu leikepöydällesi.",
+      "copyFailed": "Linkin kopiointi epäonnistui",
+      "qrTitle": "Skannaa vieraillaksesi",
+      "qrDescription": "Skannaa tämä QR-koodi avataksesi sivun toisella laitteella.",
+      "close": "Sulje"
+    },
+    "pageTitle": "Kampanja",
+    "signupButton": "Ilmoittaudu rukoilijaksi",
+    "prayInTheApp": "Rukoile sovelluksessa",
+    "loading": "Ladataan kampanjaa...",
+    "notFound": {
+      "title": "Kampanjaa ei löytynyt",
+      "message": "Etsimääsi kampanjaa ei ole olemassa tai se ei ole käytettävissä.",
+      "goHome": "Etusivulle"
+    },
+    "startsOn": {
+      "message": "Päivittäiset rukouspäivitykset alkavat {date}",
+      "signupEarly": "Ilmoittaudu nyt, niin olet valmiina kun rukous alkaa!"
+    },
+    "signup": {
+      "title": "Ilmoittaudu rukoilijaksi",
+      "description": "Sitoudu rukoilemaan päivittäin tai viikoittain ja saa muistutuksia rukoussisällöstä.",
+      "success": "✓ Tervetuloa! Olet liittynyt rukousliikkeeseen. Saat pian ensimmäisen rukousaiheesi.",
+      "successEmail": "✓ Vielä yksi askel! Tarkista sähköpostisi ja napsauta vahvistuslinkkiä viimeistelläksesi ilmoittautumisen.",
+      "checkSpam": "Etkö näe sähköpostia? Tarkista roskapostikansio.",
+      "modal": {
+        "title": "Tarkista sähköpostisi",
+        "message": "Lähetimme vahvistuslinkin osoitteeseen:",
+        "hint": "Napsauta sähköpostin linkkiä viimeistelläksesi ilmoittautumisen. Muista tarkistaa myös roskapostikansio. Jos sähköpostisi on jo vahvistettu, saat vahvistusviestin.",
+        "button": "Selvä"
+      },
+      "form": {
+        "name": {
+          "label": "Nimi",
+          "placeholder": "Nimesi"
+        },
+        "deliveryMethod": {
+          "label": "Miten haluaisit saada päivittäiset rukousaiheesi?",
+          "placeholder": "Valitse tapa...",
+          "email": "Sähköposti",
+          "whatsapp": "WhatsApp",
+          "app": "Mobiilisovellus"
+        },
+        "email": {
+          "label": "Sähköpostiosoite",
+          "placeholder": "oma{'@'}sahkoposti.com"
+        },
+        "phone": {
+          "label": "Puhelinnumero",
+          "hint": "Valitse maasi ja kirjoita puhelinnumerosi"
+        },
+        "frequency": {
+          "label": "Rukoilen...",
+          "daily": "Joka päivä",
+          "weekly": "Valitse päivät"
+        },
+        "daysOfWeek": {
+          "label": "Valitse päivät",
+          "error": "Valitse vähintään yksi päivä",
+          "days": {
+            "sun": "Su",
+            "mon": "Ma",
+            "tue": "Ti",
+            "wed": "Ke",
+            "thu": "To",
+            "fri": "Pe",
+            "sat": "La"
+          }
+        },
+        "time": {
+          "label": "Muistutusaika",
+          "hint": "Mihin aikaan haluaisit saada rukousmuistutuksen?"
+        },
+        "timezone": {
+          "label": "Aikavyöhykkeesi",
+          "hint": "Tunnistettu automaattisesti selaimestasi",
+          "searchPlaceholder": "Hae aikavyöhykkeitä..."
+        },
+        "duration": {
+          "label": "Kesto...",
+          "5min": "5 minuuttia",
+          "10min": "10 minuuttia",
+          "15min": "15 minuuttia",
+          "30min": "30 minuuttia",
+          "60min": "1 tunti"
+        },
+        "reminderTime": {
+          "label": "Muistutusaika"
+        },
+        "submit": "Sitoudu rukoukseen",
+        "submitting": "Liitytään...",
+        "consent": {
+          "description": "Rukousmuistutusten lisäksi pidä minut ajan tasalla seuraavista:",
+          "campaignUpdates": "Päivitykset tästä kansanryhmästä: {campaign}",
+          "doxaGeneral": "Edistyminen ja päivitykset {link}"
+        }
+      },
+      "errors": {
+        "invalidPhone": "Anna kelvollinen puhelinnumero",
+        "failed": "Ilmoittautuminen epäonnistui. Yritä uudelleen."
+      }
+    },
+    "prayerFuel": {
+      "title": "Tämän päivän rukous",
+      "description": "Siirry tämän päivän rukoussisältöön ja -aiheisiin",
+      "button": "Näytä rukoussisältö"
+    },
+    "whyPray": {
+      "title": "Miksi rukoilla?",
+      "noOne": {
+        "title": "Heillä ei ole ketään",
+        "description": "Monilla kohtaamattomilla kansanryhmillä ei ole seurakuntia, lähetystyöntekijöitä eikä usein lainkaan uskovia."
+      },
+      "opensDoors": {
+        "title": "Rukous avaa ovia",
+        "description": "Rukous pehmentää sydämiä, avaa ovia ja kutsuu Pyhän Hengen työtä kauan ennen kuin evankeliumi julistetaan."
+      },
+      "changed": {
+        "title": "Koe Jumalan läsnäolo",
+        "description": "Jumala on kohdannut monet syvällisellä ja ihmeellisellä tavalla heidän rukoushetkinään. Päivittäinen rukous kasvattaa uskoasi ja tuo sinut lähemmäs Jumalaa."
+      }
+    },
+    "sampleContent": {
+      "title": "Saa päivittäistä rukoussisältöä",
+      "description": "Tässä on esikatselu päivittäisestä rukoussisällöstä.",
+      "peopleGroupName": "Kansanryhmä",
+      "scripture": "Raamatunkohta",
+      "prayerPoints": "Rukousaiheet",
+      "peopleGroupOfDay": "Päivän kansanryhmä"
+    },
+    "appPromo": {
+      "title": "Rukoile {name} puolesta puhelimellasi",
+      "benefits": {
+        "today": "Tämän päivän rukous valmiina avattavaksi",
+        "reminders": "Muistutukset valitsemaanasi aikana",
+        "together": "Näe, kuka rukoilee kanssasi"
+      },
+      "appStore": {
+        "alt": "Lataa App Storesta"
+      },
+      "googlePlay": {
+        "alt": "Lataa Google Playsta"
+      },
+      "qrCaption": "Skannaa rukoillaksesi",
+      "qrAlt": "QR-koodi DOXA-sovelluksen lataamiseen ja {name} puolesta rukoilemiseen"
+    },
+    "verify": {
+      "pageTitle": "Vahvista sähköposti",
+      "verifying": "Vahvistetaan sähköpostiasi...",
+      "success": {
+        "title": "Sähköposti vahvistettu!",
+        "message": "Sähköpostisi on vahvistettu onnistuneesti. Saat nyt rukousmuistutuksia kampanjasta {campaign}."
+      },
+      "alreadyVerified": {
+        "title": "Jo vahvistettu",
+        "message": "Sähköpostisi on jo vahvistettu. Olet valmis saamaan rukousmuistutuksia kampanjasta {campaign}."
+      },
+      "error": {
+        "title": "Vahvistus epäonnistui",
+        "generic": "Sähköpostia ei voitu vahvistaa. Tämä linkki on saatettu käyttää jo kerran tai se on vanhentunut."
+      },
+      "backToCampaign": "Takaisin kampanjaan",
+      "startPraying": "Aloita rukous"
+    },
+    "unsubscribe": {
+      "pageTitle": "Peru tilaus",
+      "confirm": {
+        "title": "Vahvista tilauksen peruminen",
+        "button": "Peru tilaus",
+        "processing": "Perutaan tilausta...",
+        "doxa": "Haluatko varmasti perua Doxan yleisten päivitysten tilauksen?",
+        "product": "Haluatko varmasti perua tuotesähköpostien tilauksen?",
+        "peopleGroup": "Haluatko varmasti perua {campaign}-päivitysten tilauksen?",
+        "peopleGroupGeneric": "Haluatko varmasti perua tämän kansanryhmän päivitysten tilauksen?",
+        "reminders": "Haluatko varmasti perua rukousmuistutukset kampanjalle {campaign}?",
+        "remindersGeneric": "Haluatko varmasti perua nämä rukousmuistutukset?"
+      },
+      "processing": "Käsitellään pyyntöäsi...",
+      "success": {
+        "title": "Tilaus peruttu",
+        "message": "Tämän muistutuksen tilaus on peruttu.",
+        "campaign": "Kampanja: {title}",
+        "resubscribe": "Tilaa uudelleen",
+        "resubscribing": "Tilataan uudelleen..."
+      },
+      "alreadyDone": {
+        "title": "Tilaus on jo peruttu",
+        "message": "Tämän muistutuksen tilaus on jo peruttu."
+      },
+      "unsubscribedFromCampaign": "Kaikkien {campaign}-muistutusten tilaus on peruttu.",
+      "resubscribed": {
+        "title": "Tervetuloa takaisin!",
+        "message": "Rukousmuistutusten tilaus on aktivoitu uudelleen. Saat seuraavan muistutuksen ajastettuna aikana.",
+        "viewCampaign": "Näytä kampanja"
+      },
+      "error": {
+        "title": "Virhe",
+        "message": "Jokin menu pieleen. Yritä uudelleen.",
+        "goHome": "Etusivulle"
+      },
+      "otherReminders": "Sinulla on muita muistutuksia tähän kampanjaan:",
+      "unsubscribeThis": "Peru tilaus",
+      "unsubscribeAll": "Peru kaikki tilaukset",
+      "yourSubscriptions": "Tilauksesi",
+      "active": "aktiivinen",
+      "unsubscribeButton": "Peru tilaus",
+      "unsubscribeFromAll": "Peru kaikkien {campaign}-muistutusten tilaus",
+      "preferencesUpdated": "Sähköpostiasetuksesi on päivitetty.",
+      "unsubscribedFrom": "Tilauksesi {item} on peruttu.",
+      "justTurnedOff": "Juuri pois käytöstä",
+      "remindersUnaffected": "Päivittäiset rukousmuistutuksesi eivät muutu.",
+      "peopleGroupUpdatesLabel": "päivitykset tästä kansanryhmästä",
+      "noActiveSubscriptions": "Sinulla ei ole aktiivisia tilauksia.",
+      "current": "Nykyinen",
+      "reminderFormat": {
+        "daily": "Päivittäin klo {time}",
+        "weekly": "{days} klo {time}"
+      }
+    },
+    "profile": {
+      "pageTitle": "Hallitse tiliä ja rukousaikoja",
+      "title": "Muistutusasetukset",
+      "greeting": "Hei {name}, hallitse rukousmuistutusasetuksiasi alla.",
+      "save": "Tallenna muutokset",
+      "saving": "Tallennetaan...",
+      "success": "Asetuksesi on päivitetty.",
+      "emailChanged": "Olemme lähettäneet vahvistussähköpostin uuteen osoitteeseesi. Vahvista se jatkaaksesi muistutusten saamista.",
+      "emailNotVerified": "Sähköpostiasi ei ole vahvistettu. Tarkista saapuneet-kansiosta vahvistuslinkki saadaksesi muistutuksia.",
+      "emailHint": "Sähköpostin vaihtaminen vaatii uuden vahvistuksen.",
+      "sections": {
+        "account": "Tili",
+        "schedule": "Muistutusaikataulu",
+        "prayer": "Rukousasetukset",
+        "emailPreferences": "Viestintäasetukset"
+      },
+      "emailPreferences": {
+        "description": "Valitse, mitä viestejä haluat saada:",
+        "campaignUpdates": "Päivitykset kampanjasta {campaign}",
+        "doxaGeneral": "Doxan yleiset päivitykset",
+        "doxaGeneralHint": "Edistymispäivityksiä ja uutisia Doxalta",
+        "productEmails": "Tuotesähköpostit",
+        "productEmailsHint": "Satunnaisia sähköposteja käyttämistäsi rukoustyökaluista — kyselyitä, palautepyyntöjä ja tuotepäivityksiä. Ei mainontaa. Päivittäiset rukousmuistutuksesi eivät muutu."
+      },
+      "consentUpdated": "Viestintäasetukset päivitetty.",
+      "subscriptions": "Rukousaikani",
+      "saveAccount": "Tallenna tili",
+      "unsubscribed": "Tilaus peruttu",
+      "current": "Nykyinen",
+      "viewCampaign": "Näytä kampanja",
+      "unsubscribeButton": "Peru tilaus",
+      "resubscribeButton": "Käynnistä muistutukset uudelleen",
+      "resumePromptTitle": "Tervetuloa takaisin!",
+      "resumePromptMessage": "Haluaisitko jatkaa rukoilemista kampanjan {campaign} puolesta klo {time}?",
+      "resumePromptMessageNoTime": "Haluaisitko jatkaa rukoilemista kampanjan {campaign} puolesta?",
+      "unsubscribeConfirm": "Haluatko varmasti perua tilauksen kampanjasta {campaign}?",
+      "unsubscribeSuccess": "Tilauksesi on peruttu.",
+      "resubscribeSuccess": "Muistutukset käynnistetty uudelleen.",
+      "reminders": "muistutukset",
+      "reminder": "Muistutus",
+      "deleteReminderConfirm": "Haluatko varmasti poistaa tämän muistutuksen?",
+      "deleteReminderSuccess": "Muistutus poistettu.",
+      "muted": "Mykistetty",
+      "paused": "Pysäytetty",
+      "inactive": "Ei käytössä",
+      "stopped": "Pysäytetty",
+      "stopRemindersPageTitle": "Pysäytä muistutukset",
+      "stopRemindersButton": "Pysäytä muistutus",
+      "stopReminderTitle": "Pysäytä klo {time} muistutuksesi kampanjalle {campaign}",
+      "stopRemindersQuestion": "Mitä haluaisit tehdä?",
+      "alreadyStoppedTitle": "Jo pysäytetty",
+      "alreadyStoppedMessage": "Klo {time} muistutuksesi on jo pysäytetty. Voit käynnistää sen uudelleen asetuksistasi.",
+      "alreadyMutedNote": "Klo {time} muistutuksen ilmoitukset on jo mykistetty.",
+      "muteOption": "Pysäytä klo {time} ilmoitukset",
+      "muteOptionHint": "Jatka rukoilemista klo {time} — lopetamme vain sähköpostimuistutukset ja otamme silti satunnaisesti yhteyttä.",
+      "stopTimeOption": "Pysäytä rukousaika klo {time}",
+      "stopTimeOptionHint": "Pysäytä tämä rukousaika. Voit käynnistää sen uudelleen milloin tahansa.",
+      "stopAllOption": "En rukoile enää",
+      "stopAllOptionHint": "Pysäytä kaikki muistutukset kampanjalle {campaign}.",
+      "muteSuccess": "Muistutukset mykistetty. Kiitos, että jatkat rukoilemista!",
+      "notPrayingSuccess": "Tämä rukousaika on pysäytetty. Voit käynnistää sen uudelleen milloin tahansa.",
+      "stopAllSuccess": "Kaikki muistutukset kampanjalle {campaign} on pysäytetty. Voit käynnistää ne uudelleen milloin tahansa.",
+      "resumeRemindersButton": "Käynnistä muistutukset",
+      "resumeSuccess": "Muistutukset käynnistetty.",
+      "error": {
+        "title": "Virhe",
+        "notFound": "Tilausta ei löytynyt.",
+        "failed": "Muutosten tallennus epäonnistui. Yritä uudelleen."
+      }
+    },
+    "optOutReason": {
+      "title": "Kertoisitko meille syyn?",
+      "subtitle": "Se auttaa meitä kehittymään. Voit myös ohittaa tämän.",
+      "stoppedTitle": "Klo {time} rukousaikasi on pysäytetty",
+      "stoppedAllTitle": "Muistutuksesi kampanjalle {campaign} on pysäytetty",
+      "stoppedGenericTitle": "Tämä rukousaika on pysäytetty",
+      "skip": "Ohita",
+      "send": "Lähetä",
+      "sending": "Lähetetään…",
+      "thanks": "Kiitos, tästä on apua.",
+      "otherPlaceholder": "Kerro lisää (vapaaehtoinen)",
+      "charactersLeft": "{count} merkkiä jäljellä",
+      "reason": {
+        "wrong_time": "Aika ei sopinut minulle",
+        "life_busy": "Elämästä tuli kiireistä",
+        "no_longer_praying": "En enää rukoile",
+        "different_people_group": "Rukoilen eri kansanryhmän puolesta",
+        "emails_only": "Rukoilen yhä, en vain halua sähköposteja",
+        "other": "Jotain muuta"
+      }
+    }
+  },
+  "prayerFuel": {
+    "pageTitle": "Rukoussisältö",
+    "title": "Tämän päivän rukous",
+    "prayingWithYou": "{count} rukoilee kohtaamattomien puolesta juuri nyt",
+    "loading": "Ladataan tämän päivän rukousta...",
+    "backTo": "Takaisin kampanjaan {campaign}",
+    "backToToday": "Takaisin tämän päivän rukoukseen",
+    "error": {
+      "title": "Rukousta ei voitu ladata",
+      "backToCampaign": "Takaisin kampanjaan",
+      "recordFailed": "Rukouksen tallentaminen epäonnistui. Yritä uudelleen."
+    },
+    "noContent": {
+      "title": "Ei rukoussisältöä tänään",
+      "message": "Palaa huomenna uuden rukoussisällön pariin."
+    },
+    "startsOn": {
+      "title": "Rukoussisältö tulossa pian",
+      "message": "Päivittäinen rukoussisältö alkaa {date}. Ilmoittaudu nyt saadaksesi muistutuksen kun se alkaa!"
+    },
+    "dateView": {
+      "noContent": {
+        "title": "Ei rukoussisältöä",
+        "message": "Tälle päivälle ei ole saatavilla rukoussisältöä."
+      }
+    },
+    "button": {
+      "amen": "Aamen",
+      "hint": "Napsauta lopettaaksesi rukoushetkesi"
+    },
+    "thankYou": "Kiitos rukouksestasi!",
+    "meetThePeople": "Oma kansanryhmäni",
+    "peopleGroupOfTheDay": "Päivän kansanryhmä",
+    "dayInTheLife": "Päivä heidän elämässään",
+    "pauseAndPray": "Pysähdy ja rukoile",
+    "mapTitle": "Kartta, joka näyttää {name} sijainnin",
+    "pastPrayers": {
+      "title": "Aiemmat rukoussisällöt"
+    },
+    "navigation": {
+      "previous": "Edellinen",
+      "next": "Seuraava",
+      "today": "Tänään"
+    }
+  },
+  "home": {
+    "subtitle": "Etsi kansanryhmä, jonka puolesta rukoilla",
+    "searchPlaceholder": "Hae kansanryhmiä...",
+    "errorLoading": "Kansanryhmien lataaminen epäonnistui. Yritä uudelleen.",
+    "noResults": "Kansanryhmiä ei löytynyt.",
+    "showingCount": "Näytetään {shown}/{total} kansanryhmää"
+  },
+  "common": {
+    "save": "Tallenna",
+    "cancel": "Peruuta",
+    "delete": "Poista",
+    "edit": "Muokkaa",
+    "create": "Luo",
+    "back": "Takaisin",
+    "next": "Seuraava",
+    "previous": "Edellinen",
+    "loading": "Ladataan...",
+    "minutes": "min",
+    "yes": "Kyllä",
+    "no": "Ei"
+  },
+  "contact": {
+    "verify": {
+      "pageTitle": "Vahvista sähköposti",
+      "verifying": "Vahvistetaan sähköpostiasi...",
+      "success": {
+        "title": "Sähköposti vahvistettu!",
+        "message": "Sähköpostisi on vahvistettu. Kiitos kiinnostuksestasi DOXA-kumppanuuteen."
+      },
+      "alreadyVerified": {
+        "title": "Jo vahvistettu",
+        "message": "Sähköpostisi oli jo vahvistettu."
+      },
+      "error": {
+        "title": "Vahvistus epäonnistui",
+        "generic": "Sähköpostia ei voitu vahvistaa. Tämä linkki on saatettu käyttää jo kerran tai se on vanhentunut."
+      }
+    }
+  },
+  "updates": {
+    "pageTitle": "Kansanryhmän päivitykset",
+    "heading": "Kansanryhmän päivitykset",
+    "intro": "Tervetuloa, ja kiitos avustasi pitää kansanryhmätietomme ajan tasalla. Tämä lyhyt lomake kysyy perustietoja sinusta ja kansanryhmästä. Tiimimme tarkistaa jokaisen ehdotuksen ennen muutoksen tekemistä.",
+    "steps": {
+      "group": "Kansanryhmä",
+      "eligibility": "Kelpoisuus",
+      "engagement": "Kohtaamistyö",
+      "details": "Tiedot",
+      "resources": "Resurssit",
+      "reason": "Syy",
+      "about": "Tietoja sinusta"
+    },
+    "back": "Takaisin",
+    "next": "Seuraava",
+    "searchLabel": "Mistä kansanryhmästä haluaisit kertoa meille?",
+    "searchPlaceholder": "Kirjoita kansanryhmän nimi...",
+    "searchHint": "Etsimme listaltamme sekä IMB- ja Joshua Project -tietokannoista.",
+    "searchNoResults": "Emme löytäneet osumaa — kokeile toista kirjoitustapaa, tai lisää se uutena kansanryhmänä alla.",
+    "sectionDoxa": "Listallamme",
+    "sectionExternal": "IMB / Joshua Project",
+    "sourceImb": "IMB",
+    "sourceJp": "Joshua Project",
+    "alreadyInDoxa": "Jo listallamme",
+    "alsoKnownAs": "tunnetaan myös nimillä {names}",
+    "searchMissingNote": "Listaltamme puuttuva ryhmä voi olla diaspora-väestö, tai se ei täytä DOXAn kriteereitä. Jos uskot sen kuuluvan listalle, valitse se yllä tai lisää se uutena kansanryhmänä ja kerro meille miksi.",
+    "addNewCta": "Etkö löydä sitä? Kerro meille uudesta kansanryhmästä",
+    "newGroupBadge": "Uusi",
+    "actionQuestion": "Mitä haluaisit tehdä?",
+    "actionUpdate": "Päivitä heidän tietojaan",
+    "actionUpdateDesc": "Osa tiedoista, joita meillä on, on vanhentunut",
+    "actionRemove": "Pyydä poistoa",
+    "actionRemoveDesc": "Tätä ryhmää ei pitäisi enää olla listallamme",
+    "changeSelection": "Muuta",
+    "currentValue": "Nykyinen",
+    "suggestedValue": "Ehdotettu",
+    "updateFieldsHint": "Täytä vain se, mikä tulisi muuttaa — kaikki muu voi jäädä tyhjäksi.",
+    "criteriaTitle": "Kohtaamistyön kriteerit",
+    "criteria": {
+      "workers_long_term": "Onko kansanryhmän keskuudessa kulttuurirajat ylittäviä työntekijöitä paikan päällä?",
+      "work_in_local_language": "Työskentelevätkö paikan päällä asuvat kulttuurirajat ylittävät työntekijät paikallisella kielellä ja kulttuurissa?",
+      "disciple_and_church_multiplication": "Työskentelevätkö paikan päällä asuvat kulttuurirajat ylittävät työntekijät tavalla, joka johtaa paikallislähtöiseen seurakuntaan?"
+    },
+    "resourcesTitle": "Saatavilla olevat resurssit",
+    "detailsTitle": "Kansanryhmän tiedot",
+    "addNotice": "Pyydät, että {name} lisätään DOXAn rukouslistalle.",
+    "addNoticeNew": "Pyydät, että uusi kansanryhmä lisätään DOXAn rukouslistalle.",
+    "eligibilityTitle": "Ketä voidaan lisätä DOXAn listalle",
+    "eligibility": {
+      "indigenous": "Alkuperäinen omassa maassaan, ei diaspora-väestö",
+      "unengaged": "Kohtaamaton — heidän keskuudessaan ei ole käynnissä seurakuntien perustamistyötä",
+      "notChristian": "Heidän ensisijainen uskontonsa ei ole kristinusko, eikä heitä ole historiallisesti pidetty kristittyinä",
+      "otherCriteria": "Muutoin kelvollinen vakiintuneiden DOXA-kriteerien mukaan"
+    },
+    "engagedBlockedTitle": "Kohdattuja ryhmiä ei voida lisätä",
+    "engagedBlockedText": "DOXAn lista keskittyy kohtaamattomiin kansanryhmiin, joten kohdattu ryhmä jää sen ulkopuolelle. Jos uskot kohtaamistiedon olevan vanhentunut, valitse Kohtaamaton ja kerro lisää kommenteissa.",
+    "addManualHint": "Tätä kansanryhmää ei vielä ole IMB- tai Joshua Project -listoilla, niin jaa siis kaikki tiedot, jotka voit — mukaan lukien heidän kohtaamistilansa.",
+    "addImbReasonsTitle": "Miksi tämä ryhmä ei ole DOXAn listalla",
+    "addImbReasonsHint": "Jos jokin tästä on vanhentunut, korjaa se alla ja kerro lisää kommenteissa.",
+    "addImbEligibleHint": "Tämä ryhmä täyttää DOXAn kriteerit ja sitä ei ole vain vielä lisätty — alla olevien tietojen vahvistaminen auttaa meitä lisäämään heidät nopeasti.",
+    "exclusionReasons": {
+      "engaged": "IMB listaa heidät kohdatuiksi",
+      "gsec_above_2": "Heidän GSEC-pisteensä on yli 2",
+      "christian_religion": "Heidän uskontonsa on merkitty kristilliseksi taustaksi",
+      "diaspora": "Heidät on luokiteltu diaspora-ryhmäksi"
+    },
+    "jpReligionHint": "Joshua Project listaa uskonnoksi \"{label}\" — valitse lähin vastaavuus.",
+    "reporter": {
+      "title": "Tietoja sinusta",
+      "name": "Nimesi",
+      "org": "Organisaatio",
+      "email": "Sähköpostisi",
+      "emailHint": "Jos kirjoitat meille ensimmäistä kertaa, lähetämme sinulle linkin sähköpostisi vahvistamiseksi."
+    },
+    "verifier": {
+      "title": "Vahvistaja",
+      "hint": "Jokainen ehdotus tarvitsee toisen henkilön, joka voi riippumattomasti vahvistaa sen — tiimin jäsenen, kentän johtajan tai organisaation edustajan, jolla on omakohtaista tietoa kansanryhmästä, eikä ole sinä itse.",
+      "name": "Vahvistajan nimi",
+      "entity": "Vahvistajan organisaatio",
+      "email": "Vahvistajan sähköposti"
+    },
+    "commentsLabel": "Kommentit",
+    "commentsHint": "Haluaisimme kuulla mitä tahansa muuta, joka auttaisi meitä — kuinka olet yhteydessä tähän kansanryhmään, miten sait tämän tiedon, tai muuta asiayhteyttä.",
+    "pictureLabel": "Valokuva",
+    "pictureHint": "JPEG, PNG, GIF tai WebP, enintään 10 MB.",
+    "pictureDropLabel": "Pudota kuva tähän, tai napsauta selataksesi",
+    "capturedPhotoNote": "Kuva lähteestä {source} — lataa omasi korvataksesi tämän.",
+    "removeReasonLabel": "Miksi tämä kansanryhmä pitäisi poistaa?",
+    "removeReasons": {
+      "no_longer_exists": "Kansanryhmää ei enää ole olemassa.",
+      "merged_or_deleted": "Kansanryhmä on sulautunut toiseen ryhmään.",
+      "is_diaspora": "Kansanryhmä on luokiteltu uudelleen diasporaksi.",
+      "historically_christian": "Kansanryhmä on luokiteltu uudelleen kristilliseksi taustaksi."
+    },
+    "removeFieldsToggle": "Haluaisin myös korjata osan heidän tiedoistaan",
+    "removeFieldsHint": "Jos jotain heidän tiedoistaan tulisi korjata tämän yhteydessä, voit kirjoittaa sen tähän.",
+    "submit": "Lähetä ehdotus",
+    "submitting": "Lähetetään...",
+    "success": {
+      "title": "Kiitos!",
+      "message": "Kiitos, että käytit aikaa jakaaksesi tämän kanssamme. Tiimimme tarkistaa ehdotuksesi, ja lähetämme sinulle sähköpostia kun päätös on tehty.",
+      "verifyTitle": "Vielä yksi askel — tarkista sähköpostisi",
+      "verifyMessage": "Lähetimme vahvistuslinkin osoitteeseen {email}. Kun napsautat sitä, ehdotuksesi siirtyy tiimimme tarkistettavaksi.",
+      "another": "Lähetä toinen ehdotus"
+    },
+    "verifiedBanner": "Kiitos — sähköpostisi on vahvistettu ja ehdotuksesi on nyt tiimimme tarkistettavana.",
+    "verifyFailedBanner": "Tämä vahvistuslinkki on virheellinen tai vanhentunut.",
+    "errors": {
+      "generic": "Jokin menu pieleen. Yritä uudelleen.",
+      "nameRequired": "Kerro meille nimesi",
+      "emailRequired": "Anna kelvollinen sähköpostiosoite",
+      "groupRequired": "Valitse kansanryhmä",
+      "groupNameRequired": "Kerro meille kansanryhmän nimi",
+      "reasonRequired": "Kerro meille, miksi tämä ryhmä pitäisi poistaa",
+      "changesRequired": "Ehdota vähintään yhtä muutosta tai jätä kommentti",
+      "commentsRequired": "Lisää kommentti auttaaksesi meitä ymmärtämään pyyntösi",
+      "uploadFailed": "Kuvan lataus epäonnistui — yritä uudelleen",
+      "engagementRequired": "Valitse ryhmän kohtaamistila",
+      "engagedBlocked": "Kohdatut kansanryhmät ovat DOXAn listan ulkopuolella",
+      "verifierNameRequired": "Kerro meille vahvistajan nimi",
+      "verifierEmailRequired": "Anna kelvollinen vahvistajan sähköpostiosoite",
+      "verifierEmailSame": "Vahvistajan on oltava joku muu kuin sinä"
+    }
+  },
+  "feedback": {
+    "pageTitle": "Lähetä palautetta",
+    "heading": "Lähetä meille palautetta",
+    "intro": "Haluaisimme kuulla sinusta — kerro mistä pidät, jaa ehdotus tai ilmoita ongelmasta.",
+    "typeLabel": "Millaista palautetta tämä on?",
+    "type": {
+      "compliment": "Kiitos",
+      "suggestion": "Ehdotus",
+      "problem": "Ongelma"
+    },
+    "nameLabel": "Nimi",
+    "namePlaceholder": "Nimesi (vapaaehtoinen)",
+    "emailLabel": "Sähköposti",
+    "emailPlaceholder": "Kirjoita sähköpostiosoitteesi",
+    "messageLabel": "Viesti",
+    "messagePlaceholder": "Kerro lisää…",
+    "consentLabel": "Haluaisin saada sähköpostipäivityksiä DOXA-kumppanuudelta.",
+    "submit": "Lähetä palaute",
+    "submitting": "Lähetetään…",
+    "success": {
+      "title": "Kiitos!",
+      "message": "Palautteesi on vastaanotettu. Arvostamme todella, että käytit aikaa tähän."
+    },
+    "error": {
+      "title": "Jokin menu pieleen",
+      "message": "Palautettasi ei voitu lähettää. Yritä uudelleen.",
+      "rateLimited": "Olet lähettänyt palautetta hiljattain. Yritä uudelleen hieman myöhemmin."
+    },
+    "validation": {
+      "email": "Anna kelvollinen sähköpostiosoite.",
+      "message": "Kirjoita viesti.",
+      "type": "Valitse palautteen tyyppi."
+    }
+  },
+  "adoption": {
+    "verify": {
+      "pageTitle": "Vahvista ottaminen vastuulle",
+      "verifying": "Vahvistetaan vastuulle ottamistasi...",
+      "success": {
+        "title": "Vastuulle ottaminen vahvistettu!",
+        "message": "{peopleGroupName}-kansanryhmän ottamisesi vastuulle on vahvistettu. Tervetuloa mukaan!"
+      },
+      "alreadyVerified": {
+        "title": "Jo vahvistettu",
+        "message": "Sähköpostisi oli jo vahvistettu."
+      },
+      "error": {
+        "title": "Vahvistus epäonnistui",
+        "generic": "Sähköpostia ei voitu vahvistaa. Tämä linkki on saatettu käyttää jo kerran tai se on vanhentunut."
+      },
+      "viewPeopleGroup": "Näytä rukousilmoittautumissivu",
+      "viewResources": "Näytä vastuunoton resurssit"
+    }
+  },
+  "followupPage": {
+    "recording": "Tallennetaan vastaustasi...",
+    "error": {
+      "title": "Jokin menu pieleen",
+      "invalidLink": "Virheellinen linkki. Vaadittuja parametreja puuttuu.",
+      "invalidResponse": "Virheellinen vastaustyyppi.",
+      "failed": "Vastauksesi tallentaminen epäonnistui. Yritä uudelleen."
+    },
+    "goHome": "Etusivulle",
+    "committed": {
+      "title": "Kiitos sitoutumisestasi!",
+      "message": "Olemme iloisia kuulla, että pysyt uskollisena rukouksessa. Omistautumisesi tekee eron!",
+      "checkInNotice": "Otamme yhteyttä uudelleen muutaman kuukauden kuluttua.",
+      "continueButton": "Jatka kampanjaan"
+    },
+    "sometimes": {
+      "title": "Kiitos rehellisyydestäsi!",
+      "message": "Elämä voi olla kiireistä, ja on ihan ok, jos et ole pystynyt rukoilemaan niin usein kuin haluaisit.",
+      "suggestion": "Haluaisitko muuttaa rukousaikatauluasi hallittavammaksi?",
+      "adjustButton": "Muuta aikatauluani",
+      "continueButton": "Jatka kampanjaan"
+    },
+    "notPraying": {
+      "title": "Ymmärrämme",
+      "message": "Tilauksesi on pysäytetty. Et saa rukousmuistutuksia toistaiseksi.",
+      "reactivateNotice": "Jos haluaisit alkaa rukoilla uudelleen tulevaisuudessa, voit tehdä sen milloin tahansa profiilistasi.",
+      "profileButton": "Näytä profiilini",
+      "visitButton": "Vieraile kampanjassa"
+    },
+    "pageTitle": "Rukouksen tarkistus"
+  },
+  "email": {
+    "common": {
+      "hello": "Hei {name}!",
+      "automatedMessage": "Tämä on automaattinen viesti {appName}:lta. Ethän vastaa tähän sähköpostiin.",
+      "managePreferences": "Hallitse asetuksia",
+      "managePrayerTimes": "Hallitse rukousaikoja",
+      "manageAccountAndPrayerTimes": "Hallitse tiliä ja rukousaikoja",
+      "unsubscribe": "Peru tilaus",
+      "stopReminders": "Pysäytä tämä muistutus"
+    },
+    "verification": {
+      "subject": "Vahvista sähköpostiosoitteesi",
+      "header": "Vahvista sähköpostisi",
+      "thankYou": "Kiitos, että ilmoittauduit rukoilemaan kansanryhmän puolesta.",
+      "pleaseVerify": "Vahvista sähköpostiosoitteesi napsauttamalla alla olevaa painiketta:",
+      "verifyButton": "Vahvista sähköposti",
+      "linkInstructions": "Jos painike ei toimi, voit myös kopioida ja liittää tämän linkin selaimeesi:",
+      "note": "Huom:",
+      "expiration": "Tämä vahvistuslinkki vanhenee 7 päivän kuluttua.",
+      "ignoreMessage": "Jos et ilmoittautunut rukousmuistutuksiin, voit turvallisesti jättää tämän sähköpostin huomiotta."
+    },
+    "welcome": {
+      "subject": "Tervetuloa Doxaan! - {campaign}",
+      "header": "Tervetuloa Doxaan!",
+      "doxaMeaning": "Kreikaksi doxa tarkoittaa \"kunniaa\", ja juuri sitä tarjoamme liittyessämme rukoukseen niiden miljoonien ihmisten puolesta, jotka elävät vähäisen tai olemattoman evankeliumin todistuksen keskellä. Yhdessä tuomme kunniaa Jumalalle uskollisen ja odottavan rukouksen kautta.",
+      "reminderExplanation": "Osana tätä rukouskampanjaa alat pian saada muistutussähköposteja, joissa on linkkejä päivittäiseen rukoussisältöön. Jokainen linkki sisältää ohjattuja rukousaiheita ja muuta materiaalia, joka auttaa sinua rukoilemaan strategisesti ja uskollisesti valitsemasi kohtaamattoman kansanryhmän puolesta.",
+      "sharedGoal": "Tämän liikkeen kautta yhteinen tavoitteemme on nähdä yli 100 ihmistä rukoilemassa päivittäin kunkin yli 2 000 kohtaamattoman kansanryhmän puolesta, miehiä ja naisia lähetettynä kohtaamaan näitä kansanryhmiä evankeliumilla vuoteen 2033 mennessä, ja kestävää antamista tämän työn tukemiseksi.",
+      "closing": "Olemme syvästi kiitollisia saadessamme liittyä koko seurakunnan kanssa viedäksemme koko evankeliumin koko maailmalle.",
+      "reminderTimeNote": "Päivittäinen muistutuksesi on asetettu klo {time}.",
+      "startPraying": "Aloita rukous",
+      "profileInstructions": "Voit päivittää profiilitietojasi ja ilmoituksiasi tästä:",
+      "addToCalendar": "Lisää tämä muistutus kalenteriisi:",
+      "googleCalendar": "Google-kalenteri",
+      "otherCalendars": "Muut kalenterit (.ics)"
+    },
+    "reminder": {
+      "subject": "Rukousmuistutus - {campaign}",
+      "header": "Rukousmuistutus",
+      "timeForPrayer": "On aika rukoushetkellesi.",
+      "viewPrayer": "Näytä tämän päivän rukous",
+      "automatedReminder": "Tämä on automaattinen rukousmuistutus {appName}:lta."
+    },
+    "followup": {
+      "subject": "{campaign}: Miten rukoussitoumuksesi sujuu?",
+      "subjectReminder": "Muistutus: {campaign}: Miten rukoussitoumuksesi sujuu?",
+      "header": "Rukouksen tarkistus",
+      "reminderIntro": "Lähetimme sinulle viestin viime viikolla ja halusimme seurata asiaa.",
+      "standardIntro": "Haluaisimme kuulla, miten rukousmatkasi etenee!",
+      "questionDaily": "Rukoiletko yhä päivittäin?",
+      "questionWeekly": "Rukoiletko yhä {days}?",
+      "yesDaily": "Kyllä, rukoilen päivittäin",
+      "yesWeekly": "Kyllä, ajastettuina päivinäni",
+      "sometimes": "Joskus, mutta en jokaisena päivänä",
+      "sometimesWeekly": "Joskus, mutta en aina",
+      "noLonger": "En, en enää rukoile",
+      "feedbackHelps": "Palautteesi auttaa meitä ymmärtämään, kuinka voimme tukea rukousmatkaasi paremmin.",
+      "pauseNotice": "Jos emme kuule sinusta, pysäytämme rukousmuistutuksesi, jotta saapuneet-kansiosi ei täyty. Voit aina käynnistää ne uudelleen profiilistasi.",
+      "commitmentCheckIn": "Tämä on sitoumuksen tarkistusviesti {appName}:lta."
+    },
+    "marketing": {
+      "headerCampaign": "{campaign}-päivitykset",
+      "headerDefault": "{appName}-päivitykset",
+      "footer": "Saat tämän sähköpostin, koska suostuit saamaan päivityksiä {appName}:lta."
+    },
+    "days": {
+      "sunday": "sunnuntai",
+      "monday": "maanantai",
+      "tuesday": "tiistai",
+      "wednesday": "keskiviikko",
+      "thursday": "torstai",
+      "friday": "perjantai",
+      "saturday": "lauantai"
+    },
+    "contactVerification": {
+      "subject": "Vahvista sähköpostisi saadaksesi DOXA-päivityksiä",
+      "header": "Vahvista sähköpostisi",
+      "thankYou": "Kiitos, että otit yhteyttä DOXAan. Suostuit saamaan sähköpostipäivityksiä DOXA-kumppanuudelta.",
+      "pleaseVerify": "Aloittaaksesi päivitysten saamisen, vahvista sähköpostiosoitteesi napsauttamalla alla olevaa painiketta:",
+      "verifyButton": "Vahvista sähköposti",
+      "linkInstructions": "Jos painike ei toimi, voit myös kopioida ja liittää tämän linkin selaimeesi:",
+      "note": "Huom:",
+      "expiration": "Tämä vahvistuslinkki vanhenee 7 päivän kuluttua.",
+      "ignoreMessage": "Jos et lähettänyt yhteydenottolomaketta, voit turvallisesti jättää tämän sähköpostin huomiotta."
+    },
+    "adoptionVerification": {
+      "subject": "Vahvista sähköpostisi ottaaksesi vastuulle {peopleGroupName}",
+      "header": "Vahvista sähköpostisi",
+      "thankYou": "Kiitos sitoumuksestasi ottaa vastuulle {peopleGroupName}.",
+      "pleaseVerify": "Vahvista sähköpostiosoitteesi napsauttamalla alla olevaa painiketta vahvistaaksesi vastuulle ottamisesi:",
+      "verifyButton": "Vahvista sähköposti",
+      "linkInstructions": "Jos painike ei toimi, voit myös kopioida ja liittää tämän linkin selaimeesi:",
+      "note": "Huom:",
+      "expiration": "Tämä vahvistuslinkki vanhenee 7 päivän kuluttua.",
+      "ignoreMessage": "Jos et lähettänyt vastuulle ottamisen lomaketta, voit turvallisesti jättää tämän sähköpostin huomiotta."
+    },
+    "adoptionWelcome": {
+      "subject": "DOXA-päivitys vastuulle ottamisesta: Sitoumuksesi kansanryhmään {peopleGroupName}",
+      "headerTitle": "DOXA-päivitys vastuulle ottamisesta",
+      "greeting": "Hyvä {firstName},",
+      "intro": "Tänään, osana DOXA-kumppanuutta, muutit kansanryhmän {peopleGroupName} tilan [odottavasta] [vastuulle otetuksi] — tämä on tärkeä ensimmäinen askel kohtaamistyöhön.",
+      "introContinued": "Olet nyt ensisijainen puolestapuhuja, esirukoilija ja mobilisoija kansanryhmälle, jolla tähän hetkeen asti ei ollut johdonmukaista todistusta tai omistautunutta rukoustyötä.",
+      "waiting": "odottava",
+      "adopted": "vastuulle otettu",
+      "resourcesIntro": "Seuraavat resurssit auttavat sinua hyödyntämään tämän mahdollisuuden.",
+      "section1Title": "1. Vastuullesi otettu kansanryhmä",
+      "section2Title": "2. Vastuunoton resurssit",
+      "section2Intro": "Olemme koonneet joukon kansanryhmääsi liittyviä resursseja, jotka auttavat sinua mobilisoimaan ja jakamaan tätä aloitetta nopeasti ja helposti. Löydät:",
+      "section1Item1": "URL-osoite ja QR-koodi kansanryhmääsi, vinkkejä, vastauksia usein kysyttyihin kysymyksiin ja muuta",
+      "section1Item2": "Kuvia, jotka auttavat sinua esittelemään tämän seurakunnallesi tai pienryhmällesi",
+      "section1Item3": "Erityinen linkki, jolla on helppo osallistua taloudellisesti DOXA-säätiölle",
+      "resourcesButton": "Näytä vastuunoton resurssit",
+      "fullProfileText": "Tarkastele kansanryhmäsi tietoja vierailemalla heidän",
+      "fullProfileButton": "Koko kansanryhmän profiilissa",
+      "prayerPageText": "Mobilisoi ihmisiä rukoilemaan tämän",
+      "prayerPageButton": "rukoussivun kautta",
+      "section3Title": "3. Ensimmäiset 30 päiväsi",
+      "section3Intro": "Tässä ovat suosittelemamme seuraavat askeleet:",
+      "step1Label": "Sisäistä:",
+      "step1Text": "Rukoile 10 minuuttia päivittäin kansanryhmän {peopleGroupName} puolesta. Pyydä Jumalaa antamaan sinulle sydän tätä paikkaa ja näitä ihmisiä kohtaan. Pyydä Häntä antamaan sinulle viisautta seuraaviin askeleihin ja suosiota kaikkien kuulijoiden kanssa, kun jaat visiota. Pyydä Häntä valmistamaan sydämiä. Odota Hänen vastaavan — Hän on jo työssä! Aloita vierailemalla heidän {prayerPageLink}.",
+      "step1PrayerPage": "rukoussivulla",
+      "step2Label": "Suunnittele ja sosiaalista:",
+      "step2Text": "Tee suunnitelma seurakuntasi johdon kanssa siitä, miten esitellä tämä seurakunnallesi ja yhteisöllesi. Jaa digitaalista mediaasi ja muita resursseja, jotka löydät {adoptionResourcesLink}, seurakuntaperheesi ja sosiaalisen median alustojesi kanssa. Kerro ihmisille, että tämä ryhmä on painopisteesi.",
+      "step2AdoptionResources": "vastuunoton resursseista",
+      "step3Label": "Mobilisoi ydinjoukko:",
+      "step3Text": "Tunnista 5 ihmistä, jotka ilmoittautuvat rukoilemaan kanssasi. Harkitse rukousjohtajia, pienryhmän jäseniä ja hengellisesti uskollisia ystäviä, joilla todennäköisesti on yhteneväiset painopisteet ja visio. Pieni ydinjoukko kestävässä ja odottavassa yksimielisyydessä voi olla liikkeen alku.",
+      "section4Title": "4. Rohkaisua DOXA-päivityksistä",
+      "section4Text": "Saat joka kuukausi strategisen kuukausipäivityksen — joka kertoo sinulle alueellisista läpimurroista, uusista resursseista tai mobilisoinnin virstanpylväistä, jotka liittyvät ryhmääsi. Jos sinulla on kysymyksiä, tarvitset rohkaisua tai apua seuraavien askelten ajattelussa, haluamme auttaa. Ota yhteyttä osoitteeseen {contactEmail}.",
+      "closingCount": "Vastuulle ottamista odotti {beforeCount} ryhmää. \"Kyllä\"-vastauksesi ansiosta tämä luku on nyt {afterCount}. Olemme kiitollisia saadessamme tehdä yhteistyötä kanssasi tässä arvokkaassa tehtävässä.",
+      "signoff": "Jumalan kunniaksi,",
+      "teamName": "DOXA-tiimi"
+    }
+  },
+  "calendar": {
+    "addToCalendar": "Lisää kalenteriisi",
+    "googleCalendar": "Google-kalenteri",
+    "downloadIcs": "Muut kalenterit",
+    "eventTitle": "Rukous kansanryhmän {campaign} puolesta",
+    "eventDescription": "{duration} minuutin rukoushetki kansanryhmän {campaign} puolesta"
+  },
+  "inbox": {
+    "translate": {
+      "button": "Käännä",
+      "original": "Alkuperäinen",
+      "note": "Tekoäly kääntänyt kielestä {language}",
+      "retranslate": "Käännä uudelleen",
+      "notConfigured": "Tekoälykäännöstä ei ole määritetty"
+    },
+    "title": "Saapuneet",
+    "searchPlaceholder": "Hae keskusteluja",
+    "empty": "Ei keskusteluja",
+    "selectPrompt": "Valitse keskustelu nähdäksesi sen",
+    "conversation": "Keskustelu",
+    "conversations": "Keskustelut",
+    "internalNotes": "Sisäiset muistiinpanot",
+    "notesActivity": "Muistiinpanot ja toiminta",
+    "activity": "Toiminta",
+    "needsReview": "Vaatii tarkistuksen",
+    "noMessage": "Ei viestiä",
+    "source": {
+      "contact_form": "Yhteydenottolomake",
+      "doxa_life": "doxa.life",
+      "inbound_email": "Sähköposti",
+      "staff": "Henkilökunta",
+      "feedback": "Palaute"
+    },
+    "unassigned": "Ei osoitettu",
+    "assignedTo": "Osoitettu {name}:lle",
+    "assignToMe": "Osoita minulle",
+    "assign": "Osoita",
+    "unassign": "Poista osoitus",
+    "spamScore": "Roskapostipisteet",
+    "tags": {
+      "title": "Tagit",
+      "add": "Lisää tagi",
+      "edit": "Tagit",
+      "create": "Luo tagi",
+      "delete": "Poista",
+      "none": "Ei tageja vielä",
+      "newPlaceholder": "Uuden tagin nimi"
+    },
+    "filters": {
+      "all": "Kaikki",
+      "unassigned": "Ei osoitettu",
+      "mine": "Omat",
+      "open": "Avoin",
+      "pending": "Odottaa",
+      "closed": "Suljettu",
+      "spam": "Roskaposti",
+      "held": "Pidätetty"
+    },
+    "status": {
+      "open": "Avoin",
+      "pending": "Odottaa",
+      "closed": "Suljettu",
+      "spam": "Roskaposti"
+    },
+    "direction": {
+      "inbound": "Vastaanotettu",
+      "outbound": "Lähetetty"
+    },
+    "compose": {
+      "from": "Lähettäjä",
+      "reply": "Vastaa",
+      "send": "Lähetä",
+      "saveDraft": "Tallenna luonnos",
+      "draft": "Luonnos",
+      "sending": "Lähetetään…",
+      "cannedResponse": "Valmisvastaus",
+      "attach": "Liitä tiedosto",
+      "signatureWillAttach": "Allekirjoituksesi lisätään, kun lähetät.",
+      "signaturePreview": "Esikatselu",
+      "signatureHide": "Piilota",
+      "signatureNoneSet": "Allekirjoitusta ei lisätä — aseta sellainen saapuneet-identiteettiasetuksissasi.",
+      "signatureNoneContact": "Allekirjoitusta ei lisätä (lähetetään yleisestä yhteydenotto-osoitteesta).",
+      "placeholder": "Kirjoita vastauksesi…",
+      "language": "Kieli",
+      "newEmail": "Uusi sähköposti",
+      "to": "Vastaanottaja",
+      "recipientPlaceholder": "nimi{'@'}esimerkki.com",
+      "subjectLabel": "Aihe",
+      "bodyLabel": "Viesti",
+      "bodyPlaceholder": "Kirjoita viestisi…"
+    },
+    "actions": {
+      "close": "Sulje",
+      "reopen": "Avaa uudelleen",
+      "markSpam": "Roskaposti",
+      "unmarkSpam": "Ei roskapostia",
+      "showQuoted": "Näytä lainattu teksti",
+      "hideQuoted": "Piilota lainattu teksti",
+      "flagReview": "Tarkistettavaksi",
+      "unflagReview": "Poista tarkistusmerkki",
+      "addKnowledgeBase": "Lisää tietopankkiin"
+    },
+    "bulk": {
+      "selected": "{count} valittu",
+      "selectAll": "Valitse kaikki {count}",
+      "select": "Valitse keskustelu",
+      "setStatus": "Aseta tila",
+      "assign": "Osoita",
+      "addTag": "Lisää tagi",
+      "clear": "Tyhjennä valinta",
+      "closeMessage": "Suljetaanko {count} keskustelua?"
+    },
+    "badge": {
+      "aiDraft": "Tekoäly",
+      "failed": "Epäonnistui",
+      "held": "Pidätetty"
+    },
+    "deliverability": {
+      "verified": "Vahvistettu",
+      "unverified": "Ei vahvistettu",
+      "notReceiving": "Ei vastaanota sähköpostia",
+      "previouslyBounced": "Aiemmin palautunut",
+      "suppressedWarning": "Vastauksia tähän osoitteeseen ei toimiteta — se on aiemmin palautunut pysyvästi tai vastaanottaja merkitsi postin roskapostiksi.",
+      "noRecipient": "Ei toimitettavaa sähköpostiosoitetta — vastauksia ei voida lähettää tähän keskusteluun.",
+      "reason": {
+        "hard_bounce": "Pysyvä palautus",
+        "complaint": "Roskapostivalitus"
+      },
+      "queued": "Lähetetään",
+      "delivered": "Toimitettu",
+      "sendFailed": "Lähetys epäonnistui"
+    },
+    "confirm": {
+      "closeTitle": "Sulje keskustelu",
+      "closeMessage": "Suljetaanko tämä keskustelu? Se avautuu automaattisesti uudelleen, jos yhteydenottaja vastaa.",
+      "spamTitle": "Merkitse roskapostiksi",
+      "spamMessage": "Estetäänkö lähettäjä ja suljetaanko keskustelu? Heidän tulevat viestinsä suljetaan automaattisesti."
+    },
+    "toasts": {
+      "sent": "Vastaus lähetetty",
+      "emailSent": "Sähköposti lähetetty",
+      "draftSaved": "Luonnos tallennettu",
+      "assigned": "Keskustelu osoitettu",
+      "statusChanged": "Tila päivitetty",
+      "bulkUpdated": "{count} keskustelua päivitetty",
+      "markedSpam": "Merkitty roskapostiksi",
+      "unmarkedSpam": "Poistettu roskapostista",
+      "error": "Jokin menu pieleen"
+    },
+    "identity": {
+      "alias": "Sähköpostialias",
+      "aliasHint": "Vain paikallinen osa — george muuttuu george{'@'}doxa.life",
+      "signature": "Sähköpostin allekirjoitus",
+      "save": "Tallenna"
+    },
+    "canned": {
+      "title": "Valmisvastaukset",
+      "new": "Uusi valmisvastaus",
+      "name": "Otsikko",
+      "body": "Sisältö",
+      "save": "Tallenna",
+      "delete": "Poista"
+    },
+    "autoAck": {
+      "subject": "Saimme viestisi",
+      "greeting": "Hei,",
+      "greetingNamed": "Hei {name},",
+      "body": "Kiitos, että otit yhteyttä {appName}:aan. Olemme saaneet viestisi ja tiimimme jäsen palaa asiaan pian.",
+      "signoff": "Kristuksessa,\n{appName}-tiimi",
+      "subjectVerify": "Saimme viestisi, vahvista sähköpostisi",
+      "verifyPrompt": "Vahvista sähköpostiosoitteesi, jotta voimme vastata sinulle:",
+      "verifyButton": "Vahvista sähköpostini"
+    },
+    "ai": {
+      "draft": "Luonnostele vastaus (tekoäly)",
+      "regenerate": "Luo uudelleen (tekoäly)",
+      "reviewTitle": "Tekoälyn luonnos — tarkista ennen lähettämistä",
+      "dismiss": "Hylkää",
+      "gloss": "Englanninkielinen käännös (tarkistukseen)",
+      "sources": "Lähteet",
+      "uncertainty": "Tarkista nämä — ei löytynyt materiaalistamme",
+      "notConfigured": "Tekoälyluonnostelua ei ole määritetty",
+      "unavailable": "Tekoäly on varattu juuri nyt — yritä uudelleen hetken kuluttua",
+      "replaceTitle": "Korvataanko nykyinen vastaus?",
+      "replaceMessage": "Luonnosteleminen tekoälyllä korvaa vastauskentässä olevan tekstin.",
+      "replaceConfirm": "Korvaa",
+      "directionPlaceholder": "Vapaaehtoinen: ohjaa tätä luonnosta — esim. \"Pyydä heitä ilmoittautumaan kansanryhmään heidän maassaan ja linkitä heidän maansa sivulle.\"",
+      "modalTitle": "Luonnostele vastaus tekoälyllä",
+      "directionLabel": "Ohjaa luonnosta (vapaaehtoinen)",
+      "generate": "Luo",
+      "refine": "Hienosäädä",
+      "generatingDraft": "Luonnostellaan vastausta…",
+      "emptyHint": "Voit vapaaehtoisesti ohjata luonnosta yllä, ja napsauta sitten Luo.",
+      "replyLabel": "Vastaus",
+      "translationLabel": "Englanninkielinen käännös (tarkistukseen)",
+      "useResponse": "Käytä vastausta",
+      "appliedInstructions": "Sovellettu",
+      "removeInstruction": "Poista ohje"
+    },
+    "kb": {
+      "addTitle": "Lisää tietopankkiin",
+      "generating": "Tarkistetaan keskustelua…",
+      "reviewHint": "Tarkista ja muokkaa tätä anonymisoitua kysymystä ja vastausta ennen tallentamista. Se auttaa perustelemaan tulevia tekoälyluonnoksia.",
+      "removedTitle": "Henkilötiedot poistettu",
+      "question": "Kysymys",
+      "answer": "Vastaus",
+      "language": "Kieli",
+      "save": "Tallenna merkintä",
+      "saved": "Lisätty tietopankkiin",
+      "nav": "Tietopankki",
+      "pageTitle": "Saapuneiden tietopankki",
+      "pageSubtitle": "Anonymisoituja vastauksia todellisista keskusteluista. Käytetään tekoälyluonnosten perustana.",
+      "empty": "Ei tietomerkintöjä vielä. Käytä \"Lisää tietopankkiin\" ratkaistussa keskustelussa tallentaaksesi yhden.",
+      "refreshGrounding": "Päivitä sivuston sisältö",
+      "refreshed": "{n} sivua päivitetty",
+      "refreshedPartial": "{n} sivua päivitetty — {m} epäonnistui ja säilytti vanhan sisältönsä",
+      "filterAll": "Kaikki",
+      "filterActive": "Aktiiviset",
+      "filterArchived": "Arkistoidut",
+      "statusActive": "Aktiivinen",
+      "statusArchived": "Arkistoitu",
+      "archive": "Arkistoi",
+      "restore": "Palauta",
+      "deleteTitle": "Poista tietomerkintä",
+      "deleteMessage": "Tämä poistaa merkinnän pysyvästi. Se ei enää perustele tulevia tekoälyluonnoksia."
+    }
+  },
+  "survey": {
+    "may2026": {
+      "page": {
+        "title": "Rukouskokemuksesi",
+        "intro": "Kiitos, että käytit muutaman minuutin auttaaksesi meitä muotoilemaan tulevaa päivittäistä rukoussisältöä. Oikeita tai vääriä vastauksia ei ole — haluamme vain rehellisen kokemuksesi.",
+        "submit": "Lähetä vastaukseni",
+        "thanksTitle": "Kiitos!",
+        "thanks": "Kiitos — vastauksesi on vastaanotettu. Olemme kiitollisia käyttämästäsi ajasta ja rukouksistasi.",
+        "editNotice": "Olet vastannut jo — kiitos! Voit päivittää vastauksiasi alla ja tallentaa uudelleen halutessasi.",
+        "invalidTitle": "Virheellinen linkki",
+        "invalid": "Tämä kyselylinkki ei näytä kelvolliselta. Käytä sähköpostisi linkkiä, tai ota yhteyttä, jos tarvitset apua.",
+        "closedTitle": "Kysely suljettu",
+        "closed": "Tämä kysely ei enää vastaanota vastauksia. Kiitos kiinnostuksestasi.",
+        "goHome": "Etusivulle",
+        "errorTitle": "Jokin menu pieleen",
+        "error": "Vastauksiasi ei voitu tallentaa. Yritä uudelleen."
+      },
+      "questions": {
+        "frequency": {
+          "label": "Kuinka monena päivänä viikossa käytät tyypillisesti DOXAn tarjoamaa koostettua rukoussisältöä?",
+          "options": {
+            "1": "Harvoin (0–1)",
+            "2": "Joinakin päivinä (2–3)",
+            "3": "Useimpina päivinä (4–6)",
+            "4": "Joka päivä (7)"
+          }
+        },
+        "focus": {
+          "label": "Päivittäiset rukousaiheet auttavat minua keskittymään ja osallistumaan tavoittamattomien kansojen puolesta rukoilemiseen.",
+          "scale": {
+            "1": "Ei lainkaan",
+            "3": "Jonkin verran",
+            "5": "Erittäin paljon"
+          }
+        },
+        "experience": {
+          "label": "Kerro lisää kokemuksestasi — mikä osa päivittäisestä rukoussivusta on ollut sinulle hyödyllisin, ja miksi?"
+        },
+        "clarity": {
+          "label": "Rukousaiheet viestivät selkeästi, mitä rukoilla ja miksi se on tärkeää.",
+          "scale": {
+            "1": "Ei lainkaan",
+            "3": "Jonkin verran",
+            "5": "Erittäin paljon"
+          }
+        },
+        "balance": {
+          "label": "Raamatunkohtien, rukousaiheiden ja pohdinnan yhdistelmä tuntuu tasapainoiselta noin 10 minuutin rukoushetkelle.",
+          "scale": {
+            "1": "Ei lainkaan",
+            "3": "Jonkin verran",
+            "5": "Erittäin paljon"
+          }
+        },
+        "scripted_preference": {
+          "label": "Rukoussisältö sisältää molempia: rukousaiheita strategisin ehdotuksin siitä, miten rukoilla (esim. \"Rukoile, että Jumala herättäisi lähetystyöntekijöitä ympäri maailmaa perustamaan seurakuntaa yhdessä tavoittamattomien kansanryhmien keskuuteen.\") ja valmiiksi kirjoitettuja rukouksia (esim. \"Isä, tänään rukoilemme, että tämä kansanryhmä kokisi lupauksen, jonka annoit Abrahamille, että heidät siunattaisiin hänen kauttansa. Aamen.\"). Kumman valitsisit:",
+          "options": {
+            "1": "Kaikki rukouspyynnöt valmiiksi kirjoitettuina",
+            "2": "Noin puolet rukouspyynnöistä valmiiksi kirjoitettuina",
+            "3": "Vain yksi rukouspyyntö valmiiksi kirjoitettuna (nykyinen muoto)",
+            "4": "Ei yhtään valmiiksi kirjoitettua rukouspyyntöä"
+          }
+        },
+        "new_pg_daily": {
+          "label": "Nautitko osiosta, joka rohkaisee sinua rukoilemaan toisen, kohtaamattoman kansanryhmän puolesta joka päivä oman kansanryhmäsi lisäksi?",
+          "options": {
+            "1": "Kyllä",
+            "2": "Ei"
+          }
+        },
+        "background_info": {
+          "label": "Onko hyödyllistä nähdä kansanryhmäsi taustatietoja rukoussisällön alaosassa joka päivä?",
+          "options": {
+            "1": "Kyllä",
+            "2": "Ei"
+          }
+        },
+        "improvement": {
+          "label": "Jos voisimme parantaa yhtä asiaa tulevassa päivittäisessä sisällössä, mitä muuttaisit, lisäisit tai poistaisit?"
+        }
+      },
+      "email": {
+        "subject": "Kertoisitko, miten rukous on sujunut?",
+        "header": "Haluaisimme kuulla palautettasi",
+        "greeting": "Hei {name},",
+        "greetingFallback": "Hei,",
+        "p1": "On ollut etuoikeus liittyä kanssasi esirukoukseen maailman tavoittamattomien kansojen puolesta.",
+        "p2": "Pyrimme aina tekemään päivittäisistä rukousaiheista hyödyllisempiä, ja ennen kuin kokoonnumme tiiminä suunnittelemaan seuraavia askeleita, haluaisimme kuulla sinusta. Käyttäisitkö muutaman minuutin vastataksesi muutamaan lyhyeen kysymykseen kokemuksestasi?",
+        "p3": "Rehellinen palautteesi — mikä toimii, mikä ei — muotoilee suoraan luomaamme rukoussisältöä.",
+        "cta": "Vastaa kyselyyn",
+        "signoff": "Kiitollisin terveisin,",
+        "team": "DOXA-tiimi"
+      }
+    },
+    "admin": {
+      "title": "Toukokuun 2026 esirukoilijakysely",
+      "heading": "Kyselyt",
+      "totalResponses": "{count} vastausta",
+      "exportCsv": "Vie CSV",
+      "average": "Keskiarvo",
+      "noResponses": "Ei vastauksia vielä",
+      "selectPrompt": "Valitse kysely nähdäksesi sen vastaukset.",
+      "summaryTab": "Yhteenveto",
+      "responsesTab": "Vastaukset",
+      "deleteResponse": "Poista vastaus",
+      "deleteResponseConfirm": "Haluatko varmasti poistaa tämän kyselyvastauksen?",
+      "deleteResponseWarning": "Tämä poistaa pysyvästi vastauksen ja kaikki sen vastaukset. Tätä toimintoa ei voi kumota.",
+      "responseDeleted": "Vastaus poistettu",
+      "deleteFailed": "Vastauksen poistaminen epäonnistui"
+    }
+  }
+}

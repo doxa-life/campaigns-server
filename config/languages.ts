@@ -29,6 +29,7 @@ export const LANGUAGES: Language[] = [
   { code: 'ru', name: 'Russian', nativeName: 'Русский', flag: '🇷🇺', bibleId: 'SYNOD' }, // NRT (New Russian Translation) is a modern alternative
   { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', flag: '🇮🇳', bibleId: 'HIOV', bibleLabel: 'OV' },
   { code: 'ro', name: 'Romanian', nativeName: 'Română', flag: '🇷🇴', bibleId: 'NTR' },
+  { code: 'fi', name: 'Finnish', nativeName: 'suomi', flag: '🇫🇮', bibleId: 'FIK38' },
 ]
 
 // All language codes
