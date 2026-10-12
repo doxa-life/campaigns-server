@@ -26,6 +26,11 @@
         <h2>Surveys</h2>
         <p>View and export responses to subscriber surveys.</p>
       </NuxtLink>
+
+      <NuxtLink v-if="canAccessUnscoped('subscribers.edit')" to="/admin/marketing/reactivate" class="card">
+        <h2>Reactivate Inactive Subscribers</h2>
+        <p>Put subscribers the system marked inactive back on their daily prayer reminders. Unsubscribes are never included.</p>
+      </NuxtLink>
     </div>
   </div>
 </template>
@@ -35,6 +40,8 @@ definePageMeta({
   layout: 'admin',
   middleware: 'auth'
 })
+
+const { canAccessUnscoped } = useAuthUser()
 
 const stats = ref<{ drafts: number; sent: number } | null>(null)
 

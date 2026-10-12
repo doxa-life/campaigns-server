@@ -514,6 +514,65 @@ class PeopleGroupSubscriptionService {
     }>
   }
 
+  // The email subscriptions behind the doxa_inactive_pg marketing audience (see
+  // contactMethodService.getContactsWithDoxaConsentAndInactiveSubscription): 'inactive'
+  // rows whose subscriber holds a verified, unsuppressed, Doxa-consented email and has
+  // no active subscription. 'unsubscribed' is a deliberate opt-out and never qualifies.
+  async getReactivatableInactiveSubscriptions(ids?: number[]): Promise<Array<{
+    id: number
+    subscriber_id: number
+    subscriber_name: string
+    email: string
+    people_group_id: number
+    people_group_name: string
+    inactive_since: string
+  }>> {
+    const idFilter = ids ? this.sql`AND cs.id = ANY(${ids})` : this.sql``
+    const rows = await this.sql`
+      SELECT cs.id, cs.subscriber_id, s.name AS subscriber_name, cm.value AS email,
+             cs.people_group_id, pg.name AS people_group_name, cs.updated_at AS inactive_since
+      FROM campaign_subscriptions cs
+      JOIN subscribers s ON s.id = cs.subscriber_id
+      JOIN people_groups pg ON pg.id = cs.people_group_id
+      JOIN LATERAL (
+        SELECT value FROM contact_methods
+        WHERE subscriber_id = cs.subscriber_id AND type = 'email'
+          AND consent_doxa_general = true AND verified = true AND suppressed_at IS NULL
+        ORDER BY created_at DESC
+        LIMIT 1
+      ) cm ON true
+      WHERE cs.status = 'inactive'
+        AND cs.delivery_method = 'email'
+        AND NOT EXISTS (
+          SELECT 1 FROM campaign_subscriptions active
+          WHERE active.subscriber_id = cs.subscriber_id AND active.status = 'active'
+        )
+        ${idFilter}
+      ORDER BY cs.updated_at DESC
+    `
+    return rows as unknown as Array<{
+      id: number
+      subscriber_id: number
+      subscriber_name: string
+      email: string
+      people_group_id: number
+      people_group_name: string
+      inactive_since: string
+    }>
+  }
+
+  // Put the given inactive subscriptions back on daily reminders. Eligibility is
+  // re-checked here in one pass before any row changes, so a caller can't reach an
+  // 'unsubscribed' row, and reactivating one prayer time doesn't disqualify the
+  // same subscriber's others mid-loop.
+  async reactivateInactiveSubscriptions(ids?: number[]) {
+    const eligible = await this.getReactivatableInactiveSubscriptions(ids)
+    for (const row of eligible) {
+      await this.resubscribe(row.id)
+    }
+    return eligible
+  }
+
   async deleteSubscription(id: number): Promise<boolean> {
     const result = await this.sql`DELETE FROM campaign_subscriptions WHERE id = ${id}`
     return result.count > 0
