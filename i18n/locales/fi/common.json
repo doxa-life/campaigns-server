@@ -165,7 +165,7 @@
       "title": "Miksi rukoilla?",
       "noOne": {
         "title": "Heillä ei ole ketään",
-        "description": "Monilla kohtaamattomilla kansanryhmillä ei ole seurakuntia, lähetystyöntekijöitä eikä usein lainkaan uskovia."
+        "description": "Monilla lähetystyön ulkopuolella olevilla kansanryhmillä ei ole seurakuntia, lähetystyöntekijöitä eikä usein lainkaan uskovia."
       },
       "opensDoors": {
         "title": "Rukous avaa ovia",
@@ -368,7 +368,7 @@
   "prayerFuel": {
     "pageTitle": "Rukoussisältö",
     "title": "Tämän päivän rukous",
-    "prayingWithYou": "{count} rukoilee kohtaamattomien puolesta juuri nyt",
+    "prayingWithYou": "{count} rukoilee lähetystyön ulkopuolella olevien kansanryhmien puolesta juuri nyt",
     "loading": "Ladataan tämän päivän rukousta...",
     "backTo": "Takaisin kampanjaan {campaign}",
     "backToToday": "Takaisin tämän päivän rukoukseen",
@@ -499,18 +499,18 @@
     "eligibilityTitle": "Ketä voidaan lisätä DOXAn listalle",
     "eligibility": {
       "indigenous": "Alkuperäinen omassa maassaan, ei diaspora-väestö",
-      "unengaged": "Kohtaamaton — heidän keskuudessaan ei ole käynnissä seurakuntien perustamistyötä",
+      "unengaged": "Lähetystyön ulkopuolella oleva kansanryhmä — heidän keskuudessaan ei ole käynnissä seurakuntien perustamistyötä",
       "notChristian": "Heidän ensisijainen uskontonsa ei ole kristinusko, eikä heitä ole historiallisesti pidetty kristittyinä",
       "otherCriteria": "Muutoin kelvollinen vakiintuneiden DOXA-kriteerien mukaan"
     },
-    "engagedBlockedTitle": "Kohdattuja ryhmiä ei voida lisätä",
-    "engagedBlockedText": "DOXAn lista keskittyy kohtaamattomiin kansanryhmiin, joten kohdattu ryhmä jää sen ulkopuolelle. Jos uskot kohtaamistiedon olevan vanhentunut, valitse Kohtaamaton ja kerro lisää kommenteissa.",
+    "engagedBlockedTitle": "Pitkäjänteisen lähetystyön piirissä olevia ryhmiä ei voida lisätä",
+    "engagedBlockedText": "DOXAn lista keskittyy lähetystyön ulkopuolella oleviin kansanryhmiin, joten pitkäjänteisen lähetystyön piirissä oleva ryhmä jää sen ulkopuolelle. Jos uskot kohtaamistiedon olevan vanhentunut, valitse Lähetystyön ulkopuolella oleva kansanryhmä ja kerro lisää kommenteissa.",
     "addManualHint": "Tätä kansanryhmää ei vielä ole IMB- tai Joshua Project -listoilla, niin jaa siis kaikki tiedot, jotka voit — mukaan lukien heidän kohtaamistilansa.",
     "addImbReasonsTitle": "Miksi tämä ryhmä ei ole DOXAn listalla",
     "addImbReasonsHint": "Jos jokin tästä on vanhentunut, korjaa se alla ja kerro lisää kommenteissa.",
     "addImbEligibleHint": "Tämä ryhmä täyttää DOXAn kriteerit ja sitä ei ole vain vielä lisätty — alla olevien tietojen vahvistaminen auttaa meitä lisäämään heidät nopeasti.",
     "exclusionReasons": {
-      "engaged": "IMB listaa heidät kohdatuiksi",
+      "engaged": "IMB listaa heidät pitkäjänteisen lähetystyön piirissä oleviksi",
       "gsec_above_2": "Heidän GSEC-pisteensä on yli 2",
       "christian_religion": "Heidän uskontonsa on merkitty kristilliseksi taustaksi",
       "diaspora": "Heidät on luokiteltu diaspora-ryhmäksi"
@@ -567,7 +567,7 @@
       "commentsRequired": "Lisää kommentti auttaaksesi meitä ymmärtämään pyyntösi",
       "uploadFailed": "Kuvan lataus epäonnistui — yritä uudelleen",
       "engagementRequired": "Valitse ryhmän kohtaamistila",
-      "engagedBlocked": "Kohdatut kansanryhmät ovat DOXAn listan ulkopuolella",
+      "engagedBlocked": "Pitkäjänteisen lähetystyön piirissä olevat kansanryhmät ovat DOXAn listan ulkopuolella",
       "verifierNameRequired": "Kerro meille vahvistajan nimi",
       "verifierEmailRequired": "Anna kelvollinen vahvistajan sähköpostiosoite",
       "verifierEmailSame": "Vahvistajan on oltava joku muu kuin sinä"
@@ -683,8 +683,8 @@
       "subject": "Tervetuloa Doxaan! - {campaign}",
       "header": "Tervetuloa Doxaan!",
       "doxaMeaning": "Kreikaksi doxa tarkoittaa \"kunniaa\", ja juuri sitä tarjoamme liittyessämme rukoukseen niiden miljoonien ihmisten puolesta, jotka elävät vähäisen tai olemattoman evankeliumin todistuksen keskellä. Yhdessä tuomme kunniaa Jumalalle uskollisen ja odottavan rukouksen kautta.",
-      "reminderExplanation": "Osana tätä rukouskampanjaa alat pian saada muistutussähköposteja, joissa on linkkejä päivittäiseen rukoussisältöön. Jokainen linkki sisältää ohjattuja rukousaiheita ja muuta materiaalia, joka auttaa sinua rukoilemaan strategisesti ja uskollisesti valitsemasi kohtaamattoman kansanryhmän puolesta.",
-      "sharedGoal": "Tämän liikkeen kautta yhteinen tavoitteemme on nähdä yli 100 ihmistä rukoilemassa päivittäin kunkin yli 2 000 kohtaamattoman kansanryhmän puolesta, miehiä ja naisia lähetettynä kohtaamaan näitä kansanryhmiä evankeliumilla vuoteen 2033 mennessä, ja kestävää antamista tämän työn tukemiseksi.",
+      "reminderExplanation": "Osana tätä rukouskampanjaa alat pian saada muistutussähköposteja, joissa on linkkejä päivittäiseen rukoussisältöön. Jokainen linkki sisältää ohjattuja rukousaiheita ja muuta materiaalia, joka auttaa sinua rukoilemaan strategisesti ja uskollisesti valitsemasi lähetystyön ulkopuolella olevan kansanryhmän puolesta.",
+      "sharedGoal": "Tämän liikkeen kautta yhteinen tavoitteemme on nähdä yli 100 ihmistä rukoilemassa päivittäin kunkin yli 2 000 lähetystyön ulkopuolella olevan kansanryhmän puolesta, miehiä ja naisia lähetettynä kohtaamaan näitä kansanryhmiä evankeliumilla vuoteen 2033 mennessä, ja kestävää antamista tämän työn tukemiseksi.",
       "closing": "Olemme syvästi kiitollisia saadessamme liittyä koko seurakunnan kanssa viedäksemme koko evankeliumin koko maailmalle.",
       "reminderTimeNote": "Päivittäinen muistutuksesi on asetettu klo {time}.",
       "startPraying": "Aloita rukous",
@@ -1045,7 +1045,7 @@
           }
         },
         "focus": {
-          "label": "Päivittäiset rukousaiheet auttavat minua keskittymään ja osallistumaan tavoittamattomien kansojen puolesta rukoilemiseen.",
+          "label": "Päivittäiset rukousaiheet auttavat minua keskittymään ja osallistumaan saavuttamattomien kansojen puolesta rukoilemiseen.",
           "scale": {
             "1": "Ei lainkaan",
             "3": "Jonkin verran",
@@ -1072,7 +1072,7 @@
           }
         },
         "scripted_preference": {
-          "label": "Rukoussisältö sisältää molempia: rukousaiheita strategisin ehdotuksin siitä, miten rukoilla (esim. \"Rukoile, että Jumala herättäisi lähetystyöntekijöitä ympäri maailmaa perustamaan seurakuntaa yhdessä tavoittamattomien kansanryhmien keskuuteen.\") ja valmiiksi kirjoitettuja rukouksia (esim. \"Isä, tänään rukoilemme, että tämä kansanryhmä kokisi lupauksen, jonka annoit Abrahamille, että heidät siunattaisiin hänen kauttansa. Aamen.\"). Kumman valitsisit:",
+          "label": "Rukoussisältö sisältää molempia: rukousaiheita strategisin ehdotuksin siitä, miten rukoilla (esim. \"Rukoile, että Jumala herättäisi lähetystyöntekijöitä ympäri maailmaa perustamaan seurakuntaa yhdessä saavuttamattomien kansanryhmien keskuuteen.\") ja valmiiksi kirjoitettuja rukouksia (esim. \"Isä, tänään rukoilemme, että tämä kansanryhmä kokisi lupauksen, jonka annoit Abrahamille, että heidät siunattaisiin hänen kauttansa. Aamen.\"). Kumman valitsisit:",
           "options": {
             "1": "Kaikki rukouspyynnöt valmiiksi kirjoitettuina",
             "2": "Noin puolet rukouspyynnöistä valmiiksi kirjoitettuina",
@@ -1081,7 +1081,7 @@
           }
         },
         "new_pg_daily": {
-          "label": "Nautitko osiosta, joka rohkaisee sinua rukoilemaan toisen, kohtaamattoman kansanryhmän puolesta joka päivä oman kansanryhmäsi lisäksi?",
+          "label": "Nautitko osiosta, joka rohkaisee sinua rukoilemaan toisen, lähetystyön ulkopuolella olevan kansanryhmän puolesta joka päivä oman kansanryhmäsi lisäksi?",
           "options": {
             "1": "Kyllä",
             "2": "Ei"
@@ -1103,7 +1103,7 @@
         "header": "Haluaisimme kuulla palautettasi",
         "greeting": "Hei {name},",
         "greetingFallback": "Hei,",
-        "p1": "On ollut etuoikeus liittyä kanssasi esirukoukseen maailman tavoittamattomien kansojen puolesta.",
+        "p1": "On ollut etuoikeus liittyä kanssasi esirukoukseen maailman saavuttamattomien kansojen puolesta.",
         "p2": "Pyrimme aina tekemään päivittäisistä rukousaiheista hyödyllisempiä, ja ennen kuin kokoonnumme tiiminä suunnittelemaan seuraavia askeleita, haluaisimme kuulla sinusta. Käyttäisitkö muutaman minuutin vastataksesi muutamaan lyhyeen kysymykseen kokemuksestasi?",
         "p3": "Rehellinen palautteesi — mikä toimii, mikä ei — muotoilee suoraan luomaamme rukoussisältöä.",
         "cta": "Vastaa kyselyyn",

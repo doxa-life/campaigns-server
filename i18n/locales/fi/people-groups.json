@@ -15,10 +15,10 @@
       "blocOnly": "He kuuluvat {bloc}-affiniteettilohkoon.",
       "religion": "Heidän ensisijainen uskontonsa on {religion}.",
       "language": "He puhuvat ensisijaisesti kieltä {language}.",
-      "statusEngaged": "kohdattu",
-      "statusUnengaged": "kohtaamaton",
-      "statusEngagedUnreached": "kohdattu mutta tavoittamaton",
-      "statusUnengagedUnreached": "kohtaamaton ja tavoittamaton"
+      "statusEngaged": "pitkäjänteisen lähetystyön piirissä",
+      "statusUnengaged": "lähetystyön ulkopuolella oleva kansanryhmä",
+      "statusEngagedUnreached": "pitkäjänteisen lähetystyön piirissä mutta saavuttamaton",
+      "statusUnengagedUnreached": "lähetystyön ulkopuolella oleva saavuttamaton kansanryhmä"
     },
     "categories": {
       "status": "Tila",
@@ -185,8 +185,8 @@
         "10": "75 % tai enemmän"
       },
       "engagementStatus": {
-        "engaged": "Kohdattu",
-        "unengaged": "Kohtaamaton"
+        "engaged": "Pitkäjänteisen lähetystyön piirissä",
+        "unengaged": "Lähetystyön ulkopuolella oleva kansanryhmä"
       },
       "yesNo": {
         "no": "Ei",
@@ -208,14 +208,14 @@
         "6": "10 % tai enemmän evankelikaaleja"
       },
       "strategicPriorityIndex": {
-        "0": "Kohtaamaton ja tavoittamaton",
-        "1": "Kohdattu mutta tavoittamaton",
-        "2": "Ei enää tavoittamaton"
+        "0": "Lähetystyön ulkopuolella oleva saavuttamaton kansanryhmä",
+        "1": "Pitkäjänteisen lähetystyön piirissä mutta saavuttamaton",
+        "2": "Ei enää saavuttamaton"
       },
       "lostnessPriorityIndex": {
-        "0": "Äärirajojen tavoittamaton kansanryhmä",
-        "1": "Pioneerivaiheen tavoittamaton kansanryhmä",
-        "2": "Laajentuva tavoittamaton kansanryhmä",
+        "0": "Täysin saavuttamaton kansanryhmä",
+        "1": "Pioneerivaiheen saavuttamaton kansanryhmä",
+        "2": "Laajentuva saavuttamaton kansanryhmä",
         "3": "Minimaalisesti tavoitettu kansanryhmä",
         "4": "Marginaalisesti tavoitettu kansanryhmä",
         "5": "Kohtalaisesti tavoitettu kansanryhmä",
