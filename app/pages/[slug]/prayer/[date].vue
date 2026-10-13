@@ -137,36 +137,21 @@ watch(locale, async (newLang) => {
 // Generate past 7 days (yesterday through 7 days ago)
 const pastContent = computed(() => {
   const items: Array<{ id: string; content_date: string }> = []
-  const today = new Date()
+  const today = toLocalDateKey(new Date())
   for (let i = 1; i <= 7; i++) {
-    const pastDate = new Date(today)
-    pastDate.setDate(today.getDate() - i)
-    const dateStr = pastDate.toISOString().split('T')[0]!
+    const dateStr = addDaysToDateKey(today, -i)
     items.push({ id: dateStr, content_date: dateStr })
   }
   return items
 })
 
 // Compute previous and next dates for navigation
-const previousDate = computed(() => {
-  const date = new Date(dateParam)
-  date.setDate(date.getDate() - 1)
-  return date.toISOString().split('T')[0]
-})
+const previousDate = computed(() => addDaysToDateKey(dateParam, -1))
 
-const nextDate = computed(() => {
-  const date = new Date(dateParam)
-  date.setDate(date.getDate() + 1)
-  return date.toISOString().split('T')[0]
-})
+const nextDate = computed(() => addDaysToDateKey(dateParam, 1))
 
 // Check if next date is in the future (shouldn't navigate to future dates)
-const isNextDateFuture = computed(() => {
-  const next = new Date(nextDate.value!)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  return next >= today
-})
+const isNextDateFuture = computed(() => nextDate.value >= toLocalDateKey(new Date()))
 
 // Set people group title on mount (handles cached data from navigation)
 onMounted(() => {

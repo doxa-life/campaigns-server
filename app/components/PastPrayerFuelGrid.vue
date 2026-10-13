@@ -31,8 +31,7 @@ const props = defineProps<{
 const localePath = useLocalePath()
 
 function formatPastDate(dateString: string) {
-  const date = new Date(dateString)
-  return date.toLocaleDateString(props.language || 'en', {
+  return parseLocalDate(dateString).toLocaleDateString(props.language || 'en', {
     month: 'short',
     day: 'numeric',
     year: 'numeric'

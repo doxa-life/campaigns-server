@@ -113,13 +113,7 @@ const { trackEvent } = useTracking()
 const viewedTrackingKey = ref<string | null>(null)
 
 // Get current date in user's timezone
-const currentDate = computed(() => {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-})
+const currentDate = computed(() => toLocalDateKey(new Date()))
 
 // Get language preference from global language selector or query param
 const selectedLanguage = ref((route.query.language as string) || locale.value || '')
@@ -201,11 +195,9 @@ watch(locale, async (newLang) => {
 // Generate past 7 days (yesterday through 7 days ago)
 const pastContent = computed(() => {
   const items: Array<{ id: string; content_date: string }> = []
-  const today = new Date()
+  const today = currentDate.value
   for (let i = 1; i <= 7; i++) {
-    const pastDate = new Date(today)
-    pastDate.setDate(today.getDate() - i)
-    const dateStr = pastDate.toISOString().split('T')[0]!
+    const dateStr = addDaysToDateKey(today, -i)
     items.push({ id: dateStr, content_date: dateStr })
   }
   return items
