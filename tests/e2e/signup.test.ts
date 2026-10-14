@@ -224,21 +224,21 @@ describe('POST /api/people-groups/[slug]/signup', async () => {
   })
 
   describe('Subscription Limits', () => {
-    it('allows up to 5 subscriptions per people group', async () => {
+    it('allows up to 10 subscriptions per people group', async () => {
       const peopleGroup = await createTestPeopleGroup(sql)
       const subscriber = await createTestSubscriber(sql, { name: 'Test Limit User' })
       const email = `test-limit-${Date.now()}@example.com`
       await createTestContactMethod(sql, subscriber.id, { type: 'email', value: email, verified: true })
 
-      // Create 4 existing subscriptions with different times
-      for (let i = 0; i < 4; i++) {
+      // Create 9 existing subscriptions with different times
+      for (let i = 0; i < 9; i++) {
         await createTestPeopleGroupSubscription(sql, peopleGroup.id, subscriber.id, {
           time_preference: `0${i}:00`,
           status: 'active'
         })
       }
 
-      // 5th signup should succeed
+      // 10th signup should succeed
       const response = await $fetch(`/api/people-groups/${peopleGroup.slug}/signup`, {
         method: 'POST',
         body: {
@@ -246,15 +246,15 @@ describe('POST /api/people-groups/[slug]/signup', async () => {
           email,
           delivery_method: 'email',
           frequency: 'daily',
-          reminder_time: '05:00'
+          reminder_time: '09:00'
         }
       })
 
       expect(response.message).toBe('Please check your email to complete your signup')
 
-      // Verify 5th subscription was created
+      // Verify 10th subscription was created
       const subscriptions = await getAllTestSubscriptions(sql, peopleGroup.id, subscriber.id)
-      expect(subscriptions.length).toBe(5)
+      expect(subscriptions.length).toBe(10)
     })
 
     it('returns privacy-safe response when at limit', async () => {
@@ -263,15 +263,15 @@ describe('POST /api/people-groups/[slug]/signup', async () => {
       const email = `test-limit-max-${Date.now()}@example.com`
       await createTestContactMethod(sql, subscriber.id, { type: 'email', value: email, verified: true })
 
-      // Create 5 existing subscriptions (max limit)
-      for (let i = 0; i < 5; i++) {
+      // Create 10 existing subscriptions (max limit)
+      for (let i = 0; i < 10; i++) {
         await createTestPeopleGroupSubscription(sql, peopleGroup.id, subscriber.id, {
-          time_preference: `0${i}:00`,
+          time_preference: `${String(i).padStart(2, '0')}:00`,
           status: 'active'
         })
       }
 
-      // 6th signup should return same response for privacy
+      // 11th signup should return same response for privacy
       const response = await $fetch(`/api/people-groups/${peopleGroup.slug}/signup`, {
         method: 'POST',
         body: {
@@ -279,16 +279,16 @@ describe('POST /api/people-groups/[slug]/signup', async () => {
           email,
           delivery_method: 'email',
           frequency: 'daily',
-          reminder_time: '06:00'
+          reminder_time: '10:00'
         }
       })
 
       // Same response as success - privacy protection
       expect(response.message).toBe('Please check your email to complete your signup')
 
-      // Verify no 6th subscription was created
+      // Verify no 11th subscription was created
       const subscriptions = await getAllTestSubscriptions(sql, peopleGroup.id, subscriber.id)
-      expect(subscriptions.length).toBe(5)
+      expect(subscriptions.length).toBe(10)
     })
   })
 

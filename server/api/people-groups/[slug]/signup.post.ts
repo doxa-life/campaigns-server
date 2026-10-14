@@ -163,7 +163,7 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    const MAX_SUBSCRIPTIONS_PER_PEOPLE_GROUP = 5
+    const MAX_SUBSCRIPTIONS_PER_PEOPLE_GROUP = 10
 
     const activeCount = existingSubscriptions.filter(s => s.status === 'active' || s.status === 'pending').length
     if (activeCount >= MAX_SUBSCRIPTIONS_PER_PEOPLE_GROUP) {
