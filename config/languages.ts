@@ -18,7 +18,7 @@ export interface Language {
 // but hidden from the UI language selector, translation targets, and admin content
 // find translations: https://bolls.life/static/bolls/app/views/languages.json
 export const LANGUAGES: Language[] = [
-  { code: 'en', name: 'English', nativeName: 'English', flag: '🇺🇸', bibleId: 'NKJV' },
+  { code: 'en', name: 'English', nativeName: 'English', flag: '🇬🇧', bibleId: 'NKJV' },
   { code: 'es', name: 'Spanish', nativeName: 'Español', flag: '🇪🇸', bibleId: 'NVI' }, //RV1960
   { code: 'fr', name: 'French', nativeName: 'Français', flag: '🇫🇷', bibleId: 'FRLSG', bibleLabel: 'LSG' }, //maybe BDS
   { code: 'pt', name: 'Portuguese', nativeName: 'Português', flag: '🇵🇹', bibleId: 'NAA', translationName: 'Brazilian Portuguese' },
