@@ -128,6 +128,8 @@ function resolveSpecialField(pg: PeopleGroupRecord, field: string, meta: Record<
   switch (field) {
     case 'location_description': return { value: meta.imb_location_description || null }
     case 'has_photo': return { value: meta.imb_has_photo === '1' || meta.imb_has_photo === true }
+    // Opt-in only (the list endpoint attaches it when requested); falls back to the original.
+    case 'compressed_image_url': return { value: (pg.compressed_image_url as string | undefined) ?? pg.image_url }
     case 'picture_credit': return { value: meta.picture_credit || null }
     case 'picture_credit_html': return { value: meta.imb_picture_credit_html || null }
     case 'people_praying': return { value: pg.total_people_praying || 0 }

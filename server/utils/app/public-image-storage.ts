@@ -1,6 +1,7 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { randomBytes } from 'crypto'
 import { createError } from 'h3'
+import { compressImage } from './image-compression'
 
 /**
  * Upload helper for the PUBLIC images bucket (library prayer content +
@@ -82,9 +83,14 @@ export interface PublicImageUploadResult {
 /**
  * Validate (magic-byte sniff + size cap) and upload an image to the
  * public images bucket. Returns a stable CDN URL safe to embed in
- * library content and outbound email HTML.
+ * library content and outbound email HTML. Pass `compress` to store a
+ * web-sized re-encode instead of the original bytes, under `prefix`.
+ * Called without options it stores the original bytes exactly as before.
  */
-export async function uploadPublicImage(data: Buffer): Promise<PublicImageUploadResult> {
+export async function uploadPublicImage(
+  data: Buffer,
+  options: { compress?: { maxDimension: number }, prefix?: string, cacheControl?: string } = {}
+): Promise<PublicImageUploadResult> {
   if (!data || data.length === 0) {
     throw createError({ statusCode: 400, statusMessage: 'Image bytes are required' })
   }
@@ -92,10 +98,13 @@ export async function uploadPublicImage(data: Buffer): Promise<PublicImageUpload
     throw createError({ statusCode: 413, statusMessage: `Image exceeds ${MAX_IMAGE_BYTES / (1024 * 1024)}MB limit` })
   }
 
-  const mimeType = sniffImageMime(data)
-  if (!mimeType) {
+  const sniffedMime = sniffImageMime(data)
+  if (!sniffedMime) {
     throw createError({ statusCode: 415, statusMessage: 'Unsupported image type — only JPEG, PNG, GIF, and WebP are accepted' })
   }
+  const { data: body, mimeType } = options.compress
+    ? await compressImage(data, sniffedMime, options.compress.maxDimension)
+    : { data, mimeType: sniffedMime }
 
   const { accessKeyId, secretAccessKey, region, bucket, endpoint, baseUrl } = getPublicConfig()
   if (!accessKeyId || !secretAccessKey || !bucket || !baseUrl) {
@@ -119,13 +128,14 @@ export async function uploadPublicImage(data: Buffer): Promise<PublicImageUpload
   // No per-object ACL: public exposure is configured at the bucket level
   // (B2 public bucket) or via a connected public domain (R2 custom domain).
   // R2 ignores ACLs entirely, so setting one here would be misleading.
-  const key = `uploads/images/${randomBytes(16).toString('hex')}.${EXT_BY_MIME[mimeType]}`
+  const key = `${options.prefix ?? 'uploads/images'}/${randomBytes(16).toString('hex')}.${EXT_BY_MIME[mimeType]}`
   await s3Client.send(new PutObjectCommand({
     Bucket: bucket,
     Key: key,
-    Body: data,
+    Body: body,
     ContentType: mimeType,
+    ...(options.cacheControl ? { CacheControl: options.cacheControl } : {}),
   }))
 
-  return { url: getPublicImageUrl(key), key, mimeType, byteSize: data.length }
+  return { url: getPublicImageUrl(key), key, mimeType, byteSize: body.length }
 }

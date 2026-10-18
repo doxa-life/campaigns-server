@@ -245,6 +245,10 @@ Use `SELECT ... FOR UPDATE OF <table> SKIP LOCKED LIMIT <batch>` inside a short 
 ### Singleton cron/periodic tasks (e.g., backups, followups, activity emails)
 Use `claimLock` — INSERT a deterministic UUID (`md5(lockKey)::uuid`) into `activity_logs` with `ON CONFLICT (id) DO NOTHING`. Only the instance whose INSERT returns a row proceeds. Lock key format: `{scheduler-name}:{period-key}` (e.g., `backup-scheduler:2026-03-12`).
 
+## People Group Image Copies
+
+`image_url` is the original photo (often hotlinked from IMB or Joshua Project) and is never modified. The mobile app gets a compressed copy as `compressed_image_url`, made by `server/plugins/image-copy-scheduler.ts` and stored in the `people_group_image_copies` table. The website must stay unaffected by this feature. See `docs/PEOPLE_GROUP_IMAGE_COPIES.md` for how it works, how to check on it, and how to reverse it.
+
 ## Hooks (WordPress-style Actions)
 
 A lightweight `addAction` / `doAction` system in `server/utils/hooks.ts` for decoupled cross-cutting concerns.

@@ -9,6 +9,7 @@ import { setCacheHeaders } from '../../utils/app/cors'
 import { LANGUAGE_CODES } from '../../../config/languages'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
 import { peopleGroupAdoptionService } from '../../database/people-group-adoptions'
+import { compressedImageUrlMap } from '../../utils/app/people-group-image-copies'
 
 export default defineEventHandler(async (event) => {
   setCacheHeaders(event)
@@ -49,6 +50,14 @@ export default defineEventHandler(async (event) => {
     const stats = commitmentStatsMap.get(pg.id)
     pg.people_committed = stats?.people_committed || 0
     pg.adopted_by_churches = adoptionCountsMap.get(pg.id) || 0
+  }
+
+  // Compressed photo copies are only looked up for clients that ask for them (the mobile app)
+  if (Array.isArray(requestedFields) && requestedFields.includes('compressed_image_url')) {
+    const copies = await compressedImageUrlMap()
+    for (const pg of peopleGroups) {
+      if (pg.image_url && copies.has(pg.image_url)) pg.compressed_image_url = copies.get(pg.image_url)
+    }
   }
 
   // Format the response

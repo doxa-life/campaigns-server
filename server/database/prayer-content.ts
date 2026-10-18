@@ -4,10 +4,12 @@ import { libraryService, PEOPLE_GROUP_LIBRARY_ID, DAILY_PEOPLE_GROUP_LIBRARY_ID,
 import { peopleGroupService } from './people-groups'
 import { getFieldOptionLabel, getReligionLabel, getCountryLabel } from '../utils/app/field-options'
 import { generatePeopleGroupDescription } from '../utils/app/people-group-description'
+import { compressedImageUrl } from '../utils/app/people-group-image-copies'
 
 export interface PeopleGroupData {
   name: string
   image_url: string | null
+  compressed_image_url: string | null
   description: string | null
   population: number | null
   language: string | null
@@ -395,6 +397,7 @@ export class PrayerContentService {
       people_group_data: {
         name: peopleGroup.name,
         image_url: peopleGroup.image_url,
+        compressed_image_url: await compressedImageUrl(peopleGroup.image_url),
         description,
         population,
         language,
@@ -487,6 +490,7 @@ export class PrayerContentService {
       people_group_data: {
         name: peopleGroup.name,
         image_url: peopleGroup.image_url,
+        compressed_image_url: await compressedImageUrl(peopleGroup.image_url),
         description,
         population,
         language,

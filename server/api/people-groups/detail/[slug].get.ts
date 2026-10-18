@@ -10,6 +10,7 @@ import { LANGUAGE_CODES } from '../../../../config/languages'
 import { peopleGroupSubscriptionService } from '#server/database/people-group-subscriptions'
 import { appConfigService } from '#server/database/app-config'
 import { peopleGroupAdoptionService } from '../../../database/people-group-adoptions'
+import { compressedImageUrl } from '../../../utils/app/people-group-image-copies'
 
 export default defineEventHandler(async (event) => {
   setCacheHeaders(event)
@@ -47,10 +48,11 @@ export default defineEventHandler(async (event) => {
   }
 
   // Get commitment stats, global start date, and adoption info
-  const [commitmentStats, globalStartDate, adoptions] = await Promise.all([
+  const [commitmentStats, globalStartDate, adoptions, compressedImage] = await Promise.all([
     peopleGroupSubscriptionService.getCommitmentStats(peopleGroup.id),
     appConfigService.getConfig<string>('global_campaign_start_date'),
-    peopleGroupAdoptionService.getForPeopleGroup(peopleGroup.id)
+    peopleGroupAdoptionService.getForPeopleGroup(peopleGroup.id),
+    compressedImageUrl(peopleGroup.image_url)
   ])
 
   const activeAdoptions = adoptions.filter(a => a.status === 'active')
@@ -58,6 +60,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     ...formatPeopleGroup(peopleGroup, { fields: 'all', lang }),
+    compressed_image_url: compressedImage,
     people_committed: commitmentStats.people_committed,
     committed_duration: commitmentStats.committed_duration,
     global_start_date: globalStartDate,

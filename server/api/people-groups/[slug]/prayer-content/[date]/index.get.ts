@@ -6,6 +6,7 @@ import { peopleGroupService } from '#server/database/people-groups'
 import { prayerContentService } from '#server/database/prayer-content'
 import { appConfigService } from '#server/database/app-config'
 import { extractTranslations, getCopyrightNotices } from '#server/utils/bible-attribution'
+import { compressedImageUrl } from '#server/utils/app/people-group-image-copies'
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
@@ -84,6 +85,7 @@ export default defineEventHandler(async (event) => {
       slug: peopleGroup.slug,
       title: peopleGroup.name,
       image_url: peopleGroup.image_url || null,
+      compressed_image_url: await compressedImageUrl(peopleGroup.image_url),
       default_language: defaultLang
     },
     date,
