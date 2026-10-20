@@ -26,6 +26,18 @@ countries.registerLocale(countriesAr)
 countries.registerLocale(countriesRu)
 countries.registerLocale(countriesHi)
 
+// Reviewer-approved country names that differ from i18n-iso-countries,
+// keyed by locale then ISO alpha-2 code.
+const COUNTRY_NAME_OVERRIDES: Record<string, Record<string, string>> = {
+  fi: { KP: 'Pohjois-Korea' }
+}
+
+function getCountryName(code: string, locale: string): string | undefined {
+  const alpha2 = countries.toAlpha2(code)
+  const override = alpha2 ? COUNTRY_NAME_OVERRIDES[locale]?.[alpha2] : undefined
+  return override || countries.getName(code, locale, { select: 'official' })
+}
+
 // Cache for loaded translation files
 const translationCache: Record<string, Record<string, any>> = {}
 
@@ -73,7 +85,7 @@ export function getFieldOptionLabel(fieldKey: string, optionKey: string, locale:
 
   // Handle dynamic options sources (countries use i18n-iso-countries library)
   if (field.optionsSource === 'countries') {
-    return countries.getName(optionKey, locale, { select: 'official' }) || optionKey
+    return getCountryName(optionKey, locale) || optionKey
   }
 
   // Handle static options with translation support
@@ -160,7 +172,7 @@ export function getReligionLabel(code: string, locale: string = 'en'): string | 
 
 export function getCountryLabel(code: string, locale: string = 'en'): string | null {
   if (!code) return null
-  return countries.getName(code, locale, { select: 'official' }) || code
+  return getCountryName(code, locale) || code
 }
 
 // Export all fields for API usage
