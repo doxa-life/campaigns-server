@@ -22,13 +22,13 @@ export async function sendInvitationEmail(
       <img src="${baseUrl}/images/template-header-doxa.jpeg" alt="Doxa" style="width: 100%; display: block; border-radius: 10px 10px 0 0;" />
       <div style="background: #3B463D; color: #ffffff; padding: 30px; text-align: center;">
         <h1 style="margin: 0; font-size: 28px; font-weight: 500;">You've been invited!</h1>
-        <p style="margin: 10px 0 0; font-size: 16px; opacity: 0.8;">Join ${appName} as an administrator</p>
+        <p style="margin: 10px 0 0; font-size: 16px; opacity: 0.8;">Join ${appName}</p>
       </div>
 
       <div style="background: #ffffff; border: 2px solid #3B463D; border-top: none; padding: 40px 30px; border-radius: 0 0 10px 10px;">
         <h2 style="color: #3B463D; margin-top: 0; font-weight: 500;">Hello!</h2>
         <p style="font-size: 16px; margin: 20px 0; color: #3B463D;">
-          <strong>${invitedBy}</strong> has invited you to join <strong>${appName}</strong> as an administrator.
+          <strong>${invitedBy}</strong> has invited you to join <strong>${appName}</strong>.
         </p>
 
         <p style="font-size: 16px; margin: 20px 0; color: #3B463D;">
@@ -72,7 +72,7 @@ export async function sendInvitationEmail(
   const text = `
 You've been invited to ${appName}!
 
-${invitedBy} has invited you to join ${appName} as an administrator.
+${invitedBy} has invited you to join ${appName}.
 
 Accept your invitation by visiting this link:
 ${invitationUrl}
@@ -84,7 +84,7 @@ This is an automated message from ${appName}. Please do not reply to this email.
 
   return await sendEmail({
     to,
-    subject: `You've been invited to ${appName} Admin`,
+    subject: `You've been invited to ${appName}`,
     html,
     text
   })
