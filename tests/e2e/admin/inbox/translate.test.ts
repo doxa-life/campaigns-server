@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { $fetch } from '@nuxt/test-utils/e2e'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import { getTestDatabase, closeTestDatabase, cleanupTestData } from '../../../helpers/db'
 import { createTestUser, getAuthHeaders, type TestUser, type AuthHeaders } from '../../../helpers/auth'
 
@@ -14,11 +14,11 @@ describe('Inbox message translation', async () => {
   async function makeConversation(): Promise<{ conversationId: number; messageId: number }> {
     const [sub] = await sql`
       INSERT INTO subscribers (tracking_id, profile_id, name)
-      VALUES (${uuidv4()}, ${uuidv4()}, 'Translate Tester')
+      VALUES (${randomUUID()}, ${randomUUID()}, 'Translate Tester')
       RETURNING id
     `
     createdSubscriberIds.push(sub!.id as number)
-    const token = uuidv4().replace(/-/g, '').slice(0, 20)
+    const token = randomUUID().replace(/-/g, '').slice(0, 20)
     const [c] = await sql`
       INSERT INTO conversations (subscriber_id, status, reply_token, subject)
       VALUES (${sub!.id}, 'open', ${token}, 'Pregunta')
@@ -41,7 +41,7 @@ describe('Inbox message translation', async () => {
 
   beforeAll(async () => {
     await cleanupTestData(sql)
-    agent = await createTestUser(sql, { email: `tr-agent-${uuidv4().slice(0, 8)}@example.com`, display_name: 'Lydia' })
+    agent = await createTestUser(sql, { email: `tr-agent-${randomUUID().slice(0, 8)}@example.com`, display_name: 'Lydia' })
     await sql`UPDATE users SET roles = ARRAY['inbox_agent'] WHERE id = ${agent.id}`
     agentAuth = getAuthHeaders(agent)
   })

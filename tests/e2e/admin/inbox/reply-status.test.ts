@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { $fetch } from '@nuxt/test-utils/e2e'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import { getTestDatabase, closeTestDatabase, cleanupTestData } from '../../../helpers/db'
 import { createAdminUser, type AuthHeaders } from '../../../helpers/auth'
 
@@ -17,7 +17,7 @@ describe('Inbox reply email status', async () => {
   async function makeSubscriber(email: string, opts: { verified?: boolean } = {}) {
     const [sub] = await sql`
       INSERT INTO subscribers (tracking_id, profile_id, name)
-      VALUES (${uuidv4()}, ${uuidv4()}, ${'Test ReplyStatus ' + email})
+      VALUES (${randomUUID()}, ${randomUUID()}, ${'Test ReplyStatus ' + email})
       RETURNING id
     `
     await sql`
@@ -29,7 +29,7 @@ describe('Inbox reply email status', async () => {
   }
 
   async function makeConversation(subscriberId: number | null) {
-    const token = uuidv4().replace(/-/g, '').slice(0, 20)
+    const token = randomUUID().replace(/-/g, '').slice(0, 20)
     const [c] = await sql`
       INSERT INTO conversations (subscriber_id, status, reply_token, subject)
       VALUES (${subscriberId}, 'open', ${token}, 'Reply status thread')
@@ -67,7 +67,7 @@ describe('Inbox reply email status', async () => {
   })
 
   it('reports an unverified sender with no suppression', async () => {
-    const email = `reply-status-unv-${uuidv4().slice(0, 8)}@example.com`
+    const email = `reply-status-unv-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(email)
     const convo = await makeConversation(subId)
     await addInbound(convo.id, email)
@@ -85,9 +85,9 @@ describe('Inbox reply email status', async () => {
   })
 
   it('reports suppression of the address that wrote in, while the header shows the verified primary', async () => {
-    const primary = `reply-status-prim-${uuidv4().slice(0, 8)}@example.com`
+    const primary = `reply-status-prim-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(primary, { verified: true })
-    const suppressed = `reply-status-supp-${uuidv4().slice(0, 8)}@example.com`
+    const suppressed = `reply-status-supp-${randomUUID().slice(0, 8)}@example.com`
     await sql`
       INSERT INTO contact_methods (subscriber_id, type, value, verified, suppressed_at, suppression_reason, bounce_count)
       VALUES (${subId}, 'email', ${suppressed}, false, NOW(), 'hard_bounce', 2)
@@ -109,10 +109,10 @@ describe('Inbox reply email status', async () => {
   })
 
   it('never treats a held (wrong-From) message as the reply target', async () => {
-    const primary = `reply-status-real-${uuidv4().slice(0, 8)}@example.com`
+    const primary = `reply-status-real-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(primary, { verified: true })
     const convo = await makeConversation(subId)
-    const attacker = `attacker-${uuidv4().slice(0, 6)}@evil.com`
+    const attacker = `attacker-${randomUUID().slice(0, 6)}@evil.com`
     await addInbound(convo.id, attacker, 'held')
 
     const res = await getDetail(convo.id)
@@ -122,7 +122,7 @@ describe('Inbox reply email status', async () => {
 
   it('reports no deliverable address for a subscriber-less conversation', async () => {
     const convo = await makeConversation(null)
-    await addInbound(convo.id, `orphan-${uuidv4().slice(0, 8)}@example.com`)
+    await addInbound(convo.id, `orphan-${randomUUID().slice(0, 8)}@example.com`)
 
     const res = await getDetail(convo.id)
     expect(res.reply_email_status.email).toBeNull()

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { $fetch, fetch as rawFetch } from '@nuxt/test-utils/e2e'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import { getTestDatabase, closeTestDatabase, cleanupTestData } from '../helpers/db'
 import { createAdminUser, createNoRoleUser, type TestUser, type AuthHeaders } from '../helpers/auth'
 
@@ -21,7 +21,7 @@ describe('People Group Suggestions (/updates)', async () => {
   }
 
   function testEmail() {
-    return `test-${uuidv4().slice(0, 8)}@example.com`
+    return `test-${randomUUID().slice(0, 8)}@example.com`
   }
 
   async function getReport(id: number) {
@@ -76,7 +76,7 @@ describe('People Group Suggestions (/updates)', async () => {
 
     const [group] = await sql`
       INSERT INTO people_groups (name, slug, population, status, engagement_status)
-      VALUES ('Test Suggestion Group', ${'test-suggestion-group-' + uuidv4().slice(0, 8)}, 1000, 'active', 'unengaged')
+      VALUES ('Test Suggestion Group', ${'test-suggestion-group-' + randomUUID().slice(0, 8)}, 1000, 'active', 'unengaged')
       RETURNING id
     `
     testGroupId = group!.id
@@ -184,7 +184,7 @@ describe('People Group Suggestions (/updates)', async () => {
           INSERT INTO people_groups (name, slug, population, status, engagement_status, metadata)
           VALUES (
             'Test Confirmation Group',
-            ${'test-confirmation-group-' + uuidv4().slice(0, 8)},
+            ${'test-confirmation-group-' + randomUUID().slice(0, 8)},
             1000,
             'active',
             'unengaged',
@@ -534,7 +534,7 @@ describe('People Group Suggestions (/updates)', async () => {
       await sql`
         INSERT INTO people_groups (name, slug, country_code, region, status, engagement_status, metadata)
         VALUES (
-          'Test Country Peer', ${'test-country-peer-' + uuidv4().slice(0, 8)}, 'BTN', 'asia', 'active', 'unengaged',
+          'Test Country Peer', ${'test-country-peer-' + randomUUID().slice(0, 8)}, 'BTN', 'asia', 'active', 'unengaged',
           ${sql.json({ doxa_wagf_region: 'asia', doxa_wagf_block: 'south_asia', doxa_wagf_member: 'yes', imb_subregion: 'Southern Asia' })}
         )
       `
@@ -649,7 +649,7 @@ describe('People Group Suggestions (/updates)', async () => {
     it('applies an approved remove by archiving with the reason', async () => {
       const [removable] = await sql`
         INSERT INTO people_groups (name, slug, status, engagement_status)
-        VALUES ('Test Removable Group', ${'test-removable-' + uuidv4().slice(0, 8)}, 'active', 'unengaged')
+        VALUES ('Test Removable Group', ${'test-removable-' + randomUUID().slice(0, 8)}, 'active', 'unengaged')
         RETURNING id
       `
       const email = testEmail()
@@ -717,7 +717,7 @@ describe('People Group Suggestions (/updates)', async () => {
       expect(dup.statusCode).toBe(400)
 
       const unknown = await $fetch('/api/admin/people-group-reports/approvers', {
-        method: 'PUT', body: { approvers: [approver1.user.id, uuidv4()] }, ...otherAdmin.auth
+        method: 'PUT', body: { approvers: [approver1.user.id, randomUUID()] }, ...otherAdmin.auth
       }).catch((e) => e)
       expect(unknown.statusCode).toBe(400)
     })

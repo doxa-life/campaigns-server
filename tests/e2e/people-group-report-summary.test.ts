@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import { getTestDatabase, closeTestDatabase, cleanupTestData, createTestPeopleGroup } from '../helpers/db'
 import { createAdminUser, type TestUser } from '../helpers/auth'
 
@@ -47,7 +47,7 @@ describe('People group report monthly summary', async () => {
       source: opts.source,
       status: opts.status,
       reporter_name: 'Test Summary Reporter',
-      reporter_email: `test-${uuidv4().slice(0, 8)}@example.com`,
+      reporter_email: `test-${randomUUID().slice(0, 8)}@example.com`,
       suggested_changes: { population: 1234 }
     })
     await sql`UPDATE people_group_reports SET created_at = ${opts.createdAt} WHERE id = ${report.id}`

@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, afterAll } from 'vitest'
 import { $fetch } from '@nuxt/test-utils/e2e'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import {
   getTestDatabase,
   closeTestDatabase,
@@ -46,7 +46,7 @@ describe('POST /api/push/register', () => {
     it('returns 403 without the app secret', async () => {
       const error = await $fetch('/api/push/register', {
         method: 'POST',
-        body: { tracking_id: uuidv4(), onesignal_subscription_id: uuidv4(), platform: 'ios' }
+        body: { tracking_id: randomUUID(), onesignal_subscription_id: randomUUID(), platform: 'ios' }
       }).catch(e => e)
       expect(error.statusCode).toBe(403)
     })
@@ -55,7 +55,7 @@ describe('POST /api/push/register', () => {
       const error = await $fetch('/api/push/register', {
         method: 'POST',
         headers: { 'x-app-secret': 'wrong-secret' },
-        body: { tracking_id: uuidv4(), onesignal_subscription_id: uuidv4(), platform: 'ios' }
+        body: { tracking_id: randomUUID(), onesignal_subscription_id: randomUUID(), platform: 'ios' }
       }).catch(e => e)
       expect(error.statusCode).toBe(403)
     })
@@ -66,7 +66,7 @@ describe('POST /api/push/register', () => {
       const error = await $fetch('/api/push/register', {
         method: 'POST',
         headers,
-        body: { tracking_id: uuidv4(), platform: 'ios' }
+        body: { tracking_id: randomUUID(), platform: 'ios' }
       }).catch(e => e)
       expect(error.statusCode).toBe(400)
     })
@@ -83,11 +83,11 @@ describe('POST /api/push/register', () => {
 
   describe('Unknown device (pre-signup)', () => {
     it('soft no-ops (200, registered:false) when no subscriber matches', async () => {
-      const subscriptionId = uuidv4()
+      const subscriptionId = randomUUID()
       const res = await $fetch('/api/push/register', {
         method: 'POST',
         headers,
-        body: { tracking_id: uuidv4(), onesignal_subscription_id: subscriptionId, platform: 'android' }
+        body: { tracking_id: randomUUID(), onesignal_subscription_id: subscriptionId, platform: 'android' }
       })
       expect(res).toEqual({ ok: true, registered: false })
 
@@ -99,7 +99,7 @@ describe('POST /api/push/register', () => {
   describe('Registration', () => {
     it('registers by tracking_id and stores tracking_id as the external_id', async () => {
       const subscriber = await createTestSubscriber(sql)
-      const subscriptionId = uuidv4()
+      const subscriptionId = randomUUID()
 
       const res = await $fetch('/api/push/register', {
         method: 'POST',
@@ -118,7 +118,7 @@ describe('POST /api/push/register', () => {
 
     it('prefers profile_id for resolution and stores it as the external_id', async () => {
       const subscriber = await createTestSubscriber(sql)
-      const subscriptionId = uuidv4()
+      const subscriptionId = randomUUID()
 
       const res = await $fetch('/api/push/register', {
         method: 'POST',
@@ -141,14 +141,14 @@ describe('POST /api/push/register', () => {
 
     it('falls back to tracking_id when the given profile_id does not exist', async () => {
       const subscriber = await createTestSubscriber(sql)
-      const subscriptionId = uuidv4()
+      const subscriptionId = randomUUID()
 
       const res = await $fetch('/api/push/register', {
         method: 'POST',
         headers,
         body: {
           tracking_id: subscriber.tracking_id,
-          profile_id: uuidv4(), // unknown profile
+          profile_id: randomUUID(), // unknown profile
           onesignal_subscription_id: subscriptionId,
           platform: 'ios'
         }
@@ -162,7 +162,7 @@ describe('POST /api/push/register', () => {
 
     it('stores an unrecognised platform as null', async () => {
       const subscriber = await createTestSubscriber(sql)
-      const subscriptionId = uuidv4()
+      const subscriptionId = randomUUID()
 
       await $fetch('/api/push/register', {
         method: 'POST',
@@ -179,7 +179,7 @@ describe('POST /api/push/register', () => {
   describe('Idempotency', () => {
     it('upserts on a repeat call with the same subscription id (no duplicate row)', async () => {
       const subscriber = await createTestSubscriber(sql)
-      const subscriptionId = uuidv4()
+      const subscriptionId = randomUUID()
 
       // First register without a profile id (external_id = tracking_id).
       await $fetch('/api/push/register', {
@@ -210,7 +210,7 @@ describe('POST /api/push/register', () => {
     it('reassigns the subscription to a new subscriber on conflict', async () => {
       const first = await createTestSubscriber(sql)
       const second = await createTestSubscriber(sql)
-      const subscriptionId = uuidv4()
+      const subscriptionId = randomUUID()
 
       await $fetch('/api/push/register', {
         method: 'POST',

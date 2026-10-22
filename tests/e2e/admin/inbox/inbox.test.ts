@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { $fetch } from '@nuxt/test-utils/e2e'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import { getTestDatabase, closeTestDatabase, cleanupTestData } from '../../../helpers/db'
 import { createAdminUser, createTestUser, getAuthHeaders, type TestUser, type AuthHeaders } from '../../../helpers/auth'
 import { buildSignedReplyAddress } from '../../../../server/utils/inbox-addressing'
@@ -49,7 +49,7 @@ describe('Shared inbox', async () => {
   async function makeSubscriber(email: string, opts: { verified?: boolean } = {}) {
     const [sub] = await sql`
       INSERT INTO subscribers (tracking_id, profile_id, name)
-      VALUES (${uuidv4()}, ${uuidv4()}, ${'Test Inbox ' + email})
+      VALUES (${randomUUID()}, ${randomUUID()}, ${'Test Inbox ' + email})
       RETURNING id
     `
     await sql`
@@ -61,7 +61,7 @@ describe('Shared inbox', async () => {
   }
 
   async function makeConversation(subscriberId: number, opts: { status?: string } = {}) {
-    const token = uuidv4().replace(/-/g, '').slice(0, 20)
+    const token = randomUUID().replace(/-/g, '').slice(0, 20)
     const [c] = await sql`
       INSERT INTO conversations (subscriber_id, status, reply_token, subject)
       VALUES (${subscriberId}, ${opts.status || 'open'}, ${token}, 'Existing thread')
@@ -76,8 +76,8 @@ describe('Shared inbox', async () => {
   beforeAll(async () => {
     await cleanupTestData(sql)
     adminAuth = (await createAdminUser(sql)).auth
-    agent = await createTestUser(sql, { email: `test-agent-${uuidv4().slice(0, 8)}@example.com`, display_name: 'George' })
-    await sql`UPDATE users SET roles = ARRAY['inbox_agent'], email_alias = ${'george-' + uuidv4().slice(0, 6)} WHERE id = ${agent.id}`
+    agent = await createTestUser(sql, { email: `test-agent-${randomUUID().slice(0, 8)}@example.com`, display_name: 'George' })
+    await sql`UPDATE users SET roles = ARRAY['inbox_agent'], email_alias = ${'george-' + randomUUID().slice(0, 6)} WHERE id = ${agent.id}`
     agentAuth = getAuthHeaders(agent)
   })
 
@@ -94,8 +94,8 @@ describe('Shared inbox', async () => {
 
   // 1. Inbound creates a conversation + message; duplicate Message-Id is idempotent
   it('creates a conversation and inbound message, and dedupes by Message-Id', async () => {
-    const email = `inbox-a-${uuidv4().slice(0, 8)}@example.com`
-    const messageId = `<msg-${uuidv4()}@example.com>`
+    const email = `inbox-a-${randomUUID().slice(0, 8)}@example.com`
+    const messageId = `<msg-${randomUUID()}@example.com>`
     const res = await postInbound({
       recipient: CONTACT_ADDRESS,
       from: `Tester <${email}>`,
@@ -135,7 +135,7 @@ describe('Shared inbox', async () => {
       await postInbound({
         'x-test-verify-sig': '1',
         timestamp: String(Math.floor(Date.now() / 1000)),
-        token: uuidv4(),
+        token: randomUUID(),
         signature: 'bogus-signature',
         recipient: CONTACT_ADDRESS,
         from: 'a@example.com',
@@ -149,7 +149,7 @@ describe('Shared inbox', async () => {
 
   // 2. Reply to a token reopens a Closed conversation
   it('reopens a closed conversation when the contact replies to the token', async () => {
-    const email = `inbox-reopen-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-reopen-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(email)
     const convo = await makeConversation(subId, { status: 'closed' })
 
@@ -159,7 +159,7 @@ describe('Shared inbox', async () => {
       sender: email,
       subject: 'Re: Existing thread',
       'body-html': '<p>Following up</p>',
-      'message-headers': headerJson([['Message-Id', `<reopen-${uuidv4()}@example.com>`]]),
+      'message-headers': headerJson([['Message-Id', `<reopen-${randomUUID()}@example.com>`]]),
     })
     expect(res.status).toBe('contact')
     expect(res.conversation_id).toBe(convo.id)
@@ -169,7 +169,7 @@ describe('Shared inbox', async () => {
 
   // 3. Reply-by-email: valid signed token + authenticated → outbound; spoofed/unsigned → held
   it('treats a valid signed authenticated reply as a staff send', async () => {
-    const email = `inbox-staff-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-staff-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(email)
     const convo = await makeConversation(subId, { status: 'open' })
 
@@ -189,7 +189,7 @@ describe('Shared inbox', async () => {
       subject: 'Re: Existing thread',
       'body-html': '<p>Thanks for reaching out!</p>',
       'message-headers': headerJson([
-        ['Message-Id', `<staff-${uuidv4()}@example.com>`],
+        ['Message-Id', `<staff-${randomUUID()}@example.com>`],
         ['Authentication-Results', `mx.${INBOX_DOMAIN}; dkim=pass header.d=${agentDomain}; spf=pass`],
       ]),
     })
@@ -205,8 +205,8 @@ describe('Shared inbox', async () => {
   })
 
   it('staff reply-by-email targets the address that last wrote in', async () => {
-    const primaryEmail = `inbox-primary-${uuidv4().slice(0, 8)}@example.com`
-    const replyEmail = `inbox-reply-${uuidv4().slice(0, 8)}@example.com`
+    const primaryEmail = `inbox-primary-${randomUUID().slice(0, 8)}@example.com`
+    const replyEmail = `inbox-reply-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(primaryEmail, { verified: true })
     await sql`
       INSERT INTO contact_methods (subscriber_id, type, value, verified)
@@ -215,7 +215,7 @@ describe('Shared inbox', async () => {
     const convo = await makeConversation(subId, { status: 'open' })
     await sql`
       INSERT INTO conversation_messages (conversation_id, direction, status, from_email, email_message_id)
-      VALUES (${convo.id}, 'inbound', 'received', ${replyEmail}, ${`<last-${uuidv4()}@example.com>`})
+      VALUES (${convo.id}, 'inbound', 'received', ${replyEmail}, ${`<last-${randomUUID()}@example.com>`})
     `
 
     const signedAddress = buildSignedReplyAddress({
@@ -234,7 +234,7 @@ describe('Shared inbox', async () => {
       subject: 'Re: Existing thread',
       'body-html': '<p>Replying to the active address</p>',
       'message-headers': headerJson([
-        ['Message-Id', `<staff-last-address-${uuidv4()}@example.com>`],
+        ['Message-Id', `<staff-last-address-${randomUUID()}@example.com>`],
         ['Authentication-Results', `mx.${INBOX_DOMAIN}; dkim=pass header.d=${agentDomain}; spf=pass`],
       ]),
     })
@@ -252,8 +252,8 @@ describe('Shared inbox', async () => {
   })
 
   it('staff reply-by-email does not send to a suppressed contact address', async () => {
-    const primaryEmail = `inbox-supp-primary-${uuidv4().slice(0, 8)}@example.com`
-    const replyEmail = `inbox-supp-reply-${uuidv4().slice(0, 8)}@example.com`
+    const primaryEmail = `inbox-supp-primary-${randomUUID().slice(0, 8)}@example.com`
+    const replyEmail = `inbox-supp-reply-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(primaryEmail, { verified: true })
     await sql`
       INSERT INTO contact_methods (subscriber_id, type, value, verified, suppressed_at, suppression_reason)
@@ -262,7 +262,7 @@ describe('Shared inbox', async () => {
     const convo = await makeConversation(subId, { status: 'open' })
     await sql`
       INSERT INTO conversation_messages (conversation_id, direction, status, from_email, email_message_id)
-      VALUES (${convo.id}, 'inbound', 'received', ${replyEmail}, ${`<supp-last-${uuidv4()}@example.com>`})
+      VALUES (${convo.id}, 'inbound', 'received', ${replyEmail}, ${`<supp-last-${randomUUID()}@example.com>`})
     `
 
     const signedAddress = buildSignedReplyAddress({
@@ -281,7 +281,7 @@ describe('Shared inbox', async () => {
       subject: 'Re: Existing thread',
       'body-html': '<p>This should not leave the system</p>',
       'message-headers': headerJson([
-        ['Message-Id', `<staff-suppressed-${uuidv4()}@example.com>`],
+        ['Message-Id', `<staff-suppressed-${randomUUID()}@example.com>`],
         ['Authentication-Results', `mx.${INBOX_DOMAIN}; dkim=pass header.d=${agentDomain}; spf=pass`],
       ]),
     })
@@ -306,7 +306,7 @@ describe('Shared inbox', async () => {
   // A Google Workspace domain without custom DKIM signs d=*.gappssmtp.com, which
   // never aligns with the From domain — but DMARC still passes (via SPF). Accept it.
   it('treats a signed reply as staff when DMARC passes even though DKIM is misaligned', async () => {
-    const email = `inbox-dmarc-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-dmarc-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(email)
     const convo = await makeConversation(subId, { status: 'open' })
 
@@ -325,7 +325,7 @@ describe('Shared inbox', async () => {
       subject: 'Re: Existing thread',
       'body-html': '<p>Replying from a Workspace domain</p>',
       'message-headers': headerJson([
-        ['Message-Id', `<staff-dmarc-${uuidv4()}@example.com>`],
+        ['Message-Id', `<staff-dmarc-${randomUUID()}@example.com>`],
         // header.d (gappssmtp) does NOT align with the From domain (example.com),
         // so the DKIM-alignment fallback fails — only dmarc=pass authenticates this.
         ['Authentication-Results', `mxa.mailgun.org; dkim=pass header.d=example-com.20251104.gappssmtp.com; spf=pass; dmarc=pass header.from=example.com`],
@@ -340,7 +340,7 @@ describe('Shared inbox', async () => {
 
   // Same misaligned DKIM but no DMARC vouch → still held (security boundary intact).
   it('holds a signed staff reply when neither DKIM alignment nor DMARC authenticates it', async () => {
-    const email = `inbox-noauth-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-noauth-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(email)
     const convo = await makeConversation(subId, { status: 'open' })
 
@@ -359,7 +359,7 @@ describe('Shared inbox', async () => {
       subject: 'Re: Existing thread',
       'body-html': '<p>Unauthenticated attempt</p>',
       'message-headers': headerJson([
-        ['Message-Id', `<staff-noauth-${uuidv4()}@example.com>`],
+        ['Message-Id', `<staff-noauth-${randomUUID()}@example.com>`],
         ['Authentication-Results', `mxa.mailgun.org; dkim=pass header.d=example-com.20251104.gappssmtp.com; spf=fail; dmarc=fail header.from=example.com`],
       ]),
     })
@@ -371,17 +371,17 @@ describe('Shared inbox', async () => {
   })
 
   it('holds a reply from an unknown sender on the token address', async () => {
-    const email = `inbox-owner-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-owner-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(email)
     const convo = await makeConversation(subId, { status: 'open' })
 
     const res = await postInbound({
       recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
-      from: `Stranger <stranger-${uuidv4().slice(0, 6)}@elsewhere.com>`,
+      from: `Stranger <stranger-${randomUUID().slice(0, 6)}@elsewhere.com>`,
       sender: `stranger@elsewhere.com`,
       subject: 'Re: Existing thread',
       'body-html': '<p>who am I</p>',
-      'message-headers': headerJson([['Message-Id', `<held-${uuidv4()}@elsewhere.com>`]]),
+      'message-headers': headerJson([['Message-Id', `<held-${randomUUID()}@elsewhere.com>`]]),
     })
     expect(res.status).toBe('held')
     const held = await sql`SELECT * FROM conversation_messages WHERE conversation_id = ${convo.id} AND status = 'held'`
@@ -393,22 +393,22 @@ describe('Shared inbox', async () => {
   // 5b. Forged In-Reply-To must not graft onto a victim's conversation (header threading
   // is honored only when the From belongs to that thread's subscriber).
   it('does not thread forged In-Reply-To mail onto a victim conversation', async () => {
-    const ownerEmail = `inbox-victim-${uuidv4().slice(0, 8)}@example.com`
+    const ownerEmail = `inbox-victim-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(ownerEmail)
     const victimConvo = await makeConversation(subId, { status: 'open' })
-    const knownMsgId = `<thread-${uuidv4()}@${INBOX_DOMAIN}>`
+    const knownMsgId = `<thread-${randomUUID()}@${INBOX_DOMAIN}>`
     await sql`
       INSERT INTO conversation_messages (conversation_id, direction, status, email_message_id, to_email)
       VALUES (${victimConvo.id}, 'outbound', 'sent', ${knownMsgId}, ${ownerEmail})
     `
     const res = await postInbound({
       recipient: CONTACT_ADDRESS, // bare contact address, no token
-      from: `Attacker <attacker-${uuidv4().slice(0, 6)}@evil.com>`,
+      from: `Attacker <attacker-${randomUUID().slice(0, 6)}@evil.com>`,
       sender: 'attacker@evil.com',
       subject: 'Re: your thread',
       'body-html': '<p>graft</p>',
       'message-headers': headerJson([
-        ['Message-Id', `<forge-${uuidv4()}@evil.com>`],
+        ['Message-Id', `<forge-${randomUUID()}@evil.com>`],
         ['In-Reply-To', knownMsgId],
       ]),
     })
@@ -421,10 +421,10 @@ describe('Shared inbox', async () => {
 
   // 5c. A real contact's header-referenced reply (no token) threads when the From matches.
   it('threads a header-referenced reply when the From matches the subscriber', async () => {
-    const ownerEmail = `inbox-thread-${uuidv4().slice(0, 8)}@example.com`
+    const ownerEmail = `inbox-thread-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(ownerEmail)
     const convo = await makeConversation(subId, { status: 'pending' })
-    const knownMsgId = `<thread-ok-${uuidv4()}@${INBOX_DOMAIN}>`
+    const knownMsgId = `<thread-ok-${randomUUID()}@${INBOX_DOMAIN}>`
     await sql`
       INSERT INTO conversation_messages (conversation_id, direction, status, email_message_id, to_email)
       VALUES (${convo.id}, 'outbound', 'sent', ${knownMsgId}, ${ownerEmail})
@@ -436,7 +436,7 @@ describe('Shared inbox', async () => {
       subject: 'Re: thread',
       'body-html': '<p>my reply</p>',
       'message-headers': headerJson([
-        ['Message-Id', `<reply-${uuidv4()}@example.com>`],
+        ['Message-Id', `<reply-${randomUUID()}@example.com>`],
         ['In-Reply-To', knownMsgId],
       ]),
     })
@@ -446,7 +446,7 @@ describe('Shared inbox', async () => {
 
   // 5d. A vacation / out-of-office auto-reply auto-closes the thread and doesn't notify staff.
   it('auto-closes a vacation auto-reply and skips staff notification', async () => {
-    const email = `inbox-ooo-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-ooo-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(email)
     const convo = await makeConversation(subId, { status: 'pending' })
     const res = await postInbound({
@@ -456,7 +456,7 @@ describe('Shared inbox', async () => {
       subject: 'Out of office',
       'body-html': '<p>I am away until Monday.</p>',
       'message-headers': headerJson([
-        ['Message-Id', `<ooo-${uuidv4()}@example.com>`],
+        ['Message-Id', `<ooo-${randomUUID()}@example.com>`],
         ['Auto-Submitted', 'auto-replied'],
       ]),
     })
@@ -475,10 +475,10 @@ describe('Shared inbox', async () => {
   // (Out-of-office auto-replies follow RFC 3834 to the Return-Path, which is this address.)
   it('drops mail addressed to the VERP bounce/return-path', async () => {
     const verpRecipient = `bounce+431d88.59575eb-pastor=ketteringag.com@${INBOX_DOMAIN}`
-    const messageId = `<ooo-bounce-${uuidv4()}@ketteringag.com>`
+    const messageId = `<ooo-bounce-${randomUUID()}@ketteringag.com>`
     const res = await postInbound({
       recipient: verpRecipient,
-      from: `Ryan <pastorryan-${uuidv4().slice(0, 6)}@ketteringag.com>`,
+      from: `Ryan <pastorryan-${randomUUID().slice(0, 6)}@ketteringag.com>`,
       sender: 'pastorryan@ketteringag.com',
       subject: 'Out of Office Re: Prayer Reminder',
       'body-html': '<p>I will be out of office until June 22nd.</p>',
@@ -498,17 +498,17 @@ describe('Shared inbox', async () => {
   // 5f. An out-of-office auto-reply that lands as `held` (unknown sender on a token) is
   // closed quietly — not flagged for review and no staff notification.
   it('auto-closes a held auto-reply without flagging or notifying', async () => {
-    const ownerEmail = `inbox-held-ooo-${uuidv4().slice(0, 8)}@example.com`
+    const ownerEmail = `inbox-held-ooo-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(ownerEmail)
     const convo = await makeConversation(subId, { status: 'open' })
     const res = await postInbound({
       recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
-      from: `Stranger <stranger-${uuidv4().slice(0, 6)}@elsewhere.com>`,
+      from: `Stranger <stranger-${randomUUID().slice(0, 6)}@elsewhere.com>`,
       sender: 'stranger@elsewhere.com',
       subject: 'Automatic reply: Re: Existing thread',
       'body-html': '<p>I am away until Monday.</p>',
       'message-headers': headerJson([
-        ['Message-Id', `<held-ooo-${uuidv4()}@elsewhere.com>`],
+        ['Message-Id', `<held-ooo-${randomUUID()}@elsewhere.com>`],
         ['Auto-Submitted', 'auto-replied'],
       ]),
     })
@@ -526,7 +526,7 @@ describe('Shared inbox', async () => {
 
   // 6. verified semantics on authenticated vs unauthenticated inbound
   it('verifies the contact method on authenticated inbound only', async () => {
-    const emailAuthed = `inbox-verify-${uuidv4().slice(0, 8)}@example.com`
+    const emailAuthed = `inbox-verify-${randomUUID().slice(0, 8)}@example.com`
     const subA = await makeSubscriber(emailAuthed, { verified: false })
     const convoA = await makeConversation(subA, { status: 'open' })
     await postInbound({
@@ -535,14 +535,14 @@ describe('Shared inbox', async () => {
       sender: emailAuthed,
       'body-html': '<p>hello</p>',
       'message-headers': headerJson([
-        ['Message-Id', `<verify-${uuidv4()}@example.com>`],
+        ['Message-Id', `<verify-${randomUUID()}@example.com>`],
         ['Authentication-Results', `mx.${INBOX_DOMAIN}; dkim=pass header.d=example.com`],
       ]),
     })
     const [cmA] = await sql`SELECT verified FROM contact_methods WHERE LOWER(value) = LOWER(${emailAuthed})`
     expect(cmA!.verified).toBe(true)
 
-    const emailUnauth = `inbox-noverify-${uuidv4().slice(0, 8)}@example.com`
+    const emailUnauth = `inbox-noverify-${randomUUID().slice(0, 8)}@example.com`
     const subB = await makeSubscriber(emailUnauth, { verified: false })
     const convoB = await makeConversation(subB, { status: 'open' })
     await postInbound({
@@ -550,7 +550,7 @@ describe('Shared inbox', async () => {
       from: `Tester <${emailUnauth}>`,
       sender: emailUnauth,
       'body-html': '<p>hello</p>',
-      'message-headers': headerJson([['Message-Id', `<noverify-${uuidv4()}@example.com>`]]),
+      'message-headers': headerJson([['Message-Id', `<noverify-${randomUUID()}@example.com>`]]),
     })
     const [cmB] = await sql`SELECT verified FROM contact_methods WHERE LOWER(value) = LOWER(${emailUnauth})`
     expect(cmB!.verified).toBe(false)
@@ -558,10 +558,10 @@ describe('Shared inbox', async () => {
 
   // 4 (delivery). delivery webhook sets delivered_at, leaves verified untouched
   it('updates outbound delivery state from the delivery webhook', async () => {
-    const email = `inbox-deliver-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-deliver-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(email, { verified: false })
     const convo = await makeConversation(subId, { status: 'pending' })
-    const providerId = `<prov-${uuidv4()}@${INBOX_DOMAIN}>`
+    const providerId = `<prov-${randomUUID()}@${INBOX_DOMAIN}>`
     await sql`
       INSERT INTO conversation_messages (conversation_id, direction, status, provider_message_id, to_email)
       VALUES (${convo.id}, 'outbound', 'sent', ${providerId}, ${email})
@@ -591,10 +591,10 @@ describe('Shared inbox', async () => {
       await postInbound({
         'x-test-fail': 'db',
         recipient: CONTACT_ADDRESS,
-        from: `t-${uuidv4().slice(0, 6)}@example.com`,
+        from: `t-${randomUUID().slice(0, 6)}@example.com`,
         sender: `t@example.com`,
         'body-html': '<p>x</p>',
-        'message-headers': headerJson([['Message-Id', `<fail-${uuidv4()}@example.com>`]]),
+        'message-headers': headerJson([['Message-Id', `<fail-${randomUUID()}@example.com>`]]),
       })
     } catch (err: any) {
       status = err?.statusCode || err?.response?.status || 0
@@ -614,7 +614,7 @@ describe('Shared inbox', async () => {
 
   // 5. Mark spam blocklists the sender and auto-closes future inbound
   it('marks spam, blocklists the sender, and auto-closes future inbound', async () => {
-    const email = `inbox-spam-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-spam-${randomUUID().slice(0, 8)}@example.com`
     createdSpamEmails.push(email)
     const subId = await makeSubscriber(email)
     const convo = await makeConversation(subId, { status: 'open' })
@@ -635,7 +635,7 @@ describe('Shared inbox', async () => {
       sender: email,
       subject: 'buy now',
       'body-html': '<p>spam</p>',
-      'message-headers': headerJson([['Message-Id', `<spam-${uuidv4()}@example.com>`]]),
+      'message-headers': headerJson([['Message-Id', `<spam-${randomUUID()}@example.com>`]]),
     })
     expect(res.status).toBe('spam')
     const [newConvo] = await sql`SELECT status FROM conversations WHERE id = ${res.conversation_id}`
@@ -644,7 +644,7 @@ describe('Shared inbox', async () => {
 
   // 9. Permissions
   it('rejects inbox endpoints for users without inbox.view', async () => {
-    const noRole = await createTestUser(sql, { email: `test-norole-${uuidv4().slice(0, 8)}@example.com` })
+    const noRole = await createTestUser(sql, { email: `test-norole-${randomUUID().slice(0, 8)}@example.com` })
     const noRoleAuth = getAuthHeaders(noRole)
     let status = 0
     try {
@@ -660,7 +660,7 @@ describe('Shared inbox', async () => {
 
   // In-app send queues an outbound message + a job
   it('queues an outbound message when an agent replies in-app', async () => {
-    const email = `inbox-send-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-send-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(email, { verified: true })
     const convo = await makeConversation(subId, { status: 'open' })
 
@@ -684,7 +684,7 @@ describe('Shared inbox', async () => {
   // The auto-ack only fires for an *authenticated* inbound (a forged From must not
   // trigger an ack to the victim), so this cold conversation passes DKIM/DMARC.
   it('enqueues durable auto-ack and notification jobs for a new cold conversation', async () => {
-    const email = `inbox-ack-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-ack-${randomUUID().slice(0, 8)}@example.com`
     const res = await postInbound({
       recipient: CONTACT_ADDRESS,
       from: `Asker <${email}>`,
@@ -694,7 +694,7 @@ describe('Shared inbox', async () => {
       'stripped-html': '<p>Can you help?</p>',
       'body-plain': 'Can you help?',
       'message-headers': headerJson([
-        ['Message-Id', `<ack-${uuidv4()}@example.com>`],
+        ['Message-Id', `<ack-${randomUUID()}@example.com>`],
         ['Authentication-Results', `mx.${INBOX_DOMAIN}; dkim=pass header.d=example.com`],
       ]),
     })
@@ -714,7 +714,7 @@ describe('Shared inbox', async () => {
 
   // 10. Subscriber delete cascades conversations + messages
   it('cascades conversations and messages when a subscriber is deleted', async () => {
-    const email = `inbox-cascade-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-cascade-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(email)
     const convo = await makeConversation(subId, { status: 'open' })
     await sql`
@@ -735,7 +735,7 @@ describe('Shared inbox', async () => {
   // Composing to a new address creates the subscriber + contact method, a pending
   // conversation assigned to the sender, and a queued outbound message + job.
   it('starts a conversation and queues an outbound email to a new address', async () => {
-    const email = `inbox-compose-new-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-compose-new-${randomUUID().slice(0, 8)}@example.com`
     const res = await $fetch<{ conversation: any; message: any; queued: boolean }>(
       '/api/admin/inbox/conversations',
       { method: 'POST', body: { to_email: email, to_name: 'Newcomer', subject: 'Hello', body_html: '<p>Hi there</p>', body_text: 'Hi there' }, ...agentAuth }
@@ -761,7 +761,7 @@ describe('Shared inbox', async () => {
 
   // Composing by subscriber_id targets that contact's primary email.
   it('emails an existing contact by subscriber_id', async () => {
-    const email = `inbox-compose-contact-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-compose-contact-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(email, { verified: true })
 
     const res = await $fetch<{ conversation: any; message: any; queued: boolean }>(
@@ -776,11 +776,11 @@ describe('Shared inbox', async () => {
   })
 
   it('emails an existing contact by subscriber_id using a non-suppressed primary email', async () => {
-    const suppressedEmail = `inbox-compose-suppressed-${uuidv4().slice(0, 8)}@example.com`
-    const deliverableEmail = `inbox-compose-deliverable-${uuidv4().slice(0, 8)}@example.com`
+    const suppressedEmail = `inbox-compose-suppressed-${randomUUID().slice(0, 8)}@example.com`
+    const deliverableEmail = `inbox-compose-deliverable-${randomUUID().slice(0, 8)}@example.com`
     const [sub] = await sql`
       INSERT INTO subscribers (tracking_id, profile_id, name)
-      VALUES (${uuidv4()}, ${uuidv4()}, 'Test Inbox Suppressed Primary')
+      VALUES (${randomUUID()}, ${randomUUID()}, 'Test Inbox Suppressed Primary')
       RETURNING id
     `
     createdSubscriberIds.push(sub!.id)
@@ -803,7 +803,7 @@ describe('Shared inbox', async () => {
 
   // Composing to a known contact's email reuses the existing subscriber (no duplicate).
   it('reuses an existing subscriber when composing to a known email', async () => {
-    const email = `inbox-compose-dedupe-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-compose-dedupe-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(email)
 
     const res = await $fetch<{ conversation: any }>(
@@ -818,7 +818,7 @@ describe('Shared inbox', async () => {
   })
 
   it('rejects compose with missing/invalid fields', async () => {
-    const valid = { to_email: `inbox-bad-${uuidv4().slice(0, 8)}@example.com`, subject: 'S', body_html: '<p>B</p>' }
+    const valid = { to_email: `inbox-bad-${randomUUID().slice(0, 8)}@example.com`, subject: 'S', body_html: '<p>B</p>' }
     const cases = [
       { ...valid, to_email: undefined },               // no recipient
       { ...valid, subject: '   ' },                    // empty subject
@@ -837,7 +837,7 @@ describe('Shared inbox', async () => {
   })
 
   it('rejects compose to a contact with no email', async () => {
-    const [sub] = await sql`INSERT INTO subscribers (tracking_id, profile_id, name) VALUES (${uuidv4()}, ${uuidv4()}, 'No Email') RETURNING id`
+    const [sub] = await sql`INSERT INTO subscribers (tracking_id, profile_id, name) VALUES (${randomUUID()}, ${randomUUID()}, 'No Email') RETURNING id`
     createdSubscriberIds.push(sub!.id)
     let status = 0
     try {
@@ -849,7 +849,7 @@ describe('Shared inbox', async () => {
   })
 
   it('rejects conversation-less inline-image upload without inbox.send', async () => {
-    const noRole = await createTestUser(sql, { email: `test-noimg-${uuidv4().slice(0, 8)}@example.com` })
+    const noRole = await createTestUser(sql, { email: `test-noimg-${randomUUID().slice(0, 8)}@example.com` })
     const noRoleAuth = getAuthHeaders(noRole)
     let status = 0
     try {
@@ -861,11 +861,11 @@ describe('Shared inbox', async () => {
   })
 
   it('rejects compose for users without inbox.send', async () => {
-    const noRole = await createTestUser(sql, { email: `test-nosend-${uuidv4().slice(0, 8)}@example.com` })
+    const noRole = await createTestUser(sql, { email: `test-nosend-${randomUUID().slice(0, 8)}@example.com` })
     const noRoleAuth = getAuthHeaders(noRole)
     let status = 0
     try {
-      await $fetch('/api/admin/inbox/conversations', { method: 'POST', body: { to_email: `x-${uuidv4().slice(0, 8)}@example.com`, subject: 'S', body_html: '<p>B</p>' }, ...noRoleAuth })
+      await $fetch('/api/admin/inbox/conversations', { method: 'POST', body: { to_email: `x-${randomUUID().slice(0, 8)}@example.com`, subject: 'S', body_html: '<p>B</p>' }, ...noRoleAuth })
     } catch (err: any) {
       status = err?.statusCode || err?.response?.status || 0
     }
@@ -876,7 +876,7 @@ describe('Shared inbox', async () => {
   // Driven through the VITEST-only job runner so the real processor logic is exercised.
 
   it('never sends a staff reply to a held (wrong-From) sender — received-only recipient', async () => {
-    const contactEmail = `inbox-sec-${uuidv4().slice(0, 8)}@example.com`
+    const contactEmail = `inbox-sec-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(contactEmail)
     const convo = await makeConversation(subId, { status: 'open' })
     // Genuine contact message (status='received')
@@ -884,15 +884,15 @@ describe('Shared inbox', async () => {
       recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
       from: `Real <${contactEmail}>`, sender: contactEmail,
       'body-html': '<p>hi team</p>',
-      'message-headers': headerJson([['Message-Id', `<recv-${uuidv4()}@example.com>`]]),
+      'message-headers': headerJson([['Message-Id', `<recv-${randomUUID()}@example.com>`]]),
     })
     // Attacker who learned the token but a wrong From → held, becomes the latest inbound
-    const attackerEmail = `attacker-${uuidv4().slice(0, 6)}@evil.com`
+    const attackerEmail = `attacker-${randomUUID().slice(0, 6)}@evil.com`
     const held = await postInbound({
       recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
       from: `Attacker <${attackerEmail}>`, sender: attackerEmail,
       'body-html': '<p>redirect to me</p>',
-      'message-headers': headerJson([['Message-Id', `<held-${uuidv4()}@evil.com>`]]),
+      'message-headers': headerJson([['Message-Id', `<held-${randomUUID()}@evil.com>`]]),
     })
     expect(held.status).toBe('held')
     // Staff replies in-app (this path never sets message.to_email)
@@ -906,16 +906,16 @@ describe('Shared inbox', async () => {
   })
 
   it('replies to the address the contact wrote from, not the verified primary', async () => {
-    const wroteFrom = `inbox-wrote-${uuidv4().slice(0, 8)}@example.com` // unverified, older → not primary
+    const wroteFrom = `inbox-wrote-${randomUUID().slice(0, 8)}@example.com` // unverified, older → not primary
     const subId = await makeSubscriber(wroteFrom)
-    const primary = `inbox-prim-${uuidv4().slice(0, 8)}@example.com`
+    const primary = `inbox-prim-${randomUUID().slice(0, 8)}@example.com`
     await sql`INSERT INTO contact_methods (subscriber_id, type, value, verified) VALUES (${subId}, 'email', ${primary}, true)`
     const convo = await makeConversation(subId, { status: 'open' })
     await postInbound({
       recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
       from: `Contact <${wroteFrom}>`, sender: wroteFrom,
       'body-html': '<p>writing from here</p>',
-      'message-headers': headerJson([['Message-Id', `<wrote-${uuidv4()}@example.com>`]]),
+      'message-headers': headerJson([['Message-Id', `<wrote-${randomUUID()}@example.com>`]]),
     })
     await composeReply(convo.id, '<p>Reply NEEDLE-WROTE</p>', 'reply')
     await clearRecordedEmails()
@@ -926,7 +926,7 @@ describe('Shared inbox', async () => {
   })
 
   it('skips sending a reply to a suppressed recipient', async () => {
-    const email = `inbox-supp-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-supp-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(email)
     await sql`UPDATE contact_methods SET suppressed_at = NOW() WHERE LOWER(value) = LOWER(${email})`
     const convo = await makeConversation(subId, { status: 'open' })
@@ -934,7 +934,7 @@ describe('Shared inbox', async () => {
       recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
       from: `Contact <${email}>`, sender: email,
       'body-html': '<p>hi</p>',
-      'message-headers': headerJson([['Message-Id', `<supp-${uuidv4()}@example.com>`]]),
+      'message-headers': headerJson([['Message-Id', `<supp-${randomUUID()}@example.com>`]]),
     })
     await composeReply(convo.id, '<p>Should not send NEEDLE-SUPP</p>', 'reply')
     await clearRecordedEmails()
@@ -945,14 +945,14 @@ describe('Shared inbox', async () => {
   })
 
   it('sanitizes the staff body before sending', async () => {
-    const email = `inbox-san-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-san-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(email)
     const convo = await makeConversation(subId, { status: 'open' })
     await postInbound({
       recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
       from: `Contact <${email}>`, sender: email,
       'body-html': '<p>hi</p>',
-      'message-headers': headerJson([['Message-Id', `<san-${uuidv4()}@example.com>`]]),
+      'message-headers': headerJson([['Message-Id', `<san-${randomUUID()}@example.com>`]]),
     })
     await composeReply(convo.id, '<p>Hello NEEDLE-SAN</p><script>alert(1)</script>', 'reply')
     await clearRecordedEmails()
@@ -963,14 +963,14 @@ describe('Shared inbox', async () => {
   })
 
   it('does not re-send when a completed outbound job is requeued (claim guard)', async () => {
-    const email = `inbox-claim-${uuidv4().slice(0, 8)}@example.com`
+    const email = `inbox-claim-${randomUUID().slice(0, 8)}@example.com`
     const subId = await makeSubscriber(email)
     const convo = await makeConversation(subId, { status: 'open' })
     await postInbound({
       recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
       from: `Contact <${email}>`, sender: email,
       'body-html': '<p>hi</p>',
-      'message-headers': headerJson([['Message-Id', `<claim-${uuidv4()}@example.com>`]]),
+      'message-headers': headerJson([['Message-Id', `<claim-${randomUUID()}@example.com>`]]),
     })
     await composeReply(convo.id, '<p>Once only NEEDLE-CLAIM</p>', 'reply')
     await clearRecordedEmails()
@@ -985,14 +985,14 @@ describe('Shared inbox', async () => {
 
   it('fails an outbound reply only on the final attempt, not one early', async () => {
     // The 'failsend' tag makes the test transport simulate a provider failure every attempt.
-    const email = `inbox-retry-${uuidv4().slice(0, 8)}+failsend@example.com`
+    const email = `inbox-retry-${randomUUID().slice(0, 8)}+failsend@example.com`
     const subId = await makeSubscriber(email)
     const convo = await makeConversation(subId, { status: 'open' })
     await postInbound({
       recipient: `contact+${convo.reply_token}@${INBOX_DOMAIN}`,
       from: `Contact <${email}>`, sender: email,
       'body-html': '<p>hi</p>',
-      'message-headers': headerJson([['Message-Id', `<retry-${uuidv4()}@example.com>`]]),
+      'message-headers': headerJson([['Message-Id', `<retry-${randomUUID()}@example.com>`]]),
     })
     await composeReply(convo.id, '<p>keeps failing</p>', 'reply')
     const status = async () => (await sql`
@@ -1026,7 +1026,7 @@ describe('Shared inbox', async () => {
     })
 
     it('creates a tag and is idempotent by slug', async () => {
-      const name = `Bug Report ${uuidv4().slice(0, 6)}`
+      const name = `Bug Report ${randomUUID().slice(0, 6)}`
       const tag = await createTag(name, 'error')
       expect(tag.slug).toBeTruthy()
       expect(tag.color).toBe('error')
@@ -1041,9 +1041,9 @@ describe('Shared inbox', async () => {
     })
 
     it('assigns tags to a conversation and drops unknown slugs', async () => {
-      const subId = await makeSubscriber(`inbox-tag-assign-${uuidv4().slice(0, 8)}@example.com`)
+      const subId = await makeSubscriber(`inbox-tag-assign-${randomUUID().slice(0, 8)}@example.com`)
       const convo = await makeConversation(subId, { status: 'open' })
-      const tag = await createTag(`People Group Updates ${uuidv4().slice(0, 6)}`, 'info')
+      const tag = await createTag(`People Group Updates ${randomUUID().slice(0, 6)}`, 'info')
 
       const res = await $fetch<{ conversation: { tags: string[] } }>(
         `/api/admin/inbox/conversations/${convo.id}/tags`,
@@ -1056,9 +1056,9 @@ describe('Shared inbox', async () => {
     })
 
     it('filters the conversation list by tag', async () => {
-      const tag = await createTag(`Filter ${uuidv4().slice(0, 6)}`, 'warning')
-      const convoA = await makeConversation(await makeSubscriber(`inbox-tag-fa-${uuidv4().slice(0, 8)}@example.com`), { status: 'open' })
-      const convoB = await makeConversation(await makeSubscriber(`inbox-tag-fb-${uuidv4().slice(0, 8)}@example.com`), { status: 'open' })
+      const tag = await createTag(`Filter ${randomUUID().slice(0, 6)}`, 'warning')
+      const convoA = await makeConversation(await makeSubscriber(`inbox-tag-fa-${randomUUID().slice(0, 8)}@example.com`), { status: 'open' })
+      const convoB = await makeConversation(await makeSubscriber(`inbox-tag-fb-${randomUUID().slice(0, 8)}@example.com`), { status: 'open' })
       await $fetch(`/api/admin/inbox/conversations/${convoA.id}/tags`, { method: 'PUT', body: { tags: [tag.slug] }, ...agentAuth })
 
       const res = await $fetch<{ conversations: { id: number }[] }>(
@@ -1070,9 +1070,9 @@ describe('Shared inbox', async () => {
     })
 
     it('counts conversations per tag, excluding spam', async () => {
-      const tag = await createTag(`Counted ${uuidv4().slice(0, 6)}`, 'success')
-      const c1 = await makeConversation(await makeSubscriber(`inbox-tagc1-${uuidv4().slice(0, 8)}@example.com`), { status: 'open' })
-      const c2 = await makeConversation(await makeSubscriber(`inbox-tagc2-${uuidv4().slice(0, 8)}@example.com`), { status: 'spam' })
+      const tag = await createTag(`Counted ${randomUUID().slice(0, 6)}`, 'success')
+      const c1 = await makeConversation(await makeSubscriber(`inbox-tagc1-${randomUUID().slice(0, 8)}@example.com`), { status: 'open' })
+      const c2 = await makeConversation(await makeSubscriber(`inbox-tagc2-${randomUUID().slice(0, 8)}@example.com`), { status: 'spam' })
       await $fetch(`/api/admin/inbox/conversations/${c1.id}/tags`, { method: 'PUT', body: { tags: [tag.slug] }, ...agentAuth })
       await $fetch(`/api/admin/inbox/conversations/${c2.id}/tags`, { method: 'PUT', body: { tags: [tag.slug] }, ...agentAuth })
 
@@ -1081,10 +1081,10 @@ describe('Shared inbox', async () => {
     })
 
     it('deletes a tag and strips it from conversations', async () => {
-      const subId = await makeSubscriber(`inbox-tagdel-${uuidv4().slice(0, 8)}@example.com`)
+      const subId = await makeSubscriber(`inbox-tagdel-${randomUUID().slice(0, 8)}@example.com`)
       const convo = await makeConversation(subId, { status: 'open' })
       const created = await $fetch<{ tag: { slug: string } }>(
-        '/api/admin/inbox/tags', { method: 'POST', body: { name: `Temp ${uuidv4().slice(0, 6)}`, color: 'neutral' }, ...agentAuth },
+        '/api/admin/inbox/tags', { method: 'POST', body: { name: `Temp ${randomUUID().slice(0, 6)}`, color: 'neutral' }, ...agentAuth },
       )
       const slug = created.tag.slug
       await $fetch(`/api/admin/inbox/conversations/${convo.id}/tags`, { method: 'PUT', body: { tags: [slug] }, ...agentAuth })
@@ -1098,7 +1098,7 @@ describe('Shared inbox', async () => {
     })
 
     it('rejects tag mutations for users without inbox.view', async () => {
-      const noRole = await createTestUser(sql, { email: `test-notag-${uuidv4().slice(0, 8)}@example.com` })
+      const noRole = await createTestUser(sql, { email: `test-notag-${randomUUID().slice(0, 8)}@example.com` })
       const noRoleAuth = getAuthHeaders(noRole)
       let status = 0
       try {

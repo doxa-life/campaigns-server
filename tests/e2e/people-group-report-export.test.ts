@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { fetch as rawFetch } from '@nuxt/test-utils/e2e'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import { getTestDatabase, closeTestDatabase, cleanupTestData } from '../helpers/db'
 import { createAdminUser, createNoRoleUser, type TestUser, type AuthHeaders } from '../helpers/auth'
 
@@ -43,7 +43,7 @@ describe('People Group Reports CSV export', async () => {
 
     const [group] = await sql`
       INSERT INTO people_groups (name, slug, population, status, engagement_status, metadata)
-      VALUES ('Test Export Group', ${'test-export-group-' + uuidv4().slice(0, 8)}, 1000, 'active', 'unengaged', ${sql.json({ imb_pgid: '12345' })})
+      VALUES ('Test Export Group', ${'test-export-group-' + randomUUID().slice(0, 8)}, 1000, 'active', 'unengaged', ${sql.json({ imb_pgid: '12345' })})
       RETURNING id
     `
     groupId = group!.id

@@ -1,5 +1,5 @@
 import { describe, it, expect, afterAll } from 'vitest'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import { getTestDatabase, closeTestDatabase } from '../../../helpers/db'
 import { conversationService } from '../../../../server/database/conversations'
 
@@ -21,7 +21,7 @@ describe('Inbox auto-close of stale pending conversations', async () => {
     needs_review?: boolean
     lastMessageDaysAgo?: number | null
   } = {}): Promise<number> {
-    const token = uuidv4().replace(/-/g, '').slice(0, 20)
+    const token = randomUUID().replace(/-/g, '').slice(0, 20)
     const lastMessageAt = opts.lastMessageDaysAgo == null
       ? null
       : new Date(Date.now() - opts.lastMessageDaysAgo * 24 * 60 * 60 * 1000).toISOString()

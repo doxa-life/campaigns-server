@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest'
 import { $fetch } from '@nuxt/test-utils/e2e'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import {
   getTestDatabase,
   closeTestDatabase,
@@ -58,7 +58,7 @@ describe('GET /api/people-groups/[slug]/verify', async () => {
     })
 
     // Set token with past expiration
-    const token = uuidv4()
+    const token = randomUUID()
     const expiredDate = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000) // 8 days ago
     await setVerificationToken(sql, contact.id, token, expiredDate)
 
@@ -81,7 +81,7 @@ describe('GET /api/people-groups/[slug]/verify', async () => {
     })
 
     // Set valid token
-    const token = uuidv4()
+    const token = randomUUID()
     const futureDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000) // 6 days from now
     await setVerificationToken(sql, contact.id, token, futureDate)
 
@@ -116,7 +116,7 @@ describe('GET /api/people-groups/[slug]/verify', async () => {
     })
 
     // Set valid token
-    const token = uuidv4()
+    const token = randomUUID()
     const futureDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000) // 6 days from now
     await setVerificationToken(sql, contact.id, token, futureDate)
 
@@ -143,7 +143,7 @@ describe('GET /api/people-groups/[slug]/verify', async () => {
     })
 
     // Set valid token
-    const token = uuidv4()
+    const token = randomUUID()
     const futureDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000) // 6 days from now
     await setVerificationToken(sql, contact.id, token, futureDate)
 

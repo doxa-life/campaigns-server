@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import { getTestDatabase, closeTestDatabase, cleanupTestData } from '../helpers/db'
 
 // Stub the outbound transport so no real email leaves the test run.
@@ -37,7 +37,7 @@ describe('Applied suggestion emails', async () => {
       status: 'accepted',
       reporter_name: 'Test Notify Reporter',
       reporter_org: 'Test Org',
-      reporter_email: `test-${uuidv4().slice(0, 8)}@example.com`,
+      reporter_email: `test-${randomUUID().slice(0, 8)}@example.com`,
       suggested_changes: changes
     })
     return (await peopleGroupReportService.getById(created.id))!
@@ -48,7 +48,7 @@ describe('Applied suggestion emails', async () => {
 
     addedGroup = await peopleGroupService.createPeopleGroup({
       name: 'Test Notify Added Group',
-      slug: `test-notify-added-${uuidv4().slice(0, 8)}`,
+      slug: `test-notify-added-${randomUUID().slice(0, 8)}`,
       country_code: 'NPL',
       population: 4321,
       status: 'active',

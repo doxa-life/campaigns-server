@@ -1,5 +1,5 @@
 import type postgres from 'postgres'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import * as jwt from 'jsonwebtoken'
 import * as bcrypt from 'bcrypt'
 
@@ -33,13 +33,13 @@ export async function createTestUser(
     verified?: boolean
   } = {}
 ): Promise<TestUser> {
-  const id = uuidv4()
-  const email = options.email || `test-${uuidv4().slice(0, 8)}@example.com`
+  const id = randomUUID()
+  const email = options.email || `test-${randomUUID().slice(0, 8)}@example.com`
   const display_name = options.display_name || 'Test User'
   const password = options.password || 'testpassword123'
   const roles = options.role ? [options.role] : []
   const verified = options.verified ?? true
-  const token_key = uuidv4()
+  const token_key = randomUUID()
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
 

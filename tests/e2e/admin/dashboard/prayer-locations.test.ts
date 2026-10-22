@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { $fetch } from '@nuxt/test-utils/e2e'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import {
   getTestDatabase,
   closeTestDatabase,
@@ -43,7 +43,7 @@ describe('GET /api/admin/dashboard/prayer-locations', async () => {
     const timestamp = new Date(Date.now() - (options.daysAgo ?? 0) * 24 * 60 * 60 * 1000).toISOString()
     await sql`
       INSERT INTO prayer_activity (people_group_id, session_id, tracking_id, duration, timestamp, country)
-      VALUES (${peopleGroupId}, ${`test-loc-${uuidv4()}`}, ${options.trackingId ?? null}, 60, ${timestamp}, ${options.country ?? null})
+      VALUES (${peopleGroupId}, ${`test-loc-${randomUUID()}`}, ${options.trackingId ?? null}, 60, ${timestamp}, ${options.country ?? null})
     `
   }
 

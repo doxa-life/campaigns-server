@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, afterAll } from 'vitest'
 import { $fetch } from '@nuxt/test-utils/e2e'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import {
   getTestDatabase,
   closeTestDatabase,
@@ -48,7 +48,7 @@ describe('GET /api/contact/verify (cross-flow subscription activation)', async (
       WHERE id = ${subscription.id}
     `
 
-    const token = uuidv4()
+    const token = randomUUID()
     const futureDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000)
     await setVerificationToken(sql, contact.id, token, futureDate)
 
@@ -79,7 +79,7 @@ describe('GET /api/contact/verify (cross-flow subscription activation)', async (
       WHERE id = ${subscription.id}
     `
 
-    const token = uuidv4()
+    const token = randomUUID()
     const futureDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000)
     await setVerificationToken(sql, phone.id, token, futureDate)
 

@@ -1,6 +1,6 @@
 // @ts-expect-error - postgres module uses export= syntax
 import postgres from 'postgres'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 
 let testDb: ReturnType<typeof postgres> | null = null
 
@@ -114,7 +114,7 @@ export async function createTestPeopleGroup(
     slug?: string
   } = {}
 ) {
-  const slugId = uuidv4().slice(0, 8)
+  const slugId = randomUUID().slice(0, 8)
   const title = options.title || `Test People Group ${slugId}`
   const slug = options.slug || `test-${slugId}`
 
@@ -133,8 +133,8 @@ export async function createTestSubscriber(
     name?: string
   } = {}
 ) {
-  const tracking_id = uuidv4()
-  const profile_id = uuidv4()
+  const tracking_id = randomUUID()
+  const profile_id = randomUUID()
   const name = options.name || 'Test Subscriber'
 
   const result = await sql`
@@ -156,7 +156,7 @@ export async function createTestContactMethod(
   } = {}
 ) {
   const type = options.type || 'email'
-  const value = options.value || `test-${uuidv4().slice(0, 8)}@example.com`
+  const value = options.value || `test-${randomUUID().slice(0, 8)}@example.com`
   const verified = options.verified ?? false
 
   const result = await sql`
@@ -364,8 +364,8 @@ export async function createTestUserInvitation(
     expires_in_days?: number
   }
 ): Promise<TestUserInvitation> {
-  const email = options.email || `test-${uuidv4().slice(0, 8)}@example.com`
-  const token = uuidv4()
+  const email = options.email || `test-${randomUUID().slice(0, 8)}@example.com`
+  const token = randomUUID()
   const roles = options.role ? [options.role] : []
   const status = options.status ?? 'pending'
   const expires_in_days = options.expires_in_days ?? 7
@@ -478,7 +478,7 @@ export async function createTestLibrary(
     library_key?: string | null
   } = {}
 ): Promise<TestLibrary> {
-  const name = options.name || `Test Library ${uuidv4().slice(0, 8)}`
+  const name = options.name || `Test Library ${randomUUID().slice(0, 8)}`
   const description = options.description ?? ''
   const type = options.type ?? 'static'
   const repeating = options.repeating ?? false
@@ -605,7 +605,7 @@ export async function createTestGroup(
     country?: string | null
   } = {}
 ): Promise<TestGroup> {
-  const name = options.name || `Test Group ${uuidv4().slice(0, 8)}`
+  const name = options.name || `Test Group ${randomUUID().slice(0, 8)}`
   const primary_subscriber_id = options.primary_subscriber_id ?? null
   const country = options.country ?? null
 
@@ -733,7 +733,7 @@ export async function createTestChurch(
     location_status?: string | null
   } = {}
 ): Promise<TestChurch> {
-  const name = options.name || `Test Church ${uuidv4().slice(0, 8)}`
+  const name = options.name || `Test Church ${randomUUID().slice(0, 8)}`
   const result = await sql`
     INSERT INTO churches (name, town, country, pastor_name, congregation_size, service_language, latitude, longitude, location_status)
     VALUES (

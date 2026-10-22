@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { $fetch } from '@nuxt/test-utils/e2e'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import { getTestDatabase, closeTestDatabase, cleanupTestData } from '../../../helpers/db'
 import { createTestUser, getAuthHeaders, type TestUser, type AuthHeaders } from '../../../helpers/auth'
 
@@ -15,7 +15,7 @@ describe('Inbox bulk actions', () => {
   async function makeSubscriber(email: string): Promise<number> {
     const [sub] = await sql`
       INSERT INTO subscribers (tracking_id, profile_id, name)
-      VALUES (${uuidv4()}, ${uuidv4()}, ${'Test Bulk ' + email})
+      VALUES (${randomUUID()}, ${randomUUID()}, ${'Test Bulk ' + email})
       RETURNING id
     `
     await sql`
@@ -30,7 +30,7 @@ describe('Inbox bulk actions', () => {
     subscriberId: number,
     opts: { status?: string; needsReview?: boolean; tags?: string[] } = {},
   ) {
-    const token = uuidv4().replace(/-/g, '').slice(0, 20)
+    const token = randomUUID().replace(/-/g, '').slice(0, 20)
     const [c] = await sql`
       INSERT INTO conversations (subscriber_id, status, reply_token, subject, needs_review, tags)
       VALUES (${subscriberId}, ${opts.status || 'open'}, ${token}, 'Bulk thread',
@@ -53,7 +53,7 @@ describe('Inbox bulk actions', () => {
 
   beforeAll(async () => {
     await cleanupTestData(sql)
-    agent = await createTestUser(sql, { email: `test-bulk-agent-${uuidv4().slice(0, 8)}@example.com` })
+    agent = await createTestUser(sql, { email: `test-bulk-agent-${randomUUID().slice(0, 8)}@example.com` })
     await sql`UPDATE users SET roles = ARRAY['inbox_agent'] WHERE id = ${agent.id}`
     agentAuth = getAuthHeaders(agent)
   })
@@ -70,7 +70,7 @@ describe('Inbox bulk actions', () => {
   })
 
   it('closes several conversations at once and clears their review flags', async () => {
-    const subId = await makeSubscriber(`bulk-close-${uuidv4().slice(0, 8)}@example.com`)
+    const subId = await makeSubscriber(`bulk-close-${randomUUID().slice(0, 8)}@example.com`)
     const a = await makeConversation(subId, { status: 'open', needsReview: true })
     const b = await makeConversation(subId, { status: 'pending' })
     const c = await makeConversation(subId, { status: 'open' })
@@ -86,7 +86,7 @@ describe('Inbox bulk actions', () => {
   })
 
   it('assigns and unassigns in bulk', async () => {
-    const subId = await makeSubscriber(`bulk-assign-${uuidv4().slice(0, 8)}@example.com`)
+    const subId = await makeSubscriber(`bulk-assign-${randomUUID().slice(0, 8)}@example.com`)
     const a = await makeConversation(subId)
     const b = await makeConversation(subId)
 
@@ -103,8 +103,8 @@ describe('Inbox bulk actions', () => {
   })
 
   it('rejects an assignee without inbox access', async () => {
-    const outsider = await createTestUser(sql, { email: `test-bulk-norole-${uuidv4().slice(0, 8)}@example.com` })
-    const subId = await makeSubscriber(`bulk-badassign-${uuidv4().slice(0, 8)}@example.com`)
+    const outsider = await createTestUser(sql, { email: `test-bulk-norole-${randomUUID().slice(0, 8)}@example.com` })
+    const subId = await makeSubscriber(`bulk-badassign-${randomUUID().slice(0, 8)}@example.com`)
     const a = await makeConversation(subId)
 
     let status = 0
@@ -118,11 +118,11 @@ describe('Inbox bulk actions', () => {
 
   it('adds tags without duplicating or removing existing ones', async () => {
     const { tag } = await $fetch<{ tag: { slug: string } }>(
-      '/api/admin/inbox/tags', { method: 'POST', body: { name: `Bulk ${uuidv4().slice(0, 6)}` }, ...agentAuth },
+      '/api/admin/inbox/tags', { method: 'POST', body: { name: `Bulk ${randomUUID().slice(0, 6)}` }, ...agentAuth },
     )
     createdTagSlugs.push(tag.slug)
 
-    const subId = await makeSubscriber(`bulk-tags-${uuidv4().slice(0, 8)}@example.com`)
+    const subId = await makeSubscriber(`bulk-tags-${randomUUID().slice(0, 8)}@example.com`)
     const bare = await makeConversation(subId)
     const tagged = await makeConversation(subId, { tags: ['keep-me'] })
     const already = await makeConversation(subId, { tags: [tag.slug] })
@@ -137,7 +137,7 @@ describe('Inbox bulk actions', () => {
   })
 
   it('rejects spam as a bulk status', async () => {
-    const subId = await makeSubscriber(`bulk-spam-${uuidv4().slice(0, 8)}@example.com`)
+    const subId = await makeSubscriber(`bulk-spam-${randomUUID().slice(0, 8)}@example.com`)
     const a = await makeConversation(subId)
 
     let status = 0
@@ -150,7 +150,7 @@ describe('Inbox bulk actions', () => {
   })
 
   it('requires ids and at least one action', async () => {
-    const subId = await makeSubscriber(`bulk-empty-${uuidv4().slice(0, 8)}@example.com`)
+    const subId = await makeSubscriber(`bulk-empty-${randomUUID().slice(0, 8)}@example.com`)
     const a = await makeConversation(subId)
 
     for (const body of [{ status: 'closed' }, { ids: [], status: 'closed' }, { ids: [a.id] }]) {
@@ -165,7 +165,7 @@ describe('Inbox bulk actions', () => {
   })
 
   it('skips ids that do not exist', async () => {
-    const subId = await makeSubscriber(`bulk-missing-${uuidv4().slice(0, 8)}@example.com`)
+    const subId = await makeSubscriber(`bulk-missing-${randomUUID().slice(0, 8)}@example.com`)
     const a = await makeConversation(subId)
 
     const res = await bulk({ ids: [a.id, 99999999], status: 'pending' })
@@ -186,7 +186,7 @@ describe('Inbox bulk actions', () => {
   })
 
   it('rejects users without inbox.view', async () => {
-    const noRole = await createTestUser(sql, { email: `test-bulk-view-${uuidv4().slice(0, 8)}@example.com` })
+    const noRole = await createTestUser(sql, { email: `test-bulk-view-${randomUUID().slice(0, 8)}@example.com` })
     let status = 0
     try {
       await bulk({ ids: [1], status: 'closed' }, getAuthHeaders(noRole))

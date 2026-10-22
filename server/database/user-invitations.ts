@@ -1,5 +1,5 @@
 import { getSql } from './db'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import type { RoleName } from './roles'
 
 export interface UserInvitation {
@@ -33,7 +33,7 @@ export class UserInvitationService {
   async createInvitation(data: CreateInvitationData): Promise<UserInvitation> {
     const { email, invited_by, roles = [], expires_in_days = 7 } = data
 
-    const token = uuidv4()
+    const token = randomUUID()
 
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + expires_in_days)

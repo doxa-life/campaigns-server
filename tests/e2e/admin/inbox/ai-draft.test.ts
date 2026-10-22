@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { $fetch } from '@nuxt/test-utils/e2e'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import { getTestDatabase, closeTestDatabase, cleanupTestData } from '../../../helpers/db'
 import { createTestUser, getAuthHeaders, type TestUser, type AuthHeaders } from '../../../helpers/auth'
 
@@ -16,16 +16,16 @@ describe('Inbox AI drafting', async () => {
   async function makeConversationWithInbound(): Promise<{ conversationId: number; subscriberId: number }> {
     const [sub] = await sql`
       INSERT INTO subscribers (tracking_id, profile_id, name)
-      VALUES (${uuidv4()}, ${uuidv4()}, 'AI Draft Tester')
+      VALUES (${randomUUID()}, ${randomUUID()}, 'AI Draft Tester')
       RETURNING id
     `
     const subscriberId = sub!.id as number
     createdSubscriberIds.push(subscriberId)
     await sql`
       INSERT INTO contact_methods (subscriber_id, type, value, verified)
-      VALUES (${subscriberId}, 'email', ${`ai-${uuidv4().slice(0, 8)}@example.com`}, true)
+      VALUES (${subscriberId}, 'email', ${`ai-${randomUUID().slice(0, 8)}@example.com`}, true)
     `
-    const token = uuidv4().replace(/-/g, '').slice(0, 20)
+    const token = randomUUID().replace(/-/g, '').slice(0, 20)
     const [c] = await sql`
       INSERT INTO conversations (subscriber_id, status, reply_token, subject)
       VALUES (${subscriberId}, 'open', ${token}, 'How do I adopt?')
@@ -42,8 +42,8 @@ describe('Inbox AI drafting', async () => {
 
   beforeAll(async () => {
     await cleanupTestData(sql)
-    agent = await createTestUser(sql, { email: `ai-agent-${uuidv4().slice(0, 8)}@example.com`, display_name: 'Grace' })
-    await sql`UPDATE users SET roles = ARRAY['inbox_agent'], email_alias = ${'grace-' + uuidv4().slice(0, 6)} WHERE id = ${agent.id}`
+    agent = await createTestUser(sql, { email: `ai-agent-${randomUUID().slice(0, 8)}@example.com`, display_name: 'Grace' })
+    await sql`UPDATE users SET roles = ARRAY['inbox_agent'], email_alias = ${'grace-' + randomUUID().slice(0, 6)} WHERE id = ${agent.id}`
     agentAuth = getAuthHeaders(agent)
   })
 
@@ -227,7 +227,7 @@ describe('Inbox AI drafting', async () => {
     })
     createdEntryIds.push(created.entry.id)
 
-    const outsider = await createTestUser(sql, { email: `test-outsider-${uuidv4().slice(0, 8)}@example.com` })
+    const outsider = await createTestUser(sql, { email: `test-outsider-${randomUUID().slice(0, 8)}@example.com` })
     const outsiderAuth = getAuthHeaders(outsider)
 
     const calls: [string, string, object?][] = [
@@ -272,7 +272,7 @@ describe('Inbox AI drafting', async () => {
 
   it('blocks a user without inbox.send from drafting', async () => {
     const { conversationId } = await makeConversationWithInbound()
-    const outsider = await createTestUser(sql, { email: `outsider-${uuidv4().slice(0, 8)}@example.com`, display_name: 'No Access' })
+    const outsider = await createTestUser(sql, { email: `outsider-${randomUUID().slice(0, 8)}@example.com`, display_name: 'No Access' })
     const outsiderAuth = getAuthHeaders(outsider)
     let status = 0
     try {

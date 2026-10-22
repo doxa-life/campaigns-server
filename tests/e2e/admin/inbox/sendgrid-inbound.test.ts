@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { $fetch } from '@nuxt/test-utils/e2e'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import { getTestDatabase, closeTestDatabase, cleanupTestData } from '../../../helpers/db'
 
 const INBOX_DOMAIN = process.env.INBOX_DOMAIN || 'doxa.life'
@@ -24,9 +24,9 @@ describe('SendGrid inbound webhook', async () => {
     // Top-level MIME type; a delivery report uses multipart/report.
     contentType?: string
   }): string {
-    const boundary = `b-${uuidv4().slice(0, 8)}`
+    const boundary = `b-${randomUUID().slice(0, 8)}`
     return [
-      `Message-ID: ${opts.messageId || `<sg-mime-${uuidv4()}@example.com>`}`,
+      `Message-ID: ${opts.messageId || `<sg-mime-${randomUUID()}@example.com>`}`,
       `From: ${opts.fromName ? `${opts.fromName} <${opts.from}>` : opts.from}`,
       `To: ${opts.to}`,
       `Subject: ${opts.subject}`,
@@ -89,8 +89,8 @@ describe('SendGrid inbound webhook', async () => {
   })
 
   it('parses raw MIME into a conversation + inbound message, and dedupes on redelivery', async () => {
-    const email = `sg-inbox-a-${uuidv4().slice(0, 8)}@example.com`
-    const messageId = `<sg-msg-${uuidv4()}@example.com>`
+    const email = `sg-inbox-a-${randomUUID().slice(0, 8)}@example.com`
+    const messageId = `<sg-msg-${randomUUID()}@example.com>`
     const mime = buildMime({
       from: email,
       fromName: 'SendGrid Tester',
@@ -123,10 +123,10 @@ describe('SendGrid inbound webhook', async () => {
   })
 
   it('threads a reply-token recipient into the existing conversation and reopens it', async () => {
-    const email = `sg-reopen-${uuidv4().slice(0, 8)}@example.com`
+    const email = `sg-reopen-${randomUUID().slice(0, 8)}@example.com`
     const [sub] = await sql`
       INSERT INTO subscribers (tracking_id, profile_id, name)
-      VALUES (${uuidv4()}, ${uuidv4()}, ${'Test SendGrid ' + email})
+      VALUES (${randomUUID()}, ${randomUUID()}, ${'Test SendGrid ' + email})
       RETURNING id
     `
     createdSubscriberIds.push(sub!.id)
@@ -134,7 +134,7 @@ describe('SendGrid inbound webhook', async () => {
       INSERT INTO contact_methods (subscriber_id, type, value, verified)
       VALUES (${sub!.id}, 'email', ${email}, false)
     `
-    const token = uuidv4().replace(/-/g, '').slice(0, 20)
+    const token = randomUUID().replace(/-/g, '').slice(0, 20)
     const [convo] = await sql`
       INSERT INTO conversations (subscriber_id, status, reply_token, subject)
       VALUES (${sub!.id}, 'closed', ${token}, 'Existing thread')
@@ -151,10 +151,10 @@ describe('SendGrid inbound webhook', async () => {
   })
 
   it('routes on the inbox-domain envelope recipient when others are listed first', async () => {
-    const email = `sg-multi-${uuidv4().slice(0, 8)}@example.com`
+    const email = `sg-multi-${randomUUID().slice(0, 8)}@example.com`
     const [sub] = await sql`
       INSERT INTO subscribers (tracking_id, profile_id, name)
-      VALUES (${uuidv4()}, ${uuidv4()}, ${'Test SendGrid ' + email})
+      VALUES (${randomUUID()}, ${randomUUID()}, ${'Test SendGrid ' + email})
       RETURNING id
     `
     createdSubscriberIds.push(sub!.id)
@@ -162,7 +162,7 @@ describe('SendGrid inbound webhook', async () => {
       INSERT INTO contact_methods (subscriber_id, type, value, verified)
       VALUES (${sub!.id}, 'email', ${email}, false)
     `
-    const token = uuidv4().replace(/-/g, '').slice(0, 20)
+    const token = randomUUID().replace(/-/g, '').slice(0, 20)
     const [convo] = await sql`
       INSERT INTO conversations (subscriber_id, status, reply_token, subject)
       VALUES (${sub!.id}, 'open', ${token}, 'Multi-recipient thread')
@@ -179,7 +179,7 @@ describe('SendGrid inbound webhook', async () => {
   })
 
   it('derives stripped body variants from quoted-reply content', async () => {
-    const email = `sg-strip-${uuidv4().slice(0, 8)}@example.com`
+    const email = `sg-strip-${randomUUID().slice(0, 8)}@example.com`
     const html =
       '<div dir="ltr"><p>Just the new part</p></div>' +
       '<div class="gmail_quote">On Tue, Sep 1, 2026 at 3:12 PM Doxa wrote:<blockquote>the old thread</blockquote></div>'
@@ -200,7 +200,7 @@ describe('SendGrid inbound webhook', async () => {
   })
 
   it('marks the inbound authenticated on an aligned DKIM pass', async () => {
-    const email = `sg-auth-${uuidv4().slice(0, 8)}@example.com`
+    const email = `sg-auth-${randomUUID().slice(0, 8)}@example.com`
     const mime = buildMime({ from: email, to: CONTACT_ADDRESS, subject: 'Auth check', html: '<p>hi</p>', text: 'hi' })
 
     const res = await postInbound(parseForm(mime, CONTACT_ADDRESS, email, { dkim: '{@example.com : pass}', spf: 'pass' }))
@@ -213,7 +213,7 @@ describe('SendGrid inbound webhook', async () => {
   })
 
   it('stays unauthenticated on a failing DKIM with unaligned SPF', async () => {
-    const email = `sg-noauth-${uuidv4().slice(0, 8)}@example.com`
+    const email = `sg-noauth-${randomUUID().slice(0, 8)}@example.com`
     const mime = buildMime({ from: email, to: CONTACT_ADDRESS, subject: 'No auth', html: '<p>hi</p>', text: 'hi' })
 
     const res = await postInbound(
@@ -227,9 +227,9 @@ describe('SendGrid inbound webhook', async () => {
   })
 
   it('enforces the URL token when one is expected', async () => {
-    const email = `sg-token-${uuidv4().slice(0, 8)}@example.com`
+    const email = `sg-token-${randomUUID().slice(0, 8)}@example.com`
     const mime = buildMime({ from: email, to: CONTACT_ADDRESS, subject: 'Token check', html: '<p>hi</p>', text: 'hi' })
-    const expected = `tok-${uuidv4().replace(/-/g, '')}`
+    const expected = `tok-${randomUUID().replace(/-/g, '')}`
     const post = (query: string) =>
       $fetch(`/api/webhooks/sendgrid/inbound${query}`, {
         method: 'POST',
@@ -253,7 +253,7 @@ describe('SendGrid inbound webhook', async () => {
   })
 
   it('drops mail addressed to the bounce return-path', async () => {
-    const email = `sg-ooo-${uuidv4().slice(0, 8)}@example.com`
+    const email = `sg-ooo-${randomUUID().slice(0, 8)}@example.com`
     const bounceAddress = `bounce+abc123@${INBOX_DOMAIN}`
     const mime = buildMime({ from: email, to: bounceAddress, subject: 'Out of Office', html: '<p>away</p>', text: 'away' })
 
@@ -265,10 +265,10 @@ describe('SendGrid inbound webhook', async () => {
   // An Exchange out-of-office reply is `Auto-Submitted: auto-generated` with a blank
   // envelope sender, and goes to the reminder's From address rather than the return-path.
   it('auto-closes an Exchange out-of-office reply to the reminder sender without notifying', async () => {
-    const email = `sg-oof-${uuidv4().slice(0, 8)}@example.com`
+    const email = `sg-oof-${randomUUID().slice(0, 8)}@example.com`
     const [sub] = await sql`
       INSERT INTO subscribers (tracking_id, profile_id, name)
-      VALUES (${uuidv4()}, ${uuidv4()}, ${'Test SendGrid ' + email})
+      VALUES (${randomUUID()}, ${randomUUID()}, ${'Test SendGrid ' + email})
       RETURNING id
     `
     createdSubscriberIds.push(sub!.id)
@@ -298,7 +298,7 @@ describe('SendGrid inbound webhook', async () => {
   })
 
   it('keeps a delivery status report open for review', async () => {
-    const email = `sg-dsn-${uuidv4().slice(0, 8)}@example.com`
+    const email = `sg-dsn-${randomUUID().slice(0, 8)}@example.com`
     const mime = buildMime({
       from: email,
       to: CONTACT_ADDRESS,
