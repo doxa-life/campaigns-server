@@ -45,30 +45,18 @@ async function logSubscriptionActivity(
 export default defineNitroPlugin((nitroApp) => {
   if (process.env.VITEST) return
 
-  console.log(`📱 Scheduling app inactivity sweep (daily at 3 AM UTC, threshold ${INACTIVITY_THRESHOLD_DAYS} days)`)
+  console.log(`📱 Scheduling app reactivation sweep (daily at 3 AM UTC, activity window ${INACTIVITY_THRESHOLD_DAYS} days)`)
 
   const task = new Cron('0 3 * * *', { timezone: 'UTC' }, async () => {
     const dateKey = new Date().toISOString().split('T')[0]!
     if (!await claimAppInactivityLock(dateKey)) return
 
     try {
-      const markedInactive = await peopleGroupSubscriptionService.markInactiveAppSubscriptions(
-        INACTIVITY_THRESHOLD_DAYS
-      )
+      // App subscriptions are never marked inactive. The sweep only brings back
+      // ones marked inactive in the past, once their prayer activity resumes.
       const reactivated = await peopleGroupSubscriptionService.reactivateAppSubscriptionsWithRecentActivity(
         INACTIVITY_THRESHOLD_DAYS
       )
-
-      for (const row of markedInactive) {
-        try {
-          await logSubscriptionActivity(
-            row,
-            `Marked inactive — no prayer activity for ${INACTIVITY_THRESHOLD_DAYS} days (mobile app)`
-          )
-        } catch (error: any) {
-          console.error(`  ❌ Failed to log app-inactivity mark-inactive for subscription ${row.id}:`, error.message)
-        }
-      }
 
       for (const row of reactivated) {
         try {
@@ -78,8 +66,8 @@ export default defineNitroPlugin((nitroApp) => {
         }
       }
 
-      if (markedInactive.length > 0 || reactivated.length > 0) {
-        console.log(`📱 App inactivity sweep complete: ${markedInactive.length} marked inactive, ${reactivated.length} reactivated`)
+      if (reactivated.length > 0) {
+        console.log(`📱 App inactivity sweep complete: ${reactivated.length} reactivated`)
       }
     } catch (error: any) {
       console.error('❌ App inactivity sweep error:', error.message)

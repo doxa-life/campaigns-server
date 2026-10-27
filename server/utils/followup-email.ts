@@ -71,7 +71,6 @@ export async function sendFollowupEmail(data: FollowupEmailData): Promise<boolea
     ? t('email.followup.reminderIntro', locale)
     : t('email.followup.standardIntro', locale)
   const feedbackHelps = t('email.followup.feedbackHelps', locale)
-  const pauseNotice = t('email.followup.pauseNotice', locale)
   const commitmentCheckIn = t('email.followup.commitmentCheckIn', locale, { appName })
   const managePrayerTimes = t('email.common.managePrayerTimes', locale)
 
@@ -129,10 +128,6 @@ export async function sendFollowupEmail(data: FollowupEmailData): Promise<boolea
         <p style="font-size: 14px; color: #666666; margin-top: 30px; text-align: center;">
           ${feedbackHelps}
         </p>
-
-        <p style="font-size: 13px; color: #999999; margin-top: 20px; text-align: center; font-style: italic;">
-          ${pauseNotice}
-        </p>
       </div>
 
       <div style="text-align: center; margin-top: 30px;">
@@ -170,8 +165,6 @@ ${questionText.question}
 - ${questionText.notPrayingText}: ${notPrayingUrl}
 
 ${feedbackHelps}
-
-${pauseNotice}
 
 ---
 ${managePrayerTimes}: ${profileUrl}

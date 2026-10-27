@@ -3,7 +3,7 @@ import { peopleGroupSubscriptionService } from '../database/people-group-subscri
 import { sendFollowupEmail } from '../utils/followup-email'
 
 const ONE_MONTH_MS = 30 * 24 * 60 * 60 * 1000
-const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000
+const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
 export default defineNitroPlugin((nitroApp) => {
@@ -90,7 +90,6 @@ async function processFollowups() {
 
   let processedCount = 0
   let emailsSent = 0
-  let markedInactive = 0
   let cyclesCompleted = 0
 
   for (const subscription of subscriptions) {
@@ -99,19 +98,18 @@ async function processFollowups() {
       processedCount++
 
       if (result === 'email_sent') emailsSent++
-      else if (result === 'marked_inactive') markedInactive++
       else if (result === 'cycle_completed') cyclesCompleted++
     } catch (error: any) {
       console.error(`  ❌ Error processing subscription ${subscription.id}:`, error.message)
     }
   }
 
-  if (emailsSent > 0 || markedInactive > 0 || cyclesCompleted > 0) {
-    console.log(`📧 Follow-up processing complete: ${emailsSent} emails sent, ${cyclesCompleted} cycles completed, ${markedInactive} marked inactive`)
+  if (emailsSent > 0 || cyclesCompleted > 0) {
+    console.log(`📧 Follow-up processing complete: ${emailsSent} emails sent, ${cyclesCompleted} cycles completed`)
   }
 }
 
-type ProcessResult = 'skipped' | 'email_sent' | 'marked_inactive' | 'cycle_completed'
+type ProcessResult = 'skipped' | 'email_sent' | 'cycle_completed'
 
 async function logSubscriberActivity(
   subscriberId: number,
@@ -157,10 +155,13 @@ async function processSubscription(
     ? (typeof days_of_week_raw === 'string' ? JSON.parse(days_of_week_raw) : days_of_week_raw)
     : null
 
-  // Calculate when the next followup is due
-  const baseTimestamp = last_activity_at || created_at
-  const baseDate = new Date(baseTimestamp)
-  const intervalMs = followup_count === 0 ? ONE_MONTH_MS : THREE_MONTHS_MS
+  // Calculate when the next followup is due. Between cycles, a cycle that ended
+  // without a response also counts as a starting point, so an unresponsive
+  // subscriber waits a full interval before the next check-in.
+  const baseTimes = [last_activity_at, created_at]
+  if (followup_reminder_count === 0 && last_followup_at) baseTimes.push(last_followup_at)
+  const baseDate = new Date(Math.max(...baseTimes.filter(Boolean).map(t => new Date(t!).getTime())))
+  const intervalMs = followup_count === 0 ? ONE_MONTH_MS : ONE_YEAR_MS
   const dueAt = new Date(baseDate.getTime() + intervalMs)
 
   // Not due yet
@@ -253,18 +254,19 @@ async function processSubscription(
     const weekAfterFollowup = new Date(lastFollowupDate.getTime() + ONE_WEEK_MS)
 
     if (now < weekAfterFollowup) {
-      return 'skipped' // Not time to mark inactive yet
+      return 'skipped' // Not time to close the cycle yet
     }
 
-    // No response after 2 emails - mark as inactive
-    await peopleGroupSubscriptionService.updateStatus(subscriptionId, 'inactive')
+    // No response after 2 emails - close the cycle but keep the subscription
+    // active; the next check-in comes a year from now
+    await peopleGroupSubscriptionService.completeFollowupCycle(subscriptionId)
     await logSubscriberActivity(subscriber_id, {
       source: 'system',
-      message: 'Marked inactive — no response after 2 follow-up emails for',
+      message: 'No response after 2 follow-up emails, reminders continue for',
       link_text: people_group_name,
       link_url: `/admin/people-groups/${people_group_id}`
     })
-    console.log(`  ⏸️  Marked ${email_value} as inactive (no follow-up response)`)
-    return 'marked_inactive'
+    console.log(`  ⏸️  No follow-up response from ${email_value}, cycle closed`)
+    return 'cycle_completed'
   }
 }
