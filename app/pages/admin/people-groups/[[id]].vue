@@ -390,6 +390,13 @@ const menuItems = [[
     }
   },
   {
+    label: 'Groups without prayer (PDF)',
+    icon: 'i-lucide-file-text',
+    onSelect() {
+      window.open('/api/admin/people-groups/without-prayer-pdf', '_blank')
+    }
+  },
+  {
     label: 'Update from CSV',
     icon: 'i-lucide-upload',
     onSelect() {
