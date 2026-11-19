@@ -968,6 +968,22 @@ paths:
               schema:
                 $ref: '#/components/schemas/PeopleGroupStatistics'
 
+  /api/people-groups/without-prayer-pdf:
+    get:
+      tags:
+        - People Groups
+      summary: PDF of people groups without prayer
+      description: Returns a PDF listing every active (non-archived) people group with no active prayer commitment, numbered and sorted by population (largest first). Each name links to the group's prayer page. No authentication required. Cached for up to 10 minutes.
+      operationId: getPeopleGroupsWithoutPrayerPdf
+      responses:
+        '200':
+          description: The PDF, served inline
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
   /api/people-groups/highlighted:
     get:
       tags:
